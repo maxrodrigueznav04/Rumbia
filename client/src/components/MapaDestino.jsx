@@ -15,12 +15,16 @@ function icono(categoria, esDestino) {
     html: `<div style="
       width:30px;height:30px;border-radius:50% 50% 50% 4px;
       transform:rotate(45deg);
-      background:${esDestino ? '#0a7c9c' : '#fff'};
-      border:2px solid ${esDestino ? '#0a6e87' : '#0f8443'};
-      box-shadow:0 2px 6px rgba(0,0,0,.25);
+      background:${esDestino ? '#05190e' : '#fff'};
+      border:2px solid ${esDestino ? '#05190e' : '#51634e'};
+      box-shadow:0 2px 6px rgba(5,25,14,.28);
       display:grid;place-items:center;">
       <span style="transform:rotate(-45deg);font-size:14px;line-height:1">
-        ${esDestino ? '📍' : ICONOS_CATEGORIA[categoria] || '📍'}
+        ${esDestino
+          // El marcador del destino va en verde oscuro: un emoji encima quedaria
+          // oscuro sobre oscuro, asi que lleva un punto claro dibujado.
+          ? '<span style="display:block;width:8px;height:8px;border-radius:50%;background:#f1f7ef"></span>'
+          : ICONOS_CATEGORIA[categoria] || '📍'}
       </span>
     </div>`,
     iconSize: [30, 30],
@@ -142,7 +146,7 @@ export default function MapaDestino({ destino, pines = [], alto }) {
               {p.dayNumber && (
                 <>
                   <br />
-                  <span style={{ color: '#65727f' }}>Día {p.dayNumber}</span>
+                  <span style={{ color: '#6b706b' }}>Día {p.dayNumber}</span>
                 </>
               )}
             </Popup>

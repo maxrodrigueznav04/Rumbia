@@ -137,12 +137,14 @@ export const ICONOS_CATEGORIA = {
 };
 
 /** Colores de la grafica de presupuesto, alineados con la paleta de la app. */
+/* Escala del mismo verde, con dos acentos apagados: el desglose se lee como
+   una familia y no como un arcoiris. */
 export const COLORES_CATEGORIA = {
-  transporte: '#0a7c9c',
-  hospedaje: '#0f8443',
-  'transporte-local': '#0ea5c9',
-  comida: '#f0a020',
-  actividades: '#8b4a9b',
-  compras: '#f0653c',
-  otros: '#9aa8b2',
+  transporte: '#05190e',
+  hospedaje: '#2f4438',
+  'transporte-local': '#51634e',
+  comida: '#8a6420',
+  actividades: '#6b4a70',
+  compras: '#9c4a35',
+  otros: '#b8ccb3',
 };

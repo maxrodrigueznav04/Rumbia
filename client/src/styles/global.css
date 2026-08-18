@@ -1,95 +1,87 @@
 /* ==========================================================================
    Rumbo — sistema de diseño
 
-   Dirección: editorial y vivo. Azul mar y verde llevan la voz cantante,
-   con coral y ámbar como acentos puntuales. El color se concentra en
-   botones, franjas y marcadores; el resto queda neutro para que no sature.
-   Base neutra casi blanca, azul mar y verde como colores de marca, y una
-   escala tipográfica de mucho contraste (Fraunces para titulares, Inter para
-   texto) que es lo que le da el aire de revista de viajes.
+   Dirección: editorial serena. Verde bosque casi negro sobre crema cálido,
+   serif clásico para los titulares y versalitas con tracking amplio como
+   señalización. El color se usa con cuentagotas: la jerarquía la construyen
+   el tamaño, el espacio y las líneas finas, no la saturación.
+
+   Adaptado de una estética de revista a una herramienta: se conserva el aire
+   y el detalle, pero con la densidad que exigen formularios y listados.
 
    Mobile-first: los breakpoints solo agregan, nunca quitan.
    ========================================================================== */
 
 :root {
-  /* ---------- Marca: azul mar ----------
-     El 500 es el mas vivo que aun da 4.8:1 con texto blanco encima (WCAG AA).
-     El 400 es mas brillante y se reserva para superficies decorativas
-     (degradados, barras), donde no hay texto que leer. */
-  --marca-50: #ecf9fc;
-  --marca-100: #d0eff6;
-  --marca-200: #a5dfec;
-  --marca-400: #0ea5c9;
-  --marca: #0a7c9c;
-  --marca-600: #0a6e87;
-  --marca-700: #0d5468;
+  /* ---------- Verde de marca ----------
+     El 900 es casi negro: da 17:1 sobre el crema, así que sirve igual para
+     titulares que como fondo de botón con texto blanco encima. */
+  --verde-900: #05190e;
+  --verde-800: #1a2e22;
+  --verde-700: #2f4438;
+  --verde: #51634e;
+  --verde-300: #b8ccb3;
+  --verde-200: #d1e6cb;
+  --verde-100: #e4efe0;
+  --verde-50: #f1f7ef;
 
-  /* ---------- Verde ---------- */
-  --verde-50: #ecfaf1;
-  --verde-100: #d2f2df;
-  --verde-200: #a7e5c1;
-  --verde-400: #16a34a;
-  --verde: #0f8443;
-  --verde-600: #0d6b39;
+  /* ---------- Neutros crema ---------- */
+  --crema-0: #ffffff;
+  --crema-50: #fcf9f8;
+  --crema-100: #f6f3f2;
+  --crema-200: #f0eded;
+  --crema-300: #e4e2e1;
+  --linea: #c3c8c2;
+  --linea-suave: #dcdedb;
+  --tinta: #1b1c1c;
+  --tinta-700: #424843;
+  --tinta-500: #6b706b;
 
-  /* ---------- Acentos ---------- */
-  --coral-100: #fde3da;
-  --coral-400: #f0653c;
-  --coral: #c94520;
-  --ambar-100: #fdeed2;
-  --ambar-400: #f0a020;
-  --ambar: #b8781a;
-  --ambar-600: #96600f;
-  --ciruela: #8b4a9b;
-  --indigo: #3f5bb5;
-
-  /* ---------- Neutros ----------
-     Casi blancos con un punto de frio: dejan que el azul y el verde resalten
-     sin que la pantalla entera se sienta tenida. */
-  --gris-0: #ffffff;
-  --gris-50: #fbfcfd;
-  --gris-100: #f2f6f8;
-  --gris-200: #e4eaee;
-  --gris-300: #cbd5db;
-  --gris-400: #9aa8b2;
-  --tinta: #1a2430;
-  --tinta-700: #44515f;
-  --tinta-500: #65727f;
-
-  /* ---------- Semanticos ---------- */
-  --bg: var(--gris-50);
-  --surface: var(--gris-0);
-  --surface-alt: var(--gris-100);
-  --border: var(--gris-200);
-  --border-fuerte: var(--gris-300);
+  /* ---------- Semánticos ---------- */
+  --bg: var(--crema-50);
+  --surface: var(--crema-0);
+  --surface-alt: var(--crema-100);
+  --border: var(--linea-suave);
+  --border-fuerte: var(--linea);
   --texto: var(--tinta);
   --texto-suave: var(--tinta-700);
   --texto-tenue: var(--tinta-500);
-  --exito: var(--verde);
-  --exito-bg: var(--verde-50);
-  --alerta: var(--ambar);
-  --alerta-bg: var(--ambar-100);
-  --error: #c23a2b;
-  --error-bg: #fbe4e1;
+  --exito: #3d6b45;
+  --exito-bg: var(--verde-100);
+  --alerta: #8a6420;
+  --alerta-bg: #f7eddb;
+  --error: #ba1a1a;
+  --error-bg: #ffdad6;
 
-  /* ---------- Forma ---------- */
-  --radio-sm: 10px;
-  --radio: 16px;
-  --radio-lg: 24px;
-  --sombra-sm: 0 1px 2px rgba(26, 36, 48, 0.05);
-  --sombra: 0 4px 14px rgba(26, 36, 48, 0.07);
-  --sombra-lg: 0 16px 40px rgba(26, 36, 48, 0.13);
-  --contenedor: 1120px;
-  --nav-alto: 66px;
+  /* ---------- Acentos, muy medidos ---------- */
+  --marca: var(--verde-900);
+  --marca-600: var(--verde-800);
+  --marca-100: var(--verde-100);
+  --marca-50: var(--verde-50);
+  --ambar: #8a6420;
+  --coral: #9c4a35;
+  --ciruela: #6b4a70;
 
-  /* ---------- Ritmo ---------- */
+  /* ---------- Forma ----------
+     Casi rectas: el radio grande suaviza, y aquí lo que se busca es una
+     sobriedad de página impresa. */
+  --radio-sm: 3px;
+  --radio: 4px;
+  --radio-lg: 6px;
+  --sombra-sm: none;
+  --sombra: 0 2px 12px rgba(5, 25, 14, 0.05);
+  --sombra-lg: 0 24px 60px rgba(5, 25, 14, 0.13);
+  --contenedor: 1160px;
+  --nav-alto: 72px;
+
+  /* ---------- Ritmo, más generoso ---------- */
   --e1: 4px;
   --e2: 8px;
-  --e3: 12px;
-  --e4: 16px;
-  --e5: 24px;
-  --e6: 32px;
-  --e7: 48px;
+  --e3: 14px;
+  --e4: 20px;
+  --e5: 28px;
+  --e6: 44px;
+  --e7: 72px;
 
   /* ---------- Escala de apilamiento ----------
      Leaflet usa hasta z-index 1000 en sus controles y 700 en los popups.
@@ -100,8 +92,8 @@
   --z-aviso: 4000;
 
   /* ---------- Tipografía ---------- */
-  --fuente: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --fuente-titulo: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --fuente: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --fuente-titulo: 'Libre Caslon Text', 'Iowan Old Style', Georgia, serif;
 }
 
 *,
@@ -131,44 +123,44 @@ body {
    decorativo. */
 h1, h2, h3 {
   font-family: var(--fuente-titulo);
-  font-variation-settings: 'SOFT' 30, 'WONK' 1;
-  font-weight: 600;
-  line-height: 1.1;
+  font-weight: 400; /* Caslon ya tiene peso visual: el bold lo ensucia */
+  line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 0 0 var(--e2);
-  color: var(--texto);
+  color: var(--verde-900);
 }
 
-h1 { font-size: clamp(1.75rem, 1.3rem + 2.2vw, 2.5rem); }
-h2 { font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.75rem); }
-h3 { font-size: 1.12rem; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem); line-height: 1.08; }
+h2 { font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem); }
+h3 { font-size: 1.2rem; letter-spacing: -0.01em; }
 
 h4 {
   font-family: var(--fuente);
   font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.35;
   margin: 0 0 var(--e1);
 }
 
 p { margin: 0 0 var(--e3); }
 
 a {
-  color: var(--marca-600);
+  color: var(--verde-900);
   text-decoration: none;
-  font-weight: 550;
+  font-weight: 500;
+  text-underline-offset: 3px;
 }
 a:hover { text-decoration: underline; }
 
 :focus-visible {
-  outline: 2.5px solid var(--marca-400);
+  outline: 2px solid var(--verde-700);
   outline-offset: 2px;
   border-radius: var(--radio-sm);
 }
 
 ::selection {
-  background: var(--marca-100);
-  color: var(--marca-700);
+  background: var(--verde-200);
+  color: var(--verde-900);
 }
 
 /* ---------------------- Layout ---------------------- */
@@ -230,7 +222,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: var(--z-nav);
   height: var(--nav-alto);
-  background: rgba(251, 252, 253, 0.82);
+  background: rgba(252, 249, 248, 0.86);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
 }
@@ -248,48 +240,47 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: var(--e2);
   font-family: var(--fuente-titulo);
-  font-variation-settings: 'SOFT' 30, 'WONK' 1;
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--texto);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--verde-900);
 }
 .marca:hover { text-decoration: none; }
 
 .marca-punto {
   width: 30px;
   height: 30px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--marca-400), var(--verde));
+  border-radius: var(--radio-sm);
+  background: var(--verde-900);
   display: grid;
   place-items: center;
   color: #fff;
   font-size: 15px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(10, 124, 156, 0.30);
 }
 
-.nav-links { display: none; gap: var(--e1); }
+.nav-links { display: none; gap: var(--e6); }
 @media (min-width: 760px) {
   .nav-links { display: flex; }
 }
 
 .nav-link {
-  padding: 8px 14px;
-  border-radius: 999px;
+  padding: 8px 2px;
   color: var(--texto-suave);
-  font-size: 0.92rem;
-  font-weight: 550;
-  transition: background 0.15s ease, color 0.15s ease;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 .nav-link:hover {
-  background: var(--surface-alt);
-  color: var(--texto);
+  color: var(--verde-900);
   text-decoration: none;
 }
 .nav-link.activo {
-  background: var(--marca-50);
-  color: var(--marca-600);
+  color: var(--verde-900);
+  border-bottom-color: var(--verde-900);
 }
 
 .tabbar {
@@ -320,7 +311,7 @@ a:hover { text-decoration: underline; }
   color: var(--texto-tenue);
 }
 .tabbar a:hover { text-decoration: none; }
-.tabbar a.activo { color: var(--marca-600); }
+.tabbar a.activo { color: var(--verde-900); }
 .tabbar span[aria-hidden] { font-size: 1.2rem; line-height: 1; }
 
 /* ---------------------- Tarjetas ---------------------- */
@@ -330,7 +321,6 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--border);
   border-radius: var(--radio);
   padding: var(--e5);
-  box-shadow: var(--sombra-sm);
 }
 @media (max-width: 480px) {
   .tarjeta { padding: var(--e4); }
@@ -346,14 +336,11 @@ a:hover { text-decoration: underline; }
 .tarjeta-link {
   display: block;
   color: inherit;
-  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
-              box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: border-color 0.3s ease;
 }
 .tarjeta-link:hover {
   text-decoration: none;
-  transform: translateY(-3px);
-  box-shadow: var(--sombra-lg);
-  border-color: var(--gris-300);
+  border-color: var(--verde-900);
 }
 
 .tarjeta-titulo {
@@ -370,12 +357,12 @@ a:hover { text-decoration: underline; }
 .tarjeta-viaje { overflow: hidden; padding: 0; }
 
 .viaje-franja {
-  height: 7px;
-  background: linear-gradient(90deg, var(--marca-400), var(--verde-400));
+  height: 4px;
+  background: var(--verde-900);
 }
-.viaje-franja.completado { background: linear-gradient(90deg, var(--verde-400), var(--marca-200)); }
-.viaje-franja.borrador { background: linear-gradient(90deg, var(--gris-300), var(--gris-200)); }
-.viaje-franja.en-curso { background: linear-gradient(90deg, var(--ambar-400), var(--coral-400)); }
+.viaje-franja.completado { background: var(--verde); }
+.viaje-franja.borrador { background: var(--linea); }
+.viaje-franja.en-curso { background: var(--ambar); }
 
 .viaje-cuerpo { padding: var(--e5); }
 @media (max-width: 480px) {
@@ -384,10 +371,12 @@ a:hover { text-decoration: underline; }
 
 /* ---------------------- Tipografía auxiliar ---------------------- */
 
+/* Versalitas de señalización: la firma tipográfica de esta dirección.
+   Van encima de los titulares y en los encabezados de bloque. */
 .etiqueta {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--texto-tenue);
 }
@@ -401,9 +390,8 @@ a:hover { text-decoration: underline; }
 }
 .grande {
   font-family: var(--fuente-titulo);
-  font-variation-settings: 'SOFT' 30, 'WONK' 1;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 400;
   letter-spacing: -0.02em;
 }
 .centrado { text-align: center; }
@@ -414,20 +402,22 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 11px;
-  border-radius: 999px;
-  font-size: 0.76rem;
+  padding: 5px 11px;
+  border-radius: var(--radio-sm);
+  font-size: 0.68rem;
   font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   background: var(--surface-alt);
   color: var(--texto-suave);
   border: 1px solid var(--border);
   white-space: nowrap;
   line-height: 1.5;
 }
-.insignia.marca { background: var(--marca-50); color: var(--marca-600); border-color: var(--marca-100); }
-.insignia.verde { background: var(--verde-50); color: var(--verde-600); border-color: transparent; }
-.insignia.cielo, .insignia.marca-suave { background: var(--marca-50); color: var(--marca-600); border-color: transparent; }
-.insignia.ambar { background: var(--ambar-100); color: var(--ambar-600); border-color: transparent; }
+.insignia.marca { background: var(--verde-900); color: #fff; border-color: var(--verde-900); }
+.insignia.verde { background: var(--verde-200); color: var(--verde-900); border-color: transparent; }
+.insignia.cielo, .insignia.marca-suave { background: var(--verde-100); color: var(--verde-800); border-color: transparent; }
+.insignia.ambar { background: var(--alerta-bg); color: var(--alerta); border-color: transparent; }
 .insignia.exito { background: var(--exito-bg); color: var(--exito); border-color: transparent; }
 .insignia.error { background: var(--error-bg); color: var(--error); border-color: transparent; }
 
@@ -448,19 +438,19 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   align-items: center;
   justify-content: center;
   gap: var(--e2);
-  padding: 11px 20px;
-  min-height: 46px;
-  border: 1px solid transparent;
-  border-radius: 999px;
+  padding: 13px 26px;
+  min-height: 48px;
+  border: 1px solid var(--verde-900);
+  border-radius: var(--radio);
   font-family: inherit;
-  font-size: 0.94rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
-  background: var(--marca);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  background: var(--verde-900);
   color: #fff;
-  box-shadow: 0 2px 10px rgba(10, 124, 156, 0.24);
 }
 .boton:hover:not(:disabled) {
   background: var(--marca-600);
@@ -471,33 +461,32 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .boton:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
 .boton.secundario {
-  background: var(--surface);
-  color: var(--texto);
-  border-color: var(--border-fuerte);
-  box-shadow: var(--sombra-sm);
+  background: transparent;
+  color: var(--verde-900);
+  border-color: var(--linea);
 }
 .boton.secundario:hover:not(:disabled) {
-  background: var(--surface-alt);
-  box-shadow: var(--sombra-sm);
+  background: var(--verde-900);
+  color: #fff;
+  border-color: var(--verde-900);
 }
 
 .boton.fantasma {
   background: transparent;
   color: var(--texto-suave);
   border-color: transparent;
-  padding: 8px 12px;
-  box-shadow: none;
+  padding: 9px 12px;
+  letter-spacing: 0.06em;
 }
 .boton.fantasma:hover:not(:disabled) {
   background: var(--surface-alt);
-  color: var(--texto);
-  box-shadow: none;
+  color: var(--verde-900);
 }
 
-.boton.peligro { background: var(--error); box-shadow: 0 2px 10px rgba(194, 58, 43, 0.24); }
-.boton.peligro:hover:not(:disabled) { background: #9e2f23; }
+.boton.peligro { background: var(--error); border-color: var(--error); }
+.boton.peligro:hover:not(:disabled) { background: transparent; color: var(--error); }
 
-.boton.chico { min-height: 38px; padding: 7px 15px; font-size: 0.86rem; }
+.boton.chico { min-height: 40px; padding: 9px 16px; font-size: 0.7rem; letter-spacing: 0.1em; }
 .boton.ancho { width: 100%; }
 
 /* ---------------------- Formularios ---------------------- */
@@ -532,8 +521,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo select:focus,
 .campo textarea:focus {
   outline: none;
-  border-color: var(--marca-400);
-  box-shadow: 0 0 0 3.5px var(--marca-100);
+  border-color: var(--verde-700);
+  box-shadow: 0 0 0 3px var(--verde-100);
 }
 
 .campo input:disabled {
@@ -574,12 +563,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .medidor-barra {
   height: 5px;
   border-radius: 999px;
-  background: var(--gris-200);
+  background: var(--crema-300);
   transition: background 0.25s ease;
 }
 .medidor-barra.error { background: var(--error); }
 .medidor-barra.alerta { background: var(--alerta); }
-.medidor-barra.cielo { background: var(--marca-400); }
+.medidor-barra.cielo { background: var(--verde); }
 .medidor-barra.exito { background: var(--exito); }
 
 .campos-2 { display: grid; gap: var(--e3); grid-template-columns: 1fr; }
@@ -630,8 +619,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .buscador input:focus {
   outline: none;
-  border-color: var(--marca-400);
-  box-shadow: 0 0 0 3.5px var(--marca-100);
+  border-color: var(--verde-700);
+  box-shadow: 0 0 0 3px var(--verde-100);
 }
 .buscador input::-webkit-search-cancel-button { display: none; }
 
@@ -672,9 +661,9 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   line-height: 1.55;
 }
 .aviso.error { background: var(--error-bg); color: #8f2b20; border-color: #f4d0cb; }
-.aviso.exito { background: var(--exito-bg); color: var(--verde-600); border-color: var(--verde-100); }
-.aviso.alerta { background: var(--alerta-bg); color: var(--ambar-600); border-color: #f2dfba; }
-.aviso.info { background: var(--marca-50); color: var(--marca-700); border-color: var(--marca-100); }
+.aviso.exito { background: var(--exito-bg); color: var(--verde-800); border-color: var(--verde-100); }
+.aviso.alerta { background: var(--alerta-bg); color: var(--ambar); border-color: #f2dfba; }
+.aviso.info { background: var(--verde-50); color: var(--verde-800); border-color: var(--verde-100); }
 .aviso strong { display: block; margin-bottom: 2px; }
 
 /* ---------------------- Estados ---------------------- */
@@ -684,7 +673,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   padding: var(--e7) var(--e5);
   border: 1.5px dashed var(--border-fuerte);
   border-radius: var(--radio);
-  background: linear-gradient(var(--surface), var(--gris-50));
+  background: linear-gradient(var(--surface), var(--crema-50));
 }
 .vacio-icono { font-size: 2.6rem; margin-bottom: var(--e3); display: block; }
 .vacio h3 { margin-bottom: var(--e2); font-size: 1.25rem; }
@@ -707,7 +696,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   width: 20px;
   height: 20px;
   border: 2.5px solid var(--border-fuerte);
-  border-top-color: var(--marca);
+  border-top-color: var(--verde-900);
   border-radius: 50%;
   animation: girar 0.7s linear infinite;
   flex-shrink: 0;
@@ -715,7 +704,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 .esqueleto {
-  background: linear-gradient(90deg, var(--gris-100), var(--gris-200), var(--gris-100));
+  background: linear-gradient(90deg, var(--crema-100), var(--crema-300), var(--crema-100));
   background-size: 200% 100%;
   animation: brillo 1.4s ease-in-out infinite;
   border-radius: var(--radio-sm);
@@ -741,8 +730,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   place-items: center;
   padding: var(--e5) var(--e4);
   background:
-    radial-gradient(900px 420px at 12% -8%, var(--marca-100), transparent 62%),
-    radial-gradient(760px 440px at 104% 106%, var(--verde-100), transparent 60%),
+    radial-gradient(880px 420px at 10% -10%, var(--verde-100), transparent 64%),
+    radial-gradient(720px 440px at 106% 108%, var(--verde-50), transparent 62%),
     var(--bg);
 }
 
@@ -799,9 +788,9 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--marca);
+  background: var(--verde-900);
   border: 3.5px solid var(--bg);
-  box-shadow: 0 0 0 1px var(--marca-200);
+  box-shadow: 0 0 0 1px var(--verde-300);
 }
 
 .dia.fuera-de-rango { border-left-color: var(--error); opacity: 0.75; }
@@ -809,8 +798,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .dia.fuera-de-rango .dia-num { color: var(--error); }
 
 .dia.dia-destino {
-  border-left-color: var(--marca);
-  background: var(--marca-50);
+  border-left-color: var(--verde-900);
+  background: var(--verde-50);
   border-radius: 0 var(--radio) var(--radio) 0;
 }
 
@@ -834,14 +823,15 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--gris-300);
+  /* Visible sin hover: en tactil no hay hover que lo revele. */
+  color: var(--texto-tenue);
   font-size: 0.8rem;
-  border-radius: 8px;
+  border-radius: var(--radio-sm);
   vertical-align: middle;
   transition: color 0.15s ease, background 0.15s ease;
 }
 .dia:hover .editar-inline { color: var(--texto-tenue); }
-.editar-inline:hover { background: var(--surface-alt); color: var(--marca); }
+.editar-inline:hover { background: var(--surface-alt); color: var(--verde-900); }
 
 .actividad {
   display: flex;
@@ -857,13 +847,13 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .actividad:hover { box-shadow: var(--sombra-sm); border-color: var(--border-fuerte); }
 .actividad.arrastrando { opacity: 0.4; cursor: grabbing; }
 .actividad.encima {
-  border-color: var(--marca);
+  border-color: var(--verde-900);
   border-style: dashed;
   transform: translateY(1px);
 }
 
 .agarradera {
-  color: var(--gris-300);
+  color: var(--linea);
   cursor: grab;
   font-size: 1.1rem;
   line-height: 1.4;
@@ -876,7 +866,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--marca-600);
+  color: var(--verde-900);
   min-width: 48px;
   padding-top: 2px;
 }
@@ -896,18 +886,18 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 .barra {
   height: 10px;
-  background: var(--gris-200);
+  background: var(--crema-300);
   border-radius: 999px;
   overflow: hidden;
 }
 .barra-relleno {
   height: 100%;
-  background: linear-gradient(90deg, var(--marca-400), var(--verde-400));
+  background: var(--verde-900);
   border-radius: 999px;
   transition: width 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
-.barra-relleno.alerta { background: linear-gradient(90deg, var(--ambar), var(--ambar-400)); }
-.barra-relleno.excedido { background: linear-gradient(90deg, #a12e21, var(--coral-400)); }
+.barra-relleno.alerta { background: var(--ambar); }
+.barra-relleno.excedido { background: var(--error); }
 
 .linea-gasto {
   display: flex;
@@ -948,7 +938,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   border-color: var(--exito);
   color: #fff;
 }
-.gasto-check:hover { border-color: var(--verde-400); }
+.gasto-check:hover { border-color: var(--verde-900); }
 
 /* ---------------------- Mapa ---------------------- */
 
@@ -977,7 +967,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   place-items: center;
   border: none;
   cursor: pointer;
-  background: rgba(26, 36, 48, 0.14);
+  background: rgba(5, 25, 14, 0.14);
   font-family: inherit;
 }
 .mapa-bloqueo span {
@@ -1033,9 +1023,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .link-externo:hover {
   text-decoration: none;
-  border-color: var(--marca-200);
-  background: var(--marca-50);
-  transform: translateX(2px);
+  border-color: var(--verde-900);
+  background: transparent;
 }
 .link-externo .flecha { color: var(--texto-tenue); flex-shrink: 0; }
 
@@ -1045,7 +1034,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  background: rgba(26, 36, 48, 0.45);
+  background: rgba(5, 25, 14, 0.45);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-end;
@@ -1104,16 +1093,16 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   max-width: calc(100vw - 24px);
   padding: 10px 18px;
   border-radius: 999px;
-  background: var(--tinta);
-  color: var(--gris-100);
+  background: var(--verde-900);
+  color: var(--verde-100);
   font-size: 0.83rem;
   font-weight: 550;
   box-shadow: var(--sombra-lg);
   animation: aparecer 0.2s ease;
 }
 .aviso-servidor .spinner {
-  border-color: rgba(242, 246, 248, 0.3);
-  border-top-color: var(--gris-100);
+  border-color: rgba(244, 247, 243, 0.3);
+  border-top-color: var(--verde-100);
 }
 
 /* ---------------------- Utilidades ---------------------- */
@@ -1141,8 +1130,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 /* El destino manda la jerarquia: es lo que la gente recuerda de un viaje. */
 .viaje-destino {
-  font-size: 1.4rem;
-  margin: 0 0 2px;
+  font-size: 1.55rem;
+  margin: 0 0 4px;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
@@ -1168,9 +1157,9 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-weight: 500;
 }
 /* Separadores decorativos (aria-hidden, exentos de WCAG por no aportar
-   informacion), pero a --gris-300 se veian lavados. */
-.viaje-meta > span[aria-hidden] { color: var(--gris-400); }
-.viaje-fechas { font-weight: 650; color: var(--texto); }
+   informacion), pero a --linea se veian lavados. */
+.viaje-meta > span[aria-hidden] { color: var(--linea); }
+.viaje-fechas { font-weight: 600; color: var(--texto); }
 
 .viaje-presupuesto {
   margin-top: var(--e4);
@@ -1186,28 +1175,26 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   justify-content: space-between;
   gap: var(--e4);
   flex-wrap: wrap;
-  padding-bottom: var(--e4);
-  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--e5);
+  border-bottom: 1px solid var(--linea);
 }
 
 .portada .etiqueta {
   display: block;
-  margin-bottom: var(--e1);
-  color: var(--marca-600);
+  margin-bottom: var(--e3);
+  color: var(--texto-tenue);
 }
 .portada .etiqueta::first-letter { text-transform: uppercase; }
 
 .portada-titulo {
   margin: 0 0 var(--e2);
-  font-size: clamp(1.9rem, 1.3rem + 2.6vw, 2.8rem);
+  font-size: clamp(2.2rem, 1.4rem + 3.2vw, 3.4rem);
 }
 
 /* El nombre en cursiva es el guino editorial: separa el saludo de la persona. */
 .portada-nombre {
   font-style: italic;
-  font-variation-settings: 'SOFT' 60, 'WONK' 1;
-  /* Aqui si va el tono base: a 45px cuenta como texto grande (umbral 3:1). */
-  color: var(--marca);
+  color: var(--verde);
 }
 
 /* Enlace de "volver" ---------------------------------------------------
@@ -1229,8 +1216,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .volver:hover {
   text-decoration: none;
-  color: var(--marca-600);
-  background: var(--marca-50);
+  color: var(--verde-900);
+  background: var(--surface-alt);
 }
 
 /* Botonera del modal ---------------------------------------------------
