@@ -122,8 +122,19 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
         />
 
         <div className="campos-2">
-          <Campo label="Llegada" type="date" {...form.props('checkIn')} />
-          <Campo label="Salida" type="date" {...form.props('checkOut')} />
+          <Campo
+            label="Llegada"
+            type="date"
+            onClick={(e) => e.currentTarget.showPicker?.()}
+            {...form.props('checkIn')}
+          />
+          <Campo
+            label="Salida"
+            type="date"
+            min={valores.checkIn || undefined}
+            onClick={(e) => e.currentTarget.showPicker?.()}
+            {...form.props('checkOut')}
+          />
         </div>
 
         <div className="campos-2">

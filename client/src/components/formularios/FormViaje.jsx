@@ -2,6 +2,7 @@ import { tripsApi, weatherApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
+import CampoFechas from '../CampoFechas.jsx';
 import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 
 const ESTADOS = [
@@ -99,10 +100,17 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
 
         <Campo label="Origen" placeholder="Monterrey" {...form.props('origen')} />
 
-        <div className="campos-2">
-          <Campo label="Salida" type="date" {...form.props('startDate')} />
-          <Campo label="Regreso" type="date" {...form.props('endDate')} />
-        </div>
+        <CampoFechas
+          inicio={valores.startDate}
+          fin={valores.endDate}
+          minimo={undefined}
+          onCambio={({ inicio, fin }) => {
+            form.fijar('startDate', inicio);
+            form.fijar('endDate', fin);
+          }}
+          errorInicio={form.errores.startDate}
+          errorFin={form.errores.endDate}
+        />
 
         {cambioFechas && diasNuevos > 0 && (
           <Aviso tipo={seAcorta ? 'alerta' : 'info'}>

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { tripsApi, weatherApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
+import CampoFechas from '../components/CampoFechas.jsx';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
@@ -102,28 +103,16 @@ export default function NuevoViaje() {
             ayuda="Si lo dejas vacío usamos el destino."
           />
 
-          <div className="rejilla rejilla-2">
-            <Campo
-              label="Salida"
-              name="startDate"
-              type="date"
-              min={hoy}
-              value={form.startDate}
-              onChange={cambiar}
-              error={errorDe('startDate')}
-              required
-            />
-            <Campo
-              label="Regreso"
-              name="endDate"
-              type="date"
-              min={form.startDate || hoy}
-              value={form.endDate}
-              onChange={cambiar}
-              error={errorDe('endDate')}
-              required
-            />
-          </div>
+          <CampoFechas
+            inicio={form.startDate}
+            fin={form.endDate}
+            minimo={hoy}
+            onCambio={({ inicio, fin }) =>
+              setForm((f) => ({ ...f, startDate: inicio, endDate: fin }))
+            }
+            errorInicio={errorDe('startDate')}
+            errorFin={errorDe('endDate')}
+          />
 
           <Campo
             label="¿Desde dónde sales?"

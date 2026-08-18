@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -48,7 +48,51 @@ function Encuadrar({ puntos }) {
   return null;
 }
 
+/**
+ * Activa o desactiva el arrastre segun haga falta.
+ *
+ * En tactil, dejar el arrastre siempre activo hace que un dedo sobre el mapa
+ * mueva el mapa en vez de desplazar la pagina, y el usuario queda atrapado.
+ * El mapa arranca bloqueado y se desbloquea al tocarlo, como los mapas
+ * embebidos de Google.
+ */
+function ControlArrastre({ activo, esTactil }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!esTactil) return;
+    if (activo) {
+      map.dragging.enable();
+      map.touchZoom.enable();
+    } else {
+      map.dragging.disable();
+      map.touchZoom.disable();
+    }
+  }, [map, activo, esTactil]);
+
+  // Al cambiar de tamano el contenedor (abrir un modal, rotar el telefono) el
+  // mapa queda con las teselas mal colocadas si no se le avisa.
+  useEffect(() => {
+    const remedir = () => map.invalidateSize();
+    window.addEventListener('resize', remedir);
+    window.addEventListener('orientationchange', remedir);
+    const t = setTimeout(remedir, 250); // tras la animacion de entrada
+    return () => {
+      window.removeEventListener('resize', remedir);
+      window.removeEventListener('orientationchange', remedir);
+      clearTimeout(t);
+    };
+  }, [map]);
+
+  return null;
+}
+
+const ES_TACTIL =
+  typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+
 export default function MapaDestino({ destino, pines = [], alto }) {
+  const [interactivo, setInteractivo] = useState(!ES_TACTIL);
+
   const tieneDestino = Number.isFinite(destino?.lat) && Number.isFinite(destino?.lng);
   const validos = pines.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
 
@@ -75,7 +119,10 @@ export default function MapaDestino({ destino, pines = [], alto }) {
       <MapContainer
         center={centro}
         zoom={12}
+        // Sin esto la rueda del raton haria zoom en vez de desplazar la pagina.
         scrollWheelZoom={false}
+        dragging={!ES_TACTIL}
+        touchZoom={!ES_TACTIL}
         style={{ height: '100%', width: '100%' }}
       >
         {/* OpenStreetMap: gratuito y sin API key. La atribucion es obligatoria. */}
@@ -95,7 +142,7 @@ export default function MapaDestino({ destino, pines = [], alto }) {
               {p.dayNumber && (
                 <>
                   <br />
-                  <span style={{ color: '#8a7e73' }}>Dia {p.dayNumber}</span>
+                  <span style={{ color: '#8a7e73' }}>Día {p.dayNumber}</span>
                 </>
               )}
             </Popup>
@@ -103,7 +150,14 @@ export default function MapaDestino({ destino, pines = [], alto }) {
         ))}
 
         <Encuadrar puntos={todos} />
+        <ControlArrastre activo={interactivo} esTactil={ES_TACTIL} />
       </MapContainer>
+
+      {ES_TACTIL && !interactivo && (
+        <button type="button" className="mapa-bloqueo" onClick={() => setInteractivo(true)}>
+          <span>Toca para mover el mapa</span>
+        </button>
+      )}
     </div>
   );
 }
