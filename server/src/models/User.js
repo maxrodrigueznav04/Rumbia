@@ -1,0 +1,93 @@
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+
+export const TRAVEL_STYLES = [
+  'aventura',
+  'cultura',
+  'relax',
+  'gastronomia',
+  'naturaleza',
+  'vida-nocturna',
+  'compras',
+  'familia',
+];
+
+export const BUDGET_LEVELS = ['bajo', 'medio', 'alto'];
+export const TRIP_PACES = ['relajado', 'moderado', 'intenso'];
+
+const preferencesSchema = new mongoose.Schema(
+  {
+    // Se usan como contexto del prompt de Gemini al generar itinerarios.
+    travelStyles: {
+      type: [{ type: String, enum: TRAVEL_STYLES }],
+      default: [],
+      validate: {
+        validator: (v) => v.length <= 5,
+        message: 'Máximo 5 estilos de viaje.',
+      },
+    },
+    budgetLevel: { type: String, enum: BUDGET_LEVELS, default: 'medio' },
+    pace: { type: String, enum: TRIP_PACES, default: 'moderado' },
+    homeCity: { type: String, trim: true, maxlength: 120, default: '' },
+    currency: { type: String, uppercase: true, minlength: 3, maxlength: 3, default: 'MXN' },
+  },
+  { _id: false }
+);
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'El nombre es obligatorio.'],
+      trim: true,
+      minlength: 2,
+      maxlength: 80,
+    },
+    email: {
+      type: String,
+      required: [true, 'El email es obligatorio.'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email inválido.'],
+    },
+    password: {
+      type: String,
+      required: [true, 'La contraseña es obligatoria.'],
+      minlength: [8, 'La contraseña debe tener al menos 8 caracteres.'],
+      select: false, // nunca viaja en las respuestas por accidente
+    },
+    avatarUrl: { type: String, default: '' },
+    preferences: { type: preferencesSchema, default: () => ({}) },
+    lastLoginAt: { type: Date },
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
+);
+
+userSchema.pre('save', async function hashPassword(next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
+  return next();
+});
+
+userSchema.methods.comparePassword = function comparePassword(plain) {
+  return bcrypt.compare(plain, this.password);
+};
+
+userSchema.virtual('trips', {
+  ref: 'Trip',
+  localField: '_id',
+  foreignField: 'user',
+});
+
+export default mongoose.model('User', userSchema);

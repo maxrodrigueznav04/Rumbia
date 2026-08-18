@@ -1,0 +1,6 @@
+# Normaliza los saltos de linea: LF en el repo, nativo en el disco.
+# Sin esto, un repo creado en Windows y desplegado en Linux mete ruido en cada diff.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.svg text

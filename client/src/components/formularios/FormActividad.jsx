@@ -1,0 +1,150 @@
+import { itineraryApi } from '../../api/index.js';
+import useFormulario from '../../hooks/useFormulario.js';
+import { reglas } from '../../utils/validacion.js';
+import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
+import { ICONOS_CATEGORIA } from '../../utils/format.js';
+
+const CATEGORIAS = [
+  'comida',
+  'cultura',
+  'naturaleza',
+  'aventura',
+  'compras',
+  'vida-nocturna',
+  'descanso',
+  'traslado',
+  'otro',
+];
+
+const horaValida = (v) => {
+  if (!v) return null; // la hora es opcional
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? null : 'Usa formato de 24 horas, ej. 14:30.';
+};
+
+/** Alta y edición de una actividad dentro de un día del itinerario. */
+export default function FormActividad({ abierto, onCerrar, tripId, dia, actividad, onGuardado }) {
+  const editando = Boolean(actividad);
+
+  const form = useFormulario(
+    {
+      time: actividad?.time || '',
+      title: actividad?.title || '',
+      description: actividad?.description || '',
+      category: actividad?.category || 'otro',
+      lugar: actividad?.location?.name || '',
+      estimatedCost: actividad?.estimatedCost ?? '',
+      durationMinutes: actividad?.durationMinutes ?? 60,
+      bookingUrl: actividad?.bookingUrl || '',
+    },
+    {
+      title: reglas.requerido('El título'),
+      time: horaValida,
+      estimatedCost: reglas.numeroPositivo,
+      bookingUrl: reglas.urlOpcional,
+    }
+  );
+
+  const guardar = form.enviar(async (v) => {
+    const payload = {
+      time: v.time,
+      title: v.title.trim(),
+      description: v.description.trim(),
+      category: v.category,
+      location: { name: v.lugar.trim() },
+      estimatedCost: Number(v.estimatedCost) || 0,
+      durationMinutes: Number(v.durationMinutes) || 60,
+      bookingUrl: v.bookingUrl.trim(),
+    };
+
+    if (editando) {
+      await itineraryApi.updateActivity(tripId, dia._id, actividad._id, payload);
+    } else {
+      await itineraryApi.addActivity(tripId, dia._id, payload);
+    }
+
+    onGuardado();
+    onCerrar();
+  });
+
+  return (
+    <Modal
+      abierto={abierto}
+      onCerrar={onCerrar}
+      titulo={editando ? 'Editar actividad' : `Nueva actividad · Día ${dia.dayNumber}`}
+    >
+      <form onSubmit={guardar} className="pila" noValidate>
+        {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
+
+        <Campo
+          label="¿Qué van a hacer?"
+          placeholder="Comida en el mercado de Coyoacán"
+          autoFocus
+          {...form.props('title')}
+        />
+
+        <div className="campos-2">
+          <Campo label="Hora" type="time" ayuda="Opcional." {...form.props('time')} />
+          <Campo label="Categoría">
+            <select {...form.props('category')}>
+              {CATEGORIAS.map((c) => (
+                <option key={c} value={c}>
+                  {ICONOS_CATEGORIA[c]} {c.replace('-', ' ')}
+                </option>
+              ))}
+            </select>
+          </Campo>
+        </div>
+
+        <Campo label="Detalles">
+          <textarea
+            placeholder="Qué pedir, a qué hora llegar, si hay que reservar..."
+            {...form.props('description')}
+          />
+        </Campo>
+
+        <Campo
+          label="Lugar"
+          placeholder="Mercado de Coyoacán"
+          ayuda="Opcional. Si lo pones, aparece bajo la actividad."
+          {...form.props('lugar')}
+        />
+
+        <div className="campos-2">
+          <Campo
+            label="Costo por persona"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="0"
+            {...form.props('estimatedCost')}
+          />
+          <Campo
+            label="Duración (minutos)"
+            type="number"
+            min="0"
+            max="1440"
+            step="15"
+            {...form.props('durationMinutes')}
+          />
+        </div>
+
+        <Campo
+          label="Link para reservar"
+          type="url"
+          placeholder="https://..."
+          ayuda="Opcional. Si la actividad necesita boleto anticipado."
+          {...form.props('bookingUrl')}
+        />
+
+        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+          <Boton variante="secundario" type="button" onClick={onCerrar}>
+            Cancelar
+          </Boton>
+          <Boton type="submit" cargando={form.enviando}>
+            {editando ? 'Guardar cambios' : 'Agregar'}
+          </Boton>
+        </div>
+      </form>
+    </Modal>
+  );
+}

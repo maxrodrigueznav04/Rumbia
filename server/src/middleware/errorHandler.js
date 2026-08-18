@@ -1,0 +1,50 @@
+import mongoose from 'mongoose';
+import env from '../config/env.js';
+import ApiError from '../utils/ApiError.js';
+
+export function notFound(req, _res, next) {
+  next(ApiError.notFound(`Ruta no encontrada: ${req.method} ${req.originalUrl}`));
+}
+
+/* eslint-disable-next-line no-unused-vars */
+export function errorHandler(err, _req, res, _next) {
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Error interno del servidor.';
+  let details = err.details;
+
+  // Errores de validacion de Mongoose -> 400 con lista de campos.
+  if (err instanceof mongoose.Error.ValidationError) {
+    statusCode = 400;
+    message = 'Datos inválidos.';
+    details = Object.values(err.errors).map((e) => ({ field: e.path, message: e.message }));
+  }
+
+  // CastError: un ObjectId mal formado no es un 500.
+  if (err instanceof mongoose.Error.CastError) {
+    statusCode = 400;
+    message = `Identificador inválido para el campo "${err.path}".`;
+  }
+
+  // Indice unico duplicado (email registrado).
+  if (err.code === 11000) {
+    statusCode = 409;
+    const field = Object.keys(err.keyValue || {})[0] || 'campo';
+    message = field === 'email' ? 'Ese email ya está registrado.' : `Valor duplicado en "${field}".`;
+  }
+
+  // Los fallos de servicios externos (503) son esperados y ya vienen con un
+  // mensaje util: una linea basta. El stack completo se reserva para los bugs.
+  if (statusCode >= 500) {
+    if (err.isOperational) console.warn(`[aviso] ${statusCode} ${message}`);
+    else console.error('[error]', err);
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(details ? { details } : {}),
+    ...(env.isProd ? {} : { stack: err.stack }),
+  });
+}
+
+export default errorHandler;

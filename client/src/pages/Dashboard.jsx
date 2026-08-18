@@ -1,0 +1,162 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { tripsApi } from '../api/index.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import useFetch from '../hooks/useFetch.js';
+import useDebounce from '../hooks/useDebounce.js';
+import TarjetaViaje from '../components/TarjetaViaje.jsx';
+import { Boton, Vacio, ErrorCarga, Esqueleto } from '../components/ui.jsx';
+
+const FILTROS = [
+  { valor: 'proximos', texto: 'Próximos' },
+  { valor: 'pasados', texto: 'Pasados' },
+  { valor: 'borrador', texto: 'Borradores' },
+  { valor: '', texto: 'Todos' },
+];
+
+function EsqueletoTarjetas() {
+  return (
+    <div className="rejilla rejilla-2 rejilla-3">
+      {[0, 1, 2].map((i) => (
+        <div className="tarjeta" key={i}>
+          <Esqueleto alto={14} ancho="35%" />
+          <Esqueleto alto={22} ancho="75%" style={{ margin: '10px 0 8px' }} />
+          <Esqueleto alto={14} ancho="55%" />
+          <Esqueleto alto={30} style={{ marginTop: 14 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const [filtro, setFiltro] = useState('proximos');
+  const [busqueda, setBusqueda] = useState('');
+
+  // Sin debounce se dispararía una petición por cada tecla.
+  const consulta = useDebounce(busqueda.trim(), 350);
+
+  const { data, cargando, error, recargar } = useFetch(
+    ({ signal }) =>
+      tripsApi.list({ status: filtro || undefined, q: consulta || undefined }, { signal }),
+    [filtro, consulta]
+  );
+
+  const viajes = data?.trips || [];
+  const nombre = user?.name?.split(' ')[0] || 'viajero';
+  const buscando = consulta.length > 0;
+
+  const subtitulo = () => {
+    if (cargando) return 'Cargando tus viajes...';
+    if (buscando) {
+      return viajes.length > 0
+        ? `${viajes.length} ${viajes.length === 1 ? 'resultado' : 'resultados'} para "${consulta}".`
+        : `Sin resultados para "${consulta}".`;
+    }
+    return viajes.length > 0
+      ? `Tienes ${viajes.length} ${viajes.length === 1 ? 'viaje' : 'viajes'} en esta vista.`
+      : 'Aquí vas a ver todos tus viajes.';
+  };
+
+  return (
+    <div className="pila">
+      <div className="fila-entre">
+        <div>
+          <h1 style={{ marginBottom: 2 }}>Hola, {nombre}</h1>
+          <p className="tenue" style={{ margin: 0 }}>
+            {subtitulo()}
+          </p>
+        </div>
+        <Link to="/viajes/nuevo" className="boton">
+          <span aria-hidden="true">+</span> Nuevo viaje
+        </Link>
+      </div>
+
+      <div className="fila-entre" style={{ gap: 10 }}>
+        <div className="fila" style={{ gap: 6 }} role="tablist" aria-label="Filtrar viajes">
+          {FILTROS.map((f) => (
+            <button
+              key={f.valor || 'todos'}
+              role="tab"
+              aria-selected={filtro === f.valor}
+              onClick={() => setFiltro(f.valor)}
+              className={`insignia ${filtro === f.valor ? 'terracota' : ''}`}
+            >
+              {f.texto}
+            </button>
+          ))}
+        </div>
+
+        <div className="buscador">
+          <span className="buscador-icono" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar por nombre o destino"
+            aria-label="Buscar viajes"
+          />
+          {busqueda && (
+            <button
+              type="button"
+              className="buscador-limpiar"
+              onClick={() => setBusqueda('')}
+              aria-label="Limpiar búsqueda"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <ErrorCarga error={error} onReintentar={recargar} contexto="No pudimos cargar tus viajes" />
+      )}
+
+      {cargando && <EsqueletoTarjetas />}
+
+      {!cargando && !error && viajes.length === 0 && (
+        <Vacio
+          icono={buscando ? '🔍' : filtro === 'pasados' ? '📸' : '🧭'}
+          titulo={
+            buscando
+              ? 'Nada coincide con tu búsqueda'
+              : filtro === 'pasados'
+                ? 'Todavía no tienes viajes pasados'
+                : 'Aún no hay viajes por aquí'
+          }
+          accion={
+            buscando ? (
+              <Boton variante="secundario" onClick={() => setBusqueda('')}>
+                Limpiar búsqueda
+              </Boton>
+            ) : (
+              filtro !== 'pasados' && (
+                <Link to="/viajes/nuevo" className="boton">
+                  Planear mi primer viaje
+                </Link>
+              )
+            )
+          }
+        >
+          {buscando
+            ? `Probamos con "${consulta}" en el nombre y el destino de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
+            : filtro === 'pasados'
+              ? 'Cuando termine un viaje aparecerá aquí, con su itinerario y sus gastos.'
+              : 'Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día.'}
+        </Vacio>
+      )}
+
+      {!cargando && viajes.length > 0 && (
+        <div className="rejilla rejilla-2 rejilla-3">
+          {viajes.map((v) => (
+            <TarjetaViaje key={v._id} viaje={v} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

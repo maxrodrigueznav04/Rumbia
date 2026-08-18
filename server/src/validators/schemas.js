@@ -1,0 +1,265 @@
+import { z } from 'zod';
+import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES } from '../models/User.js';
+import {
+  TRIP_STATUSES,
+  OUTBOUND_MODES,
+  LODGING_TYPES,
+  LOCAL_TRANSPORT_TYPES,
+} from '../models/Trip.js';
+import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
+import { EXPENSE_CATEGORIES } from '../models/Expense.js';
+
+const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
+
+/**
+ * En un query string, "?status=" significa "sin filtro", no "valor vacio".
+ * Sin esto un parametro vacio revienta contra los enums con un 400 confuso.
+ */
+const opcionalEnQuery = (schema) => z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
+const isoDate = z.coerce.date({ errorMap: () => ({ message: 'Fecha inválida.' }) });
+const currency = z.string().length(3, 'Usa el código de 3 letras, ej. MXN.').toUpperCase();
+
+/**
+ * Numero coercionado con mensajes en espanol. Sin el errorMap, Zod contesta
+ * "Expected number, received nan", que es lo que acaba viendo el usuario en
+ * pantalla porque el front pinta los `details` del backend tal cual.
+ */
+const numero = (mensaje = 'Debe ser un número.') =>
+  z.coerce.number({ errorMap: () => ({ message: mensaje }) });
+
+const money = numero('Escribe un monto válido.').min(0, 'No puede ser negativo.');
+const entero = (mensaje) => numero(mensaje).int('Debe ser un número entero.');
+const url = z.string().url('URL inválida.').max(600).or(z.literal(''));
+
+const place = z.object({
+  name: z.string().trim().min(1, 'El nombre del lugar es obligatorio.').max(160),
+  address: z.string().trim().max(240).optional(),
+  country: z.string().trim().max(80).optional(),
+  lat: numero('Latitud inválida.').min(-90).max(90).optional(),
+  lng: numero('Longitud inválida.').min(-180).max(180).optional(),
+});
+
+/* ------------------------------- Auth ------------------------------- */
+
+export const registerSchema = z.object({
+  name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres.').max(80),
+  email: z.string().trim().toLowerCase().email('Email inválido.'),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres.')
+    .max(72, 'Máximo 72 caracteres.'), // limite real de bcrypt
+});
+
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email inválido.'),
+  password: z.string().min(1, 'La contraseña es obligatoria.'),
+});
+
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(2).max(80).optional(),
+    avatarUrl: url.optional(),
+    preferences: z
+      .object({
+        travelStyles: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
+        budgetLevel: z.enum(BUDGET_LEVELS).optional(),
+        pace: z.enum(TRIP_PACES).optional(),
+        homeCity: z.string().trim().max(120).optional(),
+        currency: currency.optional(),
+      })
+      .optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Ingresa tu contraseña actual.'),
+  newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),
+});
+
+/* ------------------------------- Trips ------------------------------ */
+
+const legSchema = z.object({
+  mode: z.enum(OUTBOUND_MODES).optional(),
+  provider: z.string().trim().max(120).optional(),
+  departureAt: isoDate.optional().nullable(),
+  arrivalAt: isoDate.optional().nullable(),
+  bookingRef: z.string().trim().max(60).optional(),
+  externalUrl: url.optional(),
+  cost: money.optional(),
+  isEstimate: z.boolean().optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const lodgingSchema = z.object({
+  type: z.enum(LODGING_TYPES).optional(),
+  name: z.string().trim().max(160).optional(),
+  place: place.partial().optional(),
+  checkIn: isoDate.optional().nullable(),
+  checkOut: isoDate.optional().nullable(),
+  nightlyRate: money.optional(),
+  nights: entero('Escribe cuántas noches.').min(0, 'No puede ser negativo.').max(365, 'Máximo 365 noches.').optional(),
+  bookingRef: z.string().trim().max(60).optional(),
+  externalUrl: url.optional(),
+  isEstimate: z.boolean().optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const localTransportSchema = z.object({
+  type: z.enum(LOCAL_TRANSPORT_TYPES).optional(),
+  provider: z.string().trim().max(120).optional(),
+  estimatedCost: money.optional(),
+  externalUrl: url.optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const createTripSchema = z
+  .object({
+    title: z.string().trim().min(2, 'Ponle un título al viaje.').max(120),
+    destination: place,
+    origin: place.partial().optional(),
+    startDate: isoDate,
+    endDate: isoDate,
+    travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').default(1),
+    budget: z
+      .object({ amount: money.default(0), currency: currency.default('MXN') })
+      .default({ amount: 0, currency: 'MXN' }),
+    status: z.enum(TRIP_STATUSES).optional(),
+    coverImage: z.string().trim().max(600).optional(),
+    notes: z.string().trim().max(2000).optional(),
+  })
+  .refine((v) => v.endDate >= v.startDate, {
+    message: 'La fecha de regreso no puede ser anterior a la de salida.',
+    path: ['endDate'],
+  });
+
+export const updateTripSchema = z
+  .object({
+    title: z.string().trim().min(2).max(120).optional(),
+    destination: place.optional(),
+    origin: place.partial().optional(),
+    startDate: isoDate.optional(),
+    endDate: isoDate.optional(),
+    travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').optional(),
+    budget: z.object({ amount: money.optional(), currency: currency.optional() }).optional(),
+    status: z.enum(TRIP_STATUSES).optional(),
+    coverImage: z.string().trim().max(600).optional(),
+    notes: z.string().trim().max(2000).optional(),
+    transport: z.object({ outbound: legSchema.optional(), inbound: legSchema.optional() }).optional(),
+    lodging: z.array(lodgingSchema).max(10).optional(),
+    localTransport: z.array(localTransportSchema).max(10).optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' })
+  .refine((v) => !(v.startDate && v.endDate) || v.endDate >= v.startDate, {
+    message: 'La fecha de regreso no puede ser anterior a la de salida.',
+    path: ['endDate'],
+  });
+
+export const tripListQuerySchema = z.object({
+  status: opcionalEnQuery(z.enum([...TRIP_STATUSES, 'proximos', 'pasados'])),
+  q: opcionalEnQuery(z.string().trim().max(120)),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+export const bookingLinksQuerySchema = z.object({
+  section: opcionalEnQuery(z.enum(['transporte', 'hospedaje', 'transporte-local'])),
+  type: opcionalEnQuery(z.string().trim().max(40)),
+});
+
+/* ----------------------------- Itinerary ---------------------------- */
+
+export const generateItinerarySchema = z.object({
+  extraNotes: z.string().trim().max(500).optional(),
+  pace: z.enum(TRIP_PACES).optional(),
+  interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
+  force: z.boolean().default(false), // sobrescribir un itinerario existente
+});
+
+export const activitySchema = z.object({
+  time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'La hora debe tener formato HH:mm.')
+    .or(z.literal(''))
+    .optional(),
+  title: z.string().trim().min(1, 'La actividad necesita un titulo.').max(160),
+  description: z.string().trim().max(800).optional(),
+  category: z.enum(ACTIVITY_CATEGORIES).optional(),
+  location: z
+    .object({
+      name: z.string().trim().max(160).optional(),
+      address: z.string().trim().max(240).optional(),
+      lat: numero('Latitud inválida.').min(-90).max(90).optional(),
+      lng: numero('Longitud inválida.').min(-180).max(180).optional(),
+    })
+    .optional(),
+  estimatedCost: money.optional(),
+  durationMinutes: entero('La duración debe ser un número.').min(0, 'No puede ser negativa.').max(1440, 'Máximo 24 horas.').optional(),
+  bookingUrl: url.optional(),
+});
+
+export const updateActivitySchema = activitySchema.partial().refine(
+  (v) => Object.keys(v).length > 0,
+  { message: 'No enviaste ningún campo a actualizar.' }
+);
+
+export const updateDaySchema = z.object({
+  title: z.string().trim().max(160).optional(),
+  summary: z.string().trim().max(600).optional(),
+});
+
+export const reorderActivitiesSchema = z.object({
+  // Lista completa de ids en el nuevo orden.
+  activityIds: z.array(objectId).min(1, 'Envía al menos un id.'),
+});
+
+export const moveActivitySchema = z.object({
+  targetDayNumber: entero('Número de día inválido.').min(1),
+  position: entero('Posición inválida.').min(0).optional(),
+});
+
+/* ------------------------------ Expenses ---------------------------- */
+
+export const createExpenseSchema = z.object({
+  trip: objectId,
+  category: z.enum(EXPENSE_CATEGORIES).default('otros'),
+  description: z.string().trim().min(1, 'Describe el gasto.').max(160),
+  amount: money,
+  currency: currency.default('MXN'),
+  date: isoDate.optional(),
+  isPaid: z.boolean().default(false),
+  isEstimate: z.boolean().default(true),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateExpenseSchema = z
+  .object({
+    category: z.enum(EXPENSE_CATEGORIES).optional(),
+    description: z.string().trim().min(1).max(160).optional(),
+    amount: money.optional(),
+    currency: currency.optional(),
+    date: isoDate.optional(),
+    isPaid: z.boolean().optional(),
+    isEstimate: z.boolean().optional(),
+    notes: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
+
+export const expenseListQuerySchema = z.object({
+  trip: opcionalEnQuery(objectId),
+  category: opcionalEnQuery(z.enum(EXPENSE_CATEGORIES)),
+});
+
+/* ------------------------------- Weather ---------------------------- */
+
+export const weatherQuerySchema = z.object({
+  lat: numero('Latitud inválida.').min(-90).max(90),
+  lng: numero('Longitud inválida.').min(-180).max(180),
+  startDate: isoDate,
+  endDate: isoDate,
+});
+
+export const geocodeQuerySchema = z.object({
+  q: z.string().trim().min(2, 'Escribe al menos 2 caracteres.').max(120),
+});
+
+export const idParamSchema = z.object({ id: objectId });

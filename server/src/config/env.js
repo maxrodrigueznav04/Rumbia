@@ -1,0 +1,34 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const required = ['MONGO_URI', 'JWT_SECRET'];
+const missing = required.filter((key) => !process.env[key]);
+
+if (missing.length) {
+  console.error(`\n[config] Faltan variables de entorno: ${missing.join(', ')}`);
+  console.error('[config] Copia server/.env.example a server/.env y llenalas.\n');
+  process.exit(1);
+}
+
+export const env = {
+  port: Number(process.env.PORT || 4000),
+  nodeEnv: process.env.NODE_ENV || 'development',
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  mongoUri: process.env.MONGO_URI,
+  jwtSecret: process.env.JWT_SECRET,
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || '',
+    model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+    enabled: Boolean(process.env.GEMINI_API_KEY),
+  },
+  openWeather: {
+    apiKey: process.env.OPENWEATHER_API_KEY || '',
+    enabled: Boolean(process.env.OPENWEATHER_API_KEY),
+  },
+  aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
+  isProd: (process.env.NODE_ENV || 'development') === 'production',
+};
+
+export default env;
