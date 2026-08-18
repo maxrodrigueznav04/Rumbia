@@ -48,7 +48,7 @@ function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
         <div className="fila" style={{ gap: 6 }}>
           <Insignia>{humanizar(actividad.category)}</Insignia>
           {actividad.estimatedCost > 0 && (
-            <Insignia color="mostaza">{formatoMoneda(actividad.estimatedCost, moneda)}</Insignia>
+            <Insignia color="ambar">{formatoMoneda(actividad.estimatedCost, moneda)}</Insignia>
           )}
           {actividad.durationMinutes > 0 && (
             <Insignia>
@@ -371,7 +371,7 @@ export default function Itinerario() {
                   )}
                   {dia.estimatedCost > 0 && (
                     <div style={{ marginTop: 6 }}>
-                      <Insignia color="mostaza">
+                      <Insignia color="ambar">
                         ≈ {formatoMoneda(dia.estimatedCost, moneda)} por persona
                       </Insignia>
                     </div>

@@ -365,7 +365,7 @@ export default function DetalleViaje() {
           >
             {itinerario ? (
               <div className="fila" style={{ gap: 8 }}>
-                <Insignia color="terracota">
+                <Insignia color="marca">
                   {itinerario.days?.length} {itinerario.days?.length === 1 ? 'día' : 'días'}
                 </Insignia>
                 <Insignia>{itinerario.activityCount} actividades</Insignia>

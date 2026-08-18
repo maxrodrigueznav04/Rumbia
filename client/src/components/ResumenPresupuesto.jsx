@@ -37,14 +37,14 @@ export default function ResumenPresupuesto({ resumen }) {
               stroke="none"
             >
               {chartData.map((d) => (
-                <Cell key={d.category} fill={COLORES_CATEGORIA[d.category] || '#8a7e73'} />
+                <Cell key={d.category} fill={COLORES_CATEGORIA[d.category] || '#9aa8b2'} />
               ))}
             </Pie>
             <Tooltip
               formatter={(valor, nombre) => [formatoMoneda(valor, currency), humanizar(nombre)]}
               contentStyle={{
                 borderRadius: 10,
-                border: '1px solid #ebe1d3',
+                border: '1px solid #e4eaee',
                 fontSize: 13,
                 fontFamily: 'inherit',
               }}
@@ -64,7 +64,7 @@ export default function ResumenPresupuesto({ resumen }) {
             <span className="fila" style={{ gap: 8 }}>
               <span
                 className="punto-color"
-                style={{ background: COLORES_CATEGORIA[d.category] || '#8a7e73' }}
+                style={{ background: COLORES_CATEGORIA[d.category] || '#9aa8b2' }}
                 aria-hidden="true"
               />
               {humanizar(d.category)}

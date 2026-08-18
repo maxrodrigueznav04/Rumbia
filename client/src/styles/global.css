@@ -1,8 +1,10 @@
 /* ==========================================================================
    Rumbo — sistema de diseño
 
-   Dirección: editorial y cálido, con acentos saturados que le dan energía.
-   Base de arena y tinta cálida, terracota vivo como color de marca, y una
+   Dirección: editorial y vivo. Azul mar y verde llevan la voz cantante,
+   con coral y ámbar como acentos puntuales. El color se concentra en
+   botones, franjas y marcadores; el resto queda neutro para que no sature.
+   Base neutra casi blanca, azul mar y verde como colores de marca, y una
    escala tipográfica de mucho contraste (Fraunces para titulares, Inter para
    texto) que es lo que le da el aire de revista de viajes.
 
@@ -10,66 +12,73 @@
    ========================================================================== */
 
 :root {
-  /* ---------- Marca ---------- */
-  --terracota-50: #fdf3ef;
-  --terracota-100: #fadcd0;
-  --terracota-200: #f4bda6;
-  --terracota-400: #e2703f;
-  --terracota: #c94520;
-  --terracota-600: #b13a17;
-  --terracota-700: #8a2c11;
+  /* ---------- Marca: azul mar ----------
+     El 500 es el mas vivo que aun da 4.8:1 con texto blanco encima (WCAG AA).
+     El 400 es mas brillante y se reserva para superficies decorativas
+     (degradados, barras), donde no hay texto que leer. */
+  --marca-50: #ecf9fc;
+  --marca-100: #d0eff6;
+  --marca-200: #a5dfec;
+  --marca-400: #0ea5c9;
+  --marca: #0a7c9c;
+  --marca-600: #0a6e87;
+  --marca-700: #0d5468;
 
-  /* Verde profundo: contrapeso serio al naranja, evita el aire de "todo cálido". */
-  --pino-100: #d9ebe4;
-  --pino-200: #b3d6c9;
-  --pino: #1c6b56;
-  --pino-600: #14523f;
+  /* ---------- Verde ---------- */
+  --verde-50: #ecfaf1;
+  --verde-100: #d2f2df;
+  --verde-200: #a7e5c1;
+  --verde-400: #16a34a;
+  --verde: #0f8443;
+  --verde-600: #0d6b39;
 
-  /* Ámbar: el acento que aporta la parte vibrante. */
+  /* ---------- Acentos ---------- */
+  --coral-100: #fde3da;
+  --coral-400: #f0653c;
+  --coral: #c94520;
   --ambar-100: #fdeed2;
-  --ambar: #e39a2b;
-  --ambar-600: #b8781a;
+  --ambar-400: #f0a020;
+  --ambar: #b8781a;
+  --ambar-600: #96600f;
+  --ciruela: #8b4a9b;
+  --indigo: #3f5bb5;
 
-  /* Para variedad en gráficas y categorías. */
-  --indigo: #4a5cad;
-  --ciruela: #9b4a72;
-  --cielo: #2d7fa8;
-  --cielo-100: #d7ecf5;
+  /* ---------- Neutros ----------
+     Casi blancos con un punto de frio: dejan que el azul y el verde resalten
+     sin que la pantalla entera se sienta tenida. */
+  --gris-0: #ffffff;
+  --gris-50: #fbfcfd;
+  --gris-100: #f2f6f8;
+  --gris-200: #e4eaee;
+  --gris-300: #cbd5db;
+  --gris-400: #9aa8b2;
+  --tinta: #1a2430;
+  --tinta-700: #44515f;
+  --tinta-500: #65727f;
 
-  /* ---------- Neutros de arena ---------- */
-  --arena-0: #ffffff;
-  --arena-50: #fdfaf6;
-  --arena-100: #f7f1e8;
-  --arena-200: #ece2d5;
-  --arena-300: #d9c9b6;
-  --arena-400: #b8a692;
-  --tinta: #241f1b;
-  --tinta-700: #4a423a;
-  --tinta-500: #736759;
-
-  /* ---------- Semánticos ---------- */
-  --bg: var(--arena-50);
-  --surface: var(--arena-0);
-  --surface-alt: var(--arena-100);
-  --border: var(--arena-200);
-  --border-fuerte: var(--arena-300);
+  /* ---------- Semanticos ---------- */
+  --bg: var(--gris-50);
+  --surface: var(--gris-0);
+  --surface-alt: var(--gris-100);
+  --border: var(--gris-200);
+  --border-fuerte: var(--gris-300);
   --texto: var(--tinta);
   --texto-suave: var(--tinta-700);
   --texto-tenue: var(--tinta-500);
-  --exito: #2f7d55;
-  --exito-bg: #ddf0e5;
-  --alerta: #a8721c;
-  --alerta-bg: #fbeed4;
-  --error: #bf3b2c;
-  --error-bg: #fbe3df;
+  --exito: var(--verde);
+  --exito-bg: var(--verde-50);
+  --alerta: var(--ambar);
+  --alerta-bg: var(--ambar-100);
+  --error: #c23a2b;
+  --error-bg: #fbe4e1;
 
   /* ---------- Forma ---------- */
   --radio-sm: 10px;
   --radio: 16px;
   --radio-lg: 24px;
-  --sombra-sm: 0 1px 2px rgba(36, 31, 27, 0.05);
-  --sombra: 0 4px 14px rgba(36, 31, 27, 0.07);
-  --sombra-lg: 0 16px 40px rgba(36, 31, 27, 0.13);
+  --sombra-sm: 0 1px 2px rgba(26, 36, 48, 0.05);
+  --sombra: 0 4px 14px rgba(26, 36, 48, 0.07);
+  --sombra-lg: 0 16px 40px rgba(26, 36, 48, 0.13);
   --contenedor: 1120px;
   --nav-alto: 66px;
 
@@ -145,21 +154,21 @@ h4 {
 p { margin: 0 0 var(--e3); }
 
 a {
-  color: var(--terracota-600);
+  color: var(--marca-600);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 550;
 }
 a:hover { text-decoration: underline; }
 
 :focus-visible {
-  outline: 2.5px solid var(--cielo);
+  outline: 2.5px solid var(--marca-400);
   outline-offset: 2px;
   border-radius: var(--radio-sm);
 }
 
 ::selection {
-  background: var(--terracota-100);
-  color: var(--terracota-700);
+  background: var(--marca-100);
+  color: var(--marca-700);
 }
 
 /* ---------------------- Layout ---------------------- */
@@ -221,7 +230,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: var(--z-nav);
   height: var(--nav-alto);
-  background: rgba(253, 250, 246, 0.82);
+  background: rgba(251, 252, 253, 0.82);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
 }
@@ -251,13 +260,13 @@ a:hover { text-decoration: underline; }
   width: 30px;
   height: 30px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--terracota-400), var(--terracota-600));
+  background: linear-gradient(135deg, var(--marca-400), var(--verde));
   display: grid;
   place-items: center;
   color: #fff;
   font-size: 15px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(201, 69, 32, 0.32);
+  box-shadow: 0 2px 8px rgba(10, 124, 156, 0.30);
 }
 
 .nav-links { display: none; gap: var(--e1); }
@@ -279,8 +288,8 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 .nav-link.activo {
-  background: var(--terracota-50);
-  color: var(--terracota-600);
+  background: var(--marca-50);
+  color: var(--marca-600);
 }
 
 .tabbar {
@@ -311,7 +320,7 @@ a:hover { text-decoration: underline; }
   color: var(--texto-tenue);
 }
 .tabbar a:hover { text-decoration: none; }
-.tabbar a.activo { color: var(--terracota-600); }
+.tabbar a.activo { color: var(--marca-600); }
 .tabbar span[aria-hidden] { font-size: 1.2rem; line-height: 1; }
 
 /* ---------------------- Tarjetas ---------------------- */
@@ -344,7 +353,7 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
   transform: translateY(-3px);
   box-shadow: var(--sombra-lg);
-  border-color: var(--arena-300);
+  border-color: var(--gris-300);
 }
 
 .tarjeta-titulo {
@@ -362,11 +371,11 @@ a:hover { text-decoration: underline; }
 
 .viaje-franja {
   height: 7px;
-  background: linear-gradient(90deg, var(--terracota), var(--ambar));
+  background: linear-gradient(90deg, var(--marca-400), var(--verde-400));
 }
-.viaje-franja.completado { background: linear-gradient(90deg, var(--pino), var(--cielo)); }
-.viaje-franja.borrador { background: linear-gradient(90deg, var(--arena-300), var(--arena-200)); }
-.viaje-franja.en-curso { background: linear-gradient(90deg, var(--ambar), var(--terracota-400)); }
+.viaje-franja.completado { background: linear-gradient(90deg, var(--verde-400), var(--marca-200)); }
+.viaje-franja.borrador { background: linear-gradient(90deg, var(--gris-300), var(--gris-200)); }
+.viaje-franja.en-curso { background: linear-gradient(90deg, var(--ambar-400), var(--coral-400)); }
 
 .viaje-cuerpo { padding: var(--e5); }
 @media (max-width: 480px) {
@@ -415,10 +424,10 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   line-height: 1.5;
 }
-.insignia.terracota { background: var(--terracota-50); color: var(--terracota-600); border-color: var(--terracota-100); }
-.insignia.salvia { background: var(--pino-100); color: var(--pino-600); border-color: transparent; }
-.insignia.cielo { background: var(--cielo-100); color: #1f5f80; border-color: transparent; }
-.insignia.mostaza { background: var(--ambar-100); color: var(--ambar-600); border-color: transparent; }
+.insignia.marca { background: var(--marca-50); color: var(--marca-600); border-color: var(--marca-100); }
+.insignia.verde { background: var(--verde-50); color: var(--verde-600); border-color: transparent; }
+.insignia.cielo, .insignia.marca-suave { background: var(--marca-50); color: var(--marca-600); border-color: transparent; }
+.insignia.ambar { background: var(--ambar-100); color: var(--ambar-600); border-color: transparent; }
 .insignia.exito { background: var(--exito-bg); color: var(--exito); border-color: transparent; }
 .insignia.error { background: var(--error-bg); color: var(--error); border-color: transparent; }
 
@@ -449,14 +458,14 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   letter-spacing: -0.005em;
   cursor: pointer;
   transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
-  background: var(--terracota);
+  background: var(--marca);
   color: #fff;
-  box-shadow: 0 2px 10px rgba(201, 69, 32, 0.25);
+  box-shadow: 0 2px 10px rgba(10, 124, 156, 0.24);
 }
 .boton:hover:not(:disabled) {
-  background: var(--terracota-600);
+  background: var(--marca-600);
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(201, 69, 32, 0.32);
+  box-shadow: 0 4px 16px rgba(10, 124, 156, 0.30);
 }
 .boton:active:not(:disabled) { transform: translateY(1px); }
 .boton:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
@@ -485,7 +494,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   box-shadow: none;
 }
 
-.boton.peligro { background: var(--error); box-shadow: 0 2px 10px rgba(191, 59, 44, 0.25); }
+.boton.peligro { background: var(--error); box-shadow: 0 2px 10px rgba(194, 58, 43, 0.24); }
 .boton.peligro:hover:not(:disabled) { background: #9e2f23; }
 
 .boton.chico { min-height: 38px; padding: 7px 15px; font-size: 0.86rem; }
@@ -523,8 +532,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo select:focus,
 .campo textarea:focus {
   outline: none;
-  border-color: var(--cielo);
-  box-shadow: 0 0 0 3.5px var(--cielo-100);
+  border-color: var(--marca-400);
+  box-shadow: 0 0 0 3.5px var(--marca-100);
 }
 
 .campo input:disabled {
@@ -565,12 +574,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .medidor-barra {
   height: 5px;
   border-radius: 999px;
-  background: var(--arena-200);
+  background: var(--gris-200);
   transition: background 0.25s ease;
 }
 .medidor-barra.error { background: var(--error); }
 .medidor-barra.alerta { background: var(--alerta); }
-.medidor-barra.cielo { background: var(--cielo); }
+.medidor-barra.cielo { background: var(--marca-400); }
 .medidor-barra.exito { background: var(--exito); }
 
 .campos-2 { display: grid; gap: var(--e3); grid-template-columns: 1fr; }
@@ -591,7 +600,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   width: 19px;
   height: 19px;
   min-height: 0;
-  accent-color: var(--terracota);
+  accent-color: var(--marca);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -621,8 +630,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .buscador input:focus {
   outline: none;
-  border-color: var(--cielo);
-  box-shadow: 0 0 0 3.5px var(--cielo-100);
+  border-color: var(--marca-400);
+  box-shadow: 0 0 0 3.5px var(--marca-100);
 }
 .buscador input::-webkit-search-cancel-button { display: none; }
 
@@ -662,10 +671,10 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   border: 1px solid transparent;
   line-height: 1.55;
 }
-.aviso.error { background: var(--error-bg); color: #922a1f; border-color: #f3cfc9; }
-.aviso.exito { background: var(--exito-bg); color: #245e40; border-color: #c4e3d1; }
-.aviso.alerta { background: var(--alerta-bg); color: #7d5514; border-color: #f0dcb4; }
-.aviso.info { background: var(--cielo-100); color: #1f5f80; border-color: #b9dcec; }
+.aviso.error { background: var(--error-bg); color: #8f2b20; border-color: #f4d0cb; }
+.aviso.exito { background: var(--exito-bg); color: var(--verde-600); border-color: var(--verde-100); }
+.aviso.alerta { background: var(--alerta-bg); color: var(--ambar-600); border-color: #f2dfba; }
+.aviso.info { background: var(--marca-50); color: var(--marca-700); border-color: var(--marca-100); }
 .aviso strong { display: block; margin-bottom: 2px; }
 
 /* ---------------------- Estados ---------------------- */
@@ -675,7 +684,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   padding: var(--e7) var(--e5);
   border: 1.5px dashed var(--border-fuerte);
   border-radius: var(--radio);
-  background: linear-gradient(var(--surface), var(--arena-50));
+  background: linear-gradient(var(--surface), var(--gris-50));
 }
 .vacio-icono { font-size: 2.6rem; margin-bottom: var(--e3); display: block; }
 .vacio h3 { margin-bottom: var(--e2); font-size: 1.25rem; }
@@ -698,7 +707,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   width: 20px;
   height: 20px;
   border: 2.5px solid var(--border-fuerte);
-  border-top-color: var(--terracota);
+  border-top-color: var(--marca);
   border-radius: 50%;
   animation: girar 0.7s linear infinite;
   flex-shrink: 0;
@@ -706,7 +715,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 .esqueleto {
-  background: linear-gradient(90deg, var(--arena-100), var(--arena-200), var(--arena-100));
+  background: linear-gradient(90deg, var(--gris-100), var(--gris-200), var(--gris-100));
   background-size: 200% 100%;
   animation: brillo 1.4s ease-in-out infinite;
   border-radius: var(--radio-sm);
@@ -732,8 +741,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   place-items: center;
   padding: var(--e5) var(--e4);
   background:
-    radial-gradient(900px 420px at 12% -8%, var(--terracota-100), transparent 62%),
-    radial-gradient(760px 420px at 105% 108%, var(--pino-100), transparent 60%),
+    radial-gradient(900px 420px at 12% -8%, var(--marca-100), transparent 62%),
+    radial-gradient(760px 440px at 104% 106%, var(--verde-100), transparent 60%),
     var(--bg);
 }
 
@@ -790,9 +799,9 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--terracota);
+  background: var(--marca);
   border: 3.5px solid var(--bg);
-  box-shadow: 0 0 0 1px var(--terracota-200);
+  box-shadow: 0 0 0 1px var(--marca-200);
 }
 
 .dia.fuera-de-rango { border-left-color: var(--error); opacity: 0.75; }
@@ -800,8 +809,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .dia.fuera-de-rango .dia-num { color: var(--error); }
 
 .dia.dia-destino {
-  border-left-color: var(--terracota);
-  background: var(--terracota-50);
+  border-left-color: var(--marca);
+  background: var(--marca-50);
   border-radius: 0 var(--radio) var(--radio) 0;
 }
 
@@ -812,7 +821,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   letter-spacing: 0.09em;
   text-transform: uppercase;
   /* El tono 600 y no el base: en texto de 11px hace falta el contraste extra. */
-  color: var(--terracota-600);
+  color: var(--marca-600);
 }
 
 .editar-inline {
@@ -825,14 +834,14 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--arena-300);
+  color: var(--gris-300);
   font-size: 0.8rem;
   border-radius: 8px;
   vertical-align: middle;
   transition: color 0.15s ease, background 0.15s ease;
 }
 .dia:hover .editar-inline { color: var(--texto-tenue); }
-.editar-inline:hover { background: var(--surface-alt); color: var(--terracota); }
+.editar-inline:hover { background: var(--surface-alt); color: var(--marca); }
 
 .actividad {
   display: flex;
@@ -848,13 +857,13 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .actividad:hover { box-shadow: var(--sombra-sm); border-color: var(--border-fuerte); }
 .actividad.arrastrando { opacity: 0.4; cursor: grabbing; }
 .actividad.encima {
-  border-color: var(--terracota);
+  border-color: var(--marca);
   border-style: dashed;
   transform: translateY(1px);
 }
 
 .agarradera {
-  color: var(--arena-300);
+  color: var(--gris-300);
   cursor: grab;
   font-size: 1.1rem;
   line-height: 1.4;
@@ -867,7 +876,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--terracota-600);
+  color: var(--marca-600);
   min-width: 48px;
   padding-top: 2px;
 }
@@ -887,18 +896,18 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 .barra {
   height: 10px;
-  background: var(--arena-200);
+  background: var(--gris-200);
   border-radius: 999px;
   overflow: hidden;
 }
 .barra-relleno {
   height: 100%;
-  background: linear-gradient(90deg, var(--pino), #2f8f74);
+  background: linear-gradient(90deg, var(--marca-400), var(--verde-400));
   border-radius: 999px;
   transition: width 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
-.barra-relleno.alerta { background: linear-gradient(90deg, var(--ambar-600), var(--ambar)); }
-.barra-relleno.excedido { background: linear-gradient(90deg, #9e2f23, var(--error)); }
+.barra-relleno.alerta { background: linear-gradient(90deg, var(--ambar), var(--ambar-400)); }
+.barra-relleno.excedido { background: linear-gradient(90deg, #a12e21, var(--coral-400)); }
 
 .linea-gasto {
   display: flex;
@@ -939,7 +948,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   border-color: var(--exito);
   color: #fff;
 }
-.gasto-check:hover { border-color: var(--pino); }
+.gasto-check:hover { border-color: var(--verde-400); }
 
 /* ---------------------- Mapa ---------------------- */
 
@@ -968,7 +977,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   place-items: center;
   border: none;
   cursor: pointer;
-  background: rgba(36, 31, 27, 0.14);
+  background: rgba(26, 36, 48, 0.14);
   font-family: inherit;
 }
 .mapa-bloqueo span {
@@ -1024,8 +1033,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .link-externo:hover {
   text-decoration: none;
-  border-color: var(--terracota-200);
-  background: var(--terracota-50);
+  border-color: var(--marca-200);
+  background: var(--marca-50);
   transform: translateX(2px);
 }
 .link-externo .flecha { color: var(--texto-tenue); flex-shrink: 0; }
@@ -1036,7 +1045,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  background: rgba(36, 31, 27, 0.45);
+  background: rgba(26, 36, 48, 0.45);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-end;
@@ -1096,15 +1105,15 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   padding: 10px 18px;
   border-radius: 999px;
   background: var(--tinta);
-  color: var(--arena-100);
+  color: var(--gris-100);
   font-size: 0.83rem;
   font-weight: 550;
   box-shadow: var(--sombra-lg);
   animation: aparecer 0.2s ease;
 }
 .aviso-servidor .spinner {
-  border-color: rgba(247, 241, 232, 0.3);
-  border-top-color: var(--arena-100);
+  border-color: rgba(242, 246, 248, 0.3);
+  border-top-color: var(--gris-100);
 }
 
 /* ---------------------- Utilidades ---------------------- */
@@ -1159,8 +1168,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-weight: 500;
 }
 /* Separadores decorativos (aria-hidden, exentos de WCAG por no aportar
-   informacion), pero a --arena-300 se veian lavados. */
-.viaje-meta > span[aria-hidden] { color: var(--arena-400); }
+   informacion), pero a --gris-300 se veian lavados. */
+.viaje-meta > span[aria-hidden] { color: var(--gris-400); }
 .viaje-fechas { font-weight: 650; color: var(--texto); }
 
 .viaje-presupuesto {
@@ -1184,7 +1193,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .portada .etiqueta {
   display: block;
   margin-bottom: var(--e1);
-  color: var(--terracota-600);
+  color: var(--marca-600);
 }
 .portada .etiqueta::first-letter { text-transform: uppercase; }
 
@@ -1198,5 +1207,5 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-style: italic;
   font-variation-settings: 'SOFT' 60, 'WONK' 1;
   /* Aqui si va el tono base: a 45px cuenta como texto grande (umbral 3:1). */
-  color: var(--terracota);
+  color: var(--marca);
 }

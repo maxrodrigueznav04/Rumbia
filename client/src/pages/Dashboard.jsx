@@ -87,7 +87,7 @@ export default function Dashboard() {
               role="tab"
               aria-selected={filtro === f.valor}
               onClick={() => setFiltro(f.valor)}
-              className={`insignia ${filtro === f.valor ? 'terracota' : ''}`}
+              className={`insignia ${filtro === f.valor ? 'marca' : ''}`}
             >
               {f.texto}
             </button>

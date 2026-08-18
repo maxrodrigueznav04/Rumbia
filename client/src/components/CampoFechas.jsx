@@ -101,7 +101,7 @@ export default function CampoFechas({
           <button
             key={a.texto}
             type="button"
-            className={`insignia ${noches === a.noches ? 'terracota' : ''}`}
+            className={`insignia ${noches === a.noches ? 'marca' : ''}`}
             onClick={() => aplicarAtajo(a.noches)}
           >
             {a.texto}

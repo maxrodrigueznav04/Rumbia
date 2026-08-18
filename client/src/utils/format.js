@@ -119,9 +119,9 @@ export function humanizar(slug = '') {
 
 export const ETIQUETAS_ESTADO = {
   borrador: { texto: 'Borrador', color: '' },
-  planeado: { texto: 'Planeado', color: 'terracota' },
-  'en-curso': { texto: 'En curso', color: 'mostaza' },
-  completado: { texto: 'Completado', color: 'salvia' },
+  planeado: { texto: 'Planeado', color: 'marca' },
+  'en-curso': { texto: 'En curso', color: 'ambar' },
+  completado: { texto: 'Completado', color: 'verde' },
 };
 
 export const ICONOS_CATEGORIA = {
@@ -138,11 +138,11 @@ export const ICONOS_CATEGORIA = {
 
 /** Colores de la grafica de presupuesto, alineados con la paleta de la app. */
 export const COLORES_CATEGORIA = {
-  transporte: '#b85c38',
-  hospedaje: '#6e8b6a',
-  'transporte-local': '#4f8fb5',
-  comida: '#cc9544',
-  actividades: '#8a6ba8',
-  compras: '#c47f8f',
-  otros: '#8a7e73',
+  transporte: '#0a7c9c',
+  hospedaje: '#0f8443',
+  'transporte-local': '#0ea5c9',
+  comida: '#f0a020',
+  actividades: '#8b4a9b',
+  compras: '#f0653c',
+  otros: '#9aa8b2',
 };

@@ -112,7 +112,7 @@ export default function Perfil() {
                     type="button"
                     onClick={() => alternar(valor)}
                     aria-pressed={activo}
-                    className={`insignia ${activo ? 'terracota' : ''}`}
+                    className={`insignia ${activo ? 'marca' : ''}`}
                     style={{ cursor: 'pointer', padding: '7px 12px', fontFamily: 'inherit' }}
                   >
                     {valor.replace('-', ' ')}

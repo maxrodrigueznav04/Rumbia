@@ -106,7 +106,7 @@ export default function Registro() {
                     onClick={() => alternarEstilo(e.valor)}
                     aria-pressed={activo}
                     disabled={lleno}
-                    className={`insignia ${activo ? 'terracota' : ''}`}
+                    className={`insignia ${activo ? 'marca' : ''}`}
                     style={{ opacity: lleno ? 0.45 : 1, cursor: lleno ? 'not-allowed' : 'pointer' }}
                   >
                     <span aria-hidden="true">{e.icono}</span>
