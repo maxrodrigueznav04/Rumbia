@@ -395,3 +395,5 @@ Todas las respuestas siguen la misma forma:
 - Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
   actividad para cambiarla de sitio).
 - El dashboard no pagina: la API acepta `page` y `limit`, la interfaz siempre pide la primera página.
+#   R u m b o  
+ 
