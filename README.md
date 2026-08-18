@@ -159,33 +159,91 @@ npm run test:clima
 
 ## Deploy
 
-### Backend en Render
+Los tres servicios corren en tiers gratuitos. El orden importa, porque cada uno
+necesita la URL del anterior.
 
-El repo trae [`render.yaml`](render.yaml): en Render elige **New → Blueprint**, apunta a este repo y
-captura `MONGO_URI`, `CLIENT_URL`, `GEMINI_API_KEY` y `OPENWEATHER_API_KEY` en el dashboard.
+### 0. Subir el repo a GitHub
+
+Render y Vercel despliegan desde un repositorio, asi que este paso va primero.
+El repo ya esta inicializado y con el commit inicial hecho:
+
+```bash
+gh repo create rumbo --public --source=. --push
+```
+
+Si prefieres hacerlo desde la web: crea el repositorio vacio en GitHub y luego
+
+```bash
+git remote add origin https://github.com/TU-USUARIO/rumbo.git && git push -u origin main
+```
+
+Antes de subir, confirma que `.env` no viaja (deberia devolver error, que es lo correcto):
+
+```bash
+git ls-files --error-unmatch server/.env
+```
+
+### 1. Base de datos en Atlas
+
+Cluster M0 (gratuito, 512 MB). En **Network Access** agrega `0.0.0.0/0` para que
+Render pueda conectarse, y usa un usuario dedicado a este proyecto. Guarda la
+cadena de conexion con el nombre de la base incluido:
+
+```
+mongodb+srv://usuario:password@cluster.xxxxx.mongodb.net/rumbo?retryWrites=true&w=majority
+```
+
+Si la contrasena lleva `@`, `/`, `:` o `#`, cambiala: rompen la URL y el error
+que sale no lo explica.
+
+### 2. Backend en Render
+
+El repo trae [`render.yaml`](render.yaml): en Render elige **New -> Blueprint**,
+apunta a este repositorio y captura las claves marcadas `sync: false`.
 `JWT_SECRET` se genera solo.
 
-A mano funciona igual: root directory `server`, build `npm install`, start `npm start`,
-health check `/api/health`.
+A mano funciona igual: root directory `server`, build `npm install`,
+start `npm start`, health check `/api/health`.
 
-> En el plan gratuito de Render el servicio se duerme tras 15 minutos sin tráfico y la primera
-> petición tarda ~30 s en despertarlo. Vale la pena avisarlo en el README de tu demo.
+`CLIENT_URL` todavia no la sabes: pon cualquier valor y corrigela en el paso 4.
+Cuando termine, copia la URL del servicio (algo como
+`https://rumbo-api.onrender.com`) y comprueba que responde:
 
-### Frontend en Vercel
+```bash
+curl https://rumbo-api.onrender.com/api/health
+```
+
+### 3. Frontend en Vercel
 
 - Root directory: `client`
-- Build command: `npm run build` · Output: `dist`
-- Variable de entorno: `VITE_API_URL = https://tu-api.onrender.com/api`
+- Build command: `npm run build` - Output: `dist`
+- Variable de entorno: `VITE_API_URL = https://rumbo-api.onrender.com/api`
+  (con `/api` al final, sin barra despues)
 
-[`client/vercel.json`](client/vercel.json) reescribe todas las rutas a `index.html` para que los
-enlaces profundos (`/viajes/:id`) no den 404 al recargar.
+[`client/vercel.json`](client/vercel.json) reescribe todas las rutas a
+`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al recargar.
 
-### Base de datos en Atlas
+### 4. Cerrar el circulo
 
-Cluster M0 (gratuito, 512 MB). En **Network Access** agrega `0.0.0.0/0` para que Render pueda
-conectarse, y usa un usuario dedicado con permisos solo sobre esta base.
+Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Vercel
+(`https://rumbo.vercel.app`, **sin barra final** — aunque el servidor la
+normaliza, es mas claro sin ella). Redespliega. Sin este paso el navegador
+bloquea las peticiones por CORS y la app se ve vacia.
 
----
+### 5. Sembrar la cuenta demo
+
+Desde tu maquina, apuntando a la base de produccion:
+
+```bash
+cd server && MONGO_URI="tu-cadena-de-atlas" npm run seed
+```
+
+### Sobre el plan gratuito de Render
+
+El servicio se duerme tras 15 minutos sin trafico y la primera peticion tarda
+~30-50 s en despertarlo. La app lo maneja: muestra un aviso de "despertando el
+servidor" en vez de un spinner mudo, y el cliente espera hasta 70 s antes de
+rendirse. Aun asi, conviene avisarlo en el README de tu demo.
 
 ## Arquitectura
 

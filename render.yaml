@@ -20,6 +20,10 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Explicito a proposito: Google retira modelos para keys nuevas y el 404
+      # que devuelve no es obvio. Tenerlo aqui hace trivial cambiarlo sin tocar codigo.
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
       - key: OPENWEATHER_API_KEY
         sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
