@@ -61,17 +61,23 @@ export default function Dashboard() {
 
   return (
     <div className="pila">
-      <div className="fila-entre">
+      <header className="portada">
         <div>
-          <h1 style={{ marginBottom: 2 }}>Hola, {nombre}</h1>
-          <p className="tenue" style={{ margin: 0 }}>
+          <span className="etiqueta">
+            {new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })
+              .format(new Date())}
+          </span>
+          <h1 className="portada-titulo">
+            Hola, <span className="portada-nombre">{nombre}</span>
+          </h1>
+          <p className="suave" style={{ margin: 0 }}>
             {subtitulo()}
           </p>
         </div>
         <Link to="/viajes/nuevo" className="boton">
           <span aria-hidden="true">+</span> Nuevo viaje
         </Link>
-      </div>
+      </header>
 
       <div className="fila-entre" style={{ gap: 10 }}>
         <div className="fila" style={{ gap: 6 }} role="tablist" aria-label="Filtrar viajes">

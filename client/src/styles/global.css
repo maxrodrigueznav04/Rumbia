@@ -1,68 +1,98 @@
-/* ============================================================
-   Rumbo - sistema de diseno
-   Paleta de viaje: terracota, verde salvia, arena y azul cielo.
+/* ==========================================================================
+   Rumbo — sistema de diseño
+
+   Dirección: editorial y cálido, con acentos saturados que le dan energía.
+   Base de arena y tinta cálida, terracota vivo como color de marca, y una
+   escala tipográfica de mucho contraste (Fraunces para titulares, Inter para
+   texto) que es lo que le da el aire de revista de viajes.
+
    Mobile-first: los breakpoints solo agregan, nunca quitan.
-   ============================================================ */
+   ========================================================================== */
 
 :root {
-  /* --- Marca --- */
-  --terracota: #b85c38;
-  --terracota-600: #a04e2e;
-  --terracota-100: #f6e3da;
-  --salvia: #6e8b6a;
-  --salvia-600: #5a7357;
-  --salvia-100: #e2ebe0;
-  --cielo: #4f8fb5;
-  --cielo-100: #dcebf4;
-  --mostaza: #cc9544;
-  --mostaza-100: #f7ead3;
+  /* ---------- Marca ---------- */
+  --terracota-50: #fdf3ef;
+  --terracota-100: #fadcd0;
+  --terracota-200: #f4bda6;
+  --terracota-400: #e2703f;
+  --terracota: #c94520;
+  --terracota-600: #b13a17;
+  --terracota-700: #8a2c11;
 
-  /* --- Neutros arena --- */
-  --arena-50: #fbf8f4;
-  --arena-100: #f5efe6;
-  --arena-200: #ebe1d3;
-  --arena-300: #dbcdb9;
-  --tinta: #2b2622;
-  --tinta-600: #5c524a;
-  --tinta-400: #8a7e73;
+  /* Verde profundo: contrapeso serio al naranja, evita el aire de "todo cálido". */
+  --pino-100: #d9ebe4;
+  --pino-200: #b3d6c9;
+  --pino: #1c6b56;
+  --pino-600: #14523f;
 
-  /* --- Semanticos --- */
+  /* Ámbar: el acento que aporta la parte vibrante. */
+  --ambar-100: #fdeed2;
+  --ambar: #e39a2b;
+  --ambar-600: #b8781a;
+
+  /* Para variedad en gráficas y categorías. */
+  --indigo: #4a5cad;
+  --ciruela: #9b4a72;
+  --cielo: #2d7fa8;
+  --cielo-100: #d7ecf5;
+
+  /* ---------- Neutros de arena ---------- */
+  --arena-0: #ffffff;
+  --arena-50: #fdfaf6;
+  --arena-100: #f7f1e8;
+  --arena-200: #ece2d5;
+  --arena-300: #d9c9b6;
+  --arena-400: #b8a692;
+  --tinta: #241f1b;
+  --tinta-700: #4a423a;
+  --tinta-500: #736759;
+
+  /* ---------- Semánticos ---------- */
   --bg: var(--arena-50);
-  --surface: #ffffff;
+  --surface: var(--arena-0);
   --surface-alt: var(--arena-100);
   --border: var(--arena-200);
   --border-fuerte: var(--arena-300);
   --texto: var(--tinta);
-  --texto-suave: var(--tinta-600);
-  --texto-tenue: var(--tinta-400);
-  --exito: #4a7c59;
-  --exito-bg: #e4efe7;
-  --alerta: #b8843a;
-  --alerta-bg: #faeed8;
-  --error: #b4453a;
-  --error-bg: #f8e2e0;
+  --texto-suave: var(--tinta-700);
+  --texto-tenue: var(--tinta-500);
+  --exito: #2f7d55;
+  --exito-bg: #ddf0e5;
+  --alerta: #a8721c;
+  --alerta-bg: #fbeed4;
+  --error: #bf3b2c;
+  --error-bg: #fbe3df;
 
-  /* --- Forma y ritmo --- */
-  --radio-sm: 8px;
-  --radio: 14px;
-  --radio-lg: 20px;
-  --sombra-sm: 0 1px 2px rgba(43, 38, 34, 0.06);
-  --sombra: 0 2px 8px rgba(43, 38, 34, 0.07);
-  --sombra-lg: 0 10px 28px rgba(43, 38, 34, 0.1);
-  --paso: 4px;
-  --contenedor: 1080px;
-  --nav-alto: 60px;
+  /* ---------- Forma ---------- */
+  --radio-sm: 10px;
+  --radio: 16px;
+  --radio-lg: 24px;
+  --sombra-sm: 0 1px 2px rgba(36, 31, 27, 0.05);
+  --sombra: 0 4px 14px rgba(36, 31, 27, 0.07);
+  --sombra-lg: 0 16px 40px rgba(36, 31, 27, 0.13);
+  --contenedor: 1120px;
+  --nav-alto: 66px;
 
-  /* --- Escala de apilamiento ---
+  /* ---------- Ritmo ---------- */
+  --e1: 4px;
+  --e2: 8px;
+  --e3: 12px;
+  --e4: 16px;
+  --e5: 24px;
+  --e6: 32px;
+  --e7: 48px;
+
+  /* ---------- Escala de apilamiento ----------
      Leaflet usa hasta z-index 1000 en sus controles y 700 en los popups.
      Todo lo nuestro que deba quedar por encima vive arriba de 2000, y el mapa
-     se aisla con isolation:isolate para que sus capas no escapen del contenedor. */
+     se aísla con isolation:isolate para que sus capas no escapen del contenedor. */
   --z-nav: 2000;
   --z-modal: 3000;
   --z-aviso: 4000;
 
-  --fuente: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --fuente-titulo: 'Georgia', 'Iowan Old Style', 'Times New Roman', serif;
+  /* ---------- Tipografía ---------- */
+  --fuente: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fuente-titulo: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
 }
 
 *,
@@ -82,35 +112,54 @@ body {
   color: var(--texto);
   font-family: var(--fuente);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4 {
+/* Fraunces tiene ejes variables: SOFT redondea los remates y WONK activa las
+   formas más expresivas. Juntos dan el carácter editorial sin volverse
+   decorativo. */
+h1, h2, h3 {
   font-family: var(--fuente-titulo);
+  font-variation-settings: 'SOFT' 30, 'WONK' 1;
   font-weight: 600;
-  line-height: 1.2;
-  margin: 0 0 8px;
-  letter-spacing: -0.01em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--e2);
+  color: var(--texto);
 }
 
-h1 { font-size: 1.65rem; }
-h2 { font-size: 1.3rem; }
-h3 { font-size: 1.05rem; }
+h1 { font-size: clamp(1.75rem, 1.3rem + 2.2vw, 2.5rem); }
+h2 { font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.75rem); }
+h3 { font-size: 1.12rem; letter-spacing: -0.01em; }
 
-p { margin: 0 0 12px; }
+h4 {
+  font-family: var(--fuente);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 0 0 var(--e1);
+}
+
+p { margin: 0 0 var(--e3); }
 
 a {
-  color: var(--terracota);
+  color: var(--terracota-600);
   text-decoration: none;
+  font-weight: 500;
 }
 a:hover { text-decoration: underline; }
 
-/* Foco visible y consistente: accesibilidad basica. */
 :focus-visible {
-  outline: 2px solid var(--cielo);
+  outline: 2.5px solid var(--cielo);
   outline-offset: 2px;
   border-radius: var(--radio-sm);
+}
+
+::selection {
+  background: var(--terracota-100);
+  color: var(--terracota-700);
 }
 
 /* ---------------------- Layout ---------------------- */
@@ -119,52 +168,61 @@ a:hover { text-decoration: underline; }
   width: 100%;
   max-width: var(--contenedor);
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 var(--e4);
+}
+@media (min-width: 700px) {
+  .contenedor { padding: 0 var(--e5); }
 }
 
-.pagina {
-  padding: 20px 0 88px; /* espacio para la barra inferior en movil */
+.pagina { padding: var(--e5) 0 96px; }
+@media (min-width: 760px) {
+  .pagina { padding: var(--e6) 0 var(--e7); }
 }
 
-.pila { display: flex; flex-direction: column; gap: 16px; }
-.pila-sm { display: flex; flex-direction: column; gap: 8px; }
+.pila { display: flex; flex-direction: column; gap: var(--e4); }
+.pila-sm { display: flex; flex-direction: column; gap: var(--e2); }
+
 .fila {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--e3);
   flex-wrap: wrap;
 }
 .fila-entre {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--e3);
   flex-wrap: wrap;
 }
 .crece { flex: 1; }
 
 .rejilla {
   display: grid;
-  gap: 16px;
+  gap: var(--e4);
   grid-template-columns: 1fr;
 }
-@media (min-width: 700px) {
+@media (min-width: 680px) {
   .rejilla-2 { grid-template-columns: repeat(2, 1fr); }
 }
-@media (min-width: 980px) {
+@media (min-width: 1000px) {
   .rejilla-3 { grid-template-columns: repeat(3, 1fr); }
-  .rejilla-detalle { grid-template-columns: 1.6fr 1fr; align-items: start; }
+  .rejilla-detalle {
+    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+    gap: var(--e5);
+    align-items: start;
+  }
 }
 
-/* ---------------------- Navegacion ---------------------- */
+/* ---------------------- Navegación ---------------------- */
 
 .nav {
   position: sticky;
   top: 0;
   z-index: var(--z-nav);
   height: var(--nav-alto);
-  background: rgba(251, 248, 244, 0.9);
-  backdrop-filter: blur(8px);
+  background: rgba(253, 250, 246, 0.82);
+  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -173,54 +231,58 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--e3);
 }
 
 .marca {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--e2);
   font-family: var(--fuente-titulo);
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-variation-settings: 'SOFT' 30, 'WONK' 1;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--texto);
 }
 .marca:hover { text-decoration: none; }
 
 .marca-punto {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: var(--terracota);
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--terracota-400), var(--terracota-600));
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(201, 69, 32, 0.32);
 }
 
-.nav-links { display: none; gap: 4px; }
-@media (min-width: 700px) {
+.nav-links { display: none; gap: var(--e1); }
+@media (min-width: 760px) {
   .nav-links { display: flex; }
 }
 
 .nav-link {
-  padding: 7px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
   color: var(--texto-suave);
   font-size: 0.92rem;
-  font-weight: 500;
+  font-weight: 550;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .nav-link:hover {
   background: var(--surface-alt);
+  color: var(--texto);
   text-decoration: none;
 }
 .nav-link.activo {
-  background: var(--terracota-100);
+  background: var(--terracota-50);
   color: var(--terracota-600);
 }
 
-/* Barra inferior: solo en movil, el patron esperado en el celular. */
 .tabbar {
   position: fixed;
   bottom: 0;
@@ -228,11 +290,12 @@ a:hover { text-decoration: underline; }
   right: 0;
   z-index: var(--z-nav);
   display: flex;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
 }
-@media (min-width: 700px) {
+@media (min-width: 760px) {
   .tabbar { display: none; }
 }
 
@@ -241,15 +304,15 @@ a:hover { text-decoration: underline; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 2px;
+  gap: 3px;
+  padding: 7px 2px;
   font-size: 0.68rem;
+  font-weight: 600;
   color: var(--texto-tenue);
-  font-weight: 500;
 }
 .tabbar a:hover { text-decoration: none; }
-.tabbar a.activo { color: var(--terracota); }
-.tabbar span[aria-hidden] { font-size: 1.15rem; line-height: 1; }
+.tabbar a.activo { color: var(--terracota-600); }
+.tabbar span[aria-hidden] { font-size: 1.2rem; line-height: 1; }
 
 /* ---------------------- Tarjetas ---------------------- */
 
@@ -257,65 +320,83 @@ a:hover { text-decoration: underline; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radio);
-  padding: 16px;
+  padding: var(--e5);
   box-shadow: var(--sombra-sm);
+}
+@media (max-width: 480px) {
+  .tarjeta { padding: var(--e4); }
 }
 
 .tarjeta-plana {
   background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: var(--radio);
-  padding: 14px;
+  border-radius: var(--radio-sm);
+  padding: var(--e3) var(--e4);
 }
 
 .tarjeta-link {
   display: block;
   color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
+              box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .tarjeta-link:hover {
   text-decoration: none;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--sombra-lg);
-  border-color: var(--border-fuerte);
+  border-color: var(--arena-300);
 }
 
 .tarjeta-titulo {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: var(--e3);
+  margin-bottom: var(--e4);
 }
 .tarjeta-titulo h2,
 .tarjeta-titulo h3 { margin: 0; }
 
-/* Franja de color superior del TripCard, segun el estado del viaje. */
+/* Tarjeta de viaje: la franja superior codifica el estado por color. */
 .tarjeta-viaje { overflow: hidden; padding: 0; }
-.viaje-franja {
-  height: 6px;
-  background: linear-gradient(90deg, var(--terracota), var(--mostaza));
-}
-.viaje-franja.completado { background: linear-gradient(90deg, var(--salvia), var(--cielo)); }
-.viaje-franja.borrador { background: var(--border-fuerte); }
-.viaje-cuerpo { padding: 16px; }
 
-/* ---------------------- Tipografia auxiliar ---------------------- */
+.viaje-franja {
+  height: 7px;
+  background: linear-gradient(90deg, var(--terracota), var(--ambar));
+}
+.viaje-franja.completado { background: linear-gradient(90deg, var(--pino), var(--cielo)); }
+.viaje-franja.borrador { background: linear-gradient(90deg, var(--arena-300), var(--arena-200)); }
+.viaje-franja.en-curso { background: linear-gradient(90deg, var(--ambar), var(--terracota-400)); }
+
+.viaje-cuerpo { padding: var(--e5); }
+@media (max-width: 480px) {
+  .viaje-cuerpo { padding: var(--e4); }
+}
+
+/* ---------------------- Tipografía auxiliar ---------------------- */
 
 .etiqueta {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--texto-tenue);
 }
 .suave { color: var(--texto-suave); }
 .tenue { color: var(--texto-tenue); font-size: 0.88rem; }
+
 .numero {
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
-.grande { font-size: 1.5rem; }
+.grande {
+  font-family: var(--fuente-titulo);
+  font-variation-settings: 'SOFT' 30, 'WONK' 1;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
 .centrado { text-align: center; }
 
 /* ---------------------- Insignias ---------------------- */
@@ -324,29 +405,32 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 4px 11px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 600;
   background: var(--surface-alt);
   color: var(--texto-suave);
   border: 1px solid var(--border);
   white-space: nowrap;
+  line-height: 1.5;
 }
-.insignia.terracota { background: var(--terracota-100); color: var(--terracota-600); border-color: transparent; }
-.insignia.salvia { background: var(--salvia-100); color: var(--salvia-600); border-color: transparent; }
-.insignia.cielo { background: var(--cielo-100); color: #35688a; border-color: transparent; }
-.insignia.mostaza { background: var(--mostaza-100); color: #8d6420; border-color: transparent; }
+.insignia.terracota { background: var(--terracota-50); color: var(--terracota-600); border-color: var(--terracota-100); }
+.insignia.salvia { background: var(--pino-100); color: var(--pino-600); border-color: transparent; }
+.insignia.cielo { background: var(--cielo-100); color: #1f5f80; border-color: transparent; }
+.insignia.mostaza { background: var(--ambar-100); color: var(--ambar-600); border-color: transparent; }
 .insignia.exito { background: var(--exito-bg); color: var(--exito); border-color: transparent; }
 .insignia.error { background: var(--error-bg); color: var(--error); border-color: transparent; }
 
-/* Las insignias que ademas son botones (filtros, chips de preferencias) necesitan
-   un objetivo tactil mas grande; las insignias de solo lectura no. */
+/* Las insignias que además son botones necesitan objetivo táctil mayor. */
 button.insignia {
   min-height: 38px;
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
+button.insignia:hover:not(:disabled) { border-color: var(--border-fuerte); }
+button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 /* ---------------------- Botones ---------------------- */
 
@@ -354,41 +438,57 @@ button.insignia {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  min-height: 44px; /* objetivo tactil comodo */
+  gap: var(--e2);
+  padding: 11px 20px;
+  min-height: 46px;
   border: 1px solid transparent;
   border-radius: 999px;
   font-family: inherit;
   font-size: 0.94rem;
   font-weight: 600;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
   background: var(--terracota);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(201, 69, 32, 0.25);
 }
-.boton:hover:not(:disabled) { background: var(--terracota-600); text-decoration: none; }
-.boton:disabled { opacity: 0.55; cursor: not-allowed; }
+.boton:hover:not(:disabled) {
+  background: var(--terracota-600);
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(201, 69, 32, 0.32);
+}
+.boton:active:not(:disabled) { transform: translateY(1px); }
+.boton:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
 .boton.secundario {
   background: var(--surface);
   color: var(--texto);
   border-color: var(--border-fuerte);
+  box-shadow: var(--sombra-sm);
 }
-.boton.secundario:hover:not(:disabled) { background: var(--surface-alt); }
+.boton.secundario:hover:not(:disabled) {
+  background: var(--surface-alt);
+  box-shadow: var(--sombra-sm);
+}
 
 .boton.fantasma {
   background: transparent;
   color: var(--texto-suave);
   border-color: transparent;
   padding: 8px 12px;
+  box-shadow: none;
 }
-.boton.fantasma:hover:not(:disabled) { background: var(--surface-alt); }
+.boton.fantasma:hover:not(:disabled) {
+  background: var(--surface-alt);
+  color: var(--texto);
+  box-shadow: none;
+}
 
-.boton.peligro { background: var(--error); }
-.boton.peligro:hover:not(:disabled) { background: #9c3a30; }
+.boton.peligro { background: var(--error); box-shadow: 0 2px 10px rgba(191, 59, 44, 0.25); }
+.boton.peligro:hover:not(:disabled) { background: #9e2f23; }
 
-.boton.chico { min-height: 38px; padding: 6px 14px; font-size: 0.85rem; }
+.boton.chico { min-height: 38px; padding: 7px 15px; font-size: 0.86rem; }
 .boton.ancho { width: 100%; }
 
 /* ---------------------- Formularios ---------------------- */
@@ -399,54 +499,52 @@ button.insignia {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--texto-suave);
+  letter-spacing: -0.005em;
 }
 
 .campo input,
 .campo select,
 .campo textarea {
   width: 100%;
-  padding: 11px 13px;
-  min-height: 44px;
+  padding: 12px 14px;
+  min-height: 46px;
   font-family: inherit;
-  font-size: 16px; /* 16px evita el zoom automatico en iOS */
+  font-size: 16px; /* 16px evita el zoom automático en iOS */
   color: var(--texto);
   background: var(--surface);
-  border: 1px solid var(--border-fuerte);
+  border: 1.5px solid var(--border-fuerte);
   border-radius: var(--radio-sm);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.campo textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+.campo textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
+.campo input[type='date'] { cursor: pointer; }
 
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus {
   outline: none;
   border-color: var(--cielo);
-  box-shadow: 0 0 0 3px var(--cielo-100);
+  box-shadow: 0 0 0 3.5px var(--cielo-100);
+}
+
+.campo input:disabled {
+  background: var(--surface-alt);
+  color: var(--texto-tenue);
+  cursor: not-allowed;
 }
 
 .campo input[aria-invalid='true'],
-.campo textarea[aria-invalid='true'] {
-  border-color: var(--error);
-}
+.campo textarea[aria-invalid='true'] { border-color: var(--error); }
 
-.campo-error {
-  font-size: 0.8rem;
-  color: var(--error);
-}
+.campo-error { font-size: 0.8rem; color: var(--error); font-weight: 500; }
+.campo-ayuda { font-size: 0.8rem; color: var(--texto-tenue); }
 
-.campo-ayuda {
-  font-size: 0.8rem;
-  color: var(--texto-tenue);
-}
-
-/* Input con botón embebido (ver/ocultar contraseña). */
 .campo-con-boton { position: relative; }
-.campo-con-boton input { padding-right: 48px; }
+.campo-con-boton input { padding-right: 50px; }
 
 .campo-boton {
   position: absolute;
-  right: 4px;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
   width: 40px;
@@ -462,17 +560,10 @@ button.insignia {
 }
 .campo-boton:hover { background: var(--surface-alt); }
 
-/* Medidor de fuerza de contraseña. */
-.medidor { display: flex; flex-direction: column; gap: 5px; }
-
-.medidor-barras {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-
+.medidor { display: flex; flex-direction: column; gap: 6px; }
+.medidor-barras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .medidor-barra {
-  height: 4px;
+  height: 5px;
   border-radius: 999px;
   background: var(--arena-200);
   transition: background 0.25s ease;
@@ -482,12 +573,7 @@ button.insignia {
 .medidor-barra.cielo { background: var(--cielo); }
 .medidor-barra.exito { background: var(--exito); }
 
-/* Filas de campos que caben lado a lado en escritorio. */
-.campos-2 {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
-}
+.campos-2 { display: grid; gap: var(--e3); grid-template-columns: 1fr; }
 @media (min-width: 560px) {
   .campos-2 { grid-template-columns: 1fr 1fr; }
 }
@@ -495,73 +581,19 @@ button.insignia {
 .campo-check {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   padding: 10px 0;
   cursor: pointer;
   font-size: 0.9rem;
   color: var(--texto-suave);
 }
 .campo-check input {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   min-height: 0;
   accent-color: var(--terracota);
   cursor: pointer;
   flex-shrink: 0;
-}
-
-/* ---------------------- Modal ---------------------- */
-
-.modal-fondo {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal);
-  background: rgba(43, 38, 34, 0.42);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0;
-  animation: aparecer 0.15s ease;
-}
-@media (min-width: 640px) {
-  .modal-fondo { align-items: center; padding: 24px; }
-}
-
-.modal-caja {
-  width: 100%;
-  max-height: 92dvh;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-radius: var(--radio-lg) var(--radio-lg) 0 0;
-  box-shadow: var(--sombra-lg);
-  animation: subir 0.2s ease;
-}
-@media (min-width: 640px) {
-  .modal-caja { border-radius: var(--radio-lg); }
-}
-
-.modal-encabezado {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 16px 12px 20px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.modal-encabezado h3 { margin: 0; }
-
-.modal-cuerpo {
-  padding: 18px 20px 22px;
-  overflow-y: auto;
-}
-
-@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
-@keyframes subir {
-  from { transform: translateY(16px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
 
 /* ---------------------- Buscador ---------------------- */
@@ -571,41 +603,40 @@ button.insignia {
   display: flex;
   align-items: center;
   flex: 1;
-  min-width: 200px;
-  max-width: 320px;
+  min-width: 210px;
+  max-width: 340px;
 }
 
 .buscador input {
   width: 100%;
-  padding: 9px 36px 9px 34px;
-  min-height: 40px;
+  padding: 10px 38px 10px 36px;
+  min-height: 42px;
   font-family: inherit;
-  font-size: 16px; /* evita el zoom automatico en iOS */
+  font-size: 16px;
   color: var(--texto);
   background: var(--surface);
-  border: 1px solid var(--border-fuerte);
+  border: 1.5px solid var(--border-fuerte);
   border-radius: 999px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .buscador input:focus {
   outline: none;
   border-color: var(--cielo);
-  box-shadow: 0 0 0 3px var(--cielo-100);
+  box-shadow: 0 0 0 3.5px var(--cielo-100);
 }
-/* La X nativa de type="search" duplicaria nuestro boton de limpiar. */
 .buscador input::-webkit-search-cancel-button { display: none; }
 
 .buscador-icono {
   position: absolute;
-  left: 11px;
+  left: 13px;
   font-size: 0.85rem;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .buscador-limpiar {
   position: absolute;
-  right: 4px;
+  right: 5px;
   width: 32px;
   height: 32px;
   display: grid;
@@ -623,46 +654,43 @@ button.insignia {
 
 .aviso {
   display: flex;
-  gap: 10px;
+  gap: 11px;
   align-items: flex-start;
-  padding: 12px 14px;
+  padding: 13px 16px;
   border-radius: var(--radio-sm);
   font-size: 0.9rem;
   border: 1px solid transparent;
+  line-height: 1.55;
 }
-.aviso.error { background: var(--error-bg); color: #8c332b; }
-.aviso.exito { background: var(--exito-bg); color: #365d42; }
-.aviso.alerta { background: var(--alerta-bg); color: #85601f; }
-.aviso.info { background: var(--cielo-100); color: #2f5f80; }
+.aviso.error { background: var(--error-bg); color: #922a1f; border-color: #f3cfc9; }
+.aviso.exito { background: var(--exito-bg); color: #245e40; border-color: #c4e3d1; }
+.aviso.alerta { background: var(--alerta-bg); color: #7d5514; border-color: #f0dcb4; }
+.aviso.info { background: var(--cielo-100); color: #1f5f80; border-color: #b9dcec; }
 .aviso strong { display: block; margin-bottom: 2px; }
 
 /* ---------------------- Estados ---------------------- */
 
 .vacio {
   text-align: center;
-  padding: 44px 20px;
-  border: 1px dashed var(--border-fuerte);
+  padding: var(--e7) var(--e5);
+  border: 1.5px dashed var(--border-fuerte);
   border-radius: var(--radio);
-  background: var(--surface);
+  background: linear-gradient(var(--surface), var(--arena-50));
 }
-.vacio-icono {
-  font-size: 2.4rem;
-  margin-bottom: 10px;
-  display: block;
-}
-.vacio h3 { margin-bottom: 6px; }
+.vacio-icono { font-size: 2.6rem; margin-bottom: var(--e3); display: block; }
+.vacio h3 { margin-bottom: var(--e2); font-size: 1.25rem; }
 .vacio p {
   color: var(--texto-suave);
-  max-width: 42ch;
-  margin: 0 auto 18px;
+  max-width: 44ch;
+  margin: 0 auto var(--e5);
 }
 
 .cargando {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 40px 20px;
+  gap: 11px;
+  padding: var(--e7) var(--e5);
   color: var(--texto-tenue);
 }
 
@@ -677,7 +705,6 @@ button.insignia {
 }
 @keyframes girar { to { transform: rotate(360deg); } }
 
-/* Esqueletos de carga: evitan el salto de layout al llegar los datos. */
 .esqueleto {
   background: linear-gradient(90deg, var(--arena-100), var(--arena-200), var(--arena-100));
   background-size: 200% 100%;
@@ -697,121 +724,137 @@ button.insignia {
   }
 }
 
-/* ---------------------- Autenticacion ---------------------- */
+/* ---------------------- Autenticación ---------------------- */
 
 .auth-pantalla {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 24px 16px;
+  padding: var(--e5) var(--e4);
   background:
-    radial-gradient(1000px 400px at 15% -10%, var(--terracota-100), transparent 60%),
-    radial-gradient(800px 400px at 100% 110%, var(--salvia-100), transparent 60%),
+    radial-gradient(900px 420px at 12% -8%, var(--terracota-100), transparent 62%),
+    radial-gradient(760px 420px at 105% 108%, var(--pino-100), transparent 60%),
     var(--bg);
 }
 
 .auth-caja {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radio-lg);
-  padding: 28px 24px;
+  padding: var(--e6) var(--e5);
   box-shadow: var(--sombra-lg);
 }
 
-.auth-encabezado { text-align: center; margin-bottom: 22px; }
+.auth-encabezado { text-align: center; margin-bottom: var(--e5); }
 .auth-encabezado p { color: var(--texto-suave); margin: 0; }
 
 .auth-pie {
-  margin-top: 18px;
+  margin-top: var(--e5);
   text-align: center;
   font-size: 0.9rem;
   color: var(--texto-suave);
 }
 
 .demo-caja {
-  margin-top: 16px;
-  padding: 12px 14px;
+  margin-top: var(--e4);
+  padding: var(--e3) var(--e4);
   background: var(--surface-alt);
-  border: 1px dashed var(--border-fuerte);
+  border: 1.5px dashed var(--border-fuerte);
   border-radius: var(--radio-sm);
   font-size: 0.82rem;
   color: var(--texto-suave);
 }
 .demo-caja code {
   background: var(--surface);
-  padding: 1px 5px;
-  border-radius: 4px;
+  padding: 2px 6px;
+  border-radius: 5px;
   font-size: 0.8rem;
+  border: 1px solid var(--border);
 }
 
 /* ---------------------- Itinerario ---------------------- */
 
 .dia {
   border-left: 2px solid var(--border-fuerte);
-  padding-left: 18px;
+  padding-left: var(--e5);
   position: relative;
-  margin-left: 6px;
+  margin-left: 7px;
 }
 .dia::before {
   content: '';
   position: absolute;
-  left: -8px;
-  top: 4px;
-  width: 14px;
-  height: 14px;
+  left: -9px;
+  top: 5px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--terracota);
-  border: 3px solid var(--bg);
+  border: 3.5px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--terracota-200);
 }
 
-.dia-encabezado { margin-bottom: 12px; }
-
-/* Día que quedó fuera del rango del viaje tras acortar las fechas. */
 .dia.fuera-de-rango { border-left-color: var(--error); opacity: 0.75; }
-.dia.fuera-de-rango::before { background: var(--error); }
+.dia.fuera-de-rango::before { background: var(--error); box-shadow: 0 0 0 1px #f3cfc9; }
 .dia.fuera-de-rango .dia-num { color: var(--error); }
-.dia-num {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--terracota);
+
+.dia.dia-destino {
+  border-left-color: var(--terracota);
+  background: var(--terracota-50);
+  border-radius: 0 var(--radio) var(--radio) 0;
 }
+
+.dia-encabezado { margin-bottom: var(--e3); }
+.dia-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  /* El tono 600 y no el base: en texto de 11px hace falta el contraste extra. */
+  color: var(--terracota-600);
+}
+
+.editar-inline {
+  /* El icono es pequeno a proposito, pero el area tactil no puede serlo:
+     28x28 cumple el minimo de WCAG 2.2 sin engordar el diseno. */
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--arena-300);
+  font-size: 0.8rem;
+  border-radius: 8px;
+  vertical-align: middle;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.dia:hover .editar-inline { color: var(--texto-tenue); }
+.editar-inline:hover { background: var(--surface-alt); color: var(--terracota); }
 
 .actividad {
   display: flex;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radio-sm);
-  margin-bottom: 8px;
+  margin-bottom: var(--e2);
+  transition: opacity 0.15s ease, border-color 0.15s ease, transform 0.15s ease,
+              box-shadow 0.15s ease;
+}
+.actividad:hover { box-shadow: var(--sombra-sm); border-color: var(--border-fuerte); }
+.actividad.arrastrando { opacity: 0.4; cursor: grabbing; }
+.actividad.encima {
+  border-color: var(--terracota);
+  border-style: dashed;
+  transform: translateY(1px);
 }
 
-.actividad-hora {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--terracota-600);
-  min-width: 46px;
-  padding-top: 1px;
-}
-
-.actividad-cuerpo { flex: 1; min-width: 0; }
-.actividad-cuerpo h4 { margin: 0 0 3px; font-family: var(--fuente); font-size: 0.97rem; }
-.actividad-cuerpo p { margin: 0 0 6px; font-size: 0.88rem; color: var(--texto-suave); }
-
-.actividad-acciones {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Arrastrar para reordenar. */
 .agarradera {
-  color: var(--border-fuerte);
+  color: var(--arena-300);
   cursor: grab;
   font-size: 1.1rem;
   line-height: 1.4;
@@ -820,56 +863,68 @@ button.insignia {
 }
 .actividad:hover .agarradera { color: var(--texto-tenue); }
 
-.actividad { transition: opacity 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
-.actividad.arrastrando { opacity: 0.4; cursor: grabbing; }
-.actividad.encima {
-  border-color: var(--terracota);
-  border-style: dashed;
-  transform: translateY(1px);
+.actividad-hora {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--terracota-600);
+  min-width: 48px;
+  padding-top: 2px;
 }
+
+.actividad-cuerpo { flex: 1; min-width: 0; }
+.actividad-cuerpo h4 { margin: 0 0 3px; }
+.actividad-cuerpo p {
+  margin: 0 0 var(--e2);
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+  line-height: 1.5;
+}
+
+.actividad-acciones { display: flex; flex-direction: column; gap: 2px; }
 
 /* ---------------------- Presupuesto ---------------------- */
 
 .barra {
-  height: 9px;
+  height: 10px;
   background: var(--arena-200);
   border-radius: 999px;
   overflow: hidden;
 }
 .barra-relleno {
   height: 100%;
-  background: var(--salvia);
+  background: linear-gradient(90deg, var(--pino), #2f8f74);
   border-radius: 999px;
-  transition: width 0.4s ease;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
-.barra-relleno.alerta { background: var(--mostaza); }
-.barra-relleno.excedido { background: var(--error); }
+.barra-relleno.alerta { background: linear-gradient(90deg, var(--ambar-600), var(--ambar)); }
+.barra-relleno.excedido { background: linear-gradient(90deg, #9e2f23, var(--error)); }
 
 .linea-gasto {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 0;
+  gap: var(--e3);
+  padding: 11px 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.92rem;
 }
 .linea-gasto:last-child { border-bottom: none; }
 
 .punto-color {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
-/* Casilla de "ya lo pagué" en la lista de gastos. */
 .gasto-check {
-  width: 22px;
-  height: 22px;
+  /* 26px: WCAG 2.2 pide al menos 24x24 de area tactil. */
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
   border: 2px solid var(--border-fuerte);
-  border-radius: 6px;
+  border-radius: 7px;
   background: var(--surface);
   cursor: pointer;
   display: grid;
@@ -884,7 +939,7 @@ button.insignia {
   border-color: var(--exito);
   color: #fff;
 }
-.gasto-check:hover { border-color: var(--salvia); }
+.gasto-check:hover { border-color: var(--pino); }
 
 /* ---------------------- Mapa ---------------------- */
 
@@ -895,8 +950,8 @@ button.insignia {
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--surface-alt);
-  /* Aisla las capas internas de Leaflet: sin esto sus controles (z-index 1000)
-     se dibujan encima de los modales y de la barra de navegacion. */
+  /* Aísla las capas internas de Leaflet: sin esto sus controles (z-index 1000)
+     se dibujan encima de los modales y de la barra de navegación. */
   isolation: isolate;
   z-index: 0;
 }
@@ -905,29 +960,50 @@ button.insignia {
 }
 .leaflet-container { font-family: var(--fuente); }
 
+.mapa-bloqueo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  cursor: pointer;
+  background: rgba(36, 31, 27, 0.14);
+  font-family: inherit;
+}
+.mapa-bloqueo span {
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--texto);
+  font-size: 0.83rem;
+  font-weight: 600;
+  box-shadow: var(--sombra);
+}
+
 /* ---------------------- Clima ---------------------- */
 
 .clima-tira {
   display: flex;
-  gap: 8px;
+  gap: var(--e2);
   overflow-x: auto;
   padding-bottom: 6px;
   scrollbar-width: thin;
 }
 .clima-dia {
-  flex: 0 0 84px;
+  flex: 0 0 88px;
   text-align: center;
-  padding: 10px 6px;
+  padding: var(--e3) 6px;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radio-sm);
 }
-.clima-dia .temp { font-weight: 700; font-size: 0.95rem; }
+.clima-dia .temp { font-weight: 700; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
 .clima-dia .cond {
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   color: var(--texto-tenue);
-  line-height: 1.3;
-  margin-top: 2px;
+  line-height: 1.35;
+  margin-top: 3px;
 }
 
 /* ---------------------- Enlaces externos ---------------------- */
@@ -936,21 +1012,100 @@ button.insignia {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 11px 13px;
+  gap: var(--e3);
+  padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radio-sm);
   color: var(--texto);
   font-size: 0.9rem;
   font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
 }
 .link-externo:hover {
   text-decoration: none;
-  border-color: var(--terracota);
-  background: var(--terracota-100);
+  border-color: var(--terracota-200);
+  background: var(--terracota-50);
+  transform: translateX(2px);
 }
 .link-externo .flecha { color: var(--texto-tenue); flex-shrink: 0; }
+
+/* ---------------------- Modal ---------------------- */
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(36, 31, 27, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  animation: aparecer 0.16s ease;
+}
+@media (min-width: 640px) {
+  .modal-fondo { align-items: center; padding: var(--e5); }
+}
+
+.modal-caja {
+  width: 100%;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+  box-shadow: var(--sombra-lg);
+  animation: subir 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@media (min-width: 640px) {
+  .modal-caja { border-radius: var(--radio-lg); }
+}
+
+.modal-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  padding: var(--e4) var(--e4) var(--e3) var(--e5);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-encabezado h3 { margin: 0; }
+
+.modal-cuerpo { padding: var(--e5); overflow-y: auto; }
+
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+@keyframes subir {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------------------- Aviso de servidor ---------------------- */
+
+.aviso-servidor {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-aviso);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--arena-100);
+  font-size: 0.83rem;
+  font-weight: 550;
+  box-shadow: var(--sombra-lg);
+  animation: aparecer 0.2s ease;
+}
+.aviso-servidor .spinner {
+  border-color: rgba(247, 241, 232, 0.3);
+  border-top-color: var(--arena-100);
+}
 
 /* ---------------------- Utilidades ---------------------- */
 
@@ -969,75 +1124,79 @@ button.insignia {
 .separador {
   height: 1px;
   background: var(--border);
-  margin: 4px 0;
+  margin: var(--e1) 0;
   border: none;
 }
 
-/* Botón discreto para editar un título en su sitio. */
-.editar-inline {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--border-fuerte);
-  font-size: 0.8rem;
-  padding: 2px 5px;
-  border-radius: 6px;
-  vertical-align: middle;
-}
-.dia:hover .editar-inline { color: var(--texto-tenue); }
-.editar-inline:hover { background: var(--surface-alt); color: var(--terracota); }
+/* ---------------------- Tarjeta de viaje ---------------------- */
 
-/* Día resaltado como destino al arrastrar una actividad desde otro día. */
-.dia.dia-destino {
-  border-left-color: var(--terracota);
-  background: var(--terracota-100);
-  border-radius: 0 var(--radio) var(--radio) 0;
+/* El destino manda la jerarquia: es lo que la gente recuerda de un viaje. */
+.viaje-destino {
+  font-size: 1.4rem;
+  margin: 0 0 2px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
-/* Aviso de servidor despertando (plan gratuito de Render). */
-.aviso-servidor {
-  position: fixed;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: var(--z-aviso);
+.viaje-titulo {
+  margin: 0 0 var(--e3);
+  font-size: 0.9rem;
+  color: var(--texto-tenue);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.viaje-meta {
   display: flex;
   align-items: center;
-  gap: 9px;
-  max-width: calc(100vw - 24px);
-  padding: 9px 16px;
-  border-radius: 999px;
-  background: var(--tinta);
-  color: var(--arena-100);
+  gap: 7px;
+  flex-wrap: wrap;
   font-size: 0.83rem;
+  color: var(--texto-suave);
   font-weight: 500;
-  box-shadow: var(--sombra-lg);
-  animation: aparecer 0.2s ease;
 }
-.aviso-servidor .spinner {
-  border-color: rgba(245, 239, 230, 0.3);
-  border-top-color: var(--arena-100);
+/* Separadores decorativos (aria-hidden, exentos de WCAG por no aportar
+   informacion), pero a --arena-300 se veian lavados. */
+.viaje-meta > span[aria-hidden] { color: var(--arena-400); }
+.viaje-fechas { font-weight: 650; color: var(--texto); }
+
+.viaje-presupuesto {
+  margin-top: var(--e4);
+  padding-top: var(--e3);
+  border-top: 1px solid var(--border);
 }
 
-/* Capa que bloquea el mapa en tactil hasta que el usuario lo toca a proposito.
-   Sin esto, un dedo sobre el mapa lo arrastra en vez de desplazar la pagina. */
-.mapa-bloqueo {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  border: none;
-  cursor: pointer;
-  background: rgba(43, 38, 34, 0.14);
-  font-family: inherit;
+/* ---------------------- Portada del dashboard ---------------------- */
+
+.portada {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e4);
+  flex-wrap: wrap;
+  padding-bottom: var(--e4);
+  border-bottom: 1px solid var(--border);
 }
-.mapa-bloqueo span {
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--texto);
-  font-size: 0.83rem;
-  font-weight: 600;
-  box-shadow: var(--sombra);
+
+.portada .etiqueta {
+  display: block;
+  margin-bottom: var(--e1);
+  color: var(--terracota-600);
+}
+.portada .etiqueta::first-letter { text-transform: uppercase; }
+
+.portada-titulo {
+  margin: 0 0 var(--e2);
+  font-size: clamp(1.9rem, 1.3rem + 2.6vw, 2.8rem);
+}
+
+/* El nombre en cursiva es el guino editorial: separa el saludo de la persona. */
+.portada-nombre {
+  font-style: italic;
+  font-variation-settings: 'SOFT' 60, 'WONK' 1;
+  /* Aqui si va el tono base: a 45px cuenta como texto grande (umbral 3:1). */
+  color: var(--terracota);
 }
