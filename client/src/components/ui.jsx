@@ -194,7 +194,7 @@ export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje
   return (
     <Modal abierto={abierto} onCerrar={onCerrar} titulo={titulo} ancho={420}>
       <p className="suave">{mensaje}</p>
-      <div className="fila" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
+      <div className="modal-acciones">
         <Boton variante="secundario" onClick={onCerrar}>
           Cancelar
         </Boton>

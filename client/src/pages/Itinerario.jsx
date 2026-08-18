@@ -215,7 +215,7 @@ export default function Itinerario() {
   return (
     <div className="pila">
       <div>
-        <Link to={`/viajes/${id}`} className="tenue">
+        <Link to={`/viajes/${id}`} className="volver">
           ← {viaje.title}
         </Link>
       </div>

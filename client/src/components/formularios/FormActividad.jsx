@@ -136,7 +136,7 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
           {...form.props('bookingUrl')}
         />
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>

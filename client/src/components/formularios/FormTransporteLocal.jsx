@@ -91,7 +91,7 @@ export default function FormTransporteLocal({ abierto, onCerrar, viaje, indice, 
           <textarea placeholder="Solo para el día de la excursión..." {...form.props('notes')} />
         </Campo>
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>

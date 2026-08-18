@@ -1209,3 +1209,59 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   /* Aqui si va el tono base: a 45px cuenta como texto grande (umbral 3:1). */
   color: var(--marca);
 }
+
+/* Enlace de "volver" ---------------------------------------------------
+   Como texto suelto medía 17px de alto: imposible de atinar con el pulgar.
+   El padding negativo lo mantiene alineado con el resto del contenido
+   mientras el area tactil llega al minimo comodo. */
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: -10px 0 -10px -8px;
+  padding: 10px 8px;
+  border-radius: var(--radio-sm);
+  color: var(--texto-tenue);
+  font-size: 0.88rem;
+  font-weight: 550;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.volver:hover {
+  text-decoration: none;
+  color: var(--marca-600);
+  background: var(--marca-50);
+}
+
+/* Botonera del modal ---------------------------------------------------
+   En telefono los formularios largos dejaban Guardar fuera de la vista: habia
+   que desplazarse hasta el fondo para poder enviar. Pegada al pie del modal,
+   siempre esta a un pulgar de distancia. */
+.modal-acciones {
+  position: sticky;
+  /* bottom:0 la fija al borde del area de desplazamiento. Con un valor
+     negativo se salia por debajo de la pantalla y el boton quedaba cortado. */
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e2);
+  margin: var(--e4) calc(var(--e5) * -1) 0;
+  padding: var(--e3) var(--e5);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+/* Deja ver que hay contenido por encima al desplazarse. */
+.modal-acciones::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 18px;
+  background: linear-gradient(transparent, var(--surface));
+  pointer-events: none;
+}
+.modal-acciones .boton { flex: 1; }
+@media (min-width: 560px) {
+  .modal-acciones .boton { flex: 0 0 auto; }
+}

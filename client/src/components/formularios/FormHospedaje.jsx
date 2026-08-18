@@ -183,7 +183,7 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
           Es un estimado, todavía no lo reservo
         </label>
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>

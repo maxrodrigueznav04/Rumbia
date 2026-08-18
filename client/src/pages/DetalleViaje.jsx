@@ -110,7 +110,7 @@ export default function DetalleViaje() {
   if (viajeReq.error) {
     return (
       <div className="pila">
-        <Link to="/viajes" className="tenue">
+        <Link to="/viajes" className="volver">
           ← Mis viajes
         </Link>
         <ErrorCarga
@@ -150,7 +150,7 @@ export default function DetalleViaje() {
   return (
     <div className="pila">
       <div>
-        <Link to="/viajes" className="tenue">
+        <Link to="/viajes" className="volver">
           ← Mis viajes
         </Link>
       </div>

@@ -24,7 +24,7 @@ export default function EnlacesReserva({ enlaces = [], compacto }) {
           <span className="flecha" aria-hidden="true">
             ↗
           </span>
-          <span className="oculto-visual">(abre en una pestana nueva)</span>
+          <span className="oculto-visual">(abre en una pestaña nueva)</span>
         </a>
       ))}
     </div>

@@ -38,7 +38,7 @@ export default function FormDia({ abierto, onCerrar, tripId, dia, onGuardado }) 
           />
         </Campo>
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>

@@ -70,7 +70,7 @@ export default function NuevoViaje() {
   return (
     <div className="pila" style={{ maxWidth: 620, margin: '0 auto' }}>
       <div>
-        <Link to="/viajes" className="tenue">
+        <Link to="/viajes" className="volver">
           ← Volver a mis viajes
         </Link>
         <h1 style={{ marginTop: 8 }}>Nuevo viaje</h1>

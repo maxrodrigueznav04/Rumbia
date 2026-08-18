@@ -99,7 +99,7 @@ export default function FormGasto({ abierto, onCerrar, viaje, gasto, onGuardado 
           Ya lo pagué
         </label>
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>

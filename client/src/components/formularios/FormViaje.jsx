@@ -160,7 +160,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
         </Campo>
 
-        <div className="fila" style={{ justifyContent: 'flex-end' }}>
+        <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
             Cancelar
           </Boton>
