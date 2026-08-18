@@ -35,7 +35,13 @@ export function AuthProvider({ children }) {
         setUser(null);
         setSesionExpirada(true);
       })
-      .finally(() => setCargando(false));
+      .finally(() => {
+        // Si la peticion se aborto todavia hay otra en curso (StrictMode monta el
+        // efecto dos veces, y el usuario puede navegar rapido). Apagar "cargando"
+        // aqui dejaria user en null por un instante: la ruta protegida rebotaria
+        // al login y se perderia el enlace directo al viaje que se abrio.
+        if (!controlador.signal.aborted) setCargando(false);
+      });
 
     return () => controlador.abort();
   }, []);

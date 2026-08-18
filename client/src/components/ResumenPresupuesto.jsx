@@ -24,15 +24,15 @@ export default function ResumenPresupuesto({ resumen }) {
 
   return (
     <Tarjeta titulo="Presupuesto">
-      <div style={{ height: 190, marginBottom: 8 }}>
+      <div className="dona">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               dataKey="value"
               nameKey="category"
-              innerRadius={55}
-              outerRadius={82}
+              innerRadius={66}
+              outerRadius={88}
               paddingAngle={2}
               stroke="none"
             >
@@ -51,11 +51,11 @@ export default function ResumenPresupuesto({ resumen }) {
             />
           </PieChart>
         </ResponsiveContainer>
-      </div>
 
-      <div className="centrado" style={{ marginTop: -136, marginBottom: 92, pointerEvents: 'none' }}>
-        <div className="etiqueta">Total</div>
-        <div className="numero grande">{formatoMoneda(totals.total, currency)}</div>
+        <div className="dona-centro">
+          <span className="etiqueta">Total</span>
+          <span className="numero">{formatoMoneda(totals.total, currency)}</span>
+        </div>
       </div>
 
       <div>

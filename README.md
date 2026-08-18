@@ -9,14 +9,34 @@ control de presupuesto.
 > Es una decisión de diseño consciente: reservar de verdad exige acuerdos comerciales con
 > aerolíneas y hoteles que un proyecto individual no puede tener.
 
-<!-- TODO: agrega aquí las capturas de pantalla y el link al deploy en vivo -->
-<!--
-**Demo en vivo:** https://tu-app.vercel.app · Cuenta demo: `demo@rumbo.app` / `demo1234`
+**Demo en vivo:** <https://rumbo-self.vercel.app> — cuenta de prueba `demo@rumbo.app` / `demo1234`
 
-| Dashboard | Detalle del viaje | Itinerario |
-|---|---|---|
-| ![Dashboard](docs/dashboard.png) | ![Detalle](docs/detalle.png) | ![Itinerario](docs/itinerario.png) |
--->
+> El backend corre en el plan gratuito de Render, que duerme el servicio tras 15 minutos sin uso.
+> La primera petición puede tardar cerca de un minuto; la app lo avisa mientras despierta.
+
+### Mis viajes
+
+Cada tarjeta resume fechas, duración y qué tanto del presupuesto lleva gastado.
+
+![Lista de viajes con su avance de presupuesto](docs/dashboard.png)
+
+### Detalle del viaje
+
+Los tres costos grandes (transporte, hospedaje y transporte en el destino), cada uno con sus
+enlaces de salida ya prellenados, más el mapa del destino, el clima y el presupuesto desglosado.
+
+![Detalle de un viaje: costos, enlaces de reserva, mapa, clima y presupuesto](docs/detalle.png)
+
+### Itinerario generado con IA
+
+Día por día, con horario, categoría y costo estimado por actividad. Se puede reordenar, editar y
+regenerar; el mapa ubica las actividades que traen coordenadas.
+
+![Itinerario de cinco días generado con IA, con mapa de actividades](docs/itinerario.png)
+
+### En el teléfono
+
+<img src="docs/movil.png" alt="El detalle del viaje en pantalla de teléfono" width="330">
 
 ---
 

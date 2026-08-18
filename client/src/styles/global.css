@@ -203,6 +203,11 @@ a:hover { text-decoration: underline; }
   gap: var(--e4);
   grid-template-columns: 1fr;
 }
+/* Un hijo de rejilla trae min-width:auto, o sea que no puede encoger por debajo
+   de su contenido. La grafica de Recharts fija en linea el ancho que midio, asi
+   que la columna se quedaba clavada en ese ancho y el detalle se salia de la
+   pantalla en movil. De 1000px para arriba ya se evita con minmax(0, ...). */
+.rejilla > * { min-width: 0; }
 @media (min-width: 680px) {
   .rejilla-2 { grid-template-columns: repeat(2, 1fr); }
 }
@@ -898,6 +903,32 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .barra-relleno.alerta { background: var(--ambar); }
 .barra-relleno.excedido { background: var(--error); }
+
+/* Dona del presupuesto con el total encima, centrado en el hueco.
+   Va posicionado y no con margenes negativos: asi el total sigue centrado
+   aunque cambie el tamano de la grafica o el largo de la cifra. */
+.dona {
+  position: relative;
+  height: 190px;
+  margin-bottom: var(--e3);
+}
+.dona-centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+  pointer-events: none; /* el tooltip de la grafica sigue funcionando debajo */
+}
+.dona-centro .numero {
+  font-family: var(--fuente-titulo);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
 
 .linea-gasto {
   display: flex;
