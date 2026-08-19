@@ -67,10 +67,14 @@ Todo el stack corre en tiers gratuitos.
   con tus fechas y destino:
   - Transporte de ida/vuelta (avión, autobús, tren, auto propio) → Skyscanner, Google Flights,
     Rome2Rio, Busbud…
-  - Hospedaje (hotel, hostal, Airbnb, cabaña) → Booking, Airbnb, Hostelworld, con cálculo
-    automático de noches × tarifa.
+  - Hospedaje (hotel, hostal, Airbnb, cabaña) → Booking, Airbnb, Hostelworld. El costo se
+    captura como **total de la estancia**, igual que lo cotizan esos sitios, y la tarifa por
+    noche se deriva.
   - Transporte en destino (renta de auto, apps, taxi, transporte público) → DiscoverCars, Uber,
     Moovit…
+- **Páginas legales.** Política de privacidad y aviso de cookies en `/privacidad` y `/cookies`,
+  accesibles sin sesión. Describen lo que el código hace: qué campos se guardan, qué recibe cada
+  tercero y qué viaja en los enlaces de salida.
 - **Itinerario con IA.** Gemini devuelve un plan día por día en JSON estructurado (actividades con
   hora, categoría, coordenadas y costo estimado). Todo es editable desde la interfaz: agregar,
   editar, quitar, renombrar días y arrastrar actividades para reordenarlas dentro de un día o
@@ -414,6 +418,8 @@ Todas las respuestas siguen la misma forma:
 - El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
 - Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
   actividad para cambiarla de sitio).
-- El dashboard no pagina: la API acepta `page` y `limit`, la interfaz siempre pide la primera página.
-#   R u m b o  
- 
+- **No se puede eliminar la cuenta desde la aplicación.** Sí hay endpoint para borrar un viaje
+  (que arrastra su itinerario y sus gastos), pero no para dar de baja al usuario. La política de
+  privacidad lo documenta como solicitud por correo; lo correcto es implementarlo.
+- Falta poner el responsable y el correo de contacto en `client/src/config/legal.js`: mientras
+  tengan los marcadores, las páginas legales muestran un aviso pidiéndolo.
