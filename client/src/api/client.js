@@ -31,6 +31,15 @@ const MS_ANTES_DE_AVISAR = 4000;
 // Suficiente para cubrir el arranque en frío de Render sin colgarse para siempre.
 const TIMEOUT_MS = 70000;
 
+/**
+ * La generación con IA es la única llamada que puede tardar minutos: el
+ * servidor le da 90 s a Gemini y encima puede sumarse el arranque en frío de
+ * Render (~50 s). Con el timeout general de 70 s el navegador abortaba antes
+ * de que el servidor terminara: el itinerario quedaba guardado y aun así se
+ * veía un error. El del cliente tiene que ser mayor que el del servidor.
+ */
+export const TIMEOUT_IA_MS = 180000;
+
 let peticionesEnVuelo = 0;
 
 export class ApiError extends Error {
@@ -42,7 +51,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, signal, auth = true } = {}) {
+async function request(path, { method = 'GET', body, signal, auth = true, timeout = TIMEOUT_MS } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
@@ -52,7 +61,7 @@ async function request(path, { method = 'GET', body, signal, auth = true } = {})
   // Timeout propio, combinado con el signal que traiga quien llama (para cancelar
   // al desmontar el componente).
   const controlador = new AbortController();
-  const alTiempo = setTimeout(() => controlador.abort('timeout'), TIMEOUT_MS);
+  const alTiempo = setTimeout(() => controlador.abort('timeout'), timeout);
   signal?.addEventListener('abort', () => controlador.abort(signal.reason), { once: true });
 
   // Si tarda, se avisa; el banner desaparece cuando ya no queda nada en vuelo.

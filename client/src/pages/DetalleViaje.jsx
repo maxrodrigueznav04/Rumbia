@@ -140,7 +140,9 @@ export default function DetalleViaje() {
   /** Quita un elemento de lodging o localTransport y guarda el arreglo resultante. */
   const quitarDeLista = async (campo, indice) => {
     const lista = viaje[campo].filter((_, i) => i !== indice).map((item) => {
-      const { _id, id: _ignorado, subtotal, ...limpio } = item;
+      // subtotal y perNight son virtuales del modelo: se calculan al leer y no
+      // deben viajar de vuelta al guardar.
+      const { _id, id: _ignorado, subtotal, perNight, ...limpio } = item;
       return limpio;
     });
     await tripsApi.update(id, { [campo]: lista });
@@ -282,8 +284,8 @@ export default function DetalleViaje() {
                     <span className="crece" style={{ minWidth: 0 }}>
                       <strong>{l.name || humanizar(l.type)}</strong>
                       <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-                        {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'} ×{' '}
-                        {formatoMoneda(l.nightlyRate, moneda)}
+                        {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'}
+                        {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} por noche` : ''}
                         {l.isEstimate ? ' · estimado' : ''}
                       </span>
                     </span>

@@ -70,14 +70,40 @@ await check('coreCosts suma transporte + hospedaje + local', async () => {
   return `total ${c.total}`;
 });
 
-await check('lodging.subtotal virtual', async () => {
-  const t = new Trip({
+const viajeCon = (lodging) =>
+  new Trip({
     user: uid, title: 'X', destination: { name: 'Y' },
     startDate: new Date(), endDate: new Date(),
-    lodging: [{ nightlyRate: 1600, nights: 2 }],
+    lodging,
   });
-  assert(t.lodging[0].subtotal === 3200, `subtotal=${t.lodging[0].subtotal}`);
-  return '3200';
+
+await check('lodging: el costo capturado es el total de la estancia', async () => {
+  const l = viajeCon([{ totalCost: 3000, nights: 3 }]).lodging[0];
+  assert(l.subtotal === 3000, `subtotal=${l.subtotal}`);
+  assert(l.perNight === 1000, `perNight=${l.perNight}`);
+  return '3000 en 3 noches -> 1000/noche';
+});
+
+await check('lodging: los registros viejos siguen sumando', async () => {
+  // Antes del cambio se guardaba tarifa por noche; esos viajes no deben
+  // quedarse en cero solo porque les falta totalCost.
+  const l = viajeCon([{ nightlyRate: 1600, nights: 2 }]).lodging[0];
+  assert(l.subtotal === 3200, `subtotal=${l.subtotal}`);
+  assert(l.perNight === 1600, `perNight=${l.perNight}`);
+  return 'tarifa x noches como respaldo';
+});
+
+await check('lodging: totalCost manda sobre nightlyRate', async () => {
+  const l = viajeCon([{ totalCost: 2500, nightlyRate: 999, nights: 2 }]).lodging[0];
+  assert(l.subtotal === 2500, `subtotal=${l.subtotal}`);
+  return '2500';
+});
+
+await check('lodging: sin noches no revienta el por-noche', async () => {
+  const l = viajeCon([{ totalCost: 1200, nights: 0 }]).lodging[0];
+  assert(l.subtotal === 1200, `subtotal=${l.subtotal}`);
+  assert(l.perNight === 0, `perNight=${l.perNight}`);
+  return 'sin division por cero';
 });
 
 await check('Itinerary rechaza hora mal formada', async () => {

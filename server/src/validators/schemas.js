@@ -96,7 +96,8 @@ export const lodgingSchema = z.object({
   place: place.partial().optional(),
   checkIn: isoDate.optional().nullable(),
   checkOut: isoDate.optional().nullable(),
-  nightlyRate: money.optional(),
+  totalCost: money.optional(),
+  nightlyRate: money.optional(), // legado: solo llega desde registros viejos
   nights: entero('Escribe cuántas noches.').min(0, 'No puede ser negativo.').max(365, 'Máximo 365 noches.').optional(),
   bookingRef: z.string().trim().max(60).optional(),
   externalUrl: url.optional(),

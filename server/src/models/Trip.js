@@ -39,6 +39,10 @@ const lodgingSchema = new mongoose.Schema({
   place: { type: placeSchema, default: () => ({}) },
   checkIn: { type: Date },
   checkOut: { type: Date },
+  // Booking, Airbnb y compañía cotizan la estancia completa ("$3,000 por 3
+  // noches"), no la noche suelta: se captura el total y la tarifa por noche se
+  // deriva. nightlyRate se conserva para los registros anteriores al cambio.
+  totalCost: { type: Number, min: 0, default: 0 },
   nightlyRate: { type: Number, min: 0, default: 0 },
   nights: { type: Number, min: 0, default: 0 },
   bookingRef: { type: String, trim: true, maxlength: 60 },
@@ -47,9 +51,20 @@ const lodgingSchema = new mongoose.Schema({
   notes: { type: String, trim: true, maxlength: 500 },
 });
 
-// Subtotal = tarifa por noche x noches. Se expone al serializar.
+/**
+ * Costo de la estancia. Manda totalCost; si viene en cero se cae a la fórmula
+ * vieja (tarifa x noches) para no romper los viajes ya guardados.
+ */
 lodgingSchema.virtual('subtotal').get(function subtotal() {
-  return Number(((this.nightlyRate || 0) * (this.nights || 0)).toFixed(2));
+  const total = this.totalCost || (this.nightlyRate || 0) * (this.nights || 0);
+  return Number(total.toFixed(2));
+});
+
+/** Tarifa por noche derivada, solo para mostrar. */
+lodgingSchema.virtual('perNight').get(function perNight() {
+  const noches = this.nights || 0;
+  if (!noches) return 0;
+  return Number((this.subtotal / noches).toFixed(2));
 });
 lodgingSchema.set('toJSON', { virtuals: true });
 lodgingSchema.set('toObject', { virtuals: true });
@@ -117,8 +132,10 @@ tripSchema.virtual('nightsCount').get(function nightsCount() {
 tripSchema.virtual('coreCosts').get(function coreCosts() {
   const transport =
     (this.transport?.outbound?.cost || 0) + (this.transport?.inbound?.cost || 0);
+  // Misma regla que el virtual subtotal: manda el total capturado y solo se
+  // recurre a tarifa x noches en los registros viejos.
   const lodging = (this.lodging || []).reduce(
-    (sum, l) => sum + (l.nightlyRate || 0) * (l.nights || 0),
+    (sum, l) => sum + (l.totalCost || (l.nightlyRate || 0) * (l.nights || 0)),
     0
   );
   const local = (this.localTransport || []).reduce((sum, t) => sum + (t.estimatedCost || 0), 0);

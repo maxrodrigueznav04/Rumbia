@@ -35,12 +35,12 @@ export default function FormTransporteLocal({ abierto, onCerrar, viaje, indice, 
       notes: v.notes.trim(),
     };
 
-    const lista = (viaje.localTransport || []).map((t) => ({
-      type: t.type,
-      provider: t.provider,
-      estimatedCost: t.estimatedCost,
-      notes: t.notes,
-    }));
+    // Mismo caso que en hospedaje: se manda la lista completa, así que enumerar
+    // campos a mano perdía externalUrl de los elementos que no se editaron.
+    const lista = (viaje.localTransport || []).map((t) => {
+      const { _id, id: _ignorado, ...resto } = t;
+      return resto;
+    });
 
     if (editando) lista[indice] = item;
     else lista.push(item);

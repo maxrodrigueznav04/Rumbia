@@ -36,13 +36,15 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
       lugar: datos.place?.name || '',
       checkIn: paraInputFecha(datos.checkIn || viaje.startDate),
       checkOut: paraInputFecha(datos.checkOut || viaje.endDate),
-      nightlyRate: datos.nightlyRate ?? '',
+      // Al abrir un hospedaje guardado antes del cambio no hay totalCost: se
+      // reconstruye desde la tarifa por noche para no mostrar el campo vacío.
+      totalCost: datos.totalCost ?? (datos.nightlyRate ? datos.nightlyRate * (datos.nights || 0) : ''),
       nights: datos.nights ?? nochesEntre(viaje.startDate, viaje.endDate),
       bookingRef: datos.bookingRef || '',
       isEstimate: datos.isEstimate ?? true,
       notes: datos.notes || '',
     },
-    { nightlyRate: reglas.numeroPositivo, nights: reglas.numeroPositivo }
+    { totalCost: reglas.numeroPositivo, nights: reglas.numeroPositivo }
   );
 
   const { valores, fijar } = form;
@@ -56,7 +58,9 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valores.checkIn, valores.checkOut]);
 
-  const subtotal = (Number(valores.nightlyRate) || 0) * (Number(valores.nights) || 0);
+  const subtotal = Number(valores.totalCost) || 0;
+  const noches = Number(valores.nights) || 0;
+  const porNoche = noches > 0 ? subtotal / noches : 0;
 
   const guardar = form.enviar(async (v) => {
     const item = {
@@ -65,25 +69,21 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
       place: v.lugar.trim() ? { name: v.lugar.trim() } : undefined,
       checkIn: desdeInputFecha(v.checkIn),
       checkOut: desdeInputFecha(v.checkOut),
-      nightlyRate: Number(v.nightlyRate) || 0,
+      totalCost: Number(v.totalCost) || 0,
       nights: Number(v.nights) || 0,
       bookingRef: v.bookingRef.trim(),
       isEstimate: v.isEstimate,
       notes: v.notes.trim(),
     };
 
-    const lista = (viaje.lodging || []).map((l) => ({
-      type: l.type,
-      name: l.name,
-      place: l.place?.name ? { name: l.place.name } : undefined,
-      checkIn: l.checkIn,
-      checkOut: l.checkOut,
-      nightlyRate: l.nightlyRate,
-      nights: l.nights,
-      bookingRef: l.bookingRef,
-      isEstimate: l.isEstimate,
-      notes: l.notes,
-    }));
+    // Guardar manda la lista completa, así que hay que reenviar los demás
+    // hospedajes intactos. Enumerar los campos a mano hacía que cualquiera que
+    // el formulario no tocara (externalUrl, y ahora totalCost) se perdiera al
+    // editar otro elemento: se conserva todo y solo se quitan los calculados.
+    const lista = (viaje.lodging || []).map((l) => {
+      const { _id, id: _ignorado, subtotal, perNight, ...resto } = l;
+      return { ...resto, totalCost: l.totalCost || (l.nightlyRate || 0) * (l.nights || 0) };
+    });
 
     if (editando) lista[indice] = item;
     else lista.push(item);
@@ -139,12 +139,13 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
 
         <div className="campos-2">
           <Campo
-            label="Costo por noche"
+            label="Costo total de la estancia"
             type="number"
             min="0"
             step="1"
             placeholder="0"
-            {...form.props('nightlyRate')}
+            ayuda={`En ${moneda}, por las noches completas.`}
+            {...form.props('totalCost')}
           />
           <Campo
             label="Noches"
@@ -158,7 +159,9 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
 
         {subtotal > 0 && (
           <div className="tarjeta-plana fila-entre">
-            <span className="etiqueta">Subtotal</span>
+            <span className="etiqueta">
+              {porNoche > 0 ? `≈ ${formatoMoneda(porNoche, moneda)} por noche` : 'Total'}
+            </span>
             <span className="numero">{formatoMoneda(subtotal, moneda)}</span>
           </div>
         )}

@@ -32,6 +32,10 @@ export const aiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => String(req.user?._id || req.ip),
+  // Lo que se protege es la cuota de Gemini, y una generación que falló no la
+  // consumió. Sin esto, una racha de errores (una API key mal configurada, por
+  // ejemplo) deja al usuario sin intentos justo cuando el problema se arregla.
+  skipFailedRequests: true,
   message: jsonMessage(
     `Límite de generaciones con IA alcanzado (${env.aiRateLimitPerHour} por hora). Intenta más tarde.`
   ),

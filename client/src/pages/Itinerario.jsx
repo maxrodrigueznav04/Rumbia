@@ -116,6 +116,22 @@ export default function Itinerario() {
       viajeReq.recargar();
       setNotas('');
     } catch (err) {
+      // Si el navegador cortó la espera (status 0), el servidor pudo haber
+      // terminado igual: sin esto el reintento choca con un 409 "ya tiene
+      // itinerario" y el usuario ve un error sobre algo que sí funcionó.
+      if (err.status === 0) {
+        try {
+          const datos = await itineraryApi.get(id);
+          if (datos?.itinerary) {
+            itinReq.recargar();
+            viajeReq.recargar();
+            setNotas('');
+            return;
+          }
+        } catch {
+          /* si tampoco responde, se muestra el error original */
+        }
+      }
       setErrorGen(err);
     } finally {
       setGenerando(false);

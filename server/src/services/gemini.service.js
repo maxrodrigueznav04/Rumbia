@@ -180,7 +180,21 @@ export async function generateItinerary(ctx) {
         );
       }
       if (res.status === 400 || res.status === 403) {
-        throw ApiError.serviceUnavailable('La API key de Gemini es inválida o no tiene permisos.');
+        // Google usa el mismo par de códigos para "la key no existe", "la key
+        // está restringida por IP/referrer" y "falta habilitar la API", y el
+        // mensaje suelto no deja distinguirlos. Se adjunta el suyo: sin esto
+        // hay que adivinar cuál de los tres es, sobre todo cuando la key del
+        // servidor desplegado no es la misma que la del .env local.
+        let motivo = '';
+        try {
+          motivo = JSON.parse(body)?.error?.message || '';
+        } catch {
+          motivo = body;
+        }
+        throw ApiError.serviceUnavailable(
+          'La API key de Gemini es inválida o no tiene permisos. Revisa GEMINI_API_KEY donde esté desplegado el servidor.',
+          motivo.slice(0, 300) || undefined
+        );
       }
       if (res.status === 404) {
         // Google retira modelos viejos para keys nuevas y el 404 no lo deja claro.

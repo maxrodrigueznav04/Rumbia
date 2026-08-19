@@ -1,4 +1,4 @@
-import api from './client.js';
+import api, { TIMEOUT_IA_MS } from './client.js';
 
 /** Un lugar por endpoint del backend: los componentes no arman URLs a mano. */
 
@@ -30,7 +30,9 @@ export const tripsApi = {
 export const itineraryApi = {
   get: (tripId, opts) => api.get(`/trips/${tripId}/itinerary`, opts),
   createBlank: (tripId) => api.post(`/trips/${tripId}/itinerary`),
-  generate: (tripId, payload) => api.post(`/trips/${tripId}/itinerary/generate`, payload),
+  // Timeout propio: es la unica llamada que puede tardar minutos.
+  generate: (tripId, payload) =>
+    api.post(`/trips/${tripId}/itinerary/generate`, payload, { timeout: TIMEOUT_IA_MS }),
   remove: (tripId) => api.delete(`/trips/${tripId}/itinerary`),
   updateDay: (tripId, dayId, payload) => api.patch(`/trips/${tripId}/itinerary/days/${dayId}`, payload),
   removeDay: (tripId, dayId) => api.delete(`/trips/${tripId}/itinerary/days/${dayId}`),
