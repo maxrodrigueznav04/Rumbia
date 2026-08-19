@@ -1,14 +1,16 @@
 import { formatoDiaSemana } from '../utils/format.js';
+import Icono from './Icono.jsx';
 
+// Codigo de OpenWeather -> icono de linea. El 01 y el 02 son cielo despejado
+// o casi; del 09 al 11 llueve; el 13 es nieve; el 50 es niebla.
 const ICONOS = {
-  '01': '☀️', '02': '🌤️', '03': '⛅', '04': '☁️',
-  '09': '🌧️', '10': '🌦️', '11': '⛈️', '13': '❄️', '50': '🌫️',
+  '01': 'sol', '02': 'sol', '03': 'nube', '04': 'nube',
+  '09': 'lluvia', '10': 'lluvia', '11': 'lluvia', '13': 'nieve', '50': 'nube',
 };
 
-const iconoDe = (dia) => {
-  if (!dia.icon) return '📅';
-  return ICONOS[dia.icon.slice(0, 2)] || '🌡️';
-};
+// Los dias estimados no traen codigo de OpenWeather: se muestran con nube
+// apagada (el color lo pone .clima-dia.estimado), no con un calendario.
+const iconoDe = (dia) => (dia.icon ? ICONOS[dia.icon.slice(0, 2)] || 'nube' : 'nube');
 
 /** Tira horizontal con el clima de cada dia del viaje. */
 export default function TiraClima({ clima }) {
@@ -28,9 +30,7 @@ export default function TiraClima({ clima }) {
             <div className="etiqueta" style={{ fontSize: '0.66rem' }}>
               {formatoDiaSemana(d.date)}
             </div>
-            <div style={{ fontSize: '1.35rem', lineHeight: 1.3 }} aria-hidden="true">
-              {iconoDe(d)}
-            </div>
+            <Icono nombre={iconoDe(d)} tamano={20} className="clima-icono" />
             <div className="temp">
               {Math.round(d.tempMax)}° <span className="tenue">{Math.round(d.tempMin)}°</span>
             </div>

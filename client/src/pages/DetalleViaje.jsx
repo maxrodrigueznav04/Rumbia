@@ -21,6 +21,7 @@ import {
   Esqueleto,
   ModalConfirmar,
 } from '../components/ui.jsx';
+import Icono from '../components/Icono.jsx';
 import {
   formatoMoneda,
   rangoFechas,
@@ -32,12 +33,14 @@ import {
 // Leaflet pesa: se carga solo cuando esta pantalla se abre.
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
+// El transporte de ida manda el icono de la seccion: si vas en autobus, ver un
+// avion ahi confunde.
 const ICONO_MODO = {
-  avion: '✈️',
-  autobus: '🚌',
-  'auto-propio': '🚗',
-  tren: '🚆',
-  otro: '🧭',
+  avion: 'avion',
+  autobus: 'auto',
+  'auto-propio': 'auto',
+  tren: 'auto',
+  otro: 'brujula',
 };
 
 function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces, vacio }) {
@@ -45,7 +48,7 @@ function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces,
     <Tarjeta
       titulo={
         <h3 className="fila" style={{ gap: 8 }}>
-          <span aria-hidden="true">{icono}</span>
+          <Icono nombre={icono} tamano={18} className="icono-seccion" />
           {titulo}
         </h3>
       }
@@ -178,7 +181,8 @@ export default function DetalleViaje() {
           </div>
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
           <p className="suave" style={{ margin: 0 }}>
-            📍 {viaje.destination?.name}
+            <Icono nombre="pin" tamano={15} />{' '}
+            {viaje.destination?.name}
             {viaje.destination?.country ? `, ${viaje.destination.country}` : ''} ·{' '}
             {rangoFechas(viaje.startDate, viaje.endDate)} · {viaje.durationDays} días ·{' '}
             {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
@@ -190,7 +194,7 @@ export default function DetalleViaje() {
             {itinerario ? 'Ver itinerario' : 'Crear itinerario'}
           </Link>
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
-            ✎ Editar
+            <Icono nombre="lapiz" tamano={15} /> Editar
           </Boton>
           <Boton variante="peligro-texto" chico onClick={() => setConfirmar('viaje')}>
             Eliminar
@@ -213,7 +217,7 @@ export default function DetalleViaje() {
         <div className="pila">
           <SeccionGasto
             titulo="Transporte de ida y vuelta"
-            icono={ICONO_MODO[ida?.mode] || '✈️'}
+            icono={ICONO_MODO[ida?.mode] || 'avion'}
             monto={(ida?.cost || 0) + (vuelta?.cost || 0)}
             moneda={moneda}
             enlaces={enlaces.transporte}
@@ -252,7 +256,7 @@ export default function DetalleViaje() {
                     chico
                     onClick={() => setModal({ tipo: 'transporte', tramo })}
                   >
-                    {datos?.cost > 0 || datos?.provider ? '✎' : '+'}
+                    <Icono nombre={datos?.cost > 0 || datos?.provider ? 'lapiz' : 'mas'} tamano={15} />
                   </Boton>
                 </div>
               ))}
@@ -266,7 +270,7 @@ export default function DetalleViaje() {
 
           <SeccionGasto
             titulo="Hospedaje"
-            icono="🏨"
+            icono="cama"
             monto={viaje.coreCosts?.lodging}
             moneda={moneda}
             enlaces={enlaces.hospedaje}
@@ -297,7 +301,7 @@ export default function DetalleViaje() {
                         onClick={() => setModal({ tipo: 'hospedaje', indice: i })}
                         aria-label="Editar hospedaje"
                       >
-                        ✎
+                        <Icono nombre="lapiz" tamano={14} />
                       </Boton>
                       <Boton
                         variante="fantasma"
@@ -305,7 +309,7 @@ export default function DetalleViaje() {
                         onClick={() => setConfirmar({ campo: 'lodging', indice: i, nombre: l.name || humanizar(l.type) })}
                         aria-label="Eliminar hospedaje"
                       >
-                        ✕
+                        <Icono nombre="cerrar" tamano={14} />
                       </Boton>
                     </span>
                   </div>
@@ -316,7 +320,7 @@ export default function DetalleViaje() {
 
           <SeccionGasto
             titulo="Transporte en el destino"
-            icono="🚕"
+            icono="auto"
             monto={viaje.coreCosts?.localTransport}
             moneda={moneda}
             enlaces={enlaces['transporte-local']}
@@ -351,7 +355,7 @@ export default function DetalleViaje() {
                         onClick={() => setModal({ tipo: 'transporte-local', indice: i })}
                         aria-label="Editar transporte local"
                       >
-                        ✎
+                        <Icono nombre="lapiz" tamano={14} />
                       </Boton>
                       <Boton
                         variante="fantasma"
@@ -359,7 +363,7 @@ export default function DetalleViaje() {
                         onClick={() => setConfirmar({ campo: 'localTransport', indice: i, nombre: humanizar(t.type) })}
                         aria-label="Eliminar transporte local"
                       >
-                        ✕
+                        <Icono nombre="cerrar" tamano={14} />
                       </Boton>
                     </span>
                   </div>
@@ -385,11 +389,11 @@ export default function DetalleViaje() {
                 </Insignia>
                 <Insignia>{itinerario.activityCount} actividades</Insignia>
                 <Insignia color={itinerario.generatedBy === 'ia' ? 'cielo' : ''}>
-                  {itinerario.generatedBy === 'ia' ? '✨ Generado con IA' : 'Armado a mano'}
+                  {itinerario.generatedBy === 'ia' ? <><Icono nombre="chispa" tamano={14} /> Generado con IA</> : 'Armado a mano'}
                 </Insignia>
               </div>
             ) : (
-              <Vacio icono="✨" titulo="Sin itinerario todavía">
+              <Vacio icono={<Icono nombre="chispa" tamano={28} />} titulo="Sin itinerario todavía">
                 Deja que la IA te proponga un plan día por día según tus intereses, o ármalo tú
                 mismo.
               </Vacio>

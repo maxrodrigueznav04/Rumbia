@@ -1,5 +1,6 @@
 import { cloneElement, isValidElement, useEffect, useId, useRef, useState } from 'react';
 import { fuerzaPassword } from '../utils/validacion.js';
+import Icono from './Icono.jsx';
 
 /** Kit de componentes base. Todo apoyado en las clases de global.css. */
 
@@ -85,7 +86,7 @@ export function CampoPassword({ label, error, ayuda, medidor, name = 'password',
           aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           title={visible ? 'Ocultar' : 'Mostrar'}
         >
-          {visible ? '🙈' : '👁️'}
+          <Icono nombre={visible ? 'ojoTachado' : 'ojo'} tamano={17} />
         </button>
       </div>
 
@@ -168,7 +169,7 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
             data-cerrar
             aria-label="Cerrar"
           >
-            ✕
+            <Icono nombre="cerrar" tamano={16} />
           </button>
         </div>
         <div className="modal-cuerpo">{children}</div>
@@ -225,10 +226,10 @@ export function Insignia({ color = '', children }) {
 }
 
 export function Aviso({ tipo = 'info', titulo, children }) {
-  const iconos = { error: '⚠️', exito: '✓', alerta: '!', info: 'ℹ️' };
+  const iconos = { error: 'alerta', exito: 'palomita', alerta: 'alerta', info: 'info' };
   return (
     <div className={`aviso ${tipo}`} role={tipo === 'error' ? 'alert' : 'status'}>
-      <span aria-hidden="true">{iconos[tipo]}</span>
+      <Icono nombre={iconos[tipo]} tamano={18} className="aviso-icono" />
       <div>
         {titulo && <strong>{titulo}</strong>}
         {children}

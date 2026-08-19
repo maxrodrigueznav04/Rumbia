@@ -1,11 +1,12 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton } from './ui.jsx';
+import Icono from './Icono.jsx';
 
 const enlaces = [
-  { to: '/viajes', texto: 'Mis viajes', icono: '🧳' },
-  { to: '/viajes/nuevo', texto: 'Nuevo viaje', icono: '➕' },
-  { to: '/perfil', texto: 'Perfil', icono: '👤' },
+  { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
+  { to: '/viajes/nuevo', texto: 'Nuevo viaje', icono: 'mas' },
+  { to: '/perfil', texto: 'Perfil', icono: 'persona' },
 ];
 
 export default function Layout() {
@@ -78,7 +79,7 @@ export default function Layout() {
             end={e.to === '/viajes'}
             className={({ isActive }) => (isActive ? 'activo' : '')}
           >
-            <span aria-hidden="true">{e.icono}</span>
+            <Icono nombre={e.icono} tamano={20} />
             {e.texto}
           </NavLink>
         ))}

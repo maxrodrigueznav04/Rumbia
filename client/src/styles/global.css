@@ -1485,3 +1485,18 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   flex-wrap: wrap;
 }
 .paginacion .tenue { font-variant-numeric: tabular-nums; }
+
+/* Iconos de linea ------------------------------------------------------
+   Heredan el color de su contexto, asi que casi nunca hace falta pintarlos. */
+.icono {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+/* El icono que encabeza cada seccion del viaje va en verde, como el mockup. */
+.icono-seccion { color: var(--verde); }
+/* En el clima el naranja marca pronostico real; el dia estimado va apagado,
+   para que la diferencia no dependa solo del texto de abajo. */
+.clima-icono { color: var(--naranja-oscuro); margin: 2px auto 4px; display: block; }
+.clima-dia.estimado .clima-icono { color: var(--texto-tenue); }
+.aviso-icono { margin-top: 2px; }
+.vacio-icono .icono { color: var(--verde-300); }

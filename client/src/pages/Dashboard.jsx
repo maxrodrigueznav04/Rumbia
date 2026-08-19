@@ -6,6 +6,7 @@ import useFetch from '../hooks/useFetch.js';
 import useDebounce from '../hooks/useDebounce.js';
 import TarjetaViaje from '../components/TarjetaViaje.jsx';
 import { Boton, Vacio, ErrorCarga, Esqueleto } from '../components/ui.jsx';
+import Icono from '../components/Icono.jsx';
 
 const FILTROS = [
   { valor: 'proximos', texto: 'Próximos' },
@@ -96,7 +97,7 @@ export default function Dashboard() {
           </p>
         </div>
         <Link to="/viajes/nuevo" className="boton">
-          <span aria-hidden="true">+</span> Nuevo viaje
+          <Icono nombre="mas" tamano={16} /> Nuevo viaje
         </Link>
       </header>
 
@@ -116,8 +117,8 @@ export default function Dashboard() {
         </div>
 
         <div className="buscador">
-          <span className="buscador-icono" aria-hidden="true">
-            🔍
+          <span className="buscador-icono">
+            <Icono nombre="buscar" tamano={17} />
           </span>
           <input
             type="search"
@@ -133,7 +134,7 @@ export default function Dashboard() {
               onClick={() => setBusqueda('')}
               aria-label="Limpiar búsqueda"
             >
-              ✕
+              <Icono nombre="cerrar" tamano={15} />
             </button>
           )}
         </div>
