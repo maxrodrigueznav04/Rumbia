@@ -124,6 +124,13 @@ export default function Registro() {
           <Boton type="submit" ancho cargando={form.enviando}>
             {form.enviando ? 'Creando cuenta...' : 'Crear cuenta'}
           </Boton>
+
+          {/* Antes de dar sus datos, el usuario tiene que poder leer qué se
+              hace con ellos: por eso el enlace va junto al botón, no en el pie. */}
+          <p className="tenue legal-nota">
+            Al crear tu cuenta aceptas nuestra <Link to="/privacidad">política de privacidad</Link> y
+            el <Link to="/cookies">aviso de cookies y rastreo</Link>.
+          </p>
         </form>
 
         <p className="auth-pie">

@@ -56,6 +56,19 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      <footer className="pie">
+        <div className="contenedor">
+          <p className="tenue">
+            Rumbo no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
+            completas la reserva.
+          </p>
+          <nav className="pie-enlaces" aria-label="Enlaces legales">
+            <Link to="/privacidad">Privacidad</Link>
+            <Link to="/cookies">Cookies y rastreo</Link>
+          </nav>
+        </div>
+      </footer>
+
       {/* Navegacion inferior: el patron que la gente espera en el celular. */}
       <nav className="tabbar" aria-label="Navegacion movil">
         {enlaces.map((e) => (

@@ -1,13 +1,13 @@
 /* ==========================================================================
    Rumbo — sistema de diseño
 
-   Dirección: editorial serena. Verde bosque casi negro sobre crema cálido,
-   serif clásico para los titulares y versalitas con tracking amplio como
-   señalización. El color se usa con cuentagotas: la jerarquía la construyen
-   el tamaño, el espacio y las líneas finas, no la saturación.
+   Dirección: bitácora de viaje. Verde bitácora (#1F6F5C) sobre arena cálida,
+   con el naranja de atardecer como acento en degradados y gráficas.
+   Tipografía geométrica —Sora para títulos y acciones, Manrope para lectura—,
+   siluetas de pastilla y tarjetas flotantes de 20px sin borde.
 
-   Adaptado de una estética de revista a una herramienta: se conserva el aire
-   y el detalle, pero con la densidad que exigen formularios y listados.
+   Los grises del mockup se oscurecieron hasta pasar WCAG AA: tal cual venían
+   se quedaban entre 3.0:1 y 3.8:1 sobre el fondo arena.
 
    Mobile-first: los breakpoints solo agregan, nunca quitan.
    ========================================================================== */
@@ -65,7 +65,9 @@
   --texto-tenue: var(--tinta-500);
   --exito: #12513F;
   --exito-bg: var(--verde-100);
-  --alerta: #7A5A25;
+  /* Medido: el #7A5A25 del mockup da 4.33:1 sobre su propio fondo (#F6EEDD),
+     debajo del minimo. Este pasa y conserva el tono ambar. */
+  --alerta: #6B4C1C;
   --alerta-bg: var(--arena-200);
   --error: #B5462E;
   --error-bg: #FBE3D3;
@@ -75,7 +77,7 @@
   --marca-600: var(--verde-800);
   --marca-100: var(--verde-100);
   --marca-50: var(--verde-50);
-  --ambar: #8A6A3A;
+  --ambar: #6B4C1C; /* mismo valor que --alerta: sobre arena el 8A6A3A no pasa AA */
   --coral: var(--naranja);
   --ciruela: #6b4a70;
 
@@ -713,7 +715,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .aviso.error { background: var(--error-bg); color: #8f2b20; border-color: #f4d0cb; }
 .aviso.exito { background: var(--exito-bg); color: var(--verde-800); border-color: var(--verde-100); }
-.aviso.alerta { background: var(--alerta-bg); color: var(--ambar); border-color: #f2dfba; }
+.aviso.alerta { background: var(--alerta-bg); color: var(--alerta); border-color: var(--arena-600); }
 .aviso.info { background: var(--verde-50); color: var(--verde-800); border-color: var(--verde-100); }
 .aviso strong { display: block; margin-bottom: 2px; }
 
@@ -1375,4 +1377,99 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .modal-acciones .boton { flex: 1; }
 @media (min-width: 560px) {
   .modal-acciones .boton { flex: 0 0 auto; }
+}
+
+/* ---------------------- Paginas legales ----------------------
+   Viven fuera del Layout (se abren sin sesion), asi que traen su propio
+   encabezado. El ancho de la prosa se limita por legibilidad: una linea de
+   texto corrido pasada de ~70 caracteres cansa de leer. */
+
+.legal {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.legal-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--linea-suave);
+  padding: var(--e3) 0;
+}
+
+.legal-cuerpo {
+  max-width: 760px;
+  padding-top: var(--e6);
+  padding-bottom: var(--e7);
+}
+
+.legal-entrada {
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  margin: var(--e4) 0 0;
+}
+
+.prosa {
+  margin-top: var(--e5);
+}
+.prosa h2 {
+  margin: var(--e6) 0 var(--e3);
+  padding-top: var(--e4);
+  border-top: 1px solid var(--linea-suave);
+}
+.prosa h2:first-child { border-top: none; padding-top: 0; margin-top: var(--e5); }
+.prosa h3 {
+  margin: var(--e4) 0 var(--e2);
+  color: var(--verde);
+}
+.prosa p { margin: 0 0 var(--e3); }
+.prosa ul {
+  margin: 0 0 var(--e4);
+  padding-left: var(--e4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+}
+.prosa li { line-height: 1.6; }
+.prosa code {
+  background: var(--arena-200);
+  padding: 2px 7px;
+  border-radius: var(--radio-xs);
+  font-size: 0.88em;
+}
+/* La tarjeta de resumen no necesita el margen superior de los h2. */
+.prosa .tarjeta ul { margin-bottom: 0; }
+
+.legal-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4);
+  margin-top: var(--e6);
+  padding-top: var(--e4);
+  border-top: 1px solid var(--linea-suave);
+}
+
+/* Pie de la app --------------------------------------------------------
+   Con la barra inferior de navegacion en movil hay que dejar hueco para que
+   el ultimo enlace no quede debajo de ella. */
+.pie {
+  border-top: 1px solid var(--linea-suave);
+  padding: var(--e5) 0 calc(var(--e6) + 60px);
+  margin-top: var(--e6);
+}
+@media (min-width: 760px) {
+  .pie { padding-bottom: var(--e5); }
+}
+.pie p { margin: 0 0 var(--e2); font-size: 0.82rem; }
+.pie-enlaces { display: flex; flex-wrap: wrap; gap: var(--e4); font-size: 0.85rem; }
+/* Como texto suelto median 22px de alto, debajo del minimo tactil de 24x24. */
+.pie-enlaces a,
+.legal-pie a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.legal-nota {
+  margin: var(--e3) 0 0;
+  text-align: center;
+  font-size: 0.82rem;
 }
