@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
+import { Boton, Campo, Tarjeta, Aviso, Modal, CampoPassword } from '../components/ui.jsx';
 
 const ESTILOS = [
   'aventura', 'cultura', 'relax', 'gastronomia',
@@ -14,7 +15,31 @@ const RITMOS = [
 ];
 
 export default function Perfil() {
-  const { user, actualizarUsuario } = useAuth();
+  const { user, actualizarUsuario, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Baja de cuenta: modal aparte, con la contraseña como confirmación.
+  const [bajaAbierta, setBajaAbierta] = useState(false);
+  const [passwordBaja, setPasswordBaja] = useState('');
+  const [errorBaja, setErrorBaja] = useState(null);
+  const [borrando, setBorrando] = useState(false);
+
+  const eliminarCuenta = async (e) => {
+    e.preventDefault();
+    setErrorBaja(null);
+    setBorrando(true);
+    try {
+      await authApi.deleteAccount({ password: passwordBaja });
+      // La cuenta ya no existe: se limpia la sesión antes de navegar para que
+      // la ruta protegida no intente rehidratarla con un token muerto.
+      logout();
+      navigate('/entrar', { replace: true });
+    } catch (err) {
+      setErrorBaja(err);
+    } finally {
+      setBorrando(false);
+    }
+  };
 
   const [form, setForm] = useState({
     name: user?.name || '',
@@ -145,6 +170,63 @@ export default function Perfil() {
           </Boton>
         </form>
       </Tarjeta>
+
+      <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
+        <p className="suave">
+          Se borran tu cuenta y <strong>todos tus viajes, itinerarios y gastos</strong>. La
+          eliminación es inmediata y no se puede deshacer: no hay papelera ni forma de recuperarlos
+          después.
+        </p>
+        <Boton variante="peligro" onClick={() => setBajaAbierta(true)}>
+          Eliminar mi cuenta
+        </Boton>
+      </Tarjeta>
+
+      <Modal
+        abierto={bajaAbierta}
+        onCerrar={() => {
+          setBajaAbierta(false);
+          setPasswordBaja('');
+          setErrorBaja(null);
+        }}
+        titulo="¿Eliminar tu cuenta?"
+        ancho={440}
+      >
+        <form onSubmit={eliminarCuenta} className="pila" noValidate>
+          <Aviso tipo="alerta" titulo="Esto no se puede deshacer">
+            Vas a borrar tu cuenta y todo lo que has guardado en ella. Si solo quieres dejar de
+            usarla por ahora, puedes cerrar sesión y volver cuando quieras.
+          </Aviso>
+
+          {errorBaja && <Aviso tipo="error">{errorBaja.message}</Aviso>}
+
+          <CampoPassword
+            label="Escribe tu contraseña para confirmar"
+            name="passwordBaja"
+            value={passwordBaja}
+            onChange={(e) => setPasswordBaja(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+
+          <div className="modal-acciones">
+            <Boton
+              variante="secundario"
+              type="button"
+              onClick={() => {
+                setBajaAbierta(false);
+                setPasswordBaja('');
+                setErrorBaja(null);
+              }}
+            >
+              Cancelar
+            </Boton>
+            <Boton variante="peligro" type="submit" cargando={borrando} disabled={!passwordBaja}>
+              Sí, eliminar todo
+            </Boton>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

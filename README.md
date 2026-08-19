@@ -418,8 +418,5 @@ Todas las respuestas siguen la misma forma:
 - El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
 - Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
   actividad para cambiarla de sitio).
-- **No se puede eliminar la cuenta desde la aplicación.** Sí hay endpoint para borrar un viaje
-  (que arrastra su itinerario y sus gastos), pero no para dar de baja al usuario. La política de
-  privacidad lo documenta como solicitud por correo; lo correcto es implementarlo.
 - Falta poner el responsable y el correo de contacto en `client/src/config/legal.js`: mientras
   tengan los marcadores, las páginas legales muestran un aviso pidiéndolo.

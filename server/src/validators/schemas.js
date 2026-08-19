@@ -76,6 +76,10 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),
 });
 
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Escribe tu contraseña para confirmar.'),
+});
+
 /* ------------------------------- Trips ------------------------------ */
 
 const legSchema = z.object({

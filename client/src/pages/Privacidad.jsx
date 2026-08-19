@@ -165,10 +165,11 @@ export default function Privacidad() {
           datos.
         </li>
         <li>
-          <strong>Para eliminar tu cuenta completa</strong>, hoy hay que solicitarlo escribiendo a{' '}
-          <strong>{CONTACTO_PRIVACIDAD}</strong> desde el correo con el que te registraste. Todavía
-          no existe un botón para hacerlo desde la aplicación. Al procesarla se borran la cuenta y
-          todos los viajes, itinerarios y gastos ligados a ella.
+          <strong>Para eliminar tu cuenta completa</strong>, entra a <em>Perfil</em> y usa
+          &quot;Eliminar mi cuenta&quot;. Te pedimos tu contraseña para confirmar. Se borran en el
+          momento tu cuenta y todos tus viajes, itinerarios y gastos: no queda copia ni forma de
+          recuperarlos. Si prefieres pedirlo por escrito, también puedes escribir a{' '}
+          <strong>{CONTACTO_PRIVACIDAD}</strong>.
         </li>
       </ul>
       <p className="tenue">
@@ -184,7 +185,10 @@ export default function Privacidad() {
       <ul>
         <li><strong>Acceso:</strong> saber qué datos tuyos tenemos y para qué los usamos.</li>
         <li><strong>Rectificación:</strong> corregirlos si están mal o incompletos. Tu nombre, correo y preferencias los puedes editar tú mismo desde <em>Perfil</em>.</li>
-        <li><strong>Cancelación:</strong> pedir que se borren.</li>
+        <li>
+          <strong>Cancelación:</strong> pedir que se borren. Puedes hacerlo tú mismo desde{' '}
+          <em>Perfil → Eliminar mi cuenta</em>.
+        </li>
         <li><strong>Oposición:</strong> pedir que dejemos de usarlos para un fin determinado.</li>
       </ul>
       <p>

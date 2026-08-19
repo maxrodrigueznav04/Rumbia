@@ -1500,3 +1500,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .clima-dia.estimado .clima-icono { color: var(--texto-tenue); }
 .aviso-icono { margin-top: 2px; }
 .vacio-icono .icono { color: var(--verde-300); }
+
+/* Zona de peligro del perfil -------------------------------------------
+   Se separa del resto para que nadie llegue por accidente: borde rojo y el
+   boton destructivo abajo, nunca junto a "Guardar cambios". */
+.zona-peligro {
+  border: 1.5px solid var(--error);
+  box-shadow: none;
+}
+.zona-peligro .tarjeta-titulo h3 { color: var(--error); }

@@ -8,6 +8,8 @@ export const authApi = {
   me: (opts) => api.get('/auth/me', opts),
   updateProfile: (payload) => api.patch('/auth/me', payload),
   changePassword: (payload) => api.patch('/auth/me/password', payload),
+  // El DELETE lleva cuerpo: la contraseña va como confirmación.
+  deleteAccount: (payload) => api.delete('/auth/me', { body: payload }),
 };
 
 const qs = (params) => {
