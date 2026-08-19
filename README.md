@@ -32,7 +32,7 @@ enlaces de salida ya prellenados, más el mapa del destino, el clima y el presup
 Día por día, con horario, categoría y costo estimado por actividad. Se puede reordenar, editar y
 regenerar; el mapa ubica las actividades que traen coordenadas.
 
-![Itinerario de cinco días generado con IA, con mapa de actividades](docs/itinerario.png)
+![Itinerario generado con IA, con mapa de actividades](docs/itinerario.png)
 
 ### En el teléfono
 

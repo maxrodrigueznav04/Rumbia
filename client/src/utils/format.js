@@ -139,12 +139,15 @@ export const ICONOS_CATEGORIA = {
 /** Colores de la grafica de presupuesto, alineados con la paleta de la app. */
 /* Escala del mismo verde, con dos acentos apagados: el desglose se lee como
    una familia y no como un arcoiris. */
+// Verde bitácora y atardecer, en el orden del mockup. Las dos categorías que
+// el mockup no lista (actividades y otros) toman los tonos que quedan libres
+// sin acercarse a sus vecinas en la dona.
 export const COLORES_CATEGORIA = {
-  transporte: '#05190e',
-  hospedaje: '#2f4438',
-  'transporte-local': '#51634e',
-  comida: '#8a6420',
-  actividades: '#6b4a70',
-  compras: '#9c4a35',
-  otros: '#b8ccb3',
+  transporte: '#1F6F5C',
+  hospedaje: '#E4784A',
+  'transporte-local': '#D4B483',
+  comida: '#F2A65A',
+  actividades: '#7FB3A2',
+  compras: '#C7BEA9',
+  otros: '#12513F',
 };

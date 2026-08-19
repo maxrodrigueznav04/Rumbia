@@ -149,13 +149,26 @@ export default function DetalleViaje() {
 
   return (
     <div className="pila">
-      <div>
+      {/* Banda de atardecer con la tarjeta del encabezado montada encima. */}
+      <div className="portada-viaje">
+        <svg
+          width="90"
+          height="90"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#FBF6EC"
+          strokeWidth="1.4"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M15 9l-1.5 4.5L9 15l1.5-4.5z" fill="#FBF6EC" stroke="none" />
+        </svg>
         <Link to="/viajes" className="volver">
           ← Mis viajes
         </Link>
       </div>
 
-      <header className="fila-entre">
+      <header className="tarjeta tarjeta-encabezado fila-entre">
         <div>
           <div className="fila" style={{ gap: 8, marginBottom: 6 }}>
             <Insignia color={estado.color}>{estado.texto}</Insignia>
@@ -177,7 +190,7 @@ export default function DetalleViaje() {
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
             ✎ Editar
           </Boton>
-          <Boton variante="fantasma" chico onClick={() => setConfirmar('viaje')}>
+          <Boton variante="peligro-texto" chico onClick={() => setConfirmar('viaje')}>
             Eliminar
           </Boton>
         </div>

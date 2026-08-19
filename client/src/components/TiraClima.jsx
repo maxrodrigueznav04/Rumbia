@@ -21,7 +21,10 @@ export default function TiraClima({ clima }) {
     <div>
       <div className="clima-tira">
         {days.map((d) => (
-          <div className="clima-dia" key={d.date}>
+          <div
+            className={`clima-dia ${d.source === 'estimacion-historica' ? 'estimado' : ''}`}
+            key={d.date}
+          >
             <div className="etiqueta" style={{ fontSize: '0.66rem' }}>
               {formatoDiaSemana(d.date)}
             </div>

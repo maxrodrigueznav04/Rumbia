@@ -13,68 +13,91 @@
    ========================================================================== */
 
 :root {
-  /* ---------- Verde de marca ----------
-     El 900 es casi negro: da 17:1 sobre el crema, así que sirve igual para
-     titulares que como fondo de botón con texto blanco encima. */
-  --verde-900: #05190e;
-  --verde-800: #1a2e22;
-  --verde-700: #2f4438;
-  --verde: #51634e;
-  --verde-300: #b8ccb3;
-  --verde-200: #d1e6cb;
-  --verde-100: #e4efe0;
-  --verde-50: #f1f7ef;
+  /* ---------- Verde bitacora ----------
+     El 1F6F5C es el primario del mockup: da 5.36:1 sobre el fondo arena, asi
+     que sirve para texto, enlaces y como fondo de boton con blanco encima. */
+  --verde-900: #123D32;
+  --verde-800: #12513F;
+  --verde: #1F6F5C;
+  --verde-300: #7FB3A2;
+  --verde-100: #E4EEEA;
+  --verde-50: #F0F6F3;
 
-  /* ---------- Neutros crema ---------- */
-  --crema-0: #ffffff;
-  --crema-50: #fcf9f8;
-  --crema-100: #f6f3f2;
-  --crema-200: #f0eded;
-  --crema-300: #e4e2e1;
-  --linea: #c3c8c2;
-  --linea-suave: #dcdedb;
-  --tinta: #1b1c1c;
-  --tinta-700: #424843;
-  --tinta-500: #6b706b;
+  /* ---------- Atardecer ----------
+     El naranja es acento: degradados, segundo color de la grafica y poco mas.
+     Sobre arena queda en 3.2:1, asi que nunca lleva texto encima. */
+  --naranja: #E4784A;
+  --naranja-claro: #F2A65A;
+  --naranja-oscuro: #B5622E;
 
-  /* ---------- Semánticos ---------- */
-  --bg: var(--crema-50);
-  --surface: var(--crema-0);
-  --surface-alt: var(--crema-100);
-  --border: var(--linea-suave);
-  --border-fuerte: var(--linea);
+  /* ---------- Arena ---------- */
+  --arena-0: #ffffff;
+  --arena-50: #FFFDF7;
+  --arena-100: #FBF6EC;
+  --arena-200: #F6EEDD;
+  --arena-300: #EFE6D3;
+  --arena-400: #EDE4CE;
+  --arena-500: #E1DAC5;
+  --arena-600: #D4B483;
+  --arena-700: #C7BEA9;
+
+  /* ---------- Tinta ----------
+     Los grises del mockup (#7A8079, #8A9089) se quedan en 3.0-3.8:1 sobre
+     arena, debajo del 4.5 que pide WCAG AA para texto normal. Se conserva el
+     tono pero oscurecido hasta que pasa. */
+  --tinta: #16231D;
+  --tinta-700: #3A433C;
+  --tinta-600: #4B5750;
+  /* Medido: el 616B62 del borrador daba 4.47:1 sobre las fichas del clima
+     (#F6EEDD), justo debajo del minimo. Este pasa sobre los dos fondos. */
+  --tinta-500: #59635A;
+
+  /* ---------- Semanticos ---------- */
+  --bg: var(--arena-100);
+  --surface: var(--arena-0);
+  --surface-alt: var(--arena-300);
+  --border: var(--arena-500);
+  --border-fuerte: var(--arena-600);
+  --linea: var(--arena-500);
+  --linea-suave: var(--arena-400);
   --texto: var(--tinta);
-  --texto-suave: var(--tinta-700);
+  --texto-suave: var(--tinta-600);
   --texto-tenue: var(--tinta-500);
-  --exito: #3d6b45;
+  --exito: #12513F;
   --exito-bg: var(--verde-100);
-  --alerta: #8a6420;
-  --alerta-bg: #f7eddb;
-  --error: #ba1a1a;
-  --error-bg: #ffdad6;
+  --alerta: #7A5A25;
+  --alerta-bg: var(--arena-200);
+  --error: #B5462E;
+  --error-bg: #FBE3D3;
 
-  /* ---------- Acentos, muy medidos ---------- */
-  --marca: var(--verde-900);
+  /* ---------- Acentos ---------- */
+  --marca: var(--verde);
   --marca-600: var(--verde-800);
   --marca-100: var(--verde-100);
   --marca-50: var(--verde-50);
-  --ambar: #8a6420;
-  --coral: #9c4a35;
+  --ambar: #8A6A3A;
+  --coral: var(--naranja);
   --ciruela: #6b4a70;
 
+  /* El degradado de atardecer: portada del viaje y franja de estado. */
+  --degradado: linear-gradient(120deg, #1F6F5C 0%, #E4784A 85%);
+  --degradado-franja: linear-gradient(90deg, #1F6F5C, #E4784A);
+
   /* ---------- Forma ----------
-     Casi rectas: el radio grande suaviza, y aquí lo que se busca es una
-     sobriedad de página impresa. */
-  --radio-sm: 3px;
-  --radio: 4px;
-  --radio-lg: 6px;
-  --sombra-sm: none;
-  --sombra: 0 2px 12px rgba(5, 25, 14, 0.05);
-  --sombra-lg: 0 24px 60px rgba(5, 25, 14, 0.13);
+     Pastilla para todo lo accionable, 20px en las tarjetas: la silueta
+     redondeada es la firma de esta direccion. */
+  --radio-xs: 8px;
+  --radio-sm: 12px;
+  --radio: 20px;
+  --radio-lg: 24px;
+  --radio-pastilla: 999px;
+  --sombra-sm: 0 4px 14px rgba(31, 111, 92, 0.06);
+  --sombra: 0 4px 14px rgba(31, 111, 92, 0.06);
+  --sombra-lg: 0 8px 24px rgba(31, 111, 92, 0.10);
   --contenedor: 1160px;
   --nav-alto: 72px;
 
-  /* ---------- Ritmo, más generoso ---------- */
+  /* ---------- Ritmo ---------- */
   --e1: 4px;
   --e2: 8px;
   --e3: 14px;
@@ -86,14 +109,16 @@
   /* ---------- Escala de apilamiento ----------
      Leaflet usa hasta z-index 1000 en sus controles y 700 en los popups.
      Todo lo nuestro que deba quedar por encima vive arriba de 2000, y el mapa
-     se aísla con isolation:isolate para que sus capas no escapen del contenedor. */
+     se aisla con isolation:isolate para que sus capas no escapen del contenedor. */
   --z-nav: 2000;
   --z-modal: 3000;
   --z-aviso: 4000;
 
-  /* ---------- Tipografía ---------- */
-  --fuente: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --fuente-titulo: 'Libre Caslon Text', 'Iowan Old Style', Georgia, serif;
+  /* ---------- Tipografia ----------
+     Sora para titulos y acciones, Manrope para lectura: geometricas las dos,
+     como pide el mockup. */
+  --fuente: 'Manrope Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --fuente-titulo: 'Sora Variable', 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
 *,
@@ -118,21 +143,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Fraunces tiene ejes variables: SOFT redondea los remates y WONK activa las
-   formas más expresivas. Juntos dan el carácter editorial sin volverse
-   decorativo. */
 h1, h2, h3 {
   font-family: var(--fuente-titulo);
-  font-weight: 400; /* Caslon ya tiene peso visual: el bold lo ensucia */
-  line-height: 1.15;
+  font-weight: 700; /* Sora es geometrica: aguanta el peso sin ensuciarse */
+  line-height: 1.2;
   letter-spacing: -0.02em;
   margin: 0 0 var(--e2);
-  color: var(--verde-900);
+  color: var(--texto);
 }
 
-h1 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem); line-height: 1.08; }
-h2 { font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem); }
-h3 { font-size: 1.2rem; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.1rem); line-height: 1.15; }
+h2 { font-size: clamp(1.3rem, 1.1rem + 1vw, 1.6rem); }
+h3 { font-size: 1.05rem; letter-spacing: -0.01em; }
 
 h4 {
   font-family: var(--fuente);
@@ -145,7 +167,7 @@ h4 {
 p { margin: 0 0 var(--e3); }
 
 a {
-  color: var(--verde-900);
+  color: var(--verde);
   text-decoration: none;
   font-weight: 500;
   text-underline-offset: 3px;
@@ -153,13 +175,13 @@ a {
 a:hover { text-decoration: underline; }
 
 :focus-visible {
-  outline: 2px solid var(--verde-700);
+  outline: 2px solid var(--verde);
   outline-offset: 2px;
   border-radius: var(--radio-sm);
 }
 
 ::selection {
-  background: var(--verde-200);
+  background: var(--verde-100);
   color: var(--verde-900);
 }
 
@@ -227,9 +249,9 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: var(--z-nav);
   height: var(--nav-alto);
-  background: rgba(252, 249, 248, 0.86);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(180%) blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--linea-suave);
 }
 
 .nav-inner {
@@ -245,22 +267,24 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: var(--e2);
   font-family: var(--fuente-titulo);
-  font-size: 1.35rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: var(--verde-900);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--texto);
 }
 .marca:hover { text-decoration: none; }
 
 .marca-punto {
   width: 30px;
   height: 30px;
-  border-radius: var(--radio-sm);
-  background: var(--verde-900);
+  border-radius: var(--radio-xs);
+  background: var(--verde);
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 15px;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -270,35 +294,32 @@ a:hover { text-decoration: underline; }
 }
 
 .nav-link {
-  padding: 8px 2px;
+  position: relative;
+  font-size: 0.92rem;
+  font-weight: 500;
   color: var(--texto-suave);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  border-bottom: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  padding: 6px 0;
+  transition: color 0.15s ease;
 }
 .nav-link:hover {
   color: var(--verde-900);
   text-decoration: none;
 }
 .nav-link.activo {
-  color: var(--verde-900);
-  border-bottom-color: var(--verde-900);
+  color: var(--verde);
+  font-weight: 700;
 }
 
 .tabbar {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   z-index: var(--z-nav);
   display: flex;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--linea-suave);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
 }
 @media (min-width: 760px) {
   .tabbar { display: none; }
@@ -316,24 +337,28 @@ a:hover { text-decoration: underline; }
   color: var(--texto-tenue);
 }
 .tabbar a:hover { text-decoration: none; }
-.tabbar a.activo { color: var(--verde-900); }
+.tabbar a.activo {
+  color: var(--verde);
+  font-weight: 700;
+}
 .tabbar span[aria-hidden] { font-size: 1.2rem; line-height: 1; }
 
 /* ---------------------- Tarjetas ---------------------- */
 
 .tarjeta {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radio);
-  padding: var(--e5);
+  padding: var(--e4);
+  box-shadow: var(--sombra);
 }
 @media (max-width: 480px) {
   .tarjeta { padding: var(--e4); }
 }
 
 .tarjeta-plana {
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
+  background: var(--arena-100);
+  border: 1.5px solid var(--arena-500);
   border-radius: var(--radio-sm);
   padding: var(--e3) var(--e4);
 }
@@ -341,11 +366,12 @@ a:hover { text-decoration: underline; }
 .tarjeta-link {
   display: block;
   color: inherit;
-  transition: border-color 0.3s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 .tarjeta-link:hover {
   text-decoration: none;
-  border-color: var(--verde-900);
+  box-shadow: var(--sombra-lg);
+  transform: translateY(-2px);
 }
 
 .tarjeta-titulo {
@@ -362,12 +388,12 @@ a:hover { text-decoration: underline; }
 .tarjeta-viaje { overflow: hidden; padding: 0; }
 
 .viaje-franja {
-  height: 4px;
-  background: var(--verde-900);
+  height: 5px;
+  background: var(--degradado-franja);
 }
-.viaje-franja.completado { background: var(--verde); }
-.viaje-franja.borrador { background: var(--linea); }
-.viaje-franja.en-curso { background: var(--ambar); }
+.viaje-franja.completado { background: var(--verde-300); }
+.viaje-franja.borrador { background: var(--arena-700); }
+.viaje-franja.en-curso { background: var(--arena-600); }
 
 .viaje-cuerpo { padding: var(--e5); }
 @media (max-width: 480px) {
@@ -379,9 +405,10 @@ a:hover { text-decoration: underline; }
 /* Versalitas de señalización: la firma tipográfica de esta dirección.
    Van encima de los titulares y en los encabezados de bloque. */
 .etiqueta {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  display: inline-block;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--texto-tenue);
 }
@@ -395,9 +422,9 @@ a:hover { text-decoration: underline; }
 }
 .grande {
   font-family: var(--fuente-titulo);
-  font-size: 2rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .centrado { text-align: center; }
 
@@ -407,24 +434,24 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 11px;
-  border-radius: var(--radio-sm);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  background: var(--surface-alt);
+  padding: 5px 12px;
+  border-radius: var(--radio-pastilla);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  background: var(--arena-300);
   color: var(--texto-suave);
-  border: 1px solid var(--border);
+  border: none;
   white-space: nowrap;
-  line-height: 1.5;
+  line-height: 1.6;
 }
-.insignia.marca { background: var(--verde-900); color: #fff; border-color: var(--verde-900); }
-.insignia.verde { background: var(--verde-200); color: var(--verde-900); border-color: transparent; }
-.insignia.cielo, .insignia.marca-suave { background: var(--verde-100); color: var(--verde-800); border-color: transparent; }
-.insignia.ambar { background: var(--alerta-bg); color: var(--alerta); border-color: transparent; }
-.insignia.exito { background: var(--exito-bg); color: var(--exito); border-color: transparent; }
-.insignia.error { background: var(--error-bg); color: var(--error); border-color: transparent; }
+.insignia.marca { background: var(--verde); color: #fff; }
+.insignia.verde { background: var(--verde-100); color: var(--verde-800); }
+.insignia.cielo, .insignia.marca-suave { background: var(--verde-100); color: var(--verde-800); }
+.insignia.ambar { background: var(--alerta-bg); color: var(--alerta); }
+.insignia.exito { background: var(--exito-bg); color: var(--exito); }
+.insignia.error { background: var(--error-bg); color: var(--error); }
 
 /* Las insignias que además son botones necesitan objetivo táctil mayor. */
 button.insignia {
@@ -443,55 +470,75 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   align-items: center;
   justify-content: center;
   gap: var(--e2);
-  padding: 13px 26px;
-  min-height: 48px;
-  border: 1px solid var(--verde-900);
-  border-radius: var(--radio);
-  font-family: inherit;
-  font-size: 0.76rem;
+  padding: 12px 22px;
+  min-height: 46px;
+  border: 1.5px solid var(--verde);
+  border-radius: var(--radio-pastilla);
+  font-family: var(--fuente-titulo);
+  font-size: 0.86rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-  background: var(--verde-900);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  background: var(--verde);
   color: #fff;
 }
 .boton:hover:not(:disabled) {
-  background: var(--marca-600);
+  background: var(--verde-800);
+  border-color: var(--verde-800);
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(10, 124, 156, 0.30);
+  box-shadow: 0 4px 14px rgba(31, 111, 92, 0.28);
 }
 .boton:active:not(:disabled) { transform: translateY(1px); }
 .boton:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
 .boton.secundario {
   background: transparent;
-  color: var(--verde-900);
-  border-color: var(--linea);
+  color: var(--texto);
+  border-color: var(--border);
 }
 .boton.secundario:hover:not(:disabled) {
-  background: var(--verde-900);
-  color: #fff;
-  border-color: var(--verde-900);
+  background: var(--arena-300);
+  color: var(--texto);
+  border-color: var(--border-fuerte);
+  box-shadow: none;
 }
 
 .boton.fantasma {
   background: transparent;
   color: var(--texto-suave);
   border-color: transparent;
-  padding: 9px 12px;
-  letter-spacing: 0.06em;
+  padding: 9px 14px;
 }
 .boton.fantasma:hover:not(:disabled) {
-  background: var(--surface-alt);
-  color: var(--verde-900);
+  background: var(--arena-300);
+  color: var(--texto);
+  box-shadow: none;
 }
 
 .boton.peligro { background: var(--error); border-color: var(--error); }
-.boton.peligro:hover:not(:disabled) { background: transparent; color: var(--error); }
+.boton.peligro:hover:not(:disabled) {
+  background: transparent;
+  color: var(--error);
+  box-shadow: none;
+}
 
-.boton.chico { min-height: 40px; padding: 9px 16px; font-size: 0.7rem; letter-spacing: 0.1em; }
+.boton.chico { min-height: 40px; padding: 8px 16px; font-size: 0.78rem; }
+
+/* La accion destructiva del encabezado va como texto, no como boton lleno. */
+.boton.peligro-texto {
+  background: transparent;
+  border-color: transparent;
+  color: var(--error);
+  padding: 9px 14px;
+}
+.boton.peligro-texto:hover:not(:disabled) {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: transparent;
+  box-shadow: none;
+}
 .boton.ancho { width: 100%; }
 
 /* ---------------------- Formularios ---------------------- */
@@ -515,7 +562,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-size: 16px; /* 16px evita el zoom automático en iOS */
   color: var(--texto);
   background: var(--surface);
-  border: 1.5px solid var(--border-fuerte);
+  border: 1.5px solid var(--border);
   border-radius: var(--radio-sm);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -526,7 +573,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo select:focus,
 .campo textarea:focus {
   outline: none;
-  border-color: var(--verde-700);
+  border-color: var(--verde);
   box-shadow: 0 0 0 3px var(--verde-100);
 }
 
@@ -568,7 +615,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .medidor-barra {
   height: 5px;
   border-radius: 999px;
-  background: var(--crema-300);
+  background: var(--arena-500);
   transition: background 0.25s ease;
 }
 .medidor-barra.error { background: var(--error); }
@@ -612,19 +659,18 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 .buscador input {
   width: 100%;
-  padding: 10px 38px 10px 36px;
-  min-height: 42px;
-  font-family: inherit;
-  font-size: 16px;
-  color: var(--texto);
+  padding: 11px 40px 11px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-pastilla);
   background: var(--surface);
-  border: 1.5px solid var(--border-fuerte);
-  border-radius: 999px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--texto);
+  transition: border-color 0.15s ease;
 }
 .buscador input:focus {
   outline: none;
-  border-color: var(--verde-700);
+  border-color: var(--verde);
   box-shadow: 0 0 0 3px var(--verde-100);
 }
 .buscador input::-webkit-search-cancel-button { display: none; }
@@ -678,7 +724,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   padding: var(--e7) var(--e5);
   border: 1.5px dashed var(--border-fuerte);
   border-radius: var(--radio);
-  background: linear-gradient(var(--surface), var(--crema-50));
+  background: linear-gradient(var(--surface), var(--arena-100));
 }
 .vacio-icono { font-size: 2.6rem; margin-bottom: var(--e3); display: block; }
 .vacio h3 { margin-bottom: var(--e2); font-size: 1.25rem; }
@@ -709,7 +755,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 .esqueleto {
-  background: linear-gradient(90deg, var(--crema-100), var(--crema-300), var(--crema-100));
+  background: linear-gradient(90deg, var(--arena-200), var(--arena-500), var(--arena-200));
   background-size: 200% 100%;
   animation: brillo 1.4s ease-in-out infinite;
   border-radius: var(--radio-sm);
@@ -890,44 +936,47 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 /* ---------------------- Presupuesto ---------------------- */
 
 .barra {
-  height: 10px;
-  background: var(--crema-300);
-  border-radius: 999px;
+  height: 8px;
+  border-radius: var(--radio-pastilla);
+  background: var(--arena-300);
   overflow: hidden;
 }
 .barra-relleno {
   height: 100%;
-  background: var(--verde-900);
-  border-radius: 999px;
+  border-radius: var(--radio-pastilla);
+  background: var(--verde);
   transition: width 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
-.barra-relleno.alerta { background: var(--ambar); }
+.barra-relleno.alerta { background: var(--naranja); }
 .barra-relleno.excedido { background: var(--error); }
 
 /* Dona del presupuesto con el total encima, centrado en el hueco.
    Va posicionado y no con margenes negativos: asi el total sigue centrado
    aunque cambie el tamano de la grafica o el largo de la cifra. */
 .dona {
-  position: relative;
-  height: 190px;
+  display: flex;
+  align-items: center;
+  gap: var(--e4);
   margin-bottom: var(--e3);
 }
+/* Recharts mide su contenedor: se le da caja fija para que no dependa del
+   ancho de la tarjeta y quepa junto al total. */
+.dona-grafica {
+  width: 132px;
+  height: 132px;
+  flex-shrink: 0;
+}
+
 .dona-centro {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  text-align: center;
-  pointer-events: none; /* el tooltip de la grafica sigue funcionando debajo */
+  gap: 2px;
 }
 .dona-centro .numero {
   font-family: var(--fuente-titulo);
-  font-weight: 400;
-  font-size: 1.6rem;
-  line-height: 1.1;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.15;
 }
 
 .linea-gasto {
@@ -942,10 +991,11 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .linea-gasto:last-child { border-bottom: none; }
 
 .punto-color {
-  width: 11px;
-  height: 11px;
-  border-radius: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
   flex-shrink: 0;
+  display: inline-block;
 }
 
 .gasto-check {
@@ -1021,13 +1071,13 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   scrollbar-width: thin;
 }
 .clima-dia {
-  flex: 0 0 88px;
+  flex: 0 0 74px;
   text-align: center;
-  padding: var(--e3) 6px;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
+  background: var(--arena-200);
   border-radius: var(--radio-sm);
+  padding: 10px 6px;
 }
+.clima-dia.estimado { background: var(--arena-300); }
 .clima-dia .temp { font-weight: 700; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
 .clima-dia .cond {
   font-size: 0.67rem;
@@ -1043,19 +1093,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   align-items: center;
   justify-content: space-between;
   gap: var(--e3);
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 11px 16px;
+  border: 1.5px solid var(--border);
   border-radius: var(--radio-sm);
+  background: var(--arena-100);
   color: var(--texto);
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 .link-externo:hover {
   text-decoration: none;
-  border-color: var(--verde-900);
-  background: transparent;
+  border-color: var(--verde);
+  background: var(--verde-50);
 }
 .link-externo .flecha { color: var(--texto-tenue); flex-shrink: 0; }
 
@@ -1198,6 +1246,49 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   border-top: 1px solid var(--border);
 }
 
+/* Portada del viaje ----------------------------------------------------
+   Banda de degradado con la tarjeta del encabezado montada encima, como en el
+   mockup. Va contenida y redondeada en vez de a sangre: sangrar exige 100vw,
+   que reintroduce desbordamiento horizontal cuando aparece la barra de
+   desplazamiento. */
+.portada-viaje {
+  position: relative;
+  height: 128px;
+  border-radius: var(--radio);
+  background: var(--degradado);
+  overflow: hidden;
+}
+.portada-viaje svg {
+  position: absolute;
+  right: 32px;
+  top: 14px;
+  opacity: 0.45;
+}
+/* El enlace de volver vive dentro de la banda, en blanco sobre el degradado. */
+.portada-viaje .volver {
+  position: absolute;
+  left: var(--e3);
+  top: var(--e3);
+  margin: 0;
+  color: #fff;
+  z-index: 1;
+}
+.portada-viaje .volver:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* La tarjeta del encabezado se monta sobre la banda. El -56 pelea contra el
+   gap de .pila (20px), asi que el traslape efectivo son 36px. */
+.tarjeta-encabezado {
+  /* position:relative es obligatorio, no decorativo: la banda esta posicionada
+     y sin esto pintaria encima de la tarjeta, tapandole el estado del viaje. */
+  position: relative;
+  margin-top: -56px;
+  box-shadow: var(--sombra-lg);
+  padding: var(--e4) var(--e5);
+}
+
 /* ---------------------- Portada del dashboard ---------------------- */
 
 .portada {
@@ -1206,8 +1297,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   justify-content: space-between;
   gap: var(--e4);
   flex-wrap: wrap;
-  padding-bottom: var(--e5);
-  border-bottom: 1px solid var(--linea);
+  padding-bottom: var(--e4);
 }
 
 .portada .etiqueta {
@@ -1219,12 +1309,15 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 .portada-titulo {
   margin: 0 0 var(--e2);
-  font-size: clamp(2.2rem, 1.4rem + 3.2vw, 3.4rem);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 1.2rem + 2vw, 2.3rem);
+  letter-spacing: -0.02em;
 }
 
 /* El nombre en cursiva es el guino editorial: separa el saludo de la persona. */
 .portada-nombre {
-  font-style: italic;
+  font-style: normal;
   color: var(--verde);
 }
 
@@ -1239,16 +1332,16 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   min-height: 44px;
   margin: -10px 0 -10px -8px;
   padding: 10px 8px;
-  border-radius: var(--radio-sm);
+  border-radius: var(--radio-pastilla);
   color: var(--texto-tenue);
   font-size: 0.88rem;
-  font-weight: 550;
+  font-weight: 600;
   transition: color 0.15s ease, background 0.15s ease;
 }
 .volver:hover {
   text-decoration: none;
-  color: var(--verde-900);
-  background: var(--surface-alt);
+  color: var(--verde);
+  background: var(--arena-300);
 }
 
 /* Botonera del modal ---------------------------------------------------

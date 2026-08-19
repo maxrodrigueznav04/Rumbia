@@ -6,9 +6,8 @@ import App from './App.jsx';
 // Las declaraciones traen unicode-range, asi que el navegador solo descarga el
 // alfabeto que la pagina realmente usa: los subconjuntos cirilico, griego y
 // vietnamita quedan en el bundle pero nunca se piden en una app en español.
-import '@fontsource/libre-caslon-text/400.css';
-import '@fontsource/libre-caslon-text/400-italic.css';
-import '@fontsource-variable/hanken-grotesk';
+import '@fontsource-variable/sora';
+import '@fontsource-variable/manrope';
 import './styles/global.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(

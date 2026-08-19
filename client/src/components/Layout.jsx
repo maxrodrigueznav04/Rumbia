@@ -23,7 +23,7 @@ export default function Layout() {
         <div className="contenedor nav-inner">
           <Link to="/viajes" className="marca">
             <span className="marca-punto" aria-hidden="true">
-              ✦
+              R
             </span>
             Rumbo
           </Link>
