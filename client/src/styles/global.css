@@ -1473,3 +1473,15 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   text-align: center;
   font-size: 0.82rem;
 }
+
+/* Paginacion del dashboard ---------------------------------------------
+   Solo aparece cuando hay mas de una pagina: con pocos viajes estorbaria. */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e4);
+  margin-top: var(--e5);
+  flex-wrap: wrap;
+}
+.paginacion .tenue { font-variant-numeric: tabular-nums; }

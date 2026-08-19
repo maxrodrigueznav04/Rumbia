@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { tripsApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -37,25 +37,46 @@ export default function Dashboard() {
   // Sin debounce se dispararía una petición por cada tecla.
   const consulta = useDebounce(busqueda.trim(), 350);
 
+  // La API pagina de 20 en 20; el dashboard traía todo de golpe.
+  const [pagina, setPagina] = useState(1);
+
+  // Cambiar de filtro o de búsqueda reinicia la página: si estabas en la 3 y
+  // el nuevo filtro solo tiene una, la vista quedaría vacía sin explicación.
+  useEffect(() => {
+    setPagina(1);
+  }, [filtro, consulta]);
+
   const { data, cargando, error, recargar } = useFetch(
     ({ signal }) =>
-      tripsApi.list({ status: filtro || undefined, q: consulta || undefined }, { signal }),
-    [filtro, consulta]
+      tripsApi.list(
+        { status: filtro || undefined, q: consulta || undefined, page: pagina },
+        { signal }
+      ),
+    [filtro, consulta, pagina]
   );
 
   const viajes = data?.trips || [];
+  const paginacion = data?.pagination;
+  const totalPaginas = paginacion?.pages || 1;
+  const totalViajes = paginacion?.total ?? viajes.length;
+
+  const irAPagina = (n) => {
+    setPagina(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const nombre = user?.name?.split(' ')[0] || 'viajero';
   const buscando = consulta.length > 0;
 
   const subtitulo = () => {
     if (cargando) return 'Cargando tus viajes...';
+    // Se cuenta el total del filtro, no lo que cabe en esta página.
     if (buscando) {
-      return viajes.length > 0
-        ? `${viajes.length} ${viajes.length === 1 ? 'resultado' : 'resultados'} para "${consulta}".`
+      return totalViajes > 0
+        ? `${totalViajes} ${totalViajes === 1 ? 'resultado' : 'resultados'} para "${consulta}".`
         : `Sin resultados para "${consulta}".`;
     }
-    return viajes.length > 0
-      ? `Tienes ${viajes.length} ${viajes.length === 1 ? 'viaje' : 'viajes'} en esta vista.`
+    return totalViajes > 0
+      ? `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje' : 'viajes'} en esta vista.`
       : 'Aquí vas a ver todos tus viajes.';
   };
 
@@ -162,6 +183,32 @@ export default function Dashboard() {
             <TarjetaViaje key={v._id} viaje={v} />
           ))}
         </div>
+      )}
+
+      {!cargando && totalPaginas > 1 && (
+        <nav className="paginacion" aria-label="Paginación de viajes">
+          <Boton
+            variante="secundario"
+            chico
+            onClick={() => irAPagina(pagina - 1)}
+            disabled={pagina <= 1}
+          >
+            ← Anterior
+          </Boton>
+
+          <span className="tenue" aria-live="polite">
+            Página {pagina} de {totalPaginas}
+          </span>
+
+          <Boton
+            variante="secundario"
+            chico
+            onClick={() => irAPagina(pagina + 1)}
+            disabled={pagina >= totalPaginas}
+          >
+            Siguiente →
+          </Boton>
+        </nav>
       )}
     </div>
   );
