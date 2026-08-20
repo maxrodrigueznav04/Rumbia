@@ -1,3 +1,4 @@
+import { Itinerary, Trip } from '../models/index.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { decorarSecciones, hayAfiliados } from '../services/affiliates.service.js';
@@ -81,6 +82,48 @@ export const generarItinerarioInvitado = asyncHandler(async (req, res) => {
       // El cliente lo usa para explicar por que conviene crear una cuenta.
       guardado: false,
       maxDias: MAX_DIAS_INVITADO,
+    },
+  });
+});
+
+/**
+ * Itinerario compartido por enlace, sin sesion.
+ *
+ * Se devuelve lo justo para leerlo: destino, fechas y los dias. Deliberadamente
+ * NO viajan el dueno, su correo, el presupuesto ni los gastos: quien recibe el
+ * enlace viene a ver el plan del viaje, no las finanzas de quien lo armo.
+ */
+export const verItinerarioCompartido = asyncHandler(async (req, res) => {
+  const itinerary = await Itinerary.findOne({ shareToken: req.params.token });
+  if (!itinerary) {
+    throw ApiError.notFound('Este enlace ya no existe o dejo de compartirse.');
+  }
+
+  const trip = await Trip.findById(itinerary.trip).select(
+    'title destination origin startDate endDate travelers'
+  );
+  if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
+
+  res.json({
+    success: true,
+    data: {
+      viaje: {
+        title: trip.title,
+        destination: trip.destination,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        travelers: trip.travelers,
+        durationDays: trip.durationDays,
+      },
+      itinerary: {
+        days: itinerary.days,
+        generatedBy: itinerary.generatedBy,
+        totalEstimatedCost: itinerary.totalEstimatedCost,
+        activityCount: itinerary.activityCount,
+      },
+      pins: itinerary.mapPins(),
+      links: decorarSecciones(buildLinksForTrip(trip)),
+      conAfiliados: hayAfiliados(),
     },
   });
 });

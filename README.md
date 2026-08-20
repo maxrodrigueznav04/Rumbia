@@ -81,6 +81,11 @@ Todo el stack corre en tiers gratuitos.
   enlaces salen como búsquedas públicas y **la app no dice que gana comisión, porque no la
   gana**. Cuando sí, los enlaces afectados se marcan en pantalla, llevan `rel="sponsored"` y
   aparece la divulgación junto a ellos.
+- **Portada pública y generador sin cuenta.** Cualquiera puede armar un itinerario con IA y ver
+  los enlaces de reserva sin registrarse; la cuenta se pide solo para guardarlo. Limitado por IP
+  y a 7 días por itinerario, porque gasta cuota de Gemini.
+- **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
+  quieras. No expone presupuesto, gastos ni datos de la cuenta.
 - **Páginas legales.** Términos, privacidad y cookies en `/terminos`, `/privacidad` y `/cookies`,
   accesibles sin sesión. Describen lo que el código hace: qué campos se guardan, qué recibe cada
   tercero y qué viaja en los enlaces de salida.

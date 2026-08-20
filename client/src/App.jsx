@@ -14,6 +14,7 @@ import Perfil from './pages/Perfil.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import Terminos from './pages/Terminos.jsx';
+import ItinerarioCompartido from './pages/ItinerarioCompartido.jsx';
 import Cookies from './pages/Cookies.jsx';
 import { Vacio } from './components/ui.jsx';
 
@@ -80,6 +81,9 @@ export default function App() {
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/terminos" element={<Terminos />} />
+
+            {/* Itinerario compartido: se abre con el token, sin sesion. */}
+            <Route path="/i/:token" element={<ItinerarioCompartido />} />
 
             {/* La portada es publica: quien llega sin cuenta tiene que poder
                 ver que hace la app y probarla antes de registrarse. */}

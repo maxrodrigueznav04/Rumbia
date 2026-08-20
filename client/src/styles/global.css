@@ -1574,3 +1574,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .inicio-puntos h3 { margin: var(--e2) 0 var(--e1); }
 .inicio-puntos p { margin: 0; font-size: 0.92rem; }
+
+/* El enlace para compartir: se muestra completo y se puede seleccionar a mano
+   si el navegador no da permiso de portapapeles. */
+.enlace-compartir {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}

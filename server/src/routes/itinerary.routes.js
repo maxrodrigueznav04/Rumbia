@@ -18,6 +18,9 @@ router.get('/', ctrl.getItinerary);
 router.post('/', ctrl.createBlank);
 router.delete('/', ctrl.deleteItinerary);
 
+router.post('/share', ctrl.compartir);
+router.delete('/share', ctrl.dejarDeCompartir);
+
 // El unico endpoint que consume cuota de Gemini: limitado por usuario/hora.
 router.post('/generate', aiLimiter, validate(generateItinerarySchema), ctrl.generate);
 

@@ -108,6 +108,9 @@ export default function Itinerario() {
   const [diaPorEliminar, setDiaPorEliminar] = useState(null);
   const [diaEnEdicion, setDiaEnEdicion] = useState(null);
   const [confirmarRegenerar, setConfirmarRegenerar] = useState(false);
+  const [compartir, setCompartir] = useState(null); // { token } | null
+  const [copiado, setCopiado] = useState(false);
+  const [trabajandoEnlace, setTrabajandoEnlace] = useState(false);
   const [arrastre, setArrastre] = useState(null); // { diaId, indice }
   const [destino, setDestino] = useState(null); // { diaId, indice }
 
@@ -147,6 +150,44 @@ export default function Itinerario() {
       setErrorGen(err);
     } finally {
       setGenerando(false);
+    }
+  };
+
+  const enlacePublico = compartir ? `${window.location.origin}/i/${compartir.token}` : null;
+
+  const generarEnlace = async () => {
+    setTrabajandoEnlace(true);
+    try {
+      const datos = await itineraryApi.compartir(id);
+      setCompartir({ token: datos.token });
+      setCopiado(false);
+    } catch (err) {
+      setErrorGen(err);
+    } finally {
+      setTrabajandoEnlace(false);
+    }
+  };
+
+  const revocarEnlace = async () => {
+    setTrabajandoEnlace(true);
+    try {
+      await itineraryApi.dejarDeCompartir(id);
+      setCompartir(null);
+    } catch (err) {
+      setErrorGen(err);
+    } finally {
+      setTrabajandoEnlace(false);
+    }
+  };
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(enlacePublico);
+      setCopiado(true);
+    } catch {
+      // Sin permiso de portapapeles (o sin HTTPS) el input sigue ahi para
+      // seleccionarlo a mano: no se deja al usuario sin salida.
+      setCopiado(false);
     }
   };
 
@@ -333,15 +374,44 @@ export default function Itinerario() {
         </div>
 
         {itinerario && (
-          <Boton
-            variante="secundario"
-            onClick={() => setConfirmarRegenerar(true)}
-            cargando={generando}
-          >
-            ✨ Regenerar
-          </Boton>
+          <div className="fila" style={{ gap: 8 }}>
+            <Boton variante="secundario" onClick={generarEnlace} cargando={trabajandoEnlace}>
+              <Icono nombre="flechaSalida" tamano={15} /> Compartir
+            </Boton>
+            <Boton
+              variante="secundario"
+              onClick={() => setConfirmarRegenerar(true)}
+              cargando={generando}
+            >
+              <Icono nombre="chispa" tamano={15} /> Regenerar
+            </Boton>
+          </div>
         )}
       </header>
+
+      {enlacePublico && (
+        <Aviso tipo="exito" titulo="Tu itinerario ya se puede compartir">
+          <p style={{ margin: '2px 0 8px' }}>
+            Quien abra este enlace verá el itinerario en solo lectura. No verá tu presupuesto, tus
+            gastos ni tu cuenta.
+          </p>
+          <div className="fila" style={{ gap: 8 }}>
+            <input
+              className="enlace-compartir"
+              readOnly
+              value={enlacePublico}
+              onFocus={(e) => e.target.select()}
+              aria-label="Enlace público del itinerario"
+            />
+            <Boton chico onClick={copiar}>
+              {copiado ? 'Copiado' : 'Copiar'}
+            </Boton>
+            <Boton variante="peligro-texto" chico onClick={revocarEnlace} cargando={trabajandoEnlace}>
+              Dejar de compartir
+            </Boton>
+          </div>
+        </Aviso>
+      )}
 
       {errorGen && (
         <ErrorCarga

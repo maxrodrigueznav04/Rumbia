@@ -33,6 +33,7 @@ export const publicApi = {
   // Sin sesion y con su propio timeout: es la misma llamada a Gemini.
   generarItinerario: (payload) =>
     api.post('/public/itinerary', payload, { auth: false, timeout: TIMEOUT_IA_MS }),
+  verCompartido: (token, opts) => api.get(`/public/itinerary/${token}`, { ...opts, auth: false }),
 };
 
 export const itineraryApi = {
@@ -42,6 +43,8 @@ export const itineraryApi = {
   generate: (tripId, payload) =>
     api.post(`/trips/${tripId}/itinerary/generate`, payload, { timeout: TIMEOUT_IA_MS }),
   remove: (tripId) => api.delete(`/trips/${tripId}/itinerary`),
+  compartir: (tripId) => api.post(`/trips/${tripId}/itinerary/share`),
+  dejarDeCompartir: (tripId) => api.delete(`/trips/${tripId}/itinerary/share`),
   updateDay: (tripId, dayId, payload) => api.patch(`/trips/${tripId}/itinerary/days/${dayId}`, payload),
   removeDay: (tripId, dayId) => api.delete(`/trips/${tripId}/itinerary/days/${dayId}`),
   reorder: (tripId, dayId, activityIds) =>

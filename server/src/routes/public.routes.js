@@ -17,4 +17,6 @@ router.post(
   ctrl.generarItinerarioInvitado
 );
 
+router.get('/itinerary/:token', ctrl.verItinerarioCompartido);
+
 export default router;

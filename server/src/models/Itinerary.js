@@ -74,6 +74,17 @@ const itinerarySchema = new mongoose.Schema(
       pace: String,
       extraNotes: String,
     },
+    /**
+     * Token del enlace publico. Es opcional y sparse: la mayoria de los
+     * itinerarios no se comparten nunca, y un indice unico normal tratearia
+     * todos los null como duplicados.
+     *
+     * Compartir es voluntario y reversible: mientras no exista token, no hay
+     * forma de llegar al itinerario sin la sesion del dueno.
+     */
+    shareToken: { type: String, index: { unique: true, sparse: true }, select: false },
+    sharedAt: { type: Date },
+
     version: { type: Number, default: 1 },
     days: { type: [daySchema], default: [] },
   },

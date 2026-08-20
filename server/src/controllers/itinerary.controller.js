@@ -1,4 +1,5 @@
-import { Itinerary } from '../models/index.js';
+import { randomBytes } from 'node:crypto';
+import { Itinerary, Trip } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
@@ -134,6 +135,43 @@ export const createBlank = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json({ success: true, message: 'Itinerario creado.', data: { itinerary } });
+});
+
+/**
+ * Crea (o devuelve) el enlace publico de solo lectura.
+ *
+ * El token es aleatorio de 32 caracteres hex: no se puede adivinar recorriendo
+ * ids, que es justo lo que pasaria si el enlace usara el id del viaje.
+ */
+export const compartir = asyncHandler(async (req, res) => {
+  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const itinerary = await Itinerary.findOne({ trip: trip._id }).select('+shareToken');
+  if (!itinerary) throw ApiError.notFound('Este viaje todavia no tiene itinerario.');
+
+  if (!itinerary.shareToken) {
+    itinerary.shareToken = randomBytes(16).toString('hex');
+    itinerary.sharedAt = new Date();
+    await itinerary.save();
+  }
+
+  res.json({
+    success: true,
+    message: 'Enlace listo.',
+    data: { token: itinerary.shareToken, sharedAt: itinerary.sharedAt },
+  });
+});
+
+/** Revoca el enlace: a partir de aqui deja de abrir para todo el mundo. */
+export const dejarDeCompartir = asyncHandler(async (req, res) => {
+  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const itinerary = await Itinerary.findOne({ trip: trip._id }).select('+shareToken');
+  if (!itinerary) throw ApiError.notFound('Este viaje todavia no tiene itinerario.');
+
+  itinerary.shareToken = undefined;
+  itinerary.sharedAt = undefined;
+  await itinerary.save();
+
+  res.json({ success: true, message: 'El enlace dejo de funcionar.' });
 });
 
 export const deleteItinerary = asyncHandler(async (req, res) => {
