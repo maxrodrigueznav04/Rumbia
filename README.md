@@ -429,7 +429,6 @@ Todas las respuestas siguen la misma forma:
 
 ## Pendientes conocidos
 
-- Sin conversión de divisas: todos los montos de un viaje se asumen en la misma moneda.
 - Sin recuperación de contraseña por correo.
 - El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
 - Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la

@@ -2,6 +2,7 @@ import { Trip, Itinerary, Expense } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
+import { convertirTotales } from '../services/exchange.service.js';
 import { addDays } from '../utils/dates.js';
 
 /**
@@ -184,11 +185,19 @@ export const getTripSummary = asyncHandler(async (req, res) => {
   ]);
 
   const core = trip.coreCosts;
+  const moneda = trip.budget?.currency || 'MXN';
+
+  // Un gasto puede estar en otra moneda que el viaje (un vuelo en USD y el
+  // hotel en MXN). Antes se sumaban los numeros a secas y el total mentia.
+  const { convertido, tasas, sinConvertir } = await convertirTotales(
+    expenses.map((e) => ({ id: String(e._id), amount: e.amount, currency: e.currency, category: e.category, isPaid: e.isPaid })),
+    moneda
+  );
 
   // Los gastos manuales se suman por categoria; las categorias que ya cubre el
   // viaje (transporte/hospedaje/transporte-local) se acumulan encima, no se pisan.
-  const manualByCategory = expenses.reduce((acc, e) => {
-    acc[e.category] = Number(((acc[e.category] || 0) + e.amount).toFixed(2));
+  const manualByCategory = convertido.reduce((acc, e) => {
+    acc[e.category] = Number(((acc[e.category] || 0) + e.convertido).toFixed(2));
     return acc;
   }, {});
 
@@ -209,13 +218,20 @@ export const getTripSummary = asyncHandler(async (req, res) => {
   );
   const budget = trip.budget?.amount || 0;
   const paid = Number(
-    expenses.filter((e) => e.isPaid).reduce((s, e) => s + e.amount, 0).toFixed(2)
+    convertido.filter((e) => e.isPaid).reduce((s, e) => s + e.convertido, 0).toFixed(2)
   );
 
   res.json({
     success: true,
     data: {
-      currency: trip.budget?.currency || 'MXN',
+      currency: moneda,
+      // Que se convirtio y con que tasa. Si algo quedo fuera se dice cual, en
+      // vez de dar un total redondo que no incluye todo.
+      conversion: {
+        aplicada: Object.keys(tasas).length > 0,
+        tasas,
+        sinConvertir,
+      },
       breakdown,
       chartData: Object.entries(breakdown)
         .filter(([, value]) => value > 0)

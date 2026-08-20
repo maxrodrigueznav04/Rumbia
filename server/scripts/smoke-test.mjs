@@ -253,5 +253,64 @@ await check('estacionalidad invertida en el hemisferio sur', async () => {
   return `julio -> lat45N ${norte.days[0].tempAvg}C vs lat45S ${sur.days[0].tempAvg}C`;
 });
 
+/* ---------------------- Tipos de cambio ---------------------- */
+
+console.log(`\n== Conversion de divisas (fetch simulado) ==`);
+
+const { convertirTotales, limpiarCache } = await import('../src/services/exchange.service.js');
+const fetchReal = globalThis.fetch;
+const simular = (respuesta) => {
+  globalThis.fetch = async () => respuesta;
+};
+
+await check('sin mezcla de monedas no llama a la API', async () => {
+  limpiarCache();
+  let llamadas = 0;
+  globalThis.fetch = async () => { llamadas += 1; return { ok: false }; };
+  const r = await convertirTotales([{ amount: 100, currency: 'MXN' }], 'MXN');
+  assert(llamadas === 0, `llamadas=${llamadas}`);
+  assert(r.convertido[0].convertido === 100, 'monto intacto');
+  return 'cero peticiones';
+});
+
+await check('convierte con la tasa recibida', async () => {
+  limpiarCache();
+  // Frankfurter responde a ?from=MXN con cuantos USD da UN peso, asi que para
+  // pasar dolares a pesos hay que dividir. 0.05 -> el dolar vale 20 pesos.
+  simular({ ok: true, json: async () => ({ rates: { USD: 0.05 } }) });
+  const r = await convertirTotales(
+    [{ amount: 1000, currency: 'MXN' }, { amount: 100, currency: 'USD' }],
+    'MXN'
+  );
+  const total = r.convertido.reduce((s, x) => s + x.convertido, 0);
+  assert(total === 3000, `total=${total}`);
+  return '100 USD a 20 MXN -> 2000, total 3000';
+});
+
+await check('si la API falla no inventa un total', async () => {
+  limpiarCache();
+  simular({ ok: false });
+  const r = await convertirTotales(
+    [{ amount: 1000, currency: 'MXN' }, { amount: 100, currency: 'USD' }],
+    'MXN'
+  );
+  assert(r.sinConvertir.includes('USD'), 'reporta USD como no convertido');
+  assert(r.convertido[1].convertido === 0, 'el gasto no convertido no suma');
+  assert(r.convertido[0].convertido === 1000, 'lo que si estaba en la moneda del viaje se conserva');
+  return 'avisa en vez de mentir';
+});
+
+await check('cachea: dos conversiones seguidas piden una sola vez', async () => {
+  limpiarCache();
+  let llamadas = 0;
+  globalThis.fetch = async () => { llamadas += 1; return { ok: true, json: async () => ({ rates: { USD: 20 } }) }; };
+  await convertirTotales([{ amount: 1, currency: 'USD' }], 'MXN');
+  await convertirTotales([{ amount: 2, currency: 'USD' }], 'MXN');
+  assert(llamadas === 1, `llamadas=${llamadas}`);
+  return 'una peticion para dos resumenes';
+});
+
+globalThis.fetch = fetchReal;
+
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);
 process.exit(fail === 0 ? 0 : 1);

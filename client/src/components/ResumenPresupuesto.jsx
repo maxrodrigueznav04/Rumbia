@@ -1,12 +1,12 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Tarjeta, Vacio } from './ui.jsx';
+import { Tarjeta, Vacio, Aviso } from './ui.jsx';
 import { formatoMoneda, humanizar, COLORES_CATEGORIA } from '../utils/format.js';
 
 /** Desglose del presupuesto: dona + lineas por categoria + barra contra el limite. */
 export default function ResumenPresupuesto({ resumen }) {
   if (!resumen) return null;
 
-  const { breakdown, chartData, totals, budget, currency, itineraryEstimate } = resumen;
+  const { breakdown, chartData, totals, budget, currency, itineraryEstimate, conversion } = resumen;
   const hayGastos = chartData?.length > 0;
 
   if (!hayGastos) {
@@ -24,6 +24,13 @@ export default function ResumenPresupuesto({ resumen }) {
 
   return (
     <Tarjeta titulo="Presupuesto">
+      {conversion?.sinConvertir?.length > 0 && (
+        <Aviso tipo="alerta" titulo="Hay gastos fuera de esta suma">
+          No se pudo obtener el tipo de cambio de {conversion.sinConvertir.join(', ')}, así que esos
+          gastos no entran en el total. Vuelve a cargar en un momento.
+        </Aviso>
+      )}
+
       <div className="dona">
         <div className="dona-grafica">
         <ResponsiveContainer width="100%" height="100%">
