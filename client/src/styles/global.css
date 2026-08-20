@@ -905,15 +905,28 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   transform: translateY(1px);
 }
 
+/* Asa de reordenar. Es un boton de verdad: se enfoca con tabulador y se mueve
+   con las flechas. touch-action:none es lo que permite arrastrarla con el dedo
+   sin que el navegador se lleve el gesto para desplazar la pagina, y por eso
+   solo el asa lo lleva: el resto de la tarjeta sigue desplazandose normal. */
 .agarradera {
-  color: var(--linea);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radio-xs);
+  color: var(--texto-tenue);
   cursor: grab;
-  font-size: 1.1rem;
-  line-height: 1.4;
   user-select: none;
+  touch-action: none;
   align-self: flex-start;
+  flex-shrink: 0;
 }
-.actividad:hover .agarradera { color: var(--texto-tenue); }
+.agarradera:hover { background: var(--arena-300); color: var(--texto); }
+.agarradera:active { cursor: grabbing; }
 
 .actividad-hora {
   font-variant-numeric: tabular-nums;

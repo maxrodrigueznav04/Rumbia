@@ -14,6 +14,7 @@ import {
   Aviso,
   ModalConfirmar,
 } from '../components/ui.jsx';
+import Icono from '../components/Icono.jsx';
 import { formatoMoneda, formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
@@ -26,15 +27,26 @@ function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
   return (
     <article
       className={`actividad ${dnd.arrastrando ? 'arrastrando' : ''} ${dnd.encima ? 'encima' : ''}`}
+      data-dia={dnd.diaId}
+      data-indice={dnd.indice}
       draggable
       onDragStart={dnd.onDragStart}
       onDragOver={dnd.onDragOver}
       onDrop={dnd.onDrop}
       onDragEnd={dnd.onDragEnd}
     >
-      <span className="agarradera" aria-hidden="true" title="Arrastra para reordenar">
-        ⠿
-      </span>
+      {/* Boton, no un span decorativo: con teclado se enfoca y se mueve con las
+          flechas, y en tactil es el unico punto por el que se arrastra (asi la
+          tarjeta entera sigue permitiendo desplazar la pagina). */}
+      <button
+        type="button"
+        className="agarradera"
+        aria-label={`Reordenar ${actividad.title}. Usa las flechas arriba y abajo.`}
+        onPointerDown={dnd.onPointerDown}
+        onKeyDown={dnd.onKeyDown}
+      >
+        <Icono nombre="arrastrar" tamano={16} />
+      </button>
 
       <div className="actividad-hora">{actividad.time || '—'}</div>
 
@@ -143,20 +155,26 @@ export default function Itinerario() {
      destino. Son dos endpoints distintos porque el backend los trata distinto:
      reordenar solo permuta ids, mover recrea el subdocumento en otro día. */
 
-  const alSoltar = async (diaDestino, indiceDestino) => {
-    if (!arrastre) return;
+  /**
+   * El origen llega como parametro y no se lee del estado a proposito: el
+   * arrastre tactil resuelve el destino dentro de un manejador creado en el
+   * pointerdown, cuando React todavia no habia aplicado setArrastre. Leyendo
+   * `arrastre` ahi se veia null y el movimiento se descartaba en silencio.
+   */
+  const moverActividad = async (origen, diaDestino, indiceDestino) => {
+    if (!origen || !diaDestino) return;
 
-    const mismoDia = arrastre.diaId === diaDestino._id;
-    if (mismoDia && arrastre.indice === indiceDestino) return;
+    const mismoDia = origen.diaId === diaDestino._id;
+    if (mismoDia && origen.indice === indiceDestino) return;
 
     try {
       if (mismoDia) {
         const ids = diaDestino.activities.map((a) => a._id);
-        const [movido] = ids.splice(arrastre.indice, 1);
+        const [movido] = ids.splice(origen.indice, 1);
         ids.splice(indiceDestino, 0, movido);
         await itineraryApi.reorder(id, diaDestino._id, ids);
       } else {
-        await itineraryApi.moveActivity(id, arrastre.diaId, arrastre.actividadId, {
+        await itineraryApi.moveActivity(id, origen.diaId, origen.actividadId, {
           targetDayNumber: diaDestino.dayNumber,
           position: indiceDestino,
         });
@@ -170,7 +188,76 @@ export default function Itinerario() {
     }
   };
 
+  /** Con raton el estado ya esta aplicado cuando se suelta. */
+  const alSoltar = (diaDestino, indiceDestino) =>
+    moverActividad(arrastre, diaDestino, indiceDestino);
+
+  /**
+   * Mueve una actividad dentro de su dia. Es lo que usan las flechas del
+   * teclado, y lo que hace falta para que reordenar no dependa del raton.
+   */
+  const moverEnDia = async (dia, desde, hasta) => {
+    if (hasta < 0 || hasta >= dia.activities.length || desde === hasta) return;
+    const ids = dia.activities.map((a) => a._id);
+    const [movido] = ids.splice(desde, 1);
+    ids.splice(hasta, 0, movido);
+    try {
+      await itineraryApi.reorder(id, dia._id, ids);
+      itinReq.recargar();
+    } catch (err) {
+      setErrorGen(err);
+    }
+  };
+
+  /**
+   * Arrastre tactil. El API de drag-and-drop de HTML5 no dispara con el dedo,
+   * asi que en tactil se sigue el puntero a mano: se busca la fila que hay bajo
+   * el dedo y esa marca el destino.
+   */
+  const arrastreTactil = (dia, indice, actividad) => (e) => {
+    if (e.pointerType === 'mouse') return; // con raton manda el drag nativo
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const origen = { diaId: dia._id, indice, actividadId: actividad._id };
+    setArrastre(origen);
+    let ultimo = null;
+
+    const alMover = (ev) => {
+      const bajo = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.actividad');
+      if (!bajo?.dataset.dia) return;
+      ultimo = { diaId: bajo.dataset.dia, indice: Number(bajo.dataset.indice) };
+      setDestino(ultimo);
+    };
+
+    const alSoltarDedo = () => {
+      window.removeEventListener('pointermove', alMover);
+      window.removeEventListener('pointerup', alSoltarDedo);
+      window.removeEventListener('pointercancel', alSoltarDedo);
+
+      const diaDestino = ultimo && itinerario?.days?.find((d) => d._id === ultimo.diaId);
+      if (diaDestino) {
+        moverActividad(origen, diaDestino, ultimo.indice);
+      } else {
+        setArrastre(null);
+        setDestino(null);
+      }
+    };
+
+    window.addEventListener('pointermove', alMover);
+    window.addEventListener('pointerup', alSoltarDedo);
+    window.addEventListener('pointercancel', alSoltarDedo);
+  };
+
   const dndProps = (dia, indice, actividad) => ({
+    diaId: dia._id,
+    indice,
+    onPointerDown: arrastreTactil(dia, indice, actividad),
+    onKeyDown: (e) => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      moverEnDia(dia, indice, indice + (e.key === 'ArrowUp' ? -1 : 1));
+    },
     arrastrando: arrastre?.actividadId === actividad._id,
     encima:
       destino?.diaId === dia._id &&
