@@ -81,7 +81,7 @@ Todo el stack corre en tiers gratuitos.
   enlaces salen como búsquedas públicas y **la app no dice que gana comisión, porque no la
   gana**. Cuando sí, los enlaces afectados se marcan en pantalla, llevan `rel="sponsored"` y
   aparece la divulgación junto a ellos.
-- **Páginas legales.** Política de privacidad y aviso de cookies en `/privacidad` y `/cookies`,
+- **Páginas legales.** Términos, privacidad y cookies en `/terminos`, `/privacidad` y `/cookies`,
   accesibles sin sesión. Describen lo que el código hace: qué campos se guardan, qué recibe cada
   tercero y qué viaja en los enlaces de salida.
 - **Itinerario con IA.** Gemini devuelve un plan día por día en JSON estructurado (actividades con

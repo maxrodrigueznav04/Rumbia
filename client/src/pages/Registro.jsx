@@ -52,7 +52,7 @@ export default function Registro() {
         <div className="auth-encabezado">
           <div className="marca" style={{ justifyContent: 'center', marginBottom: 10 }}>
             <span className="marca-punto" aria-hidden="true">
-              ✦
+              R
             </span>
             Rumbo
           </div>
@@ -128,8 +128,9 @@ export default function Registro() {
           {/* Antes de dar sus datos, el usuario tiene que poder leer qué se
               hace con ellos: por eso el enlace va junto al botón, no en el pie. */}
           <p className="tenue legal-nota">
-            Al crear tu cuenta aceptas nuestra <Link to="/privacidad">política de privacidad</Link> y
-            el <Link to="/cookies">aviso de cookies y rastreo</Link>.
+            Al crear tu cuenta aceptas los <Link to="/terminos">términos y condiciones</Link>, la{' '}
+            <Link to="/privacidad">política de privacidad</Link> y el{' '}
+            <Link to="/cookies">aviso de cookies</Link>.
           </p>
         </form>
 

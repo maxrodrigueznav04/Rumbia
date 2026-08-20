@@ -13,6 +13,7 @@ import Itinerario from './pages/Itinerario.jsx';
 import Perfil from './pages/Perfil.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Privacidad from './pages/Privacidad.jsx';
+import Terminos from './pages/Terminos.jsx';
 import Cookies from './pages/Cookies.jsx';
 import { Vacio } from './components/ui.jsx';
 
@@ -78,6 +79,7 @@ export default function App() {
                 registrarse y también con la sesión abierta. */}
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/cookies" element={<Cookies />} />
+            <Route path="/terminos" element={<Terminos />} />
 
             {/* La portada es publica: quien llega sin cuenta tiene que poder
                 ver que hace la app y probarla antes de registrarse. */}

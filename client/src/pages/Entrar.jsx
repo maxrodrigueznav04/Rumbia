@@ -26,7 +26,7 @@ export default function Entrar() {
         <div className="auth-encabezado">
           <div className="marca" style={{ justifyContent: 'center', marginBottom: 10 }}>
             <span className="marca-punto" aria-hidden="true">
-              ✦
+              R
             </span>
             Rumbo
           </div>

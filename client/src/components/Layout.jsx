@@ -66,6 +66,7 @@ export default function Layout() {
           <nav className="pie-enlaces" aria-label="Enlaces legales">
             <Link to="/privacidad">Privacidad</Link>
             <Link to="/cookies">Cookies y rastreo</Link>
+            <Link to="/terminos">Términos</Link>
           </nav>
         </div>
       </footer>

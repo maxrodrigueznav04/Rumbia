@@ -49,6 +49,7 @@ export default function PaginaLegal({ titulo, entrada, children }) {
         <nav className="legal-pie" aria-label="Otros documentos">
           <NavLink to="/privacidad">Política de privacidad</NavLink>
           <NavLink to="/cookies">Cookies y rastreo</NavLink>
+          <NavLink to="/terminos">Términos y condiciones</NavLink>
         </nav>
       </main>
     </div>
