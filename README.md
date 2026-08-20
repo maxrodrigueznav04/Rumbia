@@ -1,5 +1,7 @@
 # Rumbo — Planeador de viajes con IA
 
+[![CI](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml/badge.svg)](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml)
+
 Aplicación web full-stack para planear un viaje completo en un solo lugar: transporte de ida y
 vuelta, hospedaje, transporte en el destino, itinerario día por día generado con IA, mapa, clima y
 control de presupuesto.
@@ -165,6 +167,20 @@ npm test
 
 Valida los modelos de Mongoose, los esquemas de Zod y los servicios sin necesidad de una base de
 datos levantada.
+
+El cliente tiene su propia suite con Vitest y Testing Library:
+
+```bash
+cd client
+npm test
+```
+
+Cubre el formato de moneda y fechas, las reglas de validación, el hook de formularios (cuándo
+aparece cada error y cómo se traducen los del backend), el cliente HTTP (token, 401, caída de red)
+y los componentes base. Varias pruebas son de regresión: fijan bugs que ya se corrigieron, como
+la etiqueta que no se ligaba cuando el control iba como hijo de `Campo`.
+
+Las dos suites corren en cada push con GitHub Actions, junto con el build del cliente.
 
 Con la API corriendo (`npm run dev` en otra terminal) hay dos suites de integración más, que
 prueban contra la base real los payloads exactos que manda el cliente:
