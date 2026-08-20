@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { authApi } from '../api/index.js';
+import { authApi, despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
 import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, CampoPassword, Aviso } from '../components/ui.jsx';
@@ -18,6 +19,12 @@ const ESTILOS = [
 ];
 
 export default function Registro() {
+  // Render duerme el plan gratuito: se despierta mientras el usuario escribe,
+  // asi el login no carga con los ~50 s del arranque en frio.
+  useEffect(() => {
+    despertarServidor();
+  }, []);
+
   const { register } = useAuth();
   const navigate = useNavigate();
   const [estilos, setEstilos] = useState([]);

@@ -52,6 +52,21 @@ export function avisarClick(evento) {
   }
 }
 
+/**
+ * Despierta la API sin bloquear nada.
+ *
+ * Render duerme el plan gratuito tras 15 minutos sin trafico y tarda ~50 s en
+ * levantarse. Ese retraso caia justo sobre la primera peticion real del
+ * visitante, que ademas es la mas lenta (la generacion con IA).
+ *
+ * Llamando a /health al abrir la pantalla, el servidor se despierta mientras la
+ * persona lee y llena el formulario: para cuando pulsa el boton, ya esta listo.
+ * No arregla el arranque en frio, lo mueve a un momento en que no molesta.
+ */
+export function despertarServidor() {
+  fetch(`${BASE_URL}/health`, { method: 'GET', keepalive: true }).catch(() => {});
+}
+
 export const publicApi = {
   // Sin sesion y con su propio timeout: es la misma llamada a Gemini.
   generarItinerario: (payload) =>

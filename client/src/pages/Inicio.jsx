@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { publicApi } from '../api/index.js';
+import { publicApi, despertarServidor } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
@@ -31,6 +31,12 @@ export default function Inicio() {
   const [fechas, setFechas] = useState({ inicio: hoyMas(30), fin: hoyMas(33) });
   const [viajeros, setViajeros] = useState(2);
   const [estilos, setEstilos] = useState(['cultura', 'gastronomia']);
+
+  // Se despierta la API en cuanto se abre la portada: el visitante tarda al
+  // menos medio minuto en llenar el formulario, y ese tiempo alcanza de sobra.
+  useEffect(() => {
+    despertarServidor();
+  }, []);
 
   const [resultado, setResultado] = useState(null);
   const [generando, setGenerando] = useState(false);
