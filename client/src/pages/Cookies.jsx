@@ -91,7 +91,7 @@ export default function Cookies() {
       <h2>5. Preguntas</h2>
       <p>
         Si algo de esto no queda claro o quieres saber exactamente qué se envía en un enlace
-        concreto, escríbenos a <strong>{CONTACTO_PRIVACIDAD}</strong>. También puedes revisar la{' '}
+        concreto, escríbenos a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>. También puedes revisar la{' '}
         <a href="/privacidad">política de privacidad</a>, donde está el detalle de qué datos se
         guardan y con quién se comparten.
       </p>

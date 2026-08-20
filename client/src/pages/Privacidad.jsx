@@ -21,7 +21,7 @@ export default function Privacidad() {
           <li>Tus datos se usan para prestarte el servicio. No se venden ni se usan para publicidad.</li>
           <li>Rumbo no cobra ni procesa reservas: cuando reservas, sales a otro sitio.</li>
           <li>Puedes pedir acceso, corrección o borrado de tus datos escribiendo a{' '}
-            <strong>{CONTACTO_PRIVACIDAD}</strong>.
+            <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
           </li>
         </ul>
       </Tarjeta>
@@ -30,7 +30,7 @@ export default function Privacidad() {
       <p>
         El responsable del tratamiento de los datos personales que recabamos es{' '}
         <strong>{RESPONSABLE}</strong>. Para cualquier asunto relacionado con esta política puedes
-        escribir a <strong>{CONTACTO_PRIVACIDAD}</strong>.
+        escribir a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
       </p>
       <p>
         Rumbo es un planeador de viajes: centraliza la información de tu viaje y te ayuda a armar un
@@ -169,7 +169,7 @@ export default function Privacidad() {
           &quot;Eliminar mi cuenta&quot;. Te pedimos tu contraseña para confirmar. Se borran en el
           momento tu cuenta y todos tus viajes, itinerarios y gastos: no queda copia ni forma de
           recuperarlos. Si prefieres pedirlo por escrito, también puedes escribir a{' '}
-          <strong>{CONTACTO_PRIVACIDAD}</strong>.
+          <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
         </li>
       </ul>
       <p className="tenue">
@@ -192,7 +192,7 @@ export default function Privacidad() {
         <li><strong>Oposición:</strong> pedir que dejemos de usarlos para un fin determinado.</li>
       </ul>
       <p>
-        Para ejercer cualquiera de ellos, escribe a <strong>{CONTACTO_PRIVACIDAD}</strong> desde el
+        Para ejercer cualquiera de ellos, escribe a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong> desde el
         correo con el que te registraste, indicando qué derecho quieres ejercer. Responderemos a la
         dirección desde la que nos escribas.
       </p>
@@ -221,7 +221,7 @@ export default function Privacidad() {
         Rumbo no está dirigido a menores de 18 años y no recabamos datos de forma consciente de
         ellos. Si detectamos una cuenta de un menor, la eliminaremos. Si eres madre, padre o tutor y
         crees que un menor a tu cargo creó una cuenta, escríbenos a{' '}
-        <strong>{CONTACTO_PRIVACIDAD}</strong> y la borraremos.
+        <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong> y la borraremos.
       </p>
 
       <h2>9. Cambios a esta política</h2>

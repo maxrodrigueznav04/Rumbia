@@ -1,16 +1,24 @@
 /**
  * Datos de contacto de los documentos legales.
  *
- * OJO: los dos valores de abajo son marcadores. Hay que ponerlos antes de
- * publicar la política, porque la ley pide un canal real para ejercer los
- * derechos ARCO y CJ Affiliate revisa que la página exista y sea accesible.
+ * Van aquí y no dentro del texto para que cambiar el correo no obligue a tocar
+ * dos páginas y arriesgarse a dejar una desactualizada.
  */
-export const RESPONSABLE = '[NOMBRE O RAZÓN SOCIAL DEL RESPONSABLE]';
-export const CONTACTO_PRIVACIDAD = '[CORREO-DE-CONTACTO@EJEMPLO.COM]';
+export const RESPONSABLE = 'Maximiliano Rodríguez Navarro';
+export const CONTACTO_PRIVACIDAD = 'maxrodrigueznav04@gmail.com';
 
-/** Se muestra en el encabezado de cada documento. */
-export const ULTIMA_ACTUALIZACION = '18 de agosto de 2026';
+/**
+ * Fecha que se muestra en el encabezado. La política dice que se actualiza
+ * cuando cambia el tratamiento de los datos, así que hay que moverla cuando se
+ * edite el contenido, no cuando se toque el estilo.
+ */
+export const ULTIMA_ACTUALIZACION = '19 de agosto de 2026';
 
-/** true cuando ya haya marcadores sin sustituir, para avisar en pantalla. */
-export const FALTAN_DATOS =
-  RESPONSABLE.startsWith('[') || CONTACTO_PRIVACIDAD.startsWith('[');
+/**
+ * Detecta los marcadores sin sustituir para avisar en pantalla. Cubre tanto el
+ * texto de ejemplo como el caso de dejar los corchetes puestos alrededor del
+ * valor bueno, que es lo que pasa en la práctica.
+ */
+const esMarcador = (valor) => !valor || /^\[|\]$/.test(valor.trim()) || valor.includes('EJEMPLO');
+
+export const FALTAN_DATOS = esMarcador(RESPONSABLE) || esMarcador(CONTACTO_PRIVACIDAD);
