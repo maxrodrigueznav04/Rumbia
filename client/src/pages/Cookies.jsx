@@ -26,8 +26,14 @@ export default function Cookies() {
       <h2>1. Rumbo no usa cookies propias</h2>
       <p>
         No colocamos cookies en tu navegador. Tampoco usamos Google Analytics, píxeles de redes
-        sociales ni ninguna otra herramienta de medición o de publicidad. Por eso no verás en esta
-        aplicación un banner de consentimiento de cookies: no hay nada que consentir.
+        sociales ni ninguna herramienta de publicidad. Por eso no verás en esta aplicación un banner
+        de consentimiento de cookies: no hay nada que consentir.
+      </p>
+      <p>
+        Sí contamos los clics en los enlaces de reserva, con una medición propia y{' '}
+        <strong>sin cookies ni identificadores</strong>: se registra el proveedor, la sección y el
+        destino, nunca quién pulsó. El detalle está en la{' '}
+        <a href="/privacidad">política de privacidad</a>.
       </p>
 
       <h2>2. Qué guardamos en tu navegador y por qué</h2>

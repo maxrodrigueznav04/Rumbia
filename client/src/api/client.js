@@ -5,7 +5,7 @@
  * - Si el token expira (401) limpia la sesion y avisa para redirigir al login.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const TOKEN_KEY = 'rumbo_token';
 
 export const tokenStore = {

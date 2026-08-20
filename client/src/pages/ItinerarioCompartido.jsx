@@ -111,7 +111,13 @@ export default function ItinerarioCompartido() {
                     <div key={seccion} style={{ marginBottom: 'var(--e4)' }}>
                       <span className="etiqueta">{humanizar(seccion)}</span>
                       <div style={{ marginTop: 8 }}>
-                        <EnlacesReserva enlaces={enlaces} compacto />
+                        <EnlacesReserva
+                          enlaces={enlaces}
+                          compacto
+                          seccion={seccion}
+                          destino={data.viaje.destination?.name}
+                          origen="compartido"
+                        />
                       </div>
                     </div>
                   ))}

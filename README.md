@@ -86,6 +86,10 @@ Todo el stack corre en tiers gratuitos.
   y a 7 días por itinerario, porque gasta cuota de Gemini.
 - **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
   quieras. No expone presupuesto, gastos ni datos de la cuenta.
+- **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
+  guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
+  `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos
+  a los 180 días.
 - **Páginas legales.** Términos, privacidad y cookies en `/terminos`, `/privacidad` y `/cookies`,
   accesibles sin sesión. Describen lo que el código hace: qué campos se guardan, qué recibe cada
   tercero y qué viaja en los enlaces de salida.

@@ -1,4 +1,4 @@
-import { Itinerary, Trip } from '../models/index.js';
+import { Itinerary, Trip, ClickSalida } from '../models/index.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { decorarSecciones, hayAfiliados } from '../services/affiliates.service.js';
@@ -126,4 +126,21 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       conAfiliados: hayAfiliados(),
     },
   });
+});
+
+/**
+ * Registra un clic de salida. Responde 204 y no devuelve nada: el cliente lo
+ * manda con sendBeacon justo antes de irse, y no debe esperar respuesta.
+ *
+ * Si falla, falla en silencio. Perder una metrica no puede impedir que el
+ * usuario llegue al sitio del proveedor.
+ */
+export const registrarClick = asyncHandler(async (req, res) => {
+  const { provider, section, destination, esAfiliado, origen } = req.body;
+  try {
+    await ClickSalida.create({ provider, section, destination, esAfiliado, origen });
+  } catch {
+    /* una metrica perdida no es motivo para devolver un error */
+  }
+  res.status(204).end();
 });

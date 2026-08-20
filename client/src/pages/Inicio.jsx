@@ -202,7 +202,7 @@ export default function Inicio() {
                 <div key={seccion} style={{ marginBottom: 'var(--e4)' }}>
                   <span className="etiqueta">{humanizar(seccion)}</span>
                   <div style={{ marginTop: 8 }}>
-                    <EnlacesReserva enlaces={enlaces} />
+                    <EnlacesReserva enlaces={enlaces} seccion={seccion} destino={destino.trim()} origen="invitado" />
                   </div>
                 </div>
               ))}

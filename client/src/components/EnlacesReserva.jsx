@@ -1,10 +1,11 @@
 import Icono from './Icono.jsx';
+import { avisarClick } from '../api/index.js';
 
 /**
  * Enlaces de salida hacia los comparadores.
  * La app no reserva: se deja explicito para no confundir al usuario.
  */
-export default function EnlacesReserva({ enlaces = [], compacto }) {
+export default function EnlacesReserva({ enlaces = [], compacto, seccion, destino, origen }) {
   if (!enlaces.length) return null;
 
   const hayAfiliados = enlaces.some((l) => l.esAfiliado);
@@ -23,6 +24,15 @@ export default function EnlacesReserva({ enlaces = [], compacto }) {
            */
           rel={l.esAfiliado ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
           className="link-externo"
+          onClick={() =>
+            avisarClick({
+              provider: l.provider,
+              section: seccion,
+              destination: destino,
+              esAfiliado: Boolean(l.esAfiliado),
+              origen,
+            })
+          }
         >
           <span>
             <strong>{l.provider}</strong>

@@ -8,6 +8,7 @@ import {
 } from '../models/Trip.js';
 import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
 import { EXPENSE_CATEGORIES } from '../models/Expense.js';
+import { ORIGENES_CLICK } from '../models/ClickSalida.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
 
@@ -74,6 +75,14 @@ export const updateProfileSchema = z
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Ingresa tu contraseña actual.'),
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),
+});
+
+export const clickSalidaSchema = z.object({
+  provider: z.string().trim().min(1).max(60),
+  section: z.string().trim().max(40).optional(),
+  destination: z.string().trim().max(120).optional(),
+  esAfiliado: z.coerce.boolean().optional(),
+  origen: z.enum(ORIGENES_CLICK).optional(),
 });
 
 export const publicItinerarySchema = z.object({

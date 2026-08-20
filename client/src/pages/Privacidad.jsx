@@ -77,9 +77,22 @@ export default function Privacidad() {
         <li>Los gastos que registres: categoría, descripción, monto, moneda, fecha, si ya está pagado y tus notas.</li>
       </ul>
 
+      <h3>Medición de los enlaces de salida</h3>
+      <p>
+        Cuando pulsas un enlace de reserva registramos el hecho de que se pulsó, para saber qué
+        proveedores le sirven a la gente. Se guarda únicamente <strong>el nombre del proveedor, la
+        sección, el destino del viaje y la fecha</strong>.
+      </p>
+      <p>
+        <strong>Ese registro es anónimo y no se puede ligar contigo:</strong> no se guarda tu
+        usuario, ni tu dirección IP, ni tu navegador, ni ninguna cookie o identificador. No hay forma
+        de reconstruir a partir de él quién pulsó qué. Se conserva 180 días y después se borra solo.
+      </p>
+
       <h3>Datos técnicos</h3>
       <p>
-        Rumbo no instala herramientas de analítica ni de seguimiento. Sin embargo, los servicios
+        Rumbo no usa Google Analytics ni ninguna herramienta de analítica de terceros: la medición
+        anterior es propia y vive en nuestra base de datos. Los servicios
         donde está alojada la aplicación (Render y Vercel) registran de forma automática datos
         técnicos propios de cualquier servidor web —como la dirección IP, el navegador y la fecha y
         hora de cada petición— para poder operar y detectar abusos. Ese registro lo hacen ellos bajo

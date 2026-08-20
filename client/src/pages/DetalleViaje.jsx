@@ -43,7 +43,7 @@ const ICONO_MODO = {
   otro: 'brujula',
 };
 
-function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces, vacio }) {
+function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces, vacio, seccion, destino }) {
   return (
     <Tarjeta
       titulo={
@@ -70,7 +70,7 @@ function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces,
           <div className="etiqueta" style={{ margin: '14px 0 8px' }}>
             Buscar y reservar
           </div>
-          <EnlacesReserva enlaces={enlaces} />
+          <EnlacesReserva enlaces={enlaces} seccion={seccion} destino={destino} origen="app" />
         </>
       )}
     </Tarjeta>
@@ -216,6 +216,8 @@ export default function DetalleViaje() {
         {/* ----------------- Columna principal ----------------- */}
         <div className="pila">
           <SeccionGasto
+            seccion="transporte"
+            destino={viaje.destination?.name}
             titulo="Transporte de ida y vuelta"
             icono={ICONO_MODO[ida?.mode] || 'avion'}
             monto={(ida?.cost || 0) + (vuelta?.cost || 0)}
@@ -269,6 +271,8 @@ export default function DetalleViaje() {
           </SeccionGasto>
 
           <SeccionGasto
+            seccion="hospedaje"
+            destino={viaje.destination?.name}
             titulo="Hospedaje"
             icono="cama"
             monto={viaje.coreCosts?.lodging}
@@ -319,6 +323,8 @@ export default function DetalleViaje() {
           </SeccionGasto>
 
           <SeccionGasto
+            seccion="transporte-local"
+            destino={viaje.destination?.name}
             titulo="Transporte en el destino"
             icono="auto"
             monto={viaje.coreCosts?.localTransport}

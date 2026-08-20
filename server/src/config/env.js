@@ -28,6 +28,9 @@ export const env = {
     enabled: Boolean(process.env.OPENWEATHER_API_KEY),
   },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
+  // Quien puede ver el reporte de clics. Vacio = cerrado para todos, que es el
+  // valor seguro por defecto.
+  adminEmail: (process.env.ADMIN_EMAIL || '').toLowerCase(),
   // Las credenciales de la cuenta demo estan publicadas en el README, asi que
   // cualquiera puede entrar con ella. Se marca para que no se pueda eliminar y
   // no se lleve por delante la demo del portafolio.

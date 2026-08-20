@@ -1,4 +1,4 @@
-import api, { TIMEOUT_IA_MS } from './client.js';
+import api, { TIMEOUT_IA_MS, BASE_URL } from './client.js';
 
 /** Un lugar por endpoint del backend: los componentes no arman URLs a mano. */
 
@@ -28,6 +28,29 @@ export const tripsApi = {
   weather: (id, opts) => api.get(`/trips/${id}/weather`, opts),
   expenses: (id, opts) => api.get(`/trips/${id}/expenses`, opts),
 };
+
+/**
+ * Avisa que se pulso un enlace de salida.
+ *
+ * Va con sendBeacon a proposito: el navegador lo entrega aunque la pagina se
+ * este descargando, asi que el usuario no espera nada y el dato no se pierde
+ * al saltar al sitio del proveedor. fetch normal se cancelaria a media
+ * navegacion.
+ *
+ * Falla en silencio: perder una metrica jamas puede estorbar el clic.
+ */
+export function avisarClick(evento) {
+  try {
+    const url = `${BASE_URL}/public/click`;
+    const cuerpo = new Blob([JSON.stringify(evento)], { type: 'application/json' });
+    if (navigator.sendBeacon?.(url, cuerpo)) return;
+    // Navegadores sin sendBeacon: se intenta igual, sin esperar respuesta.
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(evento), keepalive: true }).catch(() => {});
+  } catch {
+    /* sin metrica, pero el enlace abre igual */
+  }
+}
 
 export const publicApi = {
   // Sin sesion y con su propio timeout: es la misma llamada a Gemini.
