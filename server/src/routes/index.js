@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import publicRoutes from './public.routes.js';
 import authRoutes from './auth.routes.js';
 import tripRoutes from './trip.routes.js';
 import expenseRoutes from './expense.routes.js';
@@ -21,6 +22,7 @@ router.get('/health', (_req, res) => {
   });
 });
 
+router.use('/public', publicRoutes);
 router.use('/auth', authRoutes);
 router.use('/trips', tripRoutes);
 router.use('/expenses', expenseRoutes);

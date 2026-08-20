@@ -76,6 +76,16 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),
 });
 
+export const publicItinerarySchema = z.object({
+  destination: z.string().trim().min(2, 'Escribe a dónde quieres ir.').max(120),
+  country: z.string().trim().max(60).optional(),
+  startDate: isoDate,
+  endDate: isoDate,
+  travelers: entero('Escribe cuántos viajan.').min(1).max(20).default(1),
+  interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
+  pace: z.enum(TRIP_PACES).optional(),
+});
+
 export const deleteAccountSchema = z.object({
   password: z.string().min(1, 'Escribe tu contraseña para confirmar.'),
 });

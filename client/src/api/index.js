@@ -29,6 +29,12 @@ export const tripsApi = {
   expenses: (id, opts) => api.get(`/trips/${id}/expenses`, opts),
 };
 
+export const publicApi = {
+  // Sin sesion y con su propio timeout: es la misma llamada a Gemini.
+  generarItinerario: (payload) =>
+    api.post('/public/itinerary', payload, { auth: false, timeout: TIMEOUT_IA_MS }),
+};
+
 export const itineraryApi = {
   get: (tripId, opts) => api.get(`/trips/${tripId}/itinerary`, opts),
   createBlank: (tripId) => api.post(`/trips/${tripId}/itinerary`),

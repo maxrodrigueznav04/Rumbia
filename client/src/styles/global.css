@@ -1522,3 +1522,55 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   box-shadow: none;
 }
 .zona-peligro .tarjeta-titulo h3 { color: var(--error); }
+
+/* ---------------------- Portada publica ----------------------
+   Vive fuera del Layout: quien la ve todavia no tiene sesion, asi que trae su
+   propia navegacion con las dos acciones que importan (entrar y registrarse). */
+
+.inicio { min-height: 100dvh; background: var(--bg); }
+
+.inicio-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--linea-suave);
+  padding: var(--e3) 0;
+}
+
+.inicio-hero {
+  background: var(--degradado);
+  color: #fff;
+  padding: var(--e6) 0 var(--e7);
+}
+.inicio-hero h1 {
+  color: #fff;
+  max-width: 16ch;
+  margin-bottom: var(--e3);
+}
+.inicio-hero p {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  opacity: 0.95;
+}
+
+/* El formulario se monta sobre el degradado, como la portada del viaje. */
+.inicio-cuerpo { padding-bottom: var(--e7); }
+.inicio-form {
+  margin-top: calc(var(--e6) * -1);
+  position: relative;
+  box-shadow: var(--sombra-lg);
+}
+
+.inicio-puntos {
+  display: grid;
+  gap: var(--e5);
+  grid-template-columns: 1fr;
+  margin-top: var(--e7);
+  padding-top: var(--e6);
+  border-top: 1px solid var(--linea-suave);
+}
+@media (min-width: 760px) {
+  .inicio-puntos { grid-template-columns: repeat(3, 1fr); }
+}
+.inicio-puntos h3 { margin: var(--e2) 0 var(--e1); }
+.inicio-puntos p { margin: 0; font-size: 0.92rem; }

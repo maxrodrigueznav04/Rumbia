@@ -23,8 +23,25 @@ export const authLimiter = rateLimit({
 });
 
 /**
- * Generacion con Gemini: se limita POR USUARIO (no por IP) porque la cuota
- * de la API key es lo que se protege, y varios usuarios pueden compartir IP.
+ * IA sin cuenta. Se limita por IP y con mano mucho mas dura que a los usuarios
+ * registrados: es un endpoint abierto que gasta cuota de Gemini, y sin freno
+ * cualquiera podria vaciarla en una tarde.
+ */
+export const publicAiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  message: jsonMessage(
+    'Ya probaste el generador varias veces. Crea una cuenta gratis para seguir generando itinerarios.'
+  ),
+});
+
+/**
+ * Generacion con Gemini para usuarios con sesion: se limita POR USUARIO (no por
+ * IP) porque la cuota de la API key es lo que se protege, y varios usuarios
+ * pueden compartir IP.
  */
 export const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,

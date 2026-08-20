@@ -11,6 +11,7 @@ import NuevoViaje from './pages/NuevoViaje.jsx';
 import DetalleViaje from './pages/DetalleViaje.jsx';
 import Itinerario from './pages/Itinerario.jsx';
 import Perfil from './pages/Perfil.jsx';
+import Inicio from './pages/Inicio.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import Cookies from './pages/Cookies.jsx';
 import { Vacio } from './components/ui.jsx';
@@ -78,7 +79,9 @@ export default function App() {
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/cookies" element={<Cookies />} />
 
-            <Route path="/" element={<Navigate to="/viajes" replace />} />
+            {/* La portada es publica: quien llega sin cuenta tiene que poder
+                ver que hace la app y probarla antes de registrarse. */}
+            <Route path="/" element={<Inicio />} />
             <Route path="*" element={<NoEncontrado />} />
           </Routes>
         </AuthProvider>
