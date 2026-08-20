@@ -312,5 +312,82 @@ await check('cachea: dos conversiones seguidas piden una sola vez', async () => 
 
 globalThis.fetch = fetchReal;
 
+console.log(`
+== Enlaces de afiliado ==`);
+
+const afiliados = await import('../src/services/affiliates.service.js');
+const conConfig = (json, fn) => async () => {
+  const previo = process.env.AFFILIATE_LINKS;
+  process.env.AFFILIATE_LINKS = json;
+  afiliados.limpiarCache();
+  try { return await fn(); }
+  finally {
+    if (previo === undefined) delete process.env.AFFILIATE_LINKS;
+    else process.env.AFFILIATE_LINKS = previo;
+    afiliados.limpiarCache();
+  }
+};
+
+await check('sin configuracion el enlace sale intacto', conConfig('', async () => {
+  const original = { provider: 'Booking.com', url: 'https://www.booking.com/searchresults.es.html?ss=Oaxaca' };
+  const r = afiliados.decorarEnlace(original);
+  assert(r.url === original.url, `url=${r.url}`);
+  assert(!r.esAfiliado, 'no se marca como afiliado');
+  assert(afiliados.hayAfiliados() === false, 'hayAfiliados debe ser false');
+  return 'sin tocar, y sin decir que hay comision';
+}));
+
+await check('tipo param agrega el identificador', conConfig(
+  JSON.stringify({ 'Booking.com': { tipo: 'param', clave: 'aid', valor: '1234567' } }),
+  async () => {
+    const r = afiliados.decorarEnlace({ provider: 'Booking.com', url: 'https://www.booking.com/x.html?ss=Oaxaca' });
+    const u = new URL(r.url);
+    assert(u.searchParams.get('aid') === '1234567', `aid=${u.searchParams.get('aid')}`);
+    assert(u.searchParams.get('ss') === 'Oaxaca', 'conserva los parametros originales');
+    assert(r.esAfiliado === true, 'queda marcado como afiliado');
+    return 'aid puesto sin perder la busqueda';
+  }));
+
+await check('tipo envoltura mete la URL en el redirector (CJ)', conConfig(
+  JSON.stringify({ Skyscanner: { tipo: 'envoltura', plantilla: 'https://www.anrdoezrs.net/links/999/type/dlg/{url}' } }),
+  async () => {
+    const destino = 'https://www.skyscanner.com.mx/transport/vuelos/';
+    const r = afiliados.decorarEnlace({ provider: 'Skyscanner', url: destino });
+    assert(r.url.startsWith('https://www.anrdoezrs.net/links/999/'), `url=${r.url}`);
+    assert(r.url.includes(encodeURIComponent(destino)), 'la URL destino va codificada');
+    return 'redireccion de CJ';
+  }));
+
+await check('un proveedor sin configurar no se toca', conConfig(
+  JSON.stringify({ 'Booking.com': { tipo: 'param', clave: 'aid', valor: '1' } }),
+  async () => {
+    const r = afiliados.decorarEnlace({ provider: 'Airbnb', url: 'https://www.airbnb.mx/s/Oaxaca' });
+    assert(r.url === 'https://www.airbnb.mx/s/Oaxaca', 'intacto');
+    assert(!r.esAfiliado, 'sin marcar');
+    return 'solo se decora lo configurado';
+  }));
+
+await check('configuracion invalida se ignora en vez de romper el enlace', conConfig(
+  '{ esto no es json',
+  async () => {
+    const r = afiliados.decorarEnlace({ provider: 'Booking.com', url: 'https://www.booking.com/x' });
+    assert(r.url === 'https://www.booking.com/x', 'el enlace sigue funcionando');
+    return 'mejor sin comision que roto';
+  }));
+
+await check('decorarSecciones respeta la forma que espera el cliente', conConfig(
+  JSON.stringify({ 'Booking.com': { tipo: 'param', clave: 'aid', valor: '7' } }),
+  async () => {
+    const secciones = { hospedaje: [
+      { provider: 'Booking.com', label: 'Buscar hoteles', url: 'https://www.booking.com/x' },
+      { provider: 'Airbnb', label: 'Buscar casas', url: 'https://www.airbnb.mx/s/X' },
+    ] };
+    const r = afiliados.decorarSecciones(secciones);
+    assert(r.hospedaje.length === 2, 'no pierde enlaces');
+    assert(r.hospedaje[0].esAfiliado === true && !r.hospedaje[1].esAfiliado, 'marca solo el configurado');
+    assert(r.hospedaje[0].label === 'Buscar hoteles', 'conserva la etiqueta');
+    return '2 enlaces, 1 marcado';
+  }));
+
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);
 process.exit(fail === 0 ? 0 : 1);

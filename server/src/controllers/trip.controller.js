@@ -3,6 +3,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { convertirTotales } from '../services/exchange.service.js';
+import { decorarSecciones, hayAfiliados } from '../services/affiliates.service.js';
 import { addDays } from '../utils/dates.js';
 
 /**
@@ -164,9 +165,14 @@ export const getBookingLinks = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
-      links: buildLinksForTrip(trip, { section, type }),
-      disclaimer:
-        'Rumbo no procesa reservas ni pagos. Estos enlaces te llevan al sitio del proveedor, donde completas la reserva.',
+      links: decorarSecciones(buildLinksForTrip(trip, { section, type })),
+      // La linea sobre comisiones solo aparece cuando de verdad hay enlaces de
+      // afiliado activos: declarar que se gana comision sin ganarla seria tan
+      // falso como callarlo cuando si se gana.
+      disclaimer: hayAfiliados()
+        ? 'Rumbo no procesa reservas ni pagos: estos enlaces te llevan al sitio del proveedor. Algunos son enlaces de afiliado, asi que si reservas podemos ganar una comision, sin ningun costo extra para ti.'
+        : 'Rumbo no procesa reservas ni pagos. Estos enlaces te llevan al sitio del proveedor, donde completas la reserva.',
+      conAfiliados: hayAfiliados(),
     },
   });
 });

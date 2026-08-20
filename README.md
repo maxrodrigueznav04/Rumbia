@@ -74,6 +74,13 @@ Todo el stack corre en tiers gratuitos.
     noche se deriva.
   - Transporte en destino (renta de auto, apps, taxi, transporte público) → DiscoverCars, Uber,
     Moovit…
+- **Enlaces de afiliado, opcionales.** Los enlaces de reserva se pueden decorar con el
+  identificador de una red de afiliados mediante la variable `AFFILIATE_LINKS`, sin tocar
+  código. Soporta las dos formas que existen: añadir un parámetro a la URL del proveedor, o
+  envolverla en un redirector como el de CJ Affiliate. Mientras la variable no exista, los
+  enlaces salen como búsquedas públicas y **la app no dice que gana comisión, porque no la
+  gana**. Cuando sí, los enlaces afectados se marcan en pantalla, llevan `rel="sponsored"` y
+  aparece la divulgación junto a ellos.
 - **Páginas legales.** Política de privacidad y aviso de cookies en `/privacidad` y `/cookies`,
   accesibles sin sesión. Describen lo que el código hace: qué campos se guardan, qué recibe cada
   tercero y qué viaja en los enlaces de salida.

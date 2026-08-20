@@ -5,7 +5,11 @@ import { isoDay } from '../utils/dates.js';
  *
  * IMPORTANTE: la app no reserva ni cobra nada. Solo arma la URL de busqueda con
  * los datos del viaje ya prellenados y manda al usuario al sitio del proveedor,
- * donde completa la reserva. Son links publicos de busqueda, sin afiliados.
+ * donde completa la reserva.
+ *
+ * Aqui se construyen busquedas publicas. Si hay programas de afiliado
+ * configurados, quien les pone el identificador encima es affiliates.service:
+ * asi este archivo sigue siendo solo "como se arma la busqueda de cada sitio".
  */
 
 const enc = encodeURIComponent;

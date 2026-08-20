@@ -28,3 +28,8 @@ services:
         sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
+      # Enlaces de afiliado. Se deja sin valor a proposito: mientras no exista,
+      # los enlaces salen como busquedas publicas y la app no dice que gana
+      # comision. Al aprobar una red se pega aqui el JSON y basta con eso.
+      - key: AFFILIATE_LINKS
+        sync: false

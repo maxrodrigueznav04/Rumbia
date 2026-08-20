@@ -1,9 +1,13 @@
+import Icono from './Icono.jsx';
+
 /**
  * Enlaces de salida hacia los comparadores.
  * La app no reserva: se deja explicito para no confundir al usuario.
  */
 export default function EnlacesReserva({ enlaces = [], compacto }) {
   if (!enlaces.length) return null;
+
+  const hayAfiliados = enlaces.some((l) => l.esAfiliado);
 
   return (
     <div className="pila-sm">
@@ -12,7 +16,12 @@ export default function EnlacesReserva({ enlaces = [], compacto }) {
           key={l.provider + l.url}
           href={l.url}
           target="_blank"
-          rel="noopener noreferrer"
+          /*
+           * Google pide marcar los enlaces pagados con rel="sponsored": si no,
+           * cuentan como esquema de enlaces y penalizan el sitio. Se marca solo
+           * el que de verdad lleva identificador de afiliado, no todos.
+           */
+          rel={l.esAfiliado ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
           className="link-externo"
         >
           <span>
@@ -21,12 +30,29 @@ export default function EnlacesReserva({ enlaces = [], compacto }) {
               {l.label}
             </span>
           </span>
-          <span className="flecha" aria-hidden="true">
-            ↗
+          {l.esAfiliado && (
+            <span className="insignia" title="Si reservas aquí, Rumbo puede ganar una comisión">
+              Afiliado
+            </span>
+          )}
+          <Icono nombre="flechaSalida" tamano={15} className="flecha" />
+          <span className="oculto-visual">
+            (abre en una pestaña nueva{l.esAfiliado ? ', enlace de afiliado' : ''})
           </span>
-          <span className="oculto-visual">(abre en una pestaña nueva)</span>
         </a>
       ))}
+
+      {/*
+        La divulgacion va junto a los enlaces y no solo en la pagina legal:
+        tanto la FTC como los terminos de las redes de afiliados piden que se
+        vea donde esta el enlace, antes de dar clic.
+      */}
+      {hayAfiliados && (
+        <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.78rem' }}>
+          Los enlaces marcados como afiliado pueden generarnos una comisión si reservas. No te
+          cuesta nada extra ni cambia el precio.
+        </p>
+      )}
     </div>
   );
 }
