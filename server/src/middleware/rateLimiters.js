@@ -23,6 +23,34 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * Pedir el enlace de recuperacion. Cada intento manda un correo de verdad, asi
+ * que el limite protege la cuota del proveedor y, sobre todo, el buzon de la
+ * persona: sin el, cualquiera podria llenarselo pulsando el boton en bucle.
+ */
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Pediste el enlace demasiadas veces. Espera una hora e intenta de nuevo.'),
+});
+
+/**
+ * Gastar el enlace. Va MUCHO mas suelto que pedirlo, y a proposito: aqui no se
+ * manda ningun correo, y quien llega ya trae un token de 64 caracteres que no
+ * se adivina. Compartir presupuesto con el de arriba dejaba a una persona
+ * bloqueada una hora justo a media recuperacion, por pedir el enlace dos veces
+ * y equivocarse otras dos con la contrasena nueva.
+ */
+export const resetPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Demasiados intentos. Espera un rato e intenta de nuevo.'),
+});
+
+/**
  * IA sin cuenta. Se limita por IP y con mano mucho mas dura que a los usuarios
  * registrados: es un endpoint abierto que gasta cuota de Gemini, y sin freno
  * cualquiera podria vaciarla en una tarde.

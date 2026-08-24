@@ -85,7 +85,7 @@ export function useFormulario(valoresIniciales, validadores = {}) {
           const campo = String(d.field).split('.').pop();
           porCampo[campo] = d.message;
         }
-        setErrorServidor({ mensaje: err.message, porCampo });
+        setErrorServidor({ mensaje: err.message, status: err.status, porCampo });
       } finally {
         setEnviando(false);
       }

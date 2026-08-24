@@ -72,6 +72,17 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  // Mismo patron que login y register: el backend ya devuelve token y usuario,
+  // asi que se entra directo. Mandar a la persona al login a reescribir la
+  // contrasena que acaba de elegir seria pedirsela dos veces seguidas.
+  const restablecer = useCallback(async (payload) => {
+    const data = await authApi.resetPassword(payload);
+    tokenStore.set(data.token);
+    setUser(data.user);
+    setSesionExpirada(false);
+    return data.user;
+  }, []);
+
   const actualizarUsuario = useCallback((parcial) => {
     setUser((prev) => (prev ? { ...prev, ...parcial } : prev));
   }, []);
@@ -84,10 +95,11 @@ export function AuthProvider({ children }) {
       autenticado: Boolean(user),
       login,
       register,
+      restablecer,
       logout,
       actualizarUsuario,
     }),
-    [user, cargando, sesionExpirada, login, register, logout, actualizarUsuario]
+    [user, cargando, sesionExpirada, login, register, restablecer, logout, actualizarUsuario]
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

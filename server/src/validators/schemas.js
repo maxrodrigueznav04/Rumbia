@@ -79,6 +79,20 @@ export const updateProfileSchema = z
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email inválido.'),
+});
+
+export const resetPasswordSchema = z.object({
+  // 64 caracteres hex en la practica; el minimo solo descarta basura evidente
+  // antes de ir a buscarla a la base.
+  token: z.string().trim().min(20, 'El enlace no es válido.').max(200),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres.')
+    .max(72, 'Máximo 72 caracteres.'),
+});
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Ingresa tu contraseña actual.'),
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),

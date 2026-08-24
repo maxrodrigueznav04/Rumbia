@@ -76,6 +76,13 @@ const userSchema = new mongoose.Schema(
       select: false, // nunca viaja en las respuestas por accidente
     },
     avatarUrl: { type: String, default: '' },
+    // Cuando se cambio la contrasena. Sirve para invalidar los JWT emitidos
+    // antes: sin esto, restablecer no echaria fuera a quien ya estuviera dentro.
+    passwordChangedAt: { type: Date },
+    // Se guarda el HASH del token de recuperacion, no el token. Si la base se
+    // filtrara, lo que hay aqui no sirve para restablecer nada.
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpires: { type: Date, select: false },
     preferences: { type: preferencesSchema, default: () => ({}) },
     branding: { type: brandingSchema, default: () => ({}) },
     lastLoginAt: { type: Date },
@@ -85,6 +92,8 @@ const userSchema = new mongoose.Schema(
     toJSON: {
       transform(_doc, ret) {
         delete ret.password;
+        delete ret.resetTokenHash;
+        delete ret.resetTokenExpires;
         delete ret.__v;
         return ret;
       },
@@ -96,8 +105,18 @@ userSchema.pre('save', async function hashPassword(next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
+  // Un segundo hacia atras a proposito: el JWT que se firma justo despues lleva
+  // iat en segundos enteros, y sin ese margen el redondeo puede dejarlo como
+  // "emitido antes del cambio", tirando la sesion que se acaba de crear.
+  this.passwordChangedAt = new Date(Date.now() - 1000);
   return next();
 });
+
+/** ¿Este JWT se emitio antes del ultimo cambio de contrasena? */
+userSchema.methods.tokenAnteriorAlCambio = function tokenAnteriorAlCambio(iatSegundos) {
+  if (!this.passwordChangedAt || !iatSegundos) return false;
+  return iatSegundos * 1000 < this.passwordChangedAt.getTime();
+};
 
 userSchema.methods.comparePassword = function comparePassword(plain) {
   return bcrypt.compare(plain, this.password);

@@ -27,6 +27,14 @@ export const env = {
     apiKey: process.env.OPENWEATHER_API_KEY || '',
     enabled: Boolean(process.env.OPENWEATHER_API_KEY),
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || '',
+    // Sin dominio verificado, Resend solo acepta su remitente de pruebas y
+    // ademas solo entrega al correo con el que se creo la cuenta. Con dominio
+    // propio esto pasa a ser algo como "Rumbo <hola@turumbo.com>".
+    from: process.env.MAIL_FROM || 'Rumbo <onboarding@resend.dev>',
+    enabled: Boolean(process.env.RESEND_API_KEY),
+  },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
   // Quien puede ver el reporte de clics. Vacio = cerrado para todos, que es el
   // valor seguro por defecto.

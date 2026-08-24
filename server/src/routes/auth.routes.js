@@ -2,19 +2,40 @@ import { Router } from 'express';
 import * as ctrl from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
-import { authLimiter } from '../middleware/rateLimiters.js';
+import {
+  authLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+} from '../middleware/rateLimiters.js';
 import {
   registerSchema,
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
   deleteAccountSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '../validators/schemas.js';
 
 const router = Router();
 
 router.post('/register', authLimiter, validate(registerSchema), ctrl.register);
 router.post('/login', authLimiter, validate(loginSchema), ctrl.login);
+
+// Recuperacion de contrasena. Sin sesion por definicion: quien la usa es
+// justamente quien no puede entrar.
+router.post(
+  '/forgot-password',
+  forgotPasswordLimiter,
+  validate(forgotPasswordSchema),
+  ctrl.forgotPassword
+);
+router.post(
+  '/reset-password',
+  resetPasswordLimiter,
+  validate(resetPasswordSchema),
+  ctrl.resetPassword
+);
 
 router.get('/me', protect, ctrl.me);
 router.patch('/me', protect, validate(updateProfileSchema), ctrl.updateProfile);

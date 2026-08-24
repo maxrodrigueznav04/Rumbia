@@ -14,6 +14,7 @@
     "seed:reset": "node scripts/seed.js --reset",
     "test": "node scripts/smoke-test.mjs",
     "test:api": "node scripts/prueba-api.mjs && node scripts/prueba-edicion.mjs",
+    "test:recuperacion": "node scripts/prueba-recuperacion.mjs",
     "test:clima": "node scripts/prueba-clima.mjs",
     "test:baja": "node scripts/prueba-baja.mjs",
     "clicks": "node scripts/clicks.mjs"

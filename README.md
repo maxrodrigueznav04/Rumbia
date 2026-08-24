@@ -86,6 +86,13 @@ Todo el stack corre en tiers gratuitos.
   y a 7 días por itinerario, porque gasta cuota de Gemini.
 - **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
   quieras. No expone presupuesto, gastos ni datos de la cuenta.
+- **Recuperación de contraseña por correo.** Enlace de un solo uso que caduca en 30 minutos. En
+  la base se guarda el SHA-256 del token, nunca el token: si la base se filtrara, lo que hay ahí
+  no sirve para entrar a ninguna cuenta. La respuesta es idéntica exista o no el correo, para que
+  la pantalla no se pueda usar como buscador de direcciones registradas. Al restablecer se sellan
+  los JWT anteriores, así que quien se hubiera metido pierde la sesión — que es lo único que hace
+  útil un restablecimiento. Sin `RESEND_API_KEY` la app sigue en pie y en desarrollo el enlace se
+  imprime en la consola del servidor.
 - **Itinerario en PDF, con marca propia.** El botón *Descargar PDF* imprime el plan día por día
   sin la interfaz de la app. Si en el perfil se llena la marca (nombre, logo y contacto), el
   membrete sale con ella en vez de con la de Rumbo, que es lo que necesita quien arma itinerarios
@@ -139,6 +146,8 @@ Llena `server/.env`:
 | `GEMINI_MODEL` | no | `gemini-3.6-flash` por defecto. |
 | `OPENWEATHER_API_KEY` | no* | [OpenWeatherMap](https://openweathermap.org/api). Sin ella el clima cae a estimación por temporada. |
 | `AI_RATE_LIMIT_PER_HOUR` | no | Generaciones con IA por usuario por hora (10 por defecto). |
+| `RESEND_API_KEY` | no* | [Resend](https://resend.com/api-keys). Sin ella no sale el correo de recuperación; en desarrollo el enlace se imprime en la consola. |
+| `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
 
 Para generar el secreto:
 

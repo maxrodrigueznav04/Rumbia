@@ -26,6 +26,13 @@ export const protect = asyncHandler(async (req, _res, next) => {
   const user = await User.findById(payload.sub);
   if (!user) throw ApiError.unauthorized('El usuario del token ya no existe.');
 
+  // Un JWT no se puede revocar, asi que se compara cuando se emitio contra
+  // cuando se cambio la contrasena. Es lo que hace que restablecer sirva de
+  // algo cuando alguien mas ya habia entrado: su sesion deja de valer.
+  if (user.tokenAnteriorAlCambio(payload.iat)) {
+    throw ApiError.unauthorized('Tu contraseña cambió. Inicia sesión de nuevo.');
+  }
+
   req.user = user;
   return next();
 });

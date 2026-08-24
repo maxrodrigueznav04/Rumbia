@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import User from '../models/User.js';
 import Trip from '../models/Trip.js';
 import Itinerary from '../models/Itinerary.js';
@@ -6,6 +7,13 @@ import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { signToken } from '../middleware/auth.js';
+import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
+
+/** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
+const RESET_MINUTOS = 30;
+
+/** Lo que se guarda en la base es esto, nunca el token que viaja en el correo. */
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -65,6 +73,89 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
   await user.save();
   res.json({ success: true, message: 'Perfil actualizado.', data: { user: user.toJSON() } });
+});
+
+/**
+ * Paso 1: pedir el enlace de recuperacion.
+ *
+ * Responde exactamente lo mismo exista o no la cuenta, y salga o no el correo.
+ * Si respondiera distinto, cualquiera podria averiguar que direcciones estan
+ * registradas probandolas una por una; y ese listado es justo lo que se vende
+ * para hacer phishing dirigido.
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const respuesta = {
+    success: true,
+    message: 'Si esa dirección tiene una cuenta, te enviamos un enlace para recuperarla.',
+  };
+
+  const user = await User.findOne({ email });
+
+  // La cuenta demo esta publicada en el README con su contrasena. No se le
+  // manda nada: su buzon no es de nadie y no tiene sentido dejar que alguien
+  // intente apoderarse de la demo del portafolio.
+  if (!user || user.email === env.demoEmail) return res.json(respuesta);
+
+  const token = crypto.randomBytes(32).toString('hex');
+  user.resetTokenHash = hashToken(token);
+  user.resetTokenExpires = new Date(Date.now() + RESET_MINUTOS * 60 * 1000);
+  await user.save({ validateBeforeSave: false });
+
+  const enlace = `${env.clientUrl}/restablecer/${token}`;
+  const { asunto, html, texto } = correoRecuperacion({
+    nombre: user.name,
+    enlace,
+    minutos: RESET_MINUTOS,
+  });
+
+  const salio = await enviarCorreo({ para: user.email, asunto, html, texto });
+
+  // En local casi nunca hay clave de correo configurada, y sin esto no habria
+  // forma de probar el flujo entero. En produccion NO se imprime: el enlace es
+  // una credencial y los logs de Render los ve cualquiera con acceso al panel.
+  if (!salio && !env.isProd) {
+    console.log(`
+[correo] Enlace de recuperación para ${user.email}:
+  ${enlace}
+`);
+  }
+
+  return res.json(respuesta);
+});
+
+/**
+ * Paso 2: fijar la contrasena nueva con el token del correo.
+ *
+ * El token es de un solo uso y se borra al gastarlo. Al guardar, el hook del
+ * modelo sella passwordChangedAt, y eso tumba cualquier sesion anterior.
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  const user = await User.findOne({
+    resetTokenHash: hashToken(token),
+    resetTokenExpires: { $gt: new Date() },
+  }).select('+resetTokenHash +resetTokenExpires');
+
+  // Un solo mensaje para "no existe", "ya se uso" y "caduco": los tres se
+  // arreglan igual, pidiendo otro enlace.
+  if (!user) {
+    throw ApiError.badRequest(
+      'Este enlace ya no sirve. Pide uno nuevo y ábrelo antes de que caduque.'
+    );
+  }
+
+  user.password = password;
+  user.resetTokenHash = undefined;
+  user.resetTokenExpires = undefined;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Contraseña actualizada.',
+    data: { user: user.toJSON(), token: signToken(user._id) },
+  });
 });
 
 export const changePassword = asyncHandler(async (req, res) => {

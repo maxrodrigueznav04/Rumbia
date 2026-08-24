@@ -69,6 +69,10 @@ export default function Entrar() {
           </Boton>
         </form>
 
+        <p className="auth-pie" style={{ marginBottom: 0 }}>
+          <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
+        </p>
+
         <p className="auth-pie">
           ¿No tienes cuenta? <Link to="/registro">Crea una gratis</Link>
         </p>

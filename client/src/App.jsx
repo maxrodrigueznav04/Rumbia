@@ -5,6 +5,8 @@ import AvisoServidor from './components/AvisoServidor.jsx';
 import Layout from './components/Layout.jsx';
 import RutaProtegida, { RutaPublica } from './components/RutaProtegida.jsx';
 import Entrar from './pages/Entrar.jsx';
+import Recuperar from './pages/Recuperar.jsx';
+import Restablecer from './pages/Restablecer.jsx';
 import Registro from './pages/Registro.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import NuevoViaje from './pages/NuevoViaje.jsx';
@@ -60,6 +62,21 @@ export default function App() {
                 </RutaPublica>
               }
             />
+
+            <Route
+              path="/recuperar"
+              element={
+                <RutaPublica>
+                  <Recuperar />
+                </RutaPublica>
+              }
+            />
+
+            {/* Sin RutaPublica a proposito: quien recupera la contrasena puede
+                tener todavia una sesion abierta —es justo el caso de "se metio
+                alguien mas"— y la guardia lo mandaria al panel sin dejarlo
+                restablecer nada. */}
+            <Route path="/restablecer/:token" element={<Restablecer />} />
 
             {/* Privadas: comparten el layout con navegacion. */}
             <Route

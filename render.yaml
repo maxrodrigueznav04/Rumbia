@@ -26,6 +26,12 @@ services:
         value: gemini-3.6-flash
       - key: OPENWEATHER_API_KEY
         sync: false
+      # Correo de recuperacion de contrasena. Sin la clave la app sigue en pie,
+      # pero quien olvide su contrasena no puede recuperarla.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
       # Enlaces de afiliado. Se deja sin valor a proposito: mientras no exista,
