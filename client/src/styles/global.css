@@ -1588,3 +1588,176 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-size: 0.85rem;
   color: var(--texto-suave);
 }
+
+/* ==========================================================================
+   Impresion — el itinerario como entregable
+
+   Una agencia no le manda a su cliente una captura de pantalla: le manda un
+   PDF con su marca. Se resuelve con estilos de impresion y el dialogo del
+   navegador ("Guardar como PDF") en lugar de generar el PDF en el servidor.
+   Render free tiene 512 MB y un navegador headless no cabe ahi; ademas asi el
+   texto queda seleccionable de verdad, los acentos no se rompen y no entra una
+   dependencia mas al proyecto.
+   ========================================================================== */
+
+/* Cabecera y pie de la hoja. En pantalla estorban, porque la app ya tiene los
+   suyos; solo existen cuando hay papel de por medio. */
+.hoja-cabecera,
+.hoja-pie { display: none; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  /* Los navegadores descartan fondos al imprimir para ahorrar tinta. Aqui si
+     se quieren: sin ellos las insignias de categoria y el dia destacado pierden
+     el color que es justamente lo que los distingue del texto corrido. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: #fff;
+    font-size: 10.5pt;
+  }
+
+  /* ---- Lo que no va al papel ----
+     Todo esto sirve para *operar* la app: navegar, editar, reordenar, avisar
+     de errores. En un itinerario ya entregado no significa nada, y el mapa
+     interactivo ademas se imprime como un rectangulo gris vacio. */
+  .nav,
+  .tabbar,
+  .pie,
+  .volver,
+  .aviso,
+  .aviso-servidor,
+  .paginacion,
+  .zona-peligro,
+  .actividad-acciones,
+  .agarradera,
+  .editar-inline,
+  .mapa,
+  .no-imprimir {
+    display: none !important;
+  }
+
+  /* Ningun boton significa nada en una hoja de papel. Se ocultan todos de una
+     vez en lugar de ir etiquetandolos: asi el que se agregue manana tampoco se
+     cuela en el PDF sin que nadie se acuerde de marcarlo. */
+  button {
+    display: none !important;
+  }
+
+  /* ---- Membrete ---- */
+  .hoja-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--verde-900);
+  }
+  .hoja-marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hoja-marca strong {
+    display: block;
+    font-family: var(--fuente-titulo);
+    font-size: 12pt;
+    line-height: 1.2;
+  }
+  .hoja-logo {
+    /* Se acota por alto y no por ancho: los logos vienen en proporciones muy
+       distintas y fijar el ancho aplasta los horizontales. */
+    max-height: 42px;
+    max-width: 150px;
+    object-fit: contain;
+  }
+  .hoja-contacto {
+    display: block;
+    font-size: 8.5pt;
+    color: var(--tinta-600);
+  }
+  .hoja-viaje {
+    text-align: right;
+    max-width: 55%;
+  }
+  .hoja-viaje strong {
+    display: block;
+    font-family: var(--fuente-titulo);
+    font-size: 12pt;
+  }
+  .hoja-viaje span {
+    font-size: 8.5pt;
+    color: var(--tinta-600);
+  }
+
+  .hoja-pie {
+    display: block;
+    margin-top: 20px;
+    padding-top: 8px;
+    border-top: 1px solid var(--arena-500);
+    font-size: 8pt;
+    color: var(--tinta-600);
+  }
+  .hoja-pie p { margin: 0 0 3px; }
+
+  /* ---- Que no se parta a media idea ----
+     Un dia cortado por la mitad obliga a voltear la hoja para saber a que dia
+     pertenece lo que se esta leyendo. */
+  .dia,
+  .actividad,
+  .tarjeta {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* ---- Aplanar el diseno de pantalla ----
+     La rejilla de dos columnas y las sombras son para monitor; en papel se lee
+     mejor a una sola columna corrida. */
+  .rejilla,
+  .rejilla-detalle {
+    display: block !important;
+  }
+  .contenedor,
+  .pagina {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+  .tarjeta {
+    box-shadow: none;
+    border: 1px solid var(--arena-500);
+    margin-bottom: 10px;
+    padding: 10px 12px;
+  }
+  .actividad {
+    box-shadow: none;
+    border: none;
+    border-left: 1.5px solid var(--arena-500);
+    border-radius: 0;
+    padding: 4px 0 4px 10px;
+    margin-bottom: 6px;
+  }
+  .dia { margin-bottom: 14px; }
+
+  /* El circulito de cada dia se recorta contra el fondo de la app; en papel ese
+     borde tiene que ser blanco o el punto se ve sucio. */
+  .dia::before { border-color: #fff; }
+
+  /* Subrayar enlaces en papel no comunica nada: no se pueden pulsar. */
+  a { text-decoration: none; color: inherit; }
+}

@@ -34,6 +34,24 @@ const preferencesSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/**
+ * Marca de la agencia o despacho que usa Rumbo con sus propios clientes.
+ *
+ * Existe para el itinerario impreso: una agencia entrega el plan con su logo y
+ * sus datos, no con los de Rumbo. Vacio significa que se imprime la marca de
+ * Rumbo, que es lo correcto para alguien que viaja por su cuenta.
+ */
+const brandingSchema = new mongoose.Schema(
+  {
+    agencyName: { type: String, trim: true, maxlength: 80, default: '' },
+    // URL y no archivo subido: Rumbo no tiene almacenamiento de imagenes, y
+    // montarlo entero por un logo no se justifica todavia.
+    logoUrl: { type: String, trim: true, default: '' },
+    contact: { type: String, trim: true, maxlength: 160, default: '' },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -59,6 +77,7 @@ const userSchema = new mongoose.Schema(
     },
     avatarUrl: { type: String, default: '' },
     preferences: { type: preferencesSchema, default: () => ({}) },
+    branding: { type: brandingSchema, default: () => ({}) },
     lastLoginAt: { type: Date },
   },
   {

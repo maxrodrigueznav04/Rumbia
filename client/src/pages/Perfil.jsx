@@ -47,6 +47,9 @@ export default function Perfil() {
     currency: user?.preferences?.currency || 'MXN',
     pace: user?.preferences?.pace || 'moderado',
     budgetLevel: user?.preferences?.budgetLevel || 'medio',
+    agencyName: user?.branding?.agencyName || '',
+    logoUrl: user?.branding?.logoUrl || '',
+    contact: user?.branding?.contact || '',
   });
   const [estilos, setEstilos] = useState(user?.preferences?.travelStyles || []);
   const [estado, setEstado] = useState(null);
@@ -77,9 +80,14 @@ export default function Perfil() {
           pace: form.pace,
           budgetLevel: form.budgetLevel,
         },
+        branding: {
+          agencyName: form.agencyName,
+          logoUrl: form.logoUrl,
+          contact: form.contact,
+        },
       });
       actualizarUsuario(data.user);
-      setEstado({ tipo: 'exito', mensaje: 'Preferencias guardadas.' });
+      setEstado({ tipo: 'exito', mensaje: 'Cambios guardados.' });
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
@@ -168,6 +176,47 @@ export default function Perfil() {
           <Boton type="submit" cargando={guardando}>
             {guardando ? 'Guardando...' : 'Guardar cambios'}
           </Boton>
+        </form>
+      </Tarjeta>
+
+      <Tarjeta titulo="Marca en el PDF">
+        <p className="suave" style={{ marginTop: 0 }}>
+          Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando
+          descargas el PDF. Déjalo vacío y sale la marca de Rumbo.
+        </p>
+
+        <form onSubmit={guardar} className="pila" noValidate>
+          <Campo
+            label="Nombre de tu agencia o negocio"
+            name="agencyName"
+            value={form.agencyName}
+            onChange={cambiar}
+            placeholder="Viajes del Sur"
+          />
+
+          <Campo
+            label="Logo (URL de la imagen)"
+            name="logoUrl"
+            type="url"
+            value={form.logoUrl}
+            onChange={cambiar}
+            placeholder="https://tusitio.com/logo.png"
+            ayuda="Rumbo todavía no aloja imágenes: pega la dirección de un logo que ya esté publicado en internet."
+          />
+
+          <Campo
+            label="Contacto que aparece bajo el logo"
+            name="contact"
+            value={form.contact}
+            onChange={cambiar}
+            placeholder="ventas@viajesdelsur.mx · 55 1234 5678"
+          />
+
+          <div>
+            <Boton type="submit" cargando={guardando}>
+              Guardar marca
+            </Boton>
+          </div>
         </form>
       </Tarjeta>
 

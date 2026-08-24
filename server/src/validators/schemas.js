@@ -69,6 +69,13 @@ export const updateProfileSchema = z
         currency: currency.optional(),
       })
       .optional(),
+    branding: z
+      .object({
+        agencyName: z.string().trim().max(80).optional(),
+        logoUrl: url.optional(),
+        contact: z.string().trim().max(160).optional(),
+      })
+      .optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
 

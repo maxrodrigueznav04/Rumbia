@@ -15,6 +15,8 @@ import {
   ModalConfirmar,
 } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
+import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { formatoMoneda, formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
@@ -96,6 +98,9 @@ function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
 
 export default function Itinerario() {
   const { id } = useParams();
+  // Solo para el membrete del PDF: si la persona configuro la marca de su
+  // agencia, la hoja sale con su logo en vez del de Rumbo.
+  const { user } = useAuth();
 
   const viajeReq = useFetch(({ signal }) => tripsApi.get(id, { signal }), [id]);
   const itinReq = useFetch(({ signal }) => itineraryApi.get(id, { signal }), [id]);
@@ -358,13 +363,16 @@ export default function Itinerario() {
 
   return (
     <div className="pila">
+      {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}
+      {itinerario && <EncabezadoImpresion marca={user?.branding} viaje={viaje} />}
+
       <div>
         <Link to={`/viajes/${id}`} className="volver">
           ← {viaje.title}
         </Link>
       </div>
 
-      <header className="fila-entre">
+      <header className="fila-entre no-imprimir">
         <div>
           <h1 style={{ marginBottom: 4 }}>Itinerario</h1>
           <p className="suave" style={{ margin: 0 }}>
@@ -375,6 +383,9 @@ export default function Itinerario() {
 
         {itinerario && (
           <div className="fila" style={{ gap: 8 }}>
+            <Boton variante="secundario" onClick={() => window.print()}>
+              <Icono nombre="descarga" tamano={15} /> Descargar PDF
+            </Boton>
             <Boton variante="secundario" onClick={generarEnlace} cargando={trabajandoEnlace}>
               <Icono nombre="flechaSalida" tamano={15} /> Compartir
             </Boton>
@@ -583,7 +594,7 @@ export default function Itinerario() {
           </div>
 
           <div className="pila">
-            <Tarjeta titulo="Actividades en el mapa">
+            <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
               <Suspense fallback={<div className="mapa" />}>
                 <MapaDestino destino={viaje.destination} pines={pines} alto={340} />
               </Suspense>
@@ -616,6 +627,8 @@ export default function Itinerario() {
           </div>
         </div>
       )}
+
+      {itinerario && <PieImpresion marca={user?.branding} />}
 
       {/* ----------------- Modales ----------------- */}
       {modal && (

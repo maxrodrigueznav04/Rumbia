@@ -86,6 +86,11 @@ Todo el stack corre en tiers gratuitos.
   y a 7 días por itinerario, porque gasta cuota de Gemini.
 - **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
   quieras. No expone presupuesto, gastos ni datos de la cuenta.
+- **Itinerario en PDF, con marca propia.** El botón *Descargar PDF* imprime el plan día por día
+  sin la interfaz de la app. Si en el perfil se llena la marca (nombre, logo y contacto), el
+  membrete sale con ella en vez de con la de Rumbo, que es lo que necesita quien arma itinerarios
+  para terceros. Se resuelve con `@media print` y el diálogo del navegador: sin navegador headless
+  en el servidor y con el texto seleccionable de verdad.
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos

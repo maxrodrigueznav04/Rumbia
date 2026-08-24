@@ -48,7 +48,7 @@ export const me = asyncHandler(async (req, res) => {
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, avatarUrl, preferences } = req.body;
+  const { name, avatarUrl, preferences, branding } = req.body;
   const user = req.user;
 
   if (name !== undefined) user.name = name;
@@ -56,6 +56,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
   if (preferences) {
     // Merge parcial: no borra las preferencias que no vinieron en el body.
     user.preferences = { ...user.preferences.toObject(), ...preferences };
+  }
+  if (branding) {
+    // Mismo merge parcial. El ?. cubre a los usuarios creados antes de que
+    // existiera el campo, que lo traen undefined hasta que se guardan.
+    user.branding = { ...(user.branding?.toObject?.() || {}), ...branding };
   }
 
   await user.save();

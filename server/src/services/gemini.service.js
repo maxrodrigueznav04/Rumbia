@@ -212,6 +212,19 @@ export async function generateItinerary(ctx) {
     }
 
     const data = await res.json();
+
+    // Google no cobra el nivel gratuito, pero para saber si el negocio cierra
+    // hay que conocer el costo por generacion ANTES de tener trafico. Este es
+    // el unico punto donde existe el dato por itinerario: la consola de AI
+    // Studio agrega por dia y ahi ya no se puede separar una generacion suelta.
+    const uso = data?.usageMetadata;
+    if (uso) {
+      console.log(
+        `[gemini] ${env.gemini.model} | ${ctx.days} dias | entrada ${uso.promptTokenCount ?? 0}` +
+          ` | salida ${uso.candidatesTokenCount ?? 0} | total ${uso.totalTokenCount ?? 0}`
+      );
+    }
+
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!text) {
@@ -235,7 +248,12 @@ export async function generateItinerary(ctx) {
       throw ApiError.serviceUnavailable('Gemini no generó ningún día de itinerario.');
     }
 
-    return { days: normalized, summary: parsed.summary || '', model: env.gemini.model };
+    return {
+      days: normalized,
+      summary: parsed.summary || '',
+      model: env.gemini.model,
+      uso: uso || null,
+    };
   } catch (err) {
     if (err.name === 'AbortError') {
       throw ApiError.serviceUnavailable('Gemini tardó demasiado en responder. Intenta de nuevo.');
