@@ -101,18 +101,26 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
 
   // 'user' se pide solo para poder resolver la marca; nunca sale en la
   // respuesta tal cual, se extraen a mano los tres campos que si son publicos.
+  // Si el dueno pertenece a una agencia, la marca es la de la agencia, no la
+  // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select('title destination origin startDate endDate travelers user')
-    .populate('user', 'branding');
+    .populate({
+      path: 'user',
+      select: 'branding agency',
+      populate: { path: 'agency', select: 'agencyName logoUrl contact' },
+    });
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
 
-  // Lista blanca a proposito: branding es lo unico del dueno que se publica
-  // aqui. Si algun dia se le agrega un campo sensible al esquema, no empieza a
-  // salir solo porque este endpoint reenvia el objeto entero.
+  // Lista blanca a proposito: branding/agency son lo unico del dueno que se
+  // publica aqui. Si algun dia se le agrega un campo sensible a cualquiera de
+  // los dos esquemas, no empieza a salir solo porque este endpoint reenvia el
+  // objeto entero.
+  const fuenteMarca = trip.user?.agency || trip.user?.branding;
   const marca = {
-    agencyName: trip.user?.branding?.agencyName || '',
-    logoUrl: trip.user?.branding?.logoUrl || '',
-    contact: trip.user?.branding?.contact || '',
+    agencyName: fuenteMarca?.agencyName || '',
+    logoUrl: fuenteMarca?.logoUrl || '',
+    contact: fuenteMarca?.contact || '',
   };
 
   res.json({

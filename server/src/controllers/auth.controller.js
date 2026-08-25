@@ -3,12 +3,14 @@ import User from '../models/User.js';
 import Trip from '../models/Trip.js';
 import Itinerary from '../models/Itinerary.js';
 import Expense from '../models/Expense.js';
+import Agency from '../models/Agency.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { signToken } from '../middleware/auth.js';
 import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
 import { subirLogo } from '../services/logo.service.js';
+import { usuarioConAgencia } from './agency.controller.js';
 
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
 const RESET_MINUTOS = 30;
@@ -27,7 +29,7 @@ export const register = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Cuenta creada.',
-    data: { user: user.toJSON(), token: signToken(user._id) },
+    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
   });
 });
 
@@ -48,12 +50,12 @@ export const login = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Sesión iniciada.',
-    data: { user: user.toJSON(), token: signToken(user._id) },
+    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
   });
 });
 
 export const me = asyncHandler(async (req, res) => {
-  res.json({ success: true, data: { user: req.user.toJSON() } });
+  res.json({ success: true, data: { user: await usuarioConAgencia(req.user) } });
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
@@ -73,7 +75,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   }
 
   await user.save();
-  res.json({ success: true, message: 'Perfil actualizado.', data: { user: user.toJSON() } });
+  res.json({ success: true, message: 'Perfil actualizado.', data: { user: await usuarioConAgencia(user) } });
 });
 
 /**
@@ -155,7 +157,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Contraseña actualizada.',
-    data: { user: user.toJSON(), token: signToken(user._id) },
+    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
   });
 });
 
@@ -179,7 +181,7 @@ export const uploadLogo = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Logo actualizado.',
-    data: { user: req.user.toJSON() },
+    data: { user: await usuarioConAgencia(req.user) },
   });
 });
 
@@ -221,6 +223,17 @@ export const deleteAccount = asyncHandler(async (req, res) => {
     throw ApiError.forbidden(
       'La cuenta de demostración no se puede eliminar: la usan otras personas para probar la app.'
     );
+  }
+
+  // Si es dueño de una agencia, esta se borra con el en vez de quedar
+  // huerfana: sin esto, nadie mas podria editarla ni sacar a sus miembros,
+  // porque agenciaComoDueno compara contra un owner que ya no existe. A los
+  // demas agentes se les limpia el agency para que vuelvan a su marca propia,
+  // igual que cuando el dueño sale por la via normal (salirAgencia).
+  const agenciaPropia = await Agency.findOne({ owner: user._id });
+  if (agenciaPropia) {
+    await User.updateMany({ agency: agenciaPropia._id }, { agency: null });
+    await Agency.deleteOne({ _id: agenciaPropia._id });
   }
 
   // Sin transacciones (no damos por hecho el replica set): primero los hijos,

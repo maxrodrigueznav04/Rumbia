@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import Icono from '../components/Icono.jsx';
+import TarjetaAgencia from '../components/TarjetaAgencia.jsx';
 import { Boton, Campo, Tarjeta, Aviso, Modal, CampoPassword } from '../components/ui.jsx';
 
 const ESTILOS = [
@@ -48,60 +48,12 @@ export default function Perfil() {
     currency: user?.preferences?.currency || 'MXN',
     pace: user?.preferences?.pace || 'moderado',
     budgetLevel: user?.preferences?.budgetLevel || 'medio',
-    agencyName: user?.branding?.agencyName || '',
-    logoUrl: user?.branding?.logoUrl || '',
-    contact: user?.branding?.contact || '',
   });
   const [estilos, setEstilos] = useState(user?.preferences?.travelStyles || []);
   const [estado, setEstado] = useState(null);
   const [guardando, setGuardando] = useState(false);
-  const [subiendoLogo, setSubiendoLogo] = useState(false);
-  const [errorLogo, setErrorLogo] = useState(null);
-  const inputLogoRef = useRef(null);
 
   const cambiar = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-
-  /**
-   * El logo se sube y se guarda de inmediato, aparte del boton "Guardar
-   * marca". Es la misma logica que ya tenian el nombre y el contacto ahi
-   * abajo, solo que si se esperara al submit habria que sostener el archivo en
-   * memoria hasta entonces y el error de una subida fallida quedaria mezclado
-   * con el de los otros campos.
-   */
-  const subirLogo = async (e) => {
-    const archivo = e.target.files?.[0];
-    e.target.value = ''; // deja elegir el mismo archivo otra vez si hace falta
-    if (!archivo) return;
-
-    setErrorLogo(null);
-    setSubiendoLogo(true);
-    try {
-      const data = await authApi.uploadLogo(archivo);
-      actualizarUsuario(data.user);
-      setForm((f) => ({ ...f, logoUrl: data.user.branding.logoUrl }));
-    } catch (err) {
-      setErrorLogo(err.message);
-    } finally {
-      setSubiendoLogo(false);
-    }
-  };
-
-  const quitarLogo = async () => {
-    setErrorLogo(null);
-    setSubiendoLogo(true);
-    try {
-      // Solo logoUrl, nunca form entero: el backend hace un merge parcial, y
-      // mandar los otros dos campos aqui perderia una edicion de nombre o
-      // contacto que el usuario todavia no hubiera guardado.
-      const data = await authApi.updateProfile({ branding: { logoUrl: '' } });
-      actualizarUsuario(data.user);
-      setForm((f) => ({ ...f, logoUrl: '' }));
-    } catch (err) {
-      setErrorLogo(err.message);
-    } finally {
-      setSubiendoLogo(false);
-    }
-  };
 
   const alternar = (valor) =>
     setEstilos((prev) =>
@@ -125,11 +77,6 @@ export default function Perfil() {
           currency: form.currency,
           pace: form.pace,
           budgetLevel: form.budgetLevel,
-        },
-        branding: {
-          agencyName: form.agencyName,
-          logoUrl: form.logoUrl,
-          contact: form.contact,
         },
       });
       actualizarUsuario(data.user);
@@ -225,100 +172,7 @@ export default function Perfil() {
         </form>
       </Tarjeta>
 
-      <Tarjeta titulo="Marca en el PDF">
-        <p className="suave" style={{ marginTop: 0 }}>
-          Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando
-          descargas el PDF. Déjalo vacío y sale la marca de Rumbo.
-        </p>
-
-        <form onSubmit={guardar} className="pila" noValidate>
-          <Campo
-            label="Nombre de tu agencia o negocio"
-            name="agencyName"
-            value={form.agencyName}
-            onChange={cambiar}
-            placeholder="Viajes del Sur"
-          />
-
-          <div className="campo">
-            <label>Logo</label>
-
-            <div className="fila" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-              {form.logoUrl && (
-                <img
-                  src={form.logoUrl}
-                  alt=""
-                  style={{
-                    height: 40,
-                    maxWidth: 120,
-                    objectFit: 'contain',
-                    borderRadius: 'var(--radio-xs)',
-                    border: '1px solid var(--border)',
-                  }}
-                />
-              )}
-
-              {/* display:none y no .oculto-visual: este input no debe entrar al
-                  orden de tabulacion ni al arbol de accesibilidad, se dispara
-                  solo por codigo desde el boton de al lado. */}
-              <input
-                ref={inputLogoRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={subirLogo}
-                style={{ display: 'none' }}
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-              <Boton
-                type="button"
-                variante="secundario"
-                chico
-                cargando={subiendoLogo}
-                onClick={() => inputLogoRef.current?.click()}
-              >
-                <Icono nombre="mas" tamano={14} /> {form.logoUrl ? 'Cambiar logo' : 'Subir logo'}
-              </Boton>
-
-              {form.logoUrl && (
-                <Boton type="button" variante="peligro-texto" chico onClick={quitarLogo} cargando={subiendoLogo}>
-                  Quitar
-                </Boton>
-              )}
-            </div>
-
-            {errorLogo && (
-              <span className="campo-error" role="alert">
-                {errorLogo}
-              </span>
-            )}
-            <span className="campo-ayuda">PNG, JPEG o WebP, hasta 2 MB.</span>
-          </div>
-
-          <Campo
-            label="O pega la URL de un logo que ya esté publicado"
-            name="logoUrl"
-            type="url"
-            value={form.logoUrl}
-            onChange={cambiar}
-            placeholder="https://tusitio.com/logo.png"
-          />
-
-          <Campo
-            label="Contacto que aparece bajo el logo"
-            name="contact"
-            value={form.contact}
-            onChange={cambiar}
-            placeholder="ventas@viajesdelsur.mx · 55 1234 5678"
-          />
-
-          <div>
-            <Boton type="submit" cargando={guardando}>
-              Guardar marca
-            </Boton>
-          </div>
-        </form>
-      </Tarjeta>
+      <TarjetaAgencia user={user} actualizarUsuario={actualizarUsuario} />
 
       <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
         <p className="suave">

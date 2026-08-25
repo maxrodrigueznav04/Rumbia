@@ -20,6 +20,21 @@ export const authApi = {
   deleteAccount: (payload) => api.delete('/auth/me', { body: payload }),
 };
 
+export const agencyApi = {
+  crear: (payload) => api.post('/agency', payload),
+  obtener: (opts) => api.get('/agency', opts),
+  actualizar: (payload) => api.patch('/agency', payload),
+  subirLogo: (archivo) => {
+    const form = new FormData();
+    form.append('logo', archivo);
+    return api.post('/agency/logo', form);
+  },
+  unirse: (payload) => api.post('/agency/unirse', payload),
+  salir: () => api.post('/agency/salir'),
+  regenerarCodigo: () => api.post('/agency/codigo'),
+  eliminarMiembro: (userId) => api.delete(`/agency/miembros/${userId}`),
+};
+
 const qs = (params) => {
   const limpio = Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== '');
   return limpio.length ? `?${new URLSearchParams(limpio)}` : '';

@@ -98,9 +98,10 @@ function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
 
 export default function Itinerario() {
   const { id } = useParams();
-  // Solo para el membrete del PDF: si la persona configuro la marca de su
-  // agencia, la hoja sale con su logo en vez del de Rumbo.
+  // Solo para el membrete del PDF: si el usuario pertenece a una agencia, su
+  // marca gana sobre la personal (mismo criterio que el enlace compartido).
   const { user } = useAuth();
+  const marca = user?.agency ?? user?.branding;
 
   const viajeReq = useFetch(({ signal }) => tripsApi.get(id, { signal }), [id]);
   const itinReq = useFetch(({ signal }) => itineraryApi.get(id, { signal }), [id]);
@@ -364,7 +365,7 @@ export default function Itinerario() {
   return (
     <div className="pila">
       {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}
-      {itinerario && <EncabezadoImpresion marca={user?.branding} viaje={viaje} />}
+      {itinerario && <EncabezadoImpresion marca={marca} viaje={viaje} />}
 
       <div>
         <Link to={`/viajes/${id}`} className="volver">
@@ -628,7 +629,7 @@ export default function Itinerario() {
         </div>
       )}
 
-      {itinerario && <PieImpresion marca={user?.branding} />}
+      {itinerario && <PieImpresion marca={marca} />}
 
       {/* ----------------- Modales ----------------- */}
       {modal && (

@@ -102,6 +102,11 @@ Todo el stack corre en tiers gratuitos.
   en el servidor y con el texto seleccionable de verdad. El logo se sube directo desde el perfil
   (PNG, JPEG o WebP, hasta 2 MB) y se aloja en Cloudinary con una subida firmada desde el servidor
   —la clave secreta nunca llega al navegador—, o se puede pegar la URL de uno ya publicado.
+- **Agencias.** Varios agentes, cada uno con su propia cuenta y sus propios viajes, pueden
+  compartir la misma marca en el PDF sin compartir contraseña. Quien crea la agencia administra
+  el nombre, el logo y el contacto, y comparte un código de invitación fuera de la app (whatsapp,
+  correo) para que los demás se unan desde su perfil. Mientras un agente pertenece a una agencia,
+  su marca personal queda guardada pero inerte: la de la agencia es la que se imprime.
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos

@@ -85,6 +85,9 @@ const userSchema = new mongoose.Schema(
     resetTokenExpires: { type: Date, select: false },
     preferences: { type: preferencesSchema, default: () => ({}) },
     branding: { type: brandingSchema, default: () => ({}) },
+    // Si el agente pertenece a una agencia, su membrete efectivo es el de la
+    // agencia, no el de branding de arriba. Ver agency.controller.js.
+    agency: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', default: null, index: true },
     lastLoginAt: { type: Date },
   },
   {

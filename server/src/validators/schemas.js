@@ -93,6 +93,25 @@ export const resetPasswordSchema = z.object({
     .max(72, 'Máximo 72 caracteres.'),
 });
 
+export const createAgencySchema = z.object({
+  agencyName: z.string().trim().min(2, 'Ponle un nombre a la agencia.').max(80),
+  contact: z.string().trim().max(160).optional(),
+});
+
+export const updateAgencySchema = z
+  .object({
+    agencyName: z.string().trim().min(2).max(80).optional(),
+    contact: z.string().trim().max(160).optional(),
+    // Solo para poder quitar el logo (PATCH { logoUrl: '' }); subirlo de verdad
+    // pasa por /agency/logo, que es quien de verdad habla con Cloudinary.
+    logoUrl: z.literal('').optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
+
+export const joinAgencySchema = z.object({
+  inviteCode: z.string().trim().min(1, 'Escribe el código de invitación.').max(40),
+});
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Ingresa tu contraseña actual.'),
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),
