@@ -8,7 +8,14 @@ import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
-import { formatoFecha, formatoMoneda, rangoFechas, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
+import {
+  formatoFecha,
+  formatoMoneda,
+  rangoFechas,
+  humanizar,
+  porPersonas,
+  ICONOS_CATEGORIA,
+} from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
@@ -118,12 +125,34 @@ export default function ItinerarioCompartido() {
               </div>
 
               <div className="pila">
-                {data.itinerary.totalEstimatedCost > 0 && (
-                  <Tarjeta titulo="Costo estimado de actividades">
-                    <div className="fila-entre">
+                {(data.itinerary.totalEstimatedCost > 0 || data.viaje.coreCosts?.total > 0) && (
+                  <Tarjeta titulo="Costo total estimado">
+                    <div className="pila-sm">
+                      <div className="linea-gasto">
+                        <span className="suave">Actividades</span>
+                        <span className="numero">
+                          {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
+                        </span>
+                      </div>
+                      <div className="linea-gasto">
+                        <span className="suave">Transporte, hospedaje y transporte local</span>
+                        <span className="numero">
+                          {formatoMoneda(
+                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
+                            moneda
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="fila-entre" style={{ marginTop: 12 }}>
                       <span className="suave">Por persona</span>
                       <span className="numero grande">
-                        {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
+                        {formatoMoneda(
+                          data.itinerary.totalEstimatedCost +
+                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
+                          moneda
+                        )}
                       </span>
                     </div>
                     <div className="fila-entre" style={{ marginTop: 6 }}>
@@ -131,11 +160,17 @@ export default function ItinerarioCompartido() {
                         {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
                       </span>
                       <span className="numero">
-                        {formatoMoneda(data.itinerary.totalEstimatedCost * paraCuantos, moneda)}
+                        {formatoMoneda(
+                          (data.itinerary.totalEstimatedCost +
+                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1)) *
+                            paraCuantos,
+                          moneda
+                        )}
                       </span>
                     </div>
                     <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-                      Son estimaciones, solo de actividades. No incluyen transporte ni hospedaje.
+                      Actividades sugeridas, más lo que ya se capturó en transporte y hospedaje. Son
+                      estimaciones, no precios en firme.
                     </p>
                   </Tarjeta>
                 )}

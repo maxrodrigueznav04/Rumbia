@@ -19,7 +19,7 @@ import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { formatoMoneda, formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
+import { formatoMoneda, formatoFecha, humanizar, porPersonas, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
@@ -614,11 +614,27 @@ export default function Itinerario() {
               </p>
             </Tarjeta>
 
-            <Tarjeta titulo="Costo estimado">
-              <div className="fila-entre">
+            <Tarjeta titulo="Costo total estimado">
+              <div className="pila-sm">
+                <div className="linea-gasto">
+                  <span className="suave">Actividades</span>
+                  <span className="numero">{formatoMoneda(itinerario.totalEstimatedCost, moneda)}</span>
+                </div>
+                <div className="linea-gasto">
+                  <span className="suave">Transporte, hospedaje y transporte local</span>
+                  <span className="numero">
+                    {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="fila-entre" style={{ marginTop: 12 }}>
                 <span className="suave">Por persona</span>
                 <span className="numero grande">
-                  {formatoMoneda(itinerario.totalEstimatedCost, moneda)}
+                  {formatoMoneda(
+                    itinerario.totalEstimatedCost + porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1),
+                    moneda
+                  )}
                 </span>
               </div>
               <div className="fila-entre" style={{ marginTop: 6 }}>
@@ -626,11 +642,16 @@ export default function Itinerario() {
                   {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
                 </span>
                 <span className="numero">
-                  {formatoMoneda(itinerario.totalEstimatedCost * paraCuantos, moneda)}
+                  {formatoMoneda(
+                    (itinerario.totalEstimatedCost + porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1)) *
+                      paraCuantos,
+                    moneda
+                  )}
                 </span>
               </div>
               <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-                Son estimaciones de la IA, solo de actividades. No incluyen transporte ni hospedaje.
+                Actividades sugeridas por la IA, más lo que ya capturaste en transporte y hospedaje. Son
+                estimaciones, no precios en firme.
               </p>
             </Tarjeta>
           </div>

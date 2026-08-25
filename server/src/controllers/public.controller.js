@@ -142,6 +142,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         transport: trip.transport,
         lodging: trip.lodging,
         localTransport: trip.localTransport,
+        coreCosts: trip.coreCosts,
       },
       itinerary: {
         days: itinerary.days,
