@@ -85,7 +85,9 @@ Todo el stack corre en tiers gratuitos.
   los enlaces de reserva sin registrarse; la cuenta se pide solo para guardarlo. Limitado por IP
   y a 7 días por itinerario, porque gasta cuota de Gemini.
 - **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
-  quieras. No expone presupuesto, gastos ni datos de la cuenta.
+  quieras. No expone presupuesto, gastos ni datos de la cuenta. También se puede descargar en PDF
+  con el mismo membrete de marca propia que el itinerario privado: quien reciba el enlace no ve
+  la interfaz de la app, solo el plan de viaje.
 - **Recuperación de contraseña por correo.** Enlace de un solo uso que caduca en 30 minutos. En
   la base se guarda el SHA-256 del token, nunca el token: si la base se filtrara, lo que hay ahí
   no sirve para entrar a ninguna cuenta. La respuesta es idéntica exista o no el correo, para que

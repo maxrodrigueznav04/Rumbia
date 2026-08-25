@@ -99,10 +99,21 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     throw ApiError.notFound('Este enlace ya no existe o dejo de compartirse.');
   }
 
-  const trip = await Trip.findById(itinerary.trip).select(
-    'title destination origin startDate endDate travelers'
-  );
+  // 'user' se pide solo para poder resolver la marca; nunca sale en la
+  // respuesta tal cual, se extraen a mano los tres campos que si son publicos.
+  const trip = await Trip.findById(itinerary.trip)
+    .select('title destination origin startDate endDate travelers user')
+    .populate('user', 'branding');
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
+
+  // Lista blanca a proposito: branding es lo unico del dueno que se publica
+  // aqui. Si algun dia se le agrega un campo sensible al esquema, no empieza a
+  // salir solo porque este endpoint reenvia el objeto entero.
+  const marca = {
+    agencyName: trip.user?.branding?.agencyName || '',
+    logoUrl: trip.user?.branding?.logoUrl || '',
+    contact: trip.user?.branding?.contact || '',
+  };
 
   res.json({
     success: true,
@@ -124,6 +135,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       pins: itinerary.mapPins(),
       links: decorarSecciones(buildLinksForTrip(trip)),
       conAfiliados: hayAfiliados(),
+      marca,
     },
   });
 });

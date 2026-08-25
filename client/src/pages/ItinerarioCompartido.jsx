@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { publicApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
-import { Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
+import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
+import Icono from '../components/Icono.jsx';
+import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
 import { formatoFecha, rangoFechas, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
@@ -24,7 +26,7 @@ export default function ItinerarioCompartido() {
 
   return (
     <div className="inicio">
-      <header className="inicio-nav">
+      <header className="inicio-nav no-imprimir">
         <div className="contenedor fila-entre">
           <Link to="/" className="marca">
             <span className="marca-punto" aria-hidden="true">
@@ -53,14 +55,23 @@ export default function ItinerarioCompartido() {
 
         {data && (
           <div className="pila">
-            <header>
-              <span className="etiqueta">Itinerario compartido</span>
-              <h1 style={{ margin: '4px 0' }}>{data.viaje.title}</h1>
-              <p className="suave" style={{ margin: 0 }}>
-                {data.viaje.destination?.name} · {rangoFechas(data.viaje.startDate, data.viaje.endDate)} ·{' '}
-                {data.viaje.durationDays} días · {data.viaje.travelers}{' '}
-                {data.viaje.travelers === 1 ? 'viajero' : 'viajeros'}
-              </p>
+            {/* Solo se ve al imprimir; en pantalla lo oculta global.css. Es la
+                marca de quien compartio el enlace, no de quien lo abre. */}
+            <EncabezadoImpresion marca={data.marca} viaje={data.viaje} />
+
+            <header className="fila-entre no-imprimir">
+              <div>
+                <span className="etiqueta">Itinerario compartido</span>
+                <h1 style={{ margin: '4px 0' }}>{data.viaje.title}</h1>
+                <p className="suave" style={{ margin: 0 }}>
+                  {data.viaje.destination?.name} · {rangoFechas(data.viaje.startDate, data.viaje.endDate)} ·{' '}
+                  {data.viaje.durationDays} días · {data.viaje.travelers}{' '}
+                  {data.viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+                </p>
+              </div>
+              <Boton variante="secundario" chico onClick={() => window.print()}>
+                <Icono nombre="descarga" tamano={15} /> Descargar PDF
+              </Boton>
             </header>
 
             <div className="rejilla rejilla-detalle">
@@ -95,14 +106,14 @@ export default function ItinerarioCompartido() {
 
               <div className="pila">
                 {data.pins?.length > 0 && (
-                  <Tarjeta titulo="Actividades en el mapa">
+                  <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
                     <Suspense fallback={<Cargando texto="Cargando mapa..." />}>
                       <MapaDestino pines={data.pins} />
                     </Suspense>
                   </Tarjeta>
                 )}
 
-                <Tarjeta titulo="Buscar y reservar">
+                <Tarjeta titulo="Buscar y reservar" className="no-imprimir">
                   <p className="suave">
                     Rumbo no reserva ni cobra: estos enlaces llevan al sitio del proveedor con la
                     búsqueda ya prellenada.
@@ -123,7 +134,7 @@ export default function ItinerarioCompartido() {
                   ))}
                 </Tarjeta>
 
-                <Tarjeta className="centrado">
+                <Tarjeta className="centrado no-imprimir">
                   <h3>¿Quieres uno así para tu viaje?</h3>
                   <p className="suave">Ármalo con IA en un minuto, sin crear cuenta.</p>
                   <Link to="/" className="boton">
@@ -132,6 +143,8 @@ export default function ItinerarioCompartido() {
                 </Tarjeta>
               </div>
             </div>
+
+            <PieImpresion marca={data.marca} />
           </div>
         )}
       </main>
