@@ -32,6 +32,14 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      # Logos de agencia. Sin estas tres, la subida de logo responde con un
+      # aviso claro y el campo de URL manual sigue funcionando igual.
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
       # Enlaces de afiliado. Se deja sin valor a proposito: mientras no exista,

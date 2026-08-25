@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as ctrl from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
+import subirLogo from '../middleware/subirLogo.js';
 import {
   authLimiter,
   forgotPasswordLimiter,
@@ -39,6 +40,7 @@ router.post(
 
 router.get('/me', protect, ctrl.me);
 router.patch('/me', protect, validate(updateProfileSchema), ctrl.updateProfile);
+router.post('/me/logo', protect, subirLogo, ctrl.uploadLogo);
 router.patch('/me/password', protect, validate(changePasswordSchema), ctrl.changePassword);
 
 // Baja de cuenta. Va con authLimiter porque pide contrasena: sin limite seria

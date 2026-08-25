@@ -99,7 +99,9 @@ Todo el stack corre en tiers gratuitos.
   sin la interfaz de la app. Si en el perfil se llena la marca (nombre, logo y contacto), el
   membrete sale con ella en vez de con la de Rumbo, que es lo que necesita quien arma itinerarios
   para terceros. Se resuelve con `@media print` y el diálogo del navegador: sin navegador headless
-  en el servidor y con el texto seleccionable de verdad.
+  en el servidor y con el texto seleccionable de verdad. El logo se sube directo desde el perfil
+  (PNG, JPEG o WebP, hasta 2 MB) y se aloja en Cloudinary con una subida firmada desde el servidor
+  —la clave secreta nunca llega al navegador—, o se puede pegar la URL de uno ya publicado.
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos
@@ -150,6 +152,7 @@ Llena `server/.env`:
 | `AI_RATE_LIMIT_PER_HOUR` | no | Generaciones con IA por usuario por hora (10 por defecto). |
 | `RESEND_API_KEY` | no* | [Resend](https://resend.com/api-keys). Sin ella no sale el correo de recuperación; en desarrollo el enlace se imprime en la consola. |
 | `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
+| `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | no* | [Cloudinary](https://cloudinary.com), plan gratis (25 GB/mes). Los tres valores están juntos en el Dashboard. Sin ellos el botón de subir logo responde con un aviso claro; el campo de URL manual sigue funcionando igual. |
 
 Para generar el secreto:
 

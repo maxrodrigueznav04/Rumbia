@@ -53,7 +53,10 @@ export class ApiError extends Error {
 
 async function request(path, { method = 'GET', body, signal, auth = true, timeout = TIMEOUT_MS } = {}) {
   const headers = {};
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  // FormData (subir un archivo) trae su propio Content-Type con el boundary
+  // multipart; si se fija aqui a mano, el navegador no puede completarlo y la
+  // peticion llega sin poder separar los campos.
+  if (body !== undefined && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
 
   const token = tokenStore.get();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
@@ -83,7 +86,7 @@ async function request(path, { method = 'GET', body, signal, auth = true, timeou
     res = await fetch(`${BASE_URL}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined || body instanceof FormData ? body : JSON.stringify(body),
       signal: controlador.signal,
     });
   } catch (err) {

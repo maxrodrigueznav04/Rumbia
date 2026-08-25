@@ -10,6 +10,11 @@ export const authApi = {
   forgotPassword: (payload) => api.post('/auth/forgot-password', payload, { auth: false }),
   resetPassword: (payload) => api.post('/auth/reset-password', payload, { auth: false }),
   updateProfile: (payload) => api.patch('/auth/me', payload),
+  uploadLogo: (archivo) => {
+    const form = new FormData();
+    form.append('logo', archivo);
+    return api.post('/auth/me/logo', form);
+  },
   changePassword: (payload) => api.patch('/auth/me/password', payload),
   // El DELETE lleva cuerpo: la contraseña va como confirmación.
   deleteAccount: (payload) => api.delete('/auth/me', { body: payload }),

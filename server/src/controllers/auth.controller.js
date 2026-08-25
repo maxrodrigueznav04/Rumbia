@@ -8,6 +8,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { signToken } from '../middleware/auth.js';
 import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
+import { subirLogo } from '../services/logo.service.js';
 
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
 const RESET_MINUTOS = 30;
@@ -155,6 +156,30 @@ export const resetPassword = asyncHandler(async (req, res) => {
     success: true,
     message: 'Contraseña actualizada.',
     data: { user: user.toJSON(), token: signToken(user._id) },
+  });
+});
+
+/**
+ * Sube el logo de la marca y lo deja guardado en branding.logoUrl.
+ *
+ * Reemplaza lo que hubiera antes: es la misma decision que ya tomaba el campo
+ * de URL manual, solo que ahora la URL la genera Cloudinary en vez de pedirla
+ * copiada de otro sitio.
+ */
+export const uploadLogo = asyncHandler(async (req, res) => {
+  const url = await subirLogo({
+    buffer: req.file.buffer,
+    mimeType: req.file.mimetype,
+    userId: req.user._id,
+  });
+
+  req.user.branding = { ...(req.user.branding?.toObject?.() || {}), logoUrl: url };
+  await req.user.save();
+
+  res.json({
+    success: true,
+    message: 'Logo actualizado.',
+    data: { user: req.user.toJSON() },
   });
 });
 

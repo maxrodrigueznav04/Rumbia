@@ -35,6 +35,14 @@ export const env = {
     from: process.env.MAIL_FROM || 'Rumbo <onboarding@resend.dev>',
     enabled: Boolean(process.env.RESEND_API_KEY),
   },
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+    enabled: Boolean(
+      process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
+    ),
+  },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
   // Quien puede ver el reporte de clics. Vacio = cerrado para todos, que es el
   // valor seguro por defecto.
