@@ -5,7 +5,9 @@ import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import TiraClima from '../components/TiraClima.jsx';
 import ResumenPresupuesto from '../components/ResumenPresupuesto.jsx';
+import ResumenGastosFijos from '../components/ResumenGastosFijos.jsx';
 import ListaGastos from '../components/ListaGastos.jsx';
+import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import FormViaje from '../components/formularios/FormViaje.jsx';
 import FormTransporte from '../components/formularios/FormTransporte.jsx';
 import FormHospedaje from '../components/formularios/FormHospedaje.jsx';
@@ -27,6 +29,7 @@ import {
   rangoFechas,
   tiempoRelativo,
   humanizar,
+  porPersonas,
   ETIQUETAS_ESTADO,
 } from '../utils/format.js';
 
@@ -89,6 +92,8 @@ export default function DetalleViaje() {
   // Qué modal está abierto: { tipo, tramo?, indice? }
   const [modal, setModal] = useState(null);
   const [confirmar, setConfirmar] = useState(null);
+  // Para cuántos de los viajeros se ven los precios. null = todos (default).
+  const [personas, setPersonas] = useState(null);
   // Resultado de sincronizar el itinerario cuando cambian las fechas del viaje.
   const [avisoItinerario, setAvisoItinerario] = useState(null);
 
@@ -134,6 +139,8 @@ export default function DetalleViaje() {
   const ida = viaje.transport?.outbound;
   const vuelta = viaje.transport?.inbound;
   const hayTransporte = ida?.cost > 0 || vuelta?.cost > 0 || ida?.provider || vuelta?.provider;
+  const paraCuantos = Math.min(personas ?? viaje.travelers, viaje.travelers);
+  const escalar = (monto) => porPersonas(monto, viaje.travelers, paraCuantos);
 
   const eliminarViaje = async () => {
     await tripsApi.remove(id);
@@ -212,6 +219,8 @@ export default function DetalleViaje() {
         </Aviso>
       )}
 
+      <SelectorPersonas personas={paraCuantos} maximo={viaje.travelers} onCambio={setPersonas} />
+
       <div className="rejilla rejilla-detalle">
         {/* ----------------- Columna principal ----------------- */}
         <div className="pila">
@@ -220,7 +229,7 @@ export default function DetalleViaje() {
             destino={viaje.destination?.name}
             titulo="Transporte de ida y vuelta"
             icono={ICONO_MODO[ida?.mode] || 'avion'}
-            monto={(ida?.cost || 0) + (vuelta?.cost || 0)}
+            monto={escalar((ida?.cost || 0) + (vuelta?.cost || 0))}
             moneda={moneda}
             enlaces={enlaces.transporte}
             vacio="Aún no registras cómo llegas ni cómo regresas."
@@ -247,7 +256,7 @@ export default function DetalleViaje() {
                   </span>
 
                   <span className="numero">
-                    {formatoMoneda(datos?.cost || 0, moneda)}
+                    {formatoMoneda(escalar(datos?.cost || 0), moneda)}
                     {datos?.isEstimate && datos?.cost > 0 && (
                       <span className="tenue" style={{ fontWeight: 400 }}> est.</span>
                     )}
@@ -275,7 +284,7 @@ export default function DetalleViaje() {
             destino={viaje.destination?.name}
             titulo="Hospedaje"
             icono="cama"
-            monto={viaje.coreCosts?.lodging}
+            monto={escalar(viaje.coreCosts?.lodging)}
             moneda={moneda}
             enlaces={enlaces.hospedaje}
             accion={
@@ -297,7 +306,7 @@ export default function DetalleViaje() {
                         {l.isEstimate ? ' · estimado' : ''}
                       </span>
                     </span>
-                    <span className="numero">{formatoMoneda(l.subtotal, moneda)}</span>
+                    <span className="numero">{formatoMoneda(escalar(l.subtotal), moneda)}</span>
                     <span className="fila" style={{ gap: 0, flexWrap: 'nowrap' }}>
                       <Boton
                         variante="fantasma"
@@ -327,7 +336,7 @@ export default function DetalleViaje() {
             destino={viaje.destination?.name}
             titulo="Transporte en el destino"
             icono="auto"
-            monto={viaje.coreCosts?.localTransport}
+            monto={escalar(viaje.coreCosts?.localTransport)}
             moneda={moneda}
             enlaces={enlaces['transporte-local']}
             accion={
@@ -353,7 +362,7 @@ export default function DetalleViaje() {
                         </span>
                       )}
                     </span>
-                    <span className="numero">{formatoMoneda(t.estimatedCost, moneda)}</span>
+                    <span className="numero">{formatoMoneda(escalar(t.estimatedCost), moneda)}</span>
                     <span className="fila" style={{ gap: 0, flexWrap: 'nowrap' }}>
                       <Boton
                         variante="fantasma"
@@ -424,6 +433,8 @@ export default function DetalleViaje() {
             )}
             {climaReq.data && <TiraClima clima={climaReq.data} />}
           </Tarjeta>
+
+          <ResumenGastosFijos viaje={viaje} personas={paraCuantos} />
 
           {resumenReq.cargando && <Esqueleto alto={280} />}
           {resumenReq.error && (

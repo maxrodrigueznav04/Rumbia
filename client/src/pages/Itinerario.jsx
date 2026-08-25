@@ -15,6 +15,8 @@ import {
   ModalConfirmar,
 } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
+import ResumenViaje from '../components/ResumenViaje.jsx';
+import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatoMoneda, formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
@@ -119,11 +121,14 @@ export default function Itinerario() {
   const [trabajandoEnlace, setTrabajandoEnlace] = useState(false);
   const [arrastre, setArrastre] = useState(null); // { diaId, indice }
   const [destino, setDestino] = useState(null); // { diaId, indice }
+  // Para cuántos de los viajeros se ven los precios. null = todos (default).
+  const [personas, setPersonas] = useState(null);
 
   const viaje = viajeReq.data?.trip;
   const itinerario = itinReq.data?.itinerary;
   const pines = itinReq.data?.pins || [];
   const moneda = viaje?.budget?.currency || 'MXN';
+  const paraCuantos = Math.min(personas ?? viaje?.travelers ?? 1, viaje?.travelers || 1);
 
   const generar = async (regenerar = false) => {
     setErrorGen(null);
@@ -436,6 +441,9 @@ export default function Itinerario() {
         />
       )}
 
+      <SelectorPersonas personas={paraCuantos} maximo={viaje.travelers} onCambio={setPersonas} />
+      <ResumenViaje viaje={viaje} personas={paraCuantos} />
+
       {/* ---------- Sin itinerario: invitación a generarlo ---------- */}
       {!itinerario && (
         <Tarjeta>
@@ -615,10 +623,10 @@ export default function Itinerario() {
               </div>
               <div className="fila-entre" style={{ marginTop: 6 }}>
                 <span className="suave">
-                  {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+                  {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
                 </span>
                 <span className="numero">
-                  {formatoMoneda(itinerario.totalEstimatedCost * viaje.travelers, moneda)}
+                  {formatoMoneda(itinerario.totalEstimatedCost * paraCuantos, moneda)}
                 </span>
               </div>
               <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>

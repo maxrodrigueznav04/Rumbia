@@ -32,6 +32,19 @@ export function formatoFecha(valor, opciones = {}) {
   }).format(d);
 }
 
+/** "14 sep, 18:40" — para horarios de vuelos/tramos, donde la hora sí importa. */
+export function formatoFechaHora(valor) {
+  const d = parse(valor);
+  if (!d) return '';
+  return new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  }).format(d);
+}
+
 export function formatoFechaCorta(valor) {
   return formatoFecha(valor, { day: 'numeric', month: 'short', year: undefined });
 }
@@ -109,6 +122,17 @@ export function nochesEntre(checkIn, checkOut) {
   const b = parse(checkOut);
   if (!a || !b) return 0;
   return Math.max(0, Math.round((b - a) / 86400000));
+}
+
+/**
+ * Escala un costo capturado para el grupo completo (un vuelo, una noche de
+ * hotel) a lo que le toca a `personas`. No sirve para gastos ya registrados
+ * uno por uno (esos son lo que son, no se dividen).
+ */
+export function porPersonas(totalGrupo, travelers, personas) {
+  const base = travelers > 0 ? travelers : 1;
+  const n = personas > 0 ? personas : base;
+  return (Number(totalGrupo) || 0) * (n / base);
 }
 
 /** "transporte-local" -> "Transporte local" */

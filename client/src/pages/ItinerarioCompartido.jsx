@@ -1,12 +1,14 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { publicApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
+import ResumenViaje from '../components/ResumenViaje.jsx';
+import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
-import { formatoFecha, rangoFechas, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
+import { formatoFecha, formatoMoneda, rangoFechas, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
@@ -23,6 +25,12 @@ export default function ItinerarioCompartido() {
     ({ signal }) => publicApi.verCompartido(token, { signal }),
     [token]
   );
+  // Para cuántos de los viajeros se ven los precios. null = todos (default).
+  const [personas, setPersonas] = useState(null);
+  const moneda = data?.viaje?.budget?.currency || 'MXN';
+  const paraCuantos = data
+    ? Math.min(personas ?? data.viaje.travelers, data.viaje.travelers)
+    : 1;
 
   return (
     <div className="inicio">
@@ -74,6 +82,9 @@ export default function ItinerarioCompartido() {
               </Boton>
             </header>
 
+            <SelectorPersonas personas={paraCuantos} maximo={data.viaje.travelers} onCambio={setPersonas} />
+            <ResumenViaje viaje={data.viaje} personas={paraCuantos} />
+
             <div className="rejilla rejilla-detalle">
               <div className="pila">
                 {data.itinerary.days.map((dia) => (
@@ -93,7 +104,9 @@ export default function ItinerarioCompartido() {
                             <div className="fila" style={{ gap: 6 }}>
                               <Insignia>{humanizar(a.category)}</Insignia>
                               {a.estimatedCost > 0 && (
-                                <Insignia color="ambar">≈ ${a.estimatedCost} por persona</Insignia>
+                                <Insignia color="ambar">
+                                  ≈ {formatoMoneda(a.estimatedCost, moneda)} por persona
+                                </Insignia>
                               )}
                             </div>
                           </div>
@@ -105,6 +118,28 @@ export default function ItinerarioCompartido() {
               </div>
 
               <div className="pila">
+                {data.itinerary.totalEstimatedCost > 0 && (
+                  <Tarjeta titulo="Costo estimado de actividades">
+                    <div className="fila-entre">
+                      <span className="suave">Por persona</span>
+                      <span className="numero grande">
+                        {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
+                      </span>
+                    </div>
+                    <div className="fila-entre" style={{ marginTop: 6 }}>
+                      <span className="suave">
+                        {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
+                      </span>
+                      <span className="numero">
+                        {formatoMoneda(data.itinerary.totalEstimatedCost * paraCuantos, moneda)}
+                      </span>
+                    </div>
+                    <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
+                      Son estimaciones, solo de actividades. No incluyen transporte ni hospedaje.
+                    </p>
+                  </Tarjeta>
+                )}
+
                 {data.pins?.length > 0 && (
                   <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
                     <Suspense fallback={<Cargando texto="Cargando mapa..." />}>

@@ -1005,6 +1005,14 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .linea-gasto:last-child { border-bottom: none; }
 
+.selector-personas {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  flex-wrap: wrap;
+}
+.selector-personas .boton.chico { padding: 4px 11px; }
+
 .punto-color {
   width: 9px;
   height: 9px;

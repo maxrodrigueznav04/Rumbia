@@ -89,9 +89,12 @@ export const generarItinerarioInvitado = asyncHandler(async (req, res) => {
 /**
  * Itinerario compartido por enlace, sin sesion.
  *
- * Se devuelve lo justo para leerlo: destino, fechas y los dias. Deliberadamente
- * NO viajan el dueno, su correo, el presupuesto ni los gastos: quien recibe el
- * enlace viene a ver el plan del viaje, no las finanzas de quien lo armo.
+ * Se devuelve el viaje completo para leerlo: destino, fechas, dias, y como
+ * llega/donde se hospeda/como se mueve (transport, lodging, localTransport),
+ * con sus costos, para que quien lo recibe vea el plan entero y no solo las
+ * actividades. Deliberadamente NO viajan el dueno, su correo, el limite de
+ * presupuesto que se puso ni sus gastos ya registrados (Expense): eso es
+ * finanzas personales de quien armo el viaje, no parte del plan a compartir.
  */
 export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   const itinerary = await Itinerary.findOne({ shareToken: req.params.token });
@@ -104,7 +107,9 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // Si el dueno pertenece a una agencia, la marca es la de la agencia, no la
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
-    .select('title destination origin startDate endDate travelers user')
+    .select(
+      'title destination origin startDate endDate travelers budget transport lodging localTransport user'
+    )
     .populate({
       path: 'user',
       select: 'branding agency',
@@ -133,6 +138,10 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         endDate: trip.endDate,
         travelers: trip.travelers,
         durationDays: trip.durationDays,
+        budget: { currency: trip.budget?.currency || 'MXN' },
+        transport: trip.transport,
+        lodging: trip.lodging,
+        localTransport: trip.localTransport,
       },
       itinerary: {
         days: itinerary.days,
