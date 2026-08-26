@@ -1,6 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
-import { getWeatherForRange, geocode } from '../services/weather.service.js';
+import { getWeatherForRange, geocode, geocodeSugerencias } from '../services/weather.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 
 /** GET /api/weather?lat&lng&startDate&endDate */
@@ -56,4 +56,11 @@ export const geocodePlace = asyncHandler(async (req, res) => {
   const hit = await geocode(q);
   if (!hit) throw ApiError.notFound(`No se encontró el lugar "${q}".`);
   res.json({ success: true, data: { place: hit } });
+});
+
+/** GET /api/weather/geocode/sugerencias?q=Guada — autocompletado del destino. */
+export const sugerirLugares = asyncHandler(async (req, res) => {
+  const { q } = req.validatedQuery;
+  const lugares = await geocodeSugerencias(q);
+  res.json({ success: true, data: { lugares } });
 });

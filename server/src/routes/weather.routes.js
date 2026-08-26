@@ -10,5 +10,6 @@ router.use(protect);
 
 router.get('/', validate(weatherQuerySchema, 'query'), ctrl.getWeather);
 router.get('/geocode', validate(geocodeQuerySchema, 'query'), ctrl.geocodePlace);
+router.get('/geocode/sugerencias', validate(geocodeQuerySchema, 'query'), ctrl.sugerirLugares);
 
 export default router;

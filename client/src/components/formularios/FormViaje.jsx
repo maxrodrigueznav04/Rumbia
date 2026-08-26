@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { tripsApi, weatherApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
 import CampoFechas from '../CampoFechas.jsx';
+import CampoDestino from '../CampoDestino.jsx';
 import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 
 const ESTADOS = [
@@ -20,6 +22,9 @@ const diasEntre = (a, b) => {
 
 /** Edición del viaje: título, destino, fechas, viajeros, presupuesto y estado. */
 export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
+  // Coordenadas de la sugerencia elegida en el autocompletado, si eligió una.
+  const [lugarElegido, setLugarElegido] = useState(null);
+
   const form = useFormulario(
     {
       title: viaje.title || '',
@@ -72,16 +77,24 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
     };
 
     // Si cambió el destino hay que volver a geocodificar: si no, el mapa y el
-    // clima seguirían apuntando a la ciudad anterior.
+    // clima seguirían apuntando a la ciudad anterior. Si ya eligió una
+    // sugerencia del autocompletado, esas coordenadas ya son las correctas.
     if (destinoCambio) {
       let coords = {};
-      try {
-        const geo = await weatherApi.geocode(v.destino.trim());
-        coords = { lat: geo.place.lat, lng: geo.place.lng, country: geo.place.country };
-      } catch {
-        coords = {};
+      if (lugarElegido) {
+        coords = { lat: lugarElegido.lat, lng: lugarElegido.lng, country: lugarElegido.country };
+      } else {
+        try {
+          const geo = await weatherApi.geocode(v.destino.trim());
+          coords = { lat: geo.place.lat, lng: geo.place.lng, country: geo.place.country };
+        } catch {
+          coords = {};
+        }
       }
-      payload.destination = { name: v.destino.trim(), ...coords };
+      // Igual que al crear: si vino de una sugerencia, se guarda solo el
+      // nombre del lugar. Estado y pais ya viajan en `coords` y la pantalla
+      // los vuelve a pegar al mostrar el destino.
+      payload.destination = { name: lugarElegido?.name || v.destino.trim(), ...coords };
     }
 
     if (v.origen.trim() !== (viaje.origin?.name || '')) {
@@ -114,10 +127,18 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           />
         </div>
 
-        <Campo
+        <CampoDestino
           label="Destino"
           ayuda={destinoCambio ? 'Se volverá a ubicar en el mapa al guardar.' : undefined}
-          {...form.props('destino')}
+          name={form.props('destino').name}
+          value={form.props('destino').value}
+          error={form.props('destino').error}
+          onBlur={form.props('destino').onBlur}
+          onChange={(e) => {
+            setLugarElegido(null);
+            form.props('destino').onChange(e);
+          }}
+          onSeleccionar={setLugarElegido}
         />
 
         <Campo label="Origen" placeholder="Monterrey" {...form.props('origen')} />

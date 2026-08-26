@@ -4,6 +4,7 @@ import { tripsApi, weatherApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
+import CampoDestino from '../components/CampoDestino.jsx';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
@@ -23,8 +24,14 @@ export default function NuevoViaje() {
   const [error, setError] = useState(null);
   const [detalles, setDetalles] = useState([]);
   const [enviando, setEnviando] = useState(false);
+  // Coordenadas de la sugerencia elegida, si eligió una: asi no hay que
+  // volver a geocodificar al guardar, y el mapa/clima arrancan exactos.
+  const [lugarElegido, setLugarElegido] = useState(null);
 
-  const cambiar = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const cambiar = (e) => {
+    if (e.target.name === 'destino') setLugarElegido(null);
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  };
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -33,19 +40,30 @@ export default function NuevoViaje() {
     setEnviando(true);
 
     try {
-      // Se intenta geocodificar el destino para tener mapa y clima desde el inicio.
-      // Si falla (sin API key o lugar raro), el viaje se crea igual sin coordenadas.
+      // Si ya eligió una sugerencia del autocompletado, esas coordenadas ya
+      // son las correctas: no hace falta geocodificar de nuevo. Si no eligió
+      // ninguna (escribió y ya), se intenta igual al guardar, como antes.
       let coords = {};
-      try {
-        const geo = await weatherApi.geocode(form.destino);
-        coords = { lat: geo.place.lat, lng: geo.place.lng, country: geo.place.country };
-      } catch {
-        coords = {};
+      if (lugarElegido) {
+        coords = { lat: lugarElegido.lat, lng: lugarElegido.lng, country: lugarElegido.country };
+      } else {
+        try {
+          const geo = await weatherApi.geocode(form.destino);
+          coords = { lat: geo.place.lat, lng: geo.place.lng, country: geo.place.country };
+        } catch {
+          coords = {};
+        }
       }
 
+      // Si vino de una sugerencia, el nombre que se guarda es solo el lugar
+      // ("Guadalajara"): el estado y el país ya viajan aparte en `coords`, y
+      // la pantalla los vuelve a pegar al mostrarlo. Guardar la etiqueta
+      // completa duplicaría el país ("Guadalajara, Jalisco, Mexico, Mexico").
+      const nombreDestino = lugarElegido?.name || form.destino.trim();
+
       const viaje = await tripsApi.create({
-        title: form.title.trim() || `Viaje a ${form.destino}`,
-        destination: { name: form.destino.trim(), ...coords },
+        title: form.title.trim() || `Viaje a ${nombreDestino}`,
+        destination: { name: nombreDestino, ...coords },
         origin: form.origen.trim() ? { name: form.origen.trim() } : undefined,
         startDate: form.startDate,
         endDate: form.endDate,
@@ -83,14 +101,14 @@ export default function NuevoViaje() {
         <form onSubmit={enviar} className="pila" noValidate>
           {error && <Aviso tipo="error">{error}</Aviso>}
 
-          <Campo
+          <CampoDestino
             label="¿A dónde vas?"
             name="destino"
             placeholder="Oaxaca de Juarez, Lisboa, Tokio..."
             value={form.destino}
             onChange={cambiar}
+            onSeleccionar={setLugarElegido}
             error={errorDe('destination')}
-            required
           />
 
           <Campo

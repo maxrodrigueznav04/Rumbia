@@ -571,6 +571,42 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 .campo input[type='date'] { cursor: pointer; }
 
+.sugerencias-destino {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+  box-shadow: var(--sombra-lg);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.sugerencias-destino button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: none;
+  background: none;
+  border-radius: calc(var(--radio-sm) - 3px);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.sugerencias-destino button:hover,
+.sugerencias-destino button.activo {
+  background: var(--arena-100);
+}
+
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus {

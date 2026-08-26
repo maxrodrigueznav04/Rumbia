@@ -131,6 +131,7 @@ export const expensesApi = {
 export const weatherApi = {
   forRange: (params, opts) => api.get(`/weather${qs(params)}`, opts),
   geocode: (q, opts) => api.get(`/weather/geocode${qs({ q })}`, opts),
+  sugerencias: (q, opts) => api.get(`/weather/geocode/sugerencias${qs({ q })}`, opts),
 };
 
 export { ApiError } from './client.js';

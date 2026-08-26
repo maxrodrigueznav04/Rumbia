@@ -24,7 +24,10 @@ export default function FormTransporte({ abierto, onCerrar, viaje, tramo, onGuar
     {
       mode: datos.mode || 'avion',
       provider: datos.provider || '',
-      departureAt: paraInputFechaHora(datos.departureAt),
+      // Sin fecha capturada, el calendario abre en la fecha del viaje, no en
+      // "hoy": si el viaje es del 25 de enero, ahi es donde tiene sentido que
+      // el vuelo empiece a buscarse, no en el mes en el que estas editando.
+      departureAt: paraInputFechaHora(datos.departureAt || (esIda ? viaje.startDate : viaje.endDate)),
       cost: datos.cost ?? '',
       bookingRef: datos.bookingRef || '',
       isEstimate: datos.isEstimate ?? true,
@@ -84,6 +87,7 @@ export default function FormTransporte({ abierto, onCerrar, viaje, tramo, onGuar
           <Campo
             label={esIda ? 'Salida' : 'Regreso'}
             type="datetime-local"
+            onClick={(e) => e.currentTarget.showPicker?.()}
             {...form.props('departureAt')}
           />
           <Campo

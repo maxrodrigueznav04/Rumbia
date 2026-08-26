@@ -177,6 +177,11 @@ export default function Itinerario() {
   };
 
   const enlacePublico = compartir ? `${window.location.origin}/i/${compartir.token}` : null;
+  const mensajeWhatsApp = enlacePublico
+    ? `${viaje?.cliente?.nombre ? `Hola ${viaje.cliente.nombre}, te` : 'Te'} comparto tu itinerario${
+        viaje?.destination?.name ? ` a ${viaje.destination.name}` : ''
+      }: ${enlacePublico}`
+    : '';
 
   const generarEnlace = async () => {
     setTrabajandoEnlace(true);
@@ -435,6 +440,14 @@ export default function Itinerario() {
             <Boton chico onClick={copiar}>
               {copiado ? 'Copiado' : 'Copiar'}
             </Boton>
+            <a
+              className="boton secundario chico"
+              href={`https://wa.me/?text=${encodeURIComponent(mensajeWhatsApp)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp
+            </a>
             <Boton variante="peligro-texto" chico onClick={revocarEnlace} cargando={trabajandoEnlace}>
               Dejar de compartir
             </Boton>

@@ -4,6 +4,11 @@ import { isoDay } from '../utils/dates.js';
 
 const GEO_URL = 'https://api.openweathermap.org/geo/1.0/direct';
 const FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast';
+// Photon (proyecto de OpenStreetMap/Komoot) resuelve nombres parciales
+// ("Guadalaj" -> Guadalajara); la API de geocodificacion de OpenWeatherMap
+// no: exige el nombre casi completo, asi que sirve para resolver un lugar al
+// guardar pero no para sugerir mientras se escribe. Es publica y sin llave.
+const PHOTON_URL = 'https://photon.komoot.io/api/';
 const TIMEOUT_MS = 10000;
 const FORECAST_HORIZON_DAYS = 5; // el tier gratuito solo pronostica 5 dias
 
@@ -35,6 +40,45 @@ export async function geocode(query) {
   if (!Array.isArray(data) || !data.length) return null;
   const [hit] = data;
   return { name: hit.name, country: hit.country, state: hit.state, lat: hit.lat, lng: hit.lon };
+}
+
+/**
+ * Varios lugares que podrian coincidir con lo que se esta escribiendo, para
+ * un autocompletado. A diferencia de geocode() (que resuelve UN lugar al
+ * guardar, con OpenWeatherMap), aqui interesa dejar que la persona elija
+ * entre "Guadalajara, Mexico" y "Guadalajara, Spain" mientras todavia esta
+ * escribiendo — para eso hace falta Photon, no OpenWeatherMap.
+ *
+ * No depende de que OpenWeatherMap este configurado: Photon es publico y no
+ * pide llave. Si Photon no responde (esta caido, tarda, lo que sea), aqui se
+ * traga el error y regresa una lista vacia: el campo de destino sigue
+ * funcionando como texto libre, la sugerencia es un plus, no un requisito.
+ */
+export async function geocodeSugerencias(query, limit = 5) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    // Photon solo acepta "default", "de", "en" o "fr" como idioma: "es" tira
+    // un 400. "en" da nombres de pais en ingles (Mexico, Spain), que aqui es
+    // solo la etiqueta de la sugerencia, no el texto final que se guarda.
+    const url = `${PHOTON_URL}?q=${encodeURIComponent(query)}&limit=${limit}&lang=en&osm_tag=place`;
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data?.features || [])
+      .filter((f) => f.properties?.name)
+      .map((f) => ({
+        name: f.properties.name,
+        country: f.properties.country,
+        state: f.properties.state,
+        lat: f.geometry.coordinates[1],
+        lng: f.geometry.coordinates[0],
+      }));
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -173,4 +217,4 @@ export async function getWeatherForRange({ lat, lng, startDate, endDate }) {
   };
 }
 
-export default { geocode, getWeatherForRange };
+export default { geocode, geocodeSugerencias, getWeatherForRange };

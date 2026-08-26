@@ -26,6 +26,7 @@ import {
 import Icono from '../components/Icono.jsx';
 import {
   formatoMoneda,
+  formatoFecha,
   rangoFechas,
   tiempoRelativo,
   humanizar,
@@ -216,6 +217,11 @@ export default function DetalleViaje() {
             {rangoFechas(viaje.startDate, viaje.endDate)} · {viaje.durationDays} días ·{' '}
             {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
           </p>
+          {viaje.createdAt && (
+            <p className="tenue" style={{ margin: '4px 0 0', fontSize: '0.8rem' }}>
+              Creado el {formatoFecha(viaje.createdAt)}
+            </p>
+          )}
         </div>
 
         <div className="fila">
