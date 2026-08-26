@@ -106,6 +106,14 @@ const tripSchema = new mongoose.Schema(
     status: { type: String, enum: TRIP_STATUSES, default: 'borrador', index: true },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },
+    // Quien viaja, no quien organiza. Ninguno de los dos es obligatorio:
+    // alguien planeando su propio viaje no necesita esto. Sirve para
+    // encontrar el viaje en la lista ("el de la familia Hernandez") y para
+    // saber a quien contactar, sin ser un CRM aparte.
+    cliente: {
+      nombre: { type: String, trim: true, maxlength: 160, default: '' },
+      contacto: { type: String, trim: true, maxlength: 160, default: '' },
+    },
     // Para agencias con paquete cerrado o que le suman su comisión: el
     // cliente ve el total y de qué se compone (vuelo, hotel, traslados), pero
     // no el precio de cada renglon. Se aplica en el PDF y el enlace publico;

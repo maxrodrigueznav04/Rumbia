@@ -37,6 +37,11 @@ export default function TarjetaViaje({ viaje }) {
 
         <h3 className="viaje-destino">{viaje.destination?.name}</h3>
         <p className="viaje-titulo">{viaje.title}</p>
+        {viaje.cliente?.nombre && (
+          <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.85rem' }}>
+            Para {viaje.cliente.nombre}
+          </p>
+        )}
 
         <div className="viaje-meta">
           <span className="viaje-fechas">{rangoFechas(viaje.startDate, viaje.endDate)}</span>

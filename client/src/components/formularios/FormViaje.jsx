@@ -31,6 +31,8 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       presupuesto: viaje.budget?.amount || '',
       status: viaje.status || 'borrador',
       notes: viaje.notes || '',
+      clienteNombre: viaje.cliente?.nombre || '',
+      clienteContacto: viaje.cliente?.contacto || '',
       ocultarDesglose: viaje.ocultarDesglose ?? false,
       margenTipo: viaje.margen?.tipo || 'fijo',
       margenMonto: viaje.margen?.monto || '',
@@ -64,6 +66,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       budget: { amount: Number(v.presupuesto) || 0 },
       status: v.status,
       notes: v.notes.trim(),
+      cliente: { nombre: v.clienteNombre.trim(), contacto: v.clienteContacto.trim() },
       ocultarDesglose: v.ocultarDesglose,
       margen: { tipo: v.margenTipo, monto: Number(v.margenMonto) || 0 },
     };
@@ -96,6 +99,20 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
         <Campo label="Nombre del viaje" {...form.props('title')} />
+
+        <div className="campos-2">
+          <Campo
+            label="Cliente"
+            placeholder="Familia Hernández"
+            ayuda="Opcional. Para encontrarlo en tu lista y saber para quién es."
+            {...form.props('clienteNombre')}
+          />
+          <Campo
+            label="Contacto del cliente"
+            placeholder="WhatsApp, correo..."
+            {...form.props('clienteContacto')}
+          />
+        </div>
 
         <Campo
           label="Destino"

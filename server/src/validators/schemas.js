@@ -176,6 +176,11 @@ export const localTransportSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
+const clienteSchema = z.object({
+  nombre: z.string().trim().max(160).optional(),
+  contacto: z.string().trim().max(160).optional(),
+});
+
 export const createTripSchema = z
   .object({
     title: z.string().trim().min(2, 'Ponle un título al viaje.').max(120),
@@ -190,6 +195,7 @@ export const createTripSchema = z
     status: z.enum(TRIP_STATUSES).optional(),
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
+    cliente: clienteSchema.optional(),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: 'La fecha de regreso no puede ser anterior a la de salida.',
@@ -213,6 +219,7 @@ export const updateTripSchema = z
     localTransport: z.array(localTransportSchema).max(10).optional(),
     ocultarDesglose: z.boolean().optional(),
     margen: z.object({ tipo: z.enum(['fijo', 'porcentaje']).optional(), monto: money.optional() }).optional(),
+    cliente: clienteSchema.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' })
   .refine((v) => !(v.startDate && v.endDate) || v.endDate >= v.startDate, {

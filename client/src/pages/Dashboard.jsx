@@ -124,7 +124,7 @@ export default function Dashboard() {
             type="search"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre o destino"
+            placeholder="Buscar por nombre, destino o cliente"
             aria-label="Buscar viajes"
           />
           {busqueda && (
@@ -171,7 +171,7 @@ export default function Dashboard() {
           }
         >
           {buscando
-            ? `Probamos con "${consulta}" en el nombre y el destino de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
+            ? `Probamos con "${consulta}" en el nombre, el destino y el cliente de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
             : filtro === 'pasados'
               ? 'Cuando termine un viaje aparecerá aquí, con su itinerario y sus gastos.'
               : 'Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día.'}

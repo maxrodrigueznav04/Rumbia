@@ -203,6 +203,12 @@ export default function DetalleViaje() {
             <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>
           </div>
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
+          {viaje.cliente?.nombre && (
+            <p className="suave" style={{ margin: '0 0 2px' }}>
+              Para <strong>{viaje.cliente.nombre}</strong>
+              {viaje.cliente.contacto ? ` · ${viaje.cliente.contacto}` : ''}
+            </p>
+          )}
           <p className="suave" style={{ margin: 0 }}>
             <Icono nombre="pin" tamano={15} />{' '}
             {viaje.destination?.name}
@@ -239,7 +245,9 @@ export default function DetalleViaje() {
       )}
 
       {variantes.length > 0 && (
-        <Tarjeta titulo="Otras opciones para este cliente">
+        <Tarjeta
+          titulo={viaje.cliente?.nombre ? `Otras opciones para ${viaje.cliente.nombre}` : 'Otras opciones para este cliente'}
+        >
           <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
             {variantes.map((v) => {
               const estadoV = ETIQUETAS_ESTADO[v.status] || ETIQUETAS_ESTADO.borrador;

@@ -68,7 +68,13 @@ export const listTrips = asyncHandler(async (req, res) => {
   else if (status === 'pasados') filter.endDate = { $lt: now };
   else if (status) filter.status = status;
 
-  if (q) filter.$or = [{ title: new RegExp(q, 'i') }, { 'destination.name': new RegExp(q, 'i') }];
+  if (q) {
+    filter.$or = [
+      { title: new RegExp(q, 'i') },
+      { 'destination.name': new RegExp(q, 'i') },
+      { 'cliente.nombre': new RegExp(q, 'i') },
+    ];
+  }
 
   const [trips, total] = await Promise.all([
     Trip.find(filter)
@@ -192,6 +198,7 @@ export const duplicarViaje = asyncHandler(async (req, res) => {
     travelers: original.travelers,
     budget: { amount: original.budget?.amount, currency: original.budget?.currency },
     notes: original.notes,
+    cliente: { nombre: original.cliente?.nombre, contacto: original.cliente?.contacto },
     ocultarDesglose: original.ocultarDesglose,
     margen: original.margen ? { tipo: original.margen.tipo, monto: original.margen.monto } : undefined,
     transport: {
