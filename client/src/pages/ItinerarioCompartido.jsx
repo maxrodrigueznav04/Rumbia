@@ -127,7 +127,7 @@ export default function ItinerarioCompartido() {
 
               <div className="pila">
                 {(data.itinerary.totalEstimatedCost > 0 || data.viaje.coreCosts?.total > 0) && (
-                  <Tarjeta titulo="Costo total estimado">
+                  <Tarjeta titulo={data.viaje.hayMargen ? 'Precio total' : 'Costo total estimado'}>
                     {!ocultarCosto && (
                       <div className="pila-sm">
                         <div className="linea-gasto">
@@ -145,17 +145,21 @@ export default function ItinerarioCompartido() {
                             )}
                           </span>
                         </div>
+                        {data.viaje.margenPorPersona > 0 && (
+                          <div className="linea-gasto">
+                            <span className="suave">Cuota de servicio</span>
+                            <span className="numero">
+                              {formatoMoneda(data.viaje.margenPorPersona, moneda)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     <div className="fila-entre" style={{ marginTop: 12 }}>
                       <span className="suave">Por persona</span>
                       <span className="numero grande">
-                        {formatoMoneda(
-                          data.itinerary.totalEstimatedCost +
-                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
-                          moneda
-                        )}
+                        {formatoMoneda(data.viaje.precioTotalPorPersona, moneda)}
                       </span>
                     </div>
                     <div className="fila-entre" style={{ marginTop: 6 }}>
@@ -163,12 +167,7 @@ export default function ItinerarioCompartido() {
                         {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
                       </span>
                       <span className="numero">
-                        {formatoMoneda(
-                          (data.itinerary.totalEstimatedCost +
-                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1)) *
-                            paraCuantos,
-                          moneda
-                        )}
+                        {formatoMoneda(data.viaje.precioTotalPorPersona * paraCuantos, moneda)}
                       </span>
                     </div>
                     <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>

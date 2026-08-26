@@ -32,6 +32,8 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       status: viaje.status || 'borrador',
       notes: viaje.notes || '',
       ocultarDesglose: viaje.ocultarDesglose ?? false,
+      margenTipo: viaje.margen?.tipo || 'fijo',
+      margenMonto: viaje.margen?.monto || '',
     },
     {
       title: reglas.requerido('El título'),
@@ -63,6 +65,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       status: v.status,
       notes: v.notes.trim(),
       ocultarDesglose: v.ocultarDesglose,
+      margen: { tipo: v.margenTipo, monto: Number(v.margenMonto) || 0 },
     };
 
     // Si cambió el destino hay que volver a geocodificar: si no, el mapa y el
@@ -161,6 +164,28 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
         <Campo label="Notas">
           <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
         </Campo>
+
+        <div className="campos-2">
+          <Campo label="Margen o cuota de servicio">
+            <select {...form.props('margenTipo')}>
+              <option value="fijo">Monto fijo</option>
+              <option value="porcentaje">Porcentaje sobre el costo</option>
+            </select>
+          </Campo>
+          <Campo
+            label={valores.margenTipo === 'porcentaje' ? 'Porcentaje' : 'Monto'}
+            type="number"
+            min="0"
+            step={valores.margenTipo === 'porcentaje' ? '1' : '100'}
+            placeholder="0"
+            ayuda={
+              valores.margenTipo === 'porcentaje'
+                ? 'Se suma ese % sobre el costo total.'
+                : `En ${viaje.budget?.currency || 'MXN'}, total del viaje.`
+            }
+            {...form.props('margenMonto')}
+          />
+        </div>
 
         <label className="campo-check">
           <input

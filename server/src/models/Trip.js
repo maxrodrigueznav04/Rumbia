@@ -105,6 +105,14 @@ const tripSchema = new mongoose.Schema(
     // no el precio de cada renglon. Se aplica en el PDF y el enlace publico;
     // el dueño del viaje sigue viendo todo en su propia pantalla.
     ocultarDesglose: { type: Boolean, default: false },
+    // La cuota de servicio o margen de la agencia sobre el costo real. "fijo"
+    // es un monto total del viaje (se reparte entre los viajeros igual que
+    // transporte y hospedaje); "porcentaje" se aplica sobre el costo total.
+    // Se suma al costo real para dar el precio final que ve el cliente.
+    margen: {
+      tipo: { type: String, enum: ['fijo', 'porcentaje'], default: 'fijo' },
+      monto: { type: Number, min: 0, default: 0 },
+    },
 
     // --- Cobertura de gastos principales ---
     transport: {

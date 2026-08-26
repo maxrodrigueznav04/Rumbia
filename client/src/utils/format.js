@@ -135,6 +135,19 @@ export function porPersonas(totalGrupo, travelers, personas) {
   return (Number(totalGrupo) || 0) * (n / base);
 }
 
+/**
+ * Suma la cuota de servicio/margen de la agencia a un costo por persona ya
+ * calculado. "fijo" es un monto del viaje completo (se reparte entre
+ * travelers, igual que transporte y hospedaje); "porcentaje" se aplica sobre
+ * el costo. Sin margen capturado, regresa el costo tal cual.
+ */
+export function conMargen(costoPorPersona, margen, travelers) {
+  const monto = margen?.monto || 0;
+  if (monto <= 0) return costoPorPersona;
+  if (margen.tipo === 'porcentaje') return costoPorPersona * (1 + monto / 100);
+  return costoPorPersona + monto / (travelers > 0 ? travelers : 1);
+}
+
 /** "transporte-local" -> "Transporte local" */
 export function humanizar(slug = '') {
   const texto = String(slug).replace(/-/g, ' ');

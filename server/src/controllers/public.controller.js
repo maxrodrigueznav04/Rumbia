@@ -108,7 +108,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose user'
+      'title destination origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen user'
     )
     .populate({
       path: 'user',
@@ -178,6 +178,35 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
 
   const coreCostsPublico = desglosePublico ? trip.coreCosts : { total: trip.coreCosts.total };
 
+  /**
+   * El precio final que ve el cliente: costo real (actividades + logistica)
+   * mas la cuota/margen de la agencia, si la capturo. El margen crudo (tipo y
+   * monto) NUNCA viaja al publico: solo se manda como una linea reconciliada
+   * ("Cuota de servicio") cuando el dueño decidio no ocultar el desglose; si
+   * lo oculto, tampoco se manda esa linea, solo el precio final ya sumado.
+   */
+  const travelers = trip.travelers || 1;
+  const costoPorPersonaSinMargen = itinerary.totalEstimatedCost + (trip.coreCosts.total || 0) / travelers;
+  const margenMonto = trip.margen?.monto || 0;
+  const precioTotalPorPersona = Number(
+    (
+      margenMonto <= 0
+        ? costoPorPersonaSinMargen
+        : trip.margen.tipo === 'porcentaje'
+          ? costoPorPersonaSinMargen * (1 + margenMonto / 100)
+          : costoPorPersonaSinMargen + margenMonto / travelers
+    ).toFixed(2)
+  );
+  const margenPorPersona =
+    desglosePublico && margenMonto > 0
+      ? Number((precioTotalPorPersona - costoPorPersonaSinMargen).toFixed(2))
+      : undefined;
+  // Que exista un margen no es sensible por si solo (es normal que un
+  // paquete incluya una cuota de servicio); lo que se protege es el MONTO,
+  // que solo viaja arriba cuando el desglose esta visible. Este booleano
+  // sirve para que el titulo diga "Precio total" aun con el desglose oculto.
+  const hayMargen = margenMonto > 0;
+
   const diasPublicos = desglosePublico
     ? itinerary.days
     : itinerary.days.map((d) => {
@@ -201,6 +230,9 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         localTransport: localTransportPublico,
         coreCosts: coreCostsPublico,
         ocultarDesglose: trip.ocultarDesglose,
+        precioTotalPorPersona,
+        margenPorPersona,
+        hayMargen,
       },
       itinerary: {
         days: diasPublicos,

@@ -19,7 +19,14 @@ import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { formatoMoneda, formatoFecha, humanizar, porPersonas, ICONOS_CATEGORIA } from '../utils/format.js';
+import {
+  formatoMoneda,
+  formatoFecha,
+  humanizar,
+  porPersonas,
+  conMargen,
+  ICONOS_CATEGORIA,
+} from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
@@ -130,6 +137,10 @@ export default function Itinerario() {
   const moneda = viaje?.budget?.currency || 'MXN';
   const paraCuantos = Math.min(personas ?? viaje?.travelers ?? 1, viaje?.travelers || 1);
   const ocultarCosto = Boolean(viaje?.ocultarDesglose);
+  const hayMargen = Boolean(viaje?.margen?.monto > 0);
+  const costoSinMargen =
+    (itinerario?.totalEstimatedCost || 0) + porPersonas(viaje?.coreCosts?.total || 0, viaje?.travelers, 1);
+  const precioBasePorPersona = conMargen(costoSinMargen, viaje?.margen, viaje?.travelers);
 
   const generar = async (regenerar = false) => {
     setErrorGen(null);
@@ -616,7 +627,7 @@ export default function Itinerario() {
               </p>
             </Tarjeta>
 
-            <Tarjeta titulo="Costo total estimado">
+            <Tarjeta titulo={hayMargen ? 'Precio total' : 'Costo total estimado'}>
               {!ocultarCosto && (
                 <div className="pila-sm">
                   <div className="linea-gasto">
@@ -629,29 +640,24 @@ export default function Itinerario() {
                       {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
                     </span>
                   </div>
+                  {hayMargen && (
+                    <div className="linea-gasto">
+                      <span className="suave">Cuota de servicio</span>
+                      <span className="numero">{formatoMoneda(precioBasePorPersona - costoSinMargen, moneda)}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
               <div className="fila-entre" style={{ marginTop: 12 }}>
                 <span className="suave">Por persona</span>
-                <span className="numero grande">
-                  {formatoMoneda(
-                    itinerario.totalEstimatedCost + porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1),
-                    moneda
-                  )}
-                </span>
+                <span className="numero grande">{formatoMoneda(precioBasePorPersona, moneda)}</span>
               </div>
               <div className="fila-entre" style={{ marginTop: 6 }}>
                 <span className="suave">
                   {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
                 </span>
-                <span className="numero">
-                  {formatoMoneda(
-                    (itinerario.totalEstimatedCost + porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1)) *
-                      paraCuantos,
-                    moneda
-                  )}
-                </span>
+                <span className="numero">{formatoMoneda(precioBasePorPersona * paraCuantos, moneda)}</span>
               </div>
               <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
                 Actividades sugeridas por la IA, más lo que ya capturaste en transporte y hospedaje. Son

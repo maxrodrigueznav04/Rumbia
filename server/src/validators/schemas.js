@@ -212,6 +212,7 @@ export const updateTripSchema = z
     lodging: z.array(lodgingSchema).max(10).optional(),
     localTransport: z.array(localTransportSchema).max(10).optional(),
     ocultarDesglose: z.boolean().optional(),
+    margen: z.object({ tipo: z.enum(['fijo', 'porcentaje']).optional(), monto: money.optional() }).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' })
   .refine((v) => !(v.startDate && v.endDate) || v.endDate >= v.startDate, {
