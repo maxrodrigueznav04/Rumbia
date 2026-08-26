@@ -46,6 +46,7 @@ export const tripsApi = {
   create: (payload) => api.post('/trips', payload),
   update: (id, payload) => api.patch(`/trips/${id}`, payload),
   remove: (id) => api.delete(`/trips/${id}`),
+  duplicar: (id) => api.post(`/trips/${id}/duplicar`),
   summary: (id, opts) => api.get(`/trips/${id}/summary`, opts),
   bookingLinks: (id, params, opts) => api.get(`/trips/${id}/booking-links${qs(params)}`, opts),
   weather: (id, opts) => api.get(`/trips/${id}/weather`, opts),

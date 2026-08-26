@@ -23,6 +23,7 @@ router.post('/', validate(createTripSchema), ctrl.createTrip);
 router.get('/:id', ctrl.getTrip);
 router.patch('/:id', validate(updateTripSchema), ctrl.updateTrip);
 router.delete('/:id', ctrl.deleteTrip);
+router.post('/:id/duplicar', ctrl.duplicarViaje);
 
 router.get('/:id/summary', ctrl.getTripSummary);
 router.get('/:id/booking-links', validate(bookingLinksQuerySchema, 'query'), ctrl.getBookingLinks);

@@ -92,6 +92,7 @@ export default function DetalleViaje() {
   // Qué modal está abierto: { tipo, tramo?, indice? }
   const [modal, setModal] = useState(null);
   const [confirmar, setConfirmar] = useState(null);
+  const [duplicando, setDuplicando] = useState(false);
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
   const [personas, setPersonas] = useState(null);
   // Resultado de sincronizar el itinerario cuando cambian las fechas del viaje.
@@ -131,6 +132,7 @@ export default function DetalleViaje() {
   }
 
   const viaje = viajeReq.data.trip;
+  const variantes = viajeReq.data.variantes || [];
   const estado = ETIQUETAS_ESTADO[viaje.status] || ETIQUETAS_ESTADO.borrador;
   const moneda = viaje.budget?.currency || 'MXN';
   const enlaces = enlacesReq.data?.links || {};
@@ -145,6 +147,20 @@ export default function DetalleViaje() {
   const eliminarViaje = async () => {
     await tripsApi.remove(id);
     navigate('/viajes', { replace: true });
+  };
+
+  /** Copia el viaje completo (logistica, margen, itinerario) para armar una
+      variante — "Opcion Economica" vs "Premium" del mismo prospecto. */
+  const duplicarViaje = async () => {
+    setDuplicando(true);
+    try {
+      const res = await tripsApi.duplicar(id);
+      navigate(`/viajes/${res.trip._id}`);
+    } catch (err) {
+      window.alert(err.message);
+    } finally {
+      setDuplicando(false);
+    }
   };
 
   /** Quita un elemento de lodging o localTransport y guarda el arreglo resultante. */
@@ -203,6 +219,9 @@ export default function DetalleViaje() {
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
             <Icono nombre="lapiz" tamano={15} /> Editar
           </Boton>
+          <Boton variante="secundario" chico onClick={duplicarViaje} cargando={duplicando}>
+            Duplicar
+          </Boton>
           <Boton variante="peligro-texto" chico onClick={() => setConfirmar('viaje')}>
             Eliminar
           </Boton>
@@ -217,6 +236,27 @@ export default function DetalleViaje() {
             ? `Hay ${avisoItinerario.diasSobrantes} día(s) que ya quedan fuera del viaje, con ${avisoItinerario.actividadesEnSobrantes} actividad(es). No se borraron: revísalos en el itinerario.`
             : 'Las fechas de cada día se actualizaron.'}
         </Aviso>
+      )}
+
+      {variantes.length > 0 && (
+        <Tarjeta titulo="Otras opciones para este cliente">
+          <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
+            {variantes.map((v) => {
+              const estadoV = ETIQUETAS_ESTADO[v.status] || ETIQUETAS_ESTADO.borrador;
+              return (
+                <Link
+                  key={v._id}
+                  to={`/viajes/${v._id}`}
+                  className="tarjeta-plana fila"
+                  style={{ gap: 8, textDecoration: 'none' }}
+                >
+                  {v.title}
+                  <Insignia color={estadoV.color}>{estadoV.texto}</Insignia>
+                </Link>
+              );
+            })}
+          </div>
+        </Tarjeta>
       )}
 
       <SelectorPersonas personas={paraCuantos} maximo={viaje.travelers} onCambio={setPersonas} />

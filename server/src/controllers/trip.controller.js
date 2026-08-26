@@ -91,7 +91,18 @@ export const getTrip = asyncHandler(async (req, res) => {
     { path: 'expenses', options: { sort: { date: -1 } } },
   ]);
 
-  res.json({ success: true, data: { trip } });
+  // Otras variantes del mismo prospecto (ver duplicarViaje): el raiz de la
+  // familia no tiene grupoPropuesta propio, asi que el ancla es su propio id.
+  const ancla = trip.grupoPropuesta || trip._id;
+  const variantes = await Trip.find({
+    user: req.user._id,
+    _id: { $ne: trip._id },
+    $or: [{ _id: ancla }, { grupoPropuesta: ancla }],
+  })
+    .select('title status startDate endDate destination')
+    .sort({ createdAt: 1 });
+
+  res.json({ success: true, data: { trip, variantes } });
 });
 
 export const createTrip = asyncHandler(async (req, res) => {
@@ -141,6 +152,82 @@ export const updateTrip = asyncHandler(async (req, res) => {
     message: 'Viaje actualizado.',
     data: { trip, ...(itinerario ? { itinerario } : {}) },
   });
+});
+
+/**
+ * Duplica un viaje completo (logistica, margen, itinerario) para armar
+ * variantes de una misma propuesta: "Opcion Economica" vs "Premium" sin
+ * volver a capturar todo desde cero.
+ *
+ * La copia queda vinculada a la familia del original via grupoPropuesta
+ * (ver el modelo), pero es un viaje independiente en todo lo demas: status
+ * vuelve a "borrador", y no hereda gastos ya registrados ni el enlace
+ * publico del original (cada variante comparte el suyo cuando este lista).
+ */
+export const duplicarViaje = asyncHandler(async (req, res) => {
+  const original = await findOwnedTrip(req.params.id, req.user._id);
+  const itinerarioOriginal = await Itinerary.findOne({ trip: original._id });
+
+  const copia = await Trip.create({
+    user: req.user._id,
+    title: `${original.title} (copia)`,
+    destination: {
+      name: original.destination?.name,
+      address: original.destination?.address,
+      country: original.destination?.country,
+      lat: original.destination?.lat,
+      lng: original.destination?.lng,
+    },
+    origin: original.origin
+      ? {
+          name: original.origin.name,
+          address: original.origin.address,
+          country: original.origin.country,
+          lat: original.origin.lat,
+          lng: original.origin.lng,
+        }
+      : undefined,
+    startDate: original.startDate,
+    endDate: original.endDate,
+    travelers: original.travelers,
+    budget: { amount: original.budget?.amount, currency: original.budget?.currency },
+    notes: original.notes,
+    ocultarDesglose: original.ocultarDesglose,
+    margen: original.margen ? { tipo: original.margen.tipo, monto: original.margen.monto } : undefined,
+    transport: {
+      outbound: original.transport?.outbound ? original.transport.outbound.toObject() : undefined,
+      inbound: original.transport?.inbound ? original.transport.inbound.toObject() : undefined,
+    },
+    lodging: (original.lodging || []).map((l) => {
+      const { _id, id, subtotal, perNight, ...resto } = l.toObject();
+      return resto;
+    }),
+    localTransport: (original.localTransport || []).map((t) => {
+      const { _id, id, ...resto } = t.toObject();
+      return resto;
+    }),
+    grupoPropuesta: original.grupoPropuesta || original._id,
+  });
+
+  if (itinerarioOriginal) {
+    await Itinerary.create({
+      trip: copia._id,
+      user: req.user._id,
+      generatedBy: itinerarioOriginal.generatedBy,
+      model: itinerarioOriginal.model,
+      promptContext: itinerarioOriginal.promptContext,
+      days: itinerarioOriginal.days.map((d) => {
+        const { _id, id, estimatedCost, ...restoDia } = d.toObject();
+        return {
+          ...restoDia,
+          activities: (restoDia.activities || []).map(({ _id: _actId, id: _actIdAlias, ...resto }) => resto),
+        };
+      }),
+      // Sin shareToken: la copia empieza sin enlace publico propio.
+    });
+  }
+
+  res.status(201).json({ success: true, message: 'Viaje duplicado.', data: { trip: copia } });
 });
 
 export const deleteTrip = asyncHandler(async (req, res) => {

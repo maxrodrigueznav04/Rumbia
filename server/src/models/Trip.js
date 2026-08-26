@@ -93,6 +93,12 @@ const tripSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     travelers: { type: Number, min: 1, max: 30, default: 1 },
+    // Al duplicar un viaje para armar variantes ("Opcion Economica" vs
+    // "Premium" del mismo prospecto), la copia apunta aqui al viaje raiz de
+    // la familia. El propio raiz se queda en null: no apunta a si mismo, asi
+    // que para juntar a toda la familia hay que buscar por (grupoPropuesta ||
+    // _id) y no solo por grupoPropuesta.
+    grupoPropuesta: { type: mongoose.Schema.Types.ObjectId, ref: 'Trip', default: null, index: true },
     budget: {
       amount: { type: Number, min: 0, default: 0 },
       currency: { type: String, uppercase: true, minlength: 3, maxlength: 3, default: 'MXN' },
