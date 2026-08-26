@@ -108,7 +108,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination origin startDate endDate travelers budget transport lodging localTransport user'
+      'title destination origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose user'
     )
     .populate({
       path: 'user',
@@ -128,6 +128,63 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     contact: fuenteMarca?.contact || '',
   };
 
+  /**
+   * Si el dueno activo "ocultar desglose" (agencias con paquete cerrado o que
+   * le suman su comision), el precio de cada renglon se quita AQUI, en el
+   * servidor: esconderlo solo en la pantalla no sirve de nada si la respuesta
+   * cruda todavia trae el numero real para quien abra las herramientas del
+   * navegador. Lo unico que se conserva es el total (coreCosts.total y
+   * totalEstimatedCost): el cliente ve cuanto es y de que se compone, pero no
+   * el precio de cada vuelo, noche de hotel o actividad.
+   */
+  const desglosePublico = !trip.ocultarDesglose;
+
+  const transportPublico = desglosePublico
+    ? trip.transport
+    : {
+        outbound: trip.transport?.outbound && {
+          mode: trip.transport.outbound.mode,
+          provider: trip.transport.outbound.provider,
+          departureAt: trip.transport.outbound.departureAt,
+          notes: trip.transport.outbound.notes,
+        },
+        inbound: trip.transport?.inbound && {
+          mode: trip.transport.inbound.mode,
+          provider: trip.transport.inbound.provider,
+          departureAt: trip.transport.inbound.departureAt,
+          notes: trip.transport.inbound.notes,
+        },
+      };
+
+  const lodgingPublico = desglosePublico
+    ? trip.lodging
+    : (trip.lodging || []).map((l) => ({
+        type: l.type,
+        name: l.name,
+        place: l.place,
+        checkIn: l.checkIn,
+        checkOut: l.checkOut,
+        nights: l.nights,
+        notes: l.notes,
+      }));
+
+  const localTransportPublico = desglosePublico
+    ? trip.localTransport
+    : (trip.localTransport || []).map((t) => ({
+        type: t.type,
+        provider: t.provider,
+        notes: t.notes,
+      }));
+
+  const coreCostsPublico = desglosePublico ? trip.coreCosts : { total: trip.coreCosts.total };
+
+  const diasPublicos = desglosePublico
+    ? itinerary.days
+    : itinerary.days.map((d) => {
+        const { estimatedCost, activities, ...restoDia } = d.toObject();
+        return { ...restoDia, activities: activities.map(({ estimatedCost: _c, ...resto }) => resto) };
+      });
+
   res.json({
     success: true,
     data: {
@@ -139,13 +196,14 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         travelers: trip.travelers,
         durationDays: trip.durationDays,
         budget: { currency: trip.budget?.currency || 'MXN' },
-        transport: trip.transport,
-        lodging: trip.lodging,
-        localTransport: trip.localTransport,
-        coreCosts: trip.coreCosts,
+        transport: transportPublico,
+        lodging: lodgingPublico,
+        localTransport: localTransportPublico,
+        coreCosts: coreCostsPublico,
+        ocultarDesglose: trip.ocultarDesglose,
       },
       itinerary: {
-        days: itinerary.days,
+        days: diasPublicos,
         generatedBy: itinerary.generatedBy,
         totalEstimatedCost: itinerary.totalEstimatedCost,
         activityCount: itinerary.activityCount,

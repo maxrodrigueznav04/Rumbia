@@ -31,6 +31,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       presupuesto: viaje.budget?.amount || '',
       status: viaje.status || 'borrador',
       notes: viaje.notes || '',
+      ocultarDesglose: viaje.ocultarDesglose ?? false,
     },
     {
       title: reglas.requerido('El título'),
@@ -61,6 +62,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       budget: { amount: Number(v.presupuesto) || 0 },
       status: v.status,
       notes: v.notes.trim(),
+      ocultarDesglose: v.ocultarDesglose,
     };
 
     // Si cambió el destino hay que volver a geocodificar: si no, el mapa y el
@@ -159,6 +161,22 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
         <Campo label="Notas">
           <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
         </Campo>
+
+        <label className="campo-check">
+          <input
+            type="checkbox"
+            name="ocultarDesglose"
+            checked={form.valores.ocultarDesglose}
+            onChange={form.cambiar}
+          />
+          Ocultar el precio de cada renglón en el PDF y el enlace compartido
+        </label>
+        {form.valores.ocultarDesglose && (
+          <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
+            Tu cliente va a ver el vuelo, el hotel y el transporte que elegiste, pero no su precio —
+            solo el total del viaje. Tú lo sigues viendo completo aquí.
+          </p>
+        )}
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>

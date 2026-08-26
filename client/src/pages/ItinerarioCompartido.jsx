@@ -38,6 +38,7 @@ export default function ItinerarioCompartido() {
   const paraCuantos = data
     ? Math.min(personas ?? data.viaje.travelers, data.viaje.travelers)
     : 1;
+  const ocultarCosto = Boolean(data?.viaje?.ocultarDesglose);
 
   return (
     <div className="inicio">
@@ -110,7 +111,7 @@ export default function ItinerarioCompartido() {
                             {a.description && <p>{a.description}</p>}
                             <div className="fila" style={{ gap: 6 }}>
                               <Insignia>{humanizar(a.category)}</Insignia>
-                              {a.estimatedCost > 0 && (
+                              {!ocultarCosto && a.estimatedCost > 0 && (
                                 <Insignia color="ambar">
                                   ≈ {formatoMoneda(a.estimatedCost, moneda)} por persona
                                 </Insignia>
@@ -127,23 +128,25 @@ export default function ItinerarioCompartido() {
               <div className="pila">
                 {(data.itinerary.totalEstimatedCost > 0 || data.viaje.coreCosts?.total > 0) && (
                   <Tarjeta titulo="Costo total estimado">
-                    <div className="pila-sm">
-                      <div className="linea-gasto">
-                        <span className="suave">Actividades</span>
-                        <span className="numero">
-                          {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
-                        </span>
+                    {!ocultarCosto && (
+                      <div className="pila-sm">
+                        <div className="linea-gasto">
+                          <span className="suave">Actividades</span>
+                          <span className="numero">
+                            {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
+                          </span>
+                        </div>
+                        <div className="linea-gasto">
+                          <span className="suave">Transporte, hospedaje y transporte local</span>
+                          <span className="numero">
+                            {formatoMoneda(
+                              porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
+                              moneda
+                            )}
+                          </span>
+                        </div>
                       </div>
-                      <div className="linea-gasto">
-                        <span className="suave">Transporte, hospedaje y transporte local</span>
-                        <span className="numero">
-                          {formatoMoneda(
-                            porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
-                            moneda
-                          )}
-                        </span>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="fila-entre" style={{ marginTop: 12 }}>
                       <span className="suave">Por persona</span>

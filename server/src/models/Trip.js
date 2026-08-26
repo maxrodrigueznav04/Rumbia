@@ -100,6 +100,11 @@ const tripSchema = new mongoose.Schema(
     status: { type: String, enum: TRIP_STATUSES, default: 'borrador', index: true },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },
+    // Para agencias con paquete cerrado o que le suman su comisión: el
+    // cliente ve el total y de qué se compone (vuelo, hotel, traslados), pero
+    // no el precio de cada renglon. Se aplica en el PDF y el enlace publico;
+    // el dueño del viaje sigue viendo todo en su propia pantalla.
+    ocultarDesglose: { type: Boolean, default: false },
 
     // --- Cobertura de gastos principales ---
     transport: {

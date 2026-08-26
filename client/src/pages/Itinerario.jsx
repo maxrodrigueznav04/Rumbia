@@ -23,7 +23,7 @@ import { formatoMoneda, formatoFecha, humanizar, porPersonas, ICONOS_CATEGORIA }
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
-function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
+function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd }) {
   // La IA a veces repite el título como nombre del lugar: no vale la pena mostrarlo dos veces.
   const lugar = actividad.location?.name;
   const mostrarLugar = lugar && lugar.trim().toLowerCase() !== actividad.title.trim().toLowerCase();
@@ -63,7 +63,7 @@ function Actividad({ actividad, moneda, onEditar, onEliminar, dnd }) {
 
         <div className="fila" style={{ gap: 6 }}>
           <Insignia>{humanizar(actividad.category)}</Insignia>
-          {actividad.estimatedCost > 0 && (
+          {!ocultarCosto && actividad.estimatedCost > 0 && (
             <Insignia color="ambar">{formatoMoneda(actividad.estimatedCost, moneda)}</Insignia>
           )}
           {actividad.durationMinutes > 0 && (
@@ -129,6 +129,7 @@ export default function Itinerario() {
   const pines = itinReq.data?.pins || [];
   const moneda = viaje?.budget?.currency || 'MXN';
   const paraCuantos = Math.min(personas ?? viaje?.travelers ?? 1, viaje?.travelers || 1);
+  const ocultarCosto = Boolean(viaje?.ocultarDesglose);
 
   const generar = async (regenerar = false) => {
     setErrorGen(null);
@@ -562,7 +563,7 @@ export default function Itinerario() {
                       {dia.summary}
                     </p>
                   )}
-                  {dia.estimatedCost > 0 && (
+                  {!ocultarCosto && dia.estimatedCost > 0 && (
                     <div style={{ marginTop: 6 }}>
                       <Insignia color="ambar">
                         ≈ {formatoMoneda(dia.estimatedCost, moneda)} por persona
@@ -583,6 +584,7 @@ export default function Itinerario() {
                       key={a._id}
                       actividad={a}
                       moneda={moneda}
+                      ocultarCosto={ocultarCosto}
                       dnd={dndProps(dia, i, a)}
                       onEditar={() => setModal({ dia, actividad: a })}
                       onEliminar={() => setPorEliminar({ dia, actividad: a })}
@@ -615,18 +617,20 @@ export default function Itinerario() {
             </Tarjeta>
 
             <Tarjeta titulo="Costo total estimado">
-              <div className="pila-sm">
-                <div className="linea-gasto">
-                  <span className="suave">Actividades</span>
-                  <span className="numero">{formatoMoneda(itinerario.totalEstimatedCost, moneda)}</span>
+              {!ocultarCosto && (
+                <div className="pila-sm">
+                  <div className="linea-gasto">
+                    <span className="suave">Actividades</span>
+                    <span className="numero">{formatoMoneda(itinerario.totalEstimatedCost, moneda)}</span>
+                  </div>
+                  <div className="linea-gasto">
+                    <span className="suave">Transporte, hospedaje y transporte local</span>
+                    <span className="numero">
+                      {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
+                    </span>
+                  </div>
                 </div>
-                <div className="linea-gasto">
-                  <span className="suave">Transporte, hospedaje y transporte local</span>
-                  <span className="numero">
-                    {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
-                  </span>
-                </div>
-              </div>
+              )}
 
               <div className="fila-entre" style={{ marginTop: 12 }}>
                 <span className="suave">Por persona</span>
