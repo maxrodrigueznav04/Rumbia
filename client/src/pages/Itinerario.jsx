@@ -424,35 +424,37 @@ export default function Itinerario() {
       </header>
 
       {enlacePublico && (
-        <Aviso tipo="exito" titulo="Tu itinerario ya se puede compartir">
-          <p style={{ margin: '2px 0 8px' }}>
-            Quien abra este enlace verá el itinerario en solo lectura. No verá tu presupuesto, tus
-            gastos ni tu cuenta.
-          </p>
-          <div className="fila" style={{ gap: 8 }}>
-            <input
-              className="enlace-compartir"
-              readOnly
-              value={enlacePublico}
-              onFocus={(e) => e.target.select()}
-              aria-label="Enlace público del itinerario"
-            />
-            <Boton chico onClick={copiar}>
-              {copiado ? 'Copiado' : 'Copiar'}
-            </Boton>
-            <a
-              className="boton secundario chico"
-              href={`https://wa.me/?text=${encodeURIComponent(mensajeWhatsApp)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              WhatsApp
-            </a>
-            <Boton variante="peligro-texto" chico onClick={revocarEnlace} cargando={trabajandoEnlace}>
-              Dejar de compartir
-            </Boton>
-          </div>
-        </Aviso>
+        <div className="no-imprimir">
+          <Aviso tipo="exito" titulo="Tu itinerario ya se puede compartir">
+            <p style={{ margin: '2px 0 8px' }}>
+              Quien abra este enlace verá el itinerario en solo lectura. No verá tu presupuesto, tus
+              gastos ni tu cuenta.
+            </p>
+            <div className="fila" style={{ gap: 8 }}>
+              <input
+                className="enlace-compartir"
+                readOnly
+                value={enlacePublico}
+                onFocus={(e) => e.target.select()}
+                aria-label="Enlace público del itinerario"
+              />
+              <Boton chico onClick={copiar}>
+                {copiado ? 'Copiado' : 'Copiar'}
+              </Boton>
+              <a
+                className="boton secundario chico"
+                href={`https://wa.me/?text=${encodeURIComponent(mensajeWhatsApp)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+              <Boton variante="peligro-texto" chico onClick={revocarEnlace} cargando={trabajandoEnlace}>
+                Dejar de compartir
+              </Boton>
+            </div>
+          </Aviso>
+        </div>
       )}
 
       {errorGen && (
@@ -526,10 +528,12 @@ export default function Itinerario() {
         <div className="rejilla rejilla-detalle">
           <div className="pila">
             {itinerario.generatedBy === 'ia' && (
-              <Aviso tipo="info">
-                Generado con {itinerario.model || 'IA'}. Revisa horarios, precios y disponibilidad
-                antes de darlo por hecho: la IA se puede equivocar.
-              </Aviso>
+              <div className="no-imprimir">
+                <Aviso tipo="info">
+                  Generado con {itinerario.model || 'IA'}. Revisa horarios, precios y disponibilidad
+                  antes de darlo por hecho: la IA se puede equivocar.
+                </Aviso>
+              </div>
             )}
 
             {itinerario.days.length > viaje.durationDays && (
