@@ -14,6 +14,10 @@ export const TRAVEL_STYLES = [
 
 export const BUDGET_LEVELS = ['bajo', 'medio', 'alto'];
 export const TRIP_PACES = ['relajado', 'moderado', 'intenso'];
+// Decide si el flujo de viajes muestra los campos de agencia (cliente, margen,
+// ocultar desglose, duplicar como variante) o se queda con lo minimo para
+// alguien que arma su propio viaje. Ver Layout/FormViaje/DetalleViaje.
+export const PERFIL_USO = ['personal', 'agencia'];
 
 const preferencesSchema = new mongoose.Schema(
   {
@@ -30,6 +34,7 @@ const preferencesSchema = new mongoose.Schema(
     pace: { type: String, enum: TRIP_PACES, default: 'moderado' },
     homeCity: { type: String, trim: true, maxlength: 120, default: '' },
     currency: { type: String, uppercase: true, minlength: 3, maxlength: 3, default: 'MXN' },
+    perfilUso: { type: String, enum: PERFIL_USO, default: 'agencia' },
   },
   { _id: false }
 );

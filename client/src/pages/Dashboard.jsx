@@ -67,6 +67,7 @@ export default function Dashboard() {
   };
   const nombre = user?.name?.split(' ')[0] || 'viajero';
   const buscando = consulta.length > 0;
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
 
   const subtitulo = () => {
     if (cargando) return 'Cargando tus viajes...';
@@ -76,8 +77,13 @@ export default function Dashboard() {
         ? `${totalViajes} ${totalViajes === 1 ? 'resultado' : 'resultados'} para "${consulta}".`
         : `Sin resultados para "${consulta}".`;
     }
-    return totalViajes > 0
-      ? `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje' : 'viajes'} en esta vista.`
+    if (totalViajes > 0) {
+      return esAgencia
+        ? `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje de cliente' : 'viajes de clientes'} en esta vista.`
+        : `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje' : 'viajes'} en esta vista.`;
+    }
+    return esAgencia
+      ? 'Aquí vas a ver los viajes que armes para tus clientes.'
       : 'Aquí vas a ver todos tus viajes.';
   };
 
@@ -124,7 +130,7 @@ export default function Dashboard() {
             type="search"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre, destino o cliente"
+            placeholder={esAgencia ? 'Buscar por nombre, destino o cliente' : 'Buscar por nombre o destino'}
             aria-label="Buscar viajes"
           />
           {busqueda && (
@@ -154,7 +160,9 @@ export default function Dashboard() {
               ? 'Nada coincide con tu búsqueda'
               : filtro === 'pasados'
                 ? 'Todavía no tienes viajes pasados'
-                : 'Aún no hay viajes por aquí'
+                : esAgencia
+                  ? 'Aún no tienes viajes de clientes'
+                  : 'Aún no hay viajes por aquí'
           }
           accion={
             buscando ? (
@@ -164,17 +172,19 @@ export default function Dashboard() {
             ) : (
               filtro !== 'pasados' && (
                 <Link to="/viajes/nuevo" className="boton">
-                  Planear mi primer viaje
+                  {esAgencia ? 'Crear el primer viaje' : 'Planear mi primer viaje'}
                 </Link>
               )
             )
           }
         >
           {buscando
-            ? `Probamos con "${consulta}" en el nombre, el destino y el cliente de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
+            ? `Probamos con "${consulta}" en el nombre${esAgencia ? ', el destino y el cliente' : ' y el destino'} de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
             : filtro === 'pasados'
               ? 'Cuando termine un viaje aparecerá aquí, con su itinerario y sus gastos.'
-              : 'Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día.'}
+              : esAgencia
+                ? 'Crea el viaje de tu cliente con destino y fechas, y deja que la IA te arme el itinerario día por día.'
+                : 'Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día.'}
         </Vacio>
       )}
 

@@ -11,6 +11,7 @@ const hoy = new Date().toISOString().slice(0, 10);
 export default function NuevoViaje() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
 
   const [form, setForm] = useState({
     title: '',
@@ -93,7 +94,9 @@ export default function NuevoViaje() {
         </Link>
         <h1 style={{ marginTop: 8 }}>Nuevo viaje</h1>
         <p className="suave" style={{ margin: 0 }}>
-          Con el destino y las fechas basta para empezar. Lo demás lo vas llenando después.
+          {esAgencia
+            ? 'Con el destino y las fechas basta para empezar. El cliente y el margen los agregas después, desde "Editar".'
+            : 'Con el destino y las fechas basta para empezar. Lo demás lo vas llenando después.'}
         </p>
       </div>
 

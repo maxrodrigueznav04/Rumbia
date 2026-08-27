@@ -19,12 +19,17 @@ const RESET_MINUTOS = 30;
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, perfilUso } = req.body;
 
   const exists = await User.findOne({ email });
   if (exists) throw ApiError.conflict('Ese email ya está registrado.');
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({
+    name,
+    email,
+    password,
+    ...(perfilUso ? { preferences: { perfilUso } } : {}),
+  });
 
   res.status(201).json({
     success: true,

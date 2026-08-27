@@ -28,6 +28,7 @@ export default function Registro() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [estilos, setEstilos] = useState([]);
+  const [perfilUso, setPerfilUso] = useState('agencia');
 
   const form = useFormulario(
     { name: '', email: '', password: '' },
@@ -45,7 +46,7 @@ export default function Registro() {
     );
 
   const crear = form.enviar(async (valores) => {
-    await register(valores);
+    await register({ ...valores, perfilUso });
     // Las preferencias se guardan aparte para no bloquear el alta si algo falla.
     if (estilos.length) {
       await authApi.updateProfile({ preferences: { travelStyles: estilos } }).catch(() => {});
@@ -63,12 +64,43 @@ export default function Registro() {
             </span>
             Rumbo
           </div>
-          <h1 style={{ fontSize: '1.35rem' }}>Planea tu próximo viaje</h1>
-          <p>Transporte, hospedaje e itinerario en un solo lugar.</p>
+          <h1 style={{ fontSize: '1.35rem' }}>
+            {perfilUso === 'agencia' ? 'Arma propuestas para tus clientes' : 'Planea tu próximo viaje'}
+          </h1>
+          <p>
+            {perfilUso === 'agencia'
+              ? 'Cliente, margen y tu marca en cada itinerario que armes.'
+              : 'Transporte, hospedaje e itinerario en un solo lugar.'}
+          </p>
         </div>
 
         <form onSubmit={crear} className="pila" noValidate>
           {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
+
+          <div className="campo">
+            <label>¿Cómo vas a usar Rumbo?</label>
+            <div className="selector-perfil-uso">
+              <button
+                type="button"
+                aria-pressed={perfilUso === 'agencia'}
+                className={`opcion-perfil-uso ${perfilUso === 'agencia' ? 'activo' : ''}`}
+                onClick={() => setPerfilUso('agencia')}
+              >
+                <strong>Soy agencia o agente</strong>
+                <span className="tenue">Armo viajes para clientes: cliente, margen, propuestas</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={perfilUso === 'personal'}
+                className={`opcion-perfil-uso ${perfilUso === 'personal' ? 'activo' : ''}`}
+                onClick={() => setPerfilUso('personal')}
+              >
+                <strong>Viajo por mi cuenta</strong>
+                <span className="tenue">Planeo mis propios viajes, sin nada de agencia</span>
+              </button>
+            </div>
+            <span className="campo-ayuda">Lo puedes cambiar después desde tu perfil.</span>
+          </div>
 
           <Campo
             label="Nombre"

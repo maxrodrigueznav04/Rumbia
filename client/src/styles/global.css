@@ -627,6 +627,27 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo-error { font-size: 0.8rem; color: var(--error); font-weight: 500; }
 .campo-ayuda { font-size: 0.8rem; color: var(--texto-tenue); }
 
+.selector-perfil-uso { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 480px) {
+  .selector-perfil-uso { grid-template-columns: 1fr; }
+}
+.opcion-perfil-uso {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.opcion-perfil-uso .tenue { font-size: 0.78rem; }
+.opcion-perfil-uso:hover { border-color: var(--verde); }
+.opcion-perfil-uso.activo { border-color: var(--verde); background: var(--verde-50); }
+
 .campo-con-boton { position: relative; }
 .campo-con-boton input { padding-right: 50px; }
 

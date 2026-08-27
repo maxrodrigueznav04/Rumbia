@@ -48,6 +48,7 @@ export default function Perfil() {
     currency: user?.preferences?.currency || 'MXN',
     pace: user?.preferences?.pace || 'moderado',
     budgetLevel: user?.preferences?.budgetLevel || 'medio',
+    perfilUso: user?.preferences?.perfilUso || 'agencia',
   });
   const [estilos, setEstilos] = useState(user?.preferences?.travelStyles || []);
   const [estado, setEstado] = useState(null);
@@ -77,6 +78,7 @@ export default function Perfil() {
           currency: form.currency,
           pace: form.pace,
           budgetLevel: form.budgetLevel,
+          perfilUso: form.perfilUso,
         },
       });
       actualizarUsuario(data.user);
@@ -100,6 +102,30 @@ export default function Perfil() {
       <Tarjeta>
         <form onSubmit={guardar} className="pila" noValidate>
           {estado && <Aviso tipo={estado.tipo}>{estado.mensaje}</Aviso>}
+
+          <div className="campo">
+            <label>¿Cómo usas Rumbo?</label>
+            <div className="selector-perfil-uso">
+              <button
+                type="button"
+                aria-pressed={form.perfilUso === 'agencia'}
+                className={`opcion-perfil-uso ${form.perfilUso === 'agencia' ? 'activo' : ''}`}
+                onClick={() => setForm((f) => ({ ...f, perfilUso: 'agencia' }))}
+              >
+                <strong>Soy agencia o agente</strong>
+                <span className="tenue">Cliente, margen y propuestas visibles en tus viajes</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={form.perfilUso === 'personal'}
+                className={`opcion-perfil-uso ${form.perfilUso === 'personal' ? 'activo' : ''}`}
+                onClick={() => setForm((f) => ({ ...f, perfilUso: 'personal' }))}
+              >
+                <strong>Viajo por mi cuenta</strong>
+                <span className="tenue">Sin nada de agencia: solo lo esencial del viaje</span>
+              </button>
+            </div>
+          </div>
 
           <Campo label="Nombre" name="name" value={form.name} onChange={cambiar} required />
 
@@ -172,7 +198,9 @@ export default function Perfil() {
         </form>
       </Tarjeta>
 
-      <TarjetaAgencia user={user} actualizarUsuario={actualizarUsuario} />
+      {form.perfilUso === 'agencia' && (
+        <TarjetaAgencia user={user} actualizarUsuario={actualizarUsuario} />
+      )}
 
       <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
         <p className="suave">

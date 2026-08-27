@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { tripsApi, weatherApi } from '../../api/index.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
@@ -22,6 +23,10 @@ const diasEntre = (a, b) => {
 
 /** Edición del viaje: título, destino, fechas, viajeros, presupuesto y estado. */
 export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
+  const { user } = useAuth();
+  // Quien viaja por su cuenta no necesita cliente, margen ni ocultar precios:
+  // eso es para quien arma el viaje para alguien más.
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
   // Coordenadas de la sugerencia elegida en el autocompletado, si eligió una.
   const [lugarElegido, setLugarElegido] = useState(null);
 
@@ -113,19 +118,21 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
 
         <Campo label="Nombre del viaje" {...form.props('title')} />
 
-        <div className="campos-2">
-          <Campo
-            label="Cliente"
-            placeholder="Familia Hernández"
-            ayuda="Opcional. Para encontrarlo en tu lista y saber para quién es."
-            {...form.props('clienteNombre')}
-          />
-          <Campo
-            label="Contacto del cliente"
-            placeholder="WhatsApp, correo..."
-            {...form.props('clienteContacto')}
-          />
-        </div>
+        {esAgencia && (
+          <div className="campos-2">
+            <Campo
+              label="Cliente"
+              placeholder="Familia Hernández"
+              ayuda="Opcional. Para encontrarlo en tu lista y saber para quién es."
+              {...form.props('clienteNombre')}
+            />
+            <Campo
+              label="Contacto del cliente"
+              placeholder="WhatsApp, correo..."
+              {...form.props('clienteContacto')}
+            />
+          </div>
+        )}
 
         <CampoDestino
           label="Destino"
@@ -203,42 +210,46 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
         </Campo>
 
-        <div className="campos-2">
-          <Campo label="Margen o cuota de servicio">
-            <select {...form.props('margenTipo')}>
-              <option value="fijo">Monto fijo</option>
-              <option value="porcentaje">Porcentaje sobre el costo</option>
-            </select>
-          </Campo>
-          <Campo
-            label={valores.margenTipo === 'porcentaje' ? 'Porcentaje' : 'Monto'}
-            type="number"
-            min="0"
-            step={valores.margenTipo === 'porcentaje' ? '1' : '100'}
-            placeholder="0"
-            ayuda={
-              valores.margenTipo === 'porcentaje'
-                ? 'Se suma ese % sobre el costo total.'
-                : `En ${viaje.budget?.currency || 'MXN'}, total del viaje.`
-            }
-            {...form.props('margenMonto')}
-          />
-        </div>
+        {esAgencia && (
+          <>
+            <div className="campos-2">
+              <Campo label="Margen o cuota de servicio">
+                <select {...form.props('margenTipo')}>
+                  <option value="fijo">Monto fijo</option>
+                  <option value="porcentaje">Porcentaje sobre el costo</option>
+                </select>
+              </Campo>
+              <Campo
+                label={valores.margenTipo === 'porcentaje' ? 'Porcentaje' : 'Monto'}
+                type="number"
+                min="0"
+                step={valores.margenTipo === 'porcentaje' ? '1' : '100'}
+                placeholder="0"
+                ayuda={
+                  valores.margenTipo === 'porcentaje'
+                    ? 'Se suma ese % sobre el costo total.'
+                    : `En ${viaje.budget?.currency || 'MXN'}, total del viaje.`
+                }
+                {...form.props('margenMonto')}
+              />
+            </div>
 
-        <label className="campo-check">
-          <input
-            type="checkbox"
-            name="ocultarDesglose"
-            checked={form.valores.ocultarDesglose}
-            onChange={form.cambiar}
-          />
-          Ocultar el precio de cada renglón en el PDF y el enlace compartido
-        </label>
-        {form.valores.ocultarDesglose && (
-          <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
-            Tu cliente va a ver el vuelo, el hotel y el transporte que elegiste, pero no su precio —
-            solo el total del viaje. Tú lo sigues viendo completo aquí.
-          </p>
+            <label className="campo-check">
+              <input
+                type="checkbox"
+                name="ocultarDesglose"
+                checked={form.valores.ocultarDesglose}
+                onChange={form.cambiar}
+              />
+              Ocultar el precio de cada renglón en el PDF y el enlace compartido
+            </label>
+            {form.valores.ocultarDesglose && (
+              <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
+                Tu cliente va a ver el vuelo, el hotel y el transporte que elegiste, pero no su
+                precio — solo el total del viaje. Tú lo sigues viendo completo aquí.
+              </p>
+            )}
+          </>
         )}
 
         <div className="modal-acciones">

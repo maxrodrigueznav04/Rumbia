@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES } from '../models/User.js';
+import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES, PERFIL_USO } from '../models/User.js';
 import {
   TRIP_STATUSES,
   OUTBOUND_MODES,
@@ -49,6 +49,7 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres.')
     .max(72, 'Máximo 72 caracteres.'), // limite real de bcrypt
+  perfilUso: z.enum(PERFIL_USO).optional(),
 });
 
 export const loginSchema = z.object({
@@ -67,6 +68,7 @@ export const updateProfileSchema = z
         pace: z.enum(TRIP_PACES).optional(),
         homeCity: z.string().trim().max(120).optional(),
         currency: currency.optional(),
+        perfilUso: z.enum(PERFIL_USO).optional(),
       })
       .optional(),
     branding: z

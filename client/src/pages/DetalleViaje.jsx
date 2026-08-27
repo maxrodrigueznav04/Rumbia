@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { tripsApi } from '../api/index.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import TiraClima from '../components/TiraClima.jsx';
@@ -86,6 +87,8 @@ function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces,
 export default function DetalleViaje() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
 
   const viajeReq = useFetch(({ signal }) => tripsApi.get(id, { signal }), [id]);
   const resumenReq = useFetch(({ signal }) => tripsApi.summary(id, { signal }), [id]);
@@ -206,7 +209,7 @@ export default function DetalleViaje() {
             <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>
           </div>
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
-          {viaje.cliente?.nombre && (
+          {esAgencia && viaje.cliente?.nombre && (
             <p className="suave" style={{ margin: '0 0 2px' }}>
               Para <strong>{viaje.cliente.nombre}</strong>
               {viaje.cliente.contacto ? ` · ${viaje.cliente.contacto}` : ''}
@@ -233,9 +236,11 @@ export default function DetalleViaje() {
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
             <Icono nombre="lapiz" tamano={15} /> Editar
           </Boton>
-          <Boton variante="secundario" chico onClick={duplicarViaje} cargando={duplicando}>
-            Duplicar
-          </Boton>
+          {esAgencia && (
+            <Boton variante="secundario" chico onClick={duplicarViaje} cargando={duplicando}>
+              Duplicar
+            </Boton>
+          )}
           <Boton variante="peligro-texto" chico onClick={() => setConfirmar('viaje')}>
             Eliminar
           </Boton>
@@ -252,7 +257,7 @@ export default function DetalleViaje() {
         </Aviso>
       )}
 
-      {variantes.length > 0 && (
+      {esAgencia && variantes.length > 0 && (
         <Tarjeta
           titulo={viaje.cliente?.nombre ? `Otras opciones para ${viaje.cliente.nombre}` : 'Otras opciones para este cliente'}
         >
