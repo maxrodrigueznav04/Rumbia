@@ -54,6 +54,10 @@ export const registerSchema = z.object({
   // rellena todo lo que encuentra. Vacio es lo unico que deja pasar.
   // Ver register() en auth.controller.js.
   referenciaContacto: z.string().max(200).optional(),
+  // Token de Cloudflare Turnstile. Opcional en el schema porque el captcha
+  // puede estar desactivado (ver verificarCaptcha en auth.routes.js); ahi es
+  // donde de verdad se decide si es obligatorio.
+  turnstileToken: z.string().max(3000).optional(),
 });
 
 export const loginSchema = z.object({
@@ -87,6 +91,7 @@ export const updateProfileSchema = z
 
 export const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email inválido.'),
+  turnstileToken: z.string().max(3000).optional(),
 });
 
 export const resetPasswordSchema = z.object({

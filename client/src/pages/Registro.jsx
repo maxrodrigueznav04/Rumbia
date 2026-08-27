@@ -6,6 +6,11 @@ import { authApi, despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
 import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, CampoPassword, Aviso } from '../components/ui.jsx';
+import Captcha from '../components/Captcha.jsx';
+
+// Si no hay llave publica, el captcha esta desactivado: no tiene sentido
+// bloquear el boton esperando un token que nunca va a llegar.
+const CAPTCHA_ACTIVO = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 
 const ESTILOS = [
   { valor: 'aventura', texto: 'Aventura', icono: '🧗' },
@@ -29,6 +34,7 @@ export default function Registro() {
   const navigate = useNavigate();
   const [estilos, setEstilos] = useState([]);
   const [perfilUso, setPerfilUso] = useState('agencia');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const form = useFormulario(
     { name: '', email: '', password: '', referenciaContacto: '' },
@@ -46,7 +52,7 @@ export default function Registro() {
     );
 
   const crear = form.enviar(async (valores) => {
-    await register({ ...valores, perfilUso });
+    await register({ ...valores, perfilUso, turnstileToken });
     // Las preferencias se guardan aparte para no bloquear el alta si algo falla.
     if (estilos.length) {
       await authApi.updateProfile({ preferences: { travelStyles: estilos } }).catch(() => {});
@@ -174,7 +180,14 @@ export default function Registro() {
             </span>
           </div>
 
-          <Boton type="submit" ancho cargando={form.enviando}>
+          <Captcha onToken={setTurnstileToken} />
+
+          <Boton
+            type="submit"
+            ancho
+            cargando={form.enviando}
+            disabled={CAPTCHA_ACTIVO && !turnstileToken}
+          >
             {form.enviando ? 'Creando cuenta...' : 'Crear cuenta'}
           </Boton>
 

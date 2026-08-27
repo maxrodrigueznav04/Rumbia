@@ -8,6 +8,7 @@ import {
   forgotPasswordLimiter,
   resetPasswordLimiter,
 } from '../middleware/rateLimiters.js';
+import verificarCaptcha from '../middleware/turnstile.js';
 import {
   registerSchema,
   loginSchema,
@@ -20,15 +21,18 @@ import {
 
 const router = Router();
 
-router.post('/register', authLimiter, validate(registerSchema), ctrl.register);
+router.post('/register', authLimiter, validate(registerSchema), verificarCaptcha, ctrl.register);
 router.post('/login', authLimiter, validate(loginSchema), ctrl.login);
 
 // Recuperacion de contrasena. Sin sesion por definicion: quien la usa es
-// justamente quien no puede entrar.
+// justamente quien no puede entrar. Lleva captcha porque cada intento manda
+// un correo de verdad: sin el, un bot podria vaciar la cuota de Resend o
+// llenarle el buzon a cualquiera con solo su email.
 router.post(
   '/forgot-password',
   forgotPasswordLimiter,
   validate(forgotPasswordSchema),
+  verificarCaptcha,
   ctrl.forgotPassword
 );
 router.post(

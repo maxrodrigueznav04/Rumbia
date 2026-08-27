@@ -35,6 +35,13 @@ export const env = {
     from: process.env.MAIL_FROM || 'Rumbo <onboarding@resend.dev>',
     enabled: Boolean(process.env.RESEND_API_KEY),
   },
+  turnstile: {
+    secretKey: process.env.TURNSTILE_SECRET_KEY || '',
+    // Sin llave, el captcha queda desactivado y deja pasar todo: asi sigue
+    // funcionando el registro en desarrollo o mientras no exista la cuenta
+    // de Cloudflare.
+    enabled: Boolean(process.env.TURNSTILE_SECRET_KEY),
+  },
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
     apiKey: process.env.CLOUDINARY_API_KEY || '',

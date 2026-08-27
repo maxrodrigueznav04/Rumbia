@@ -4,6 +4,9 @@ import { authApi, despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
 import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, Aviso } from '../components/ui.jsx';
+import Captcha from '../components/Captcha.jsx';
+
+const CAPTCHA_ACTIVO = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 
 /**
  * Pedir el enlace de recuperación.
@@ -18,11 +21,12 @@ export default function Recuperar() {
   }, []);
 
   const [enviado, setEnviado] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const form = useFormulario({ email: '' }, { email: reglas.email });
 
   const pedir = form.enviar(async (valores) => {
-    await authApi.forgotPassword(valores);
+    await authApi.forgotPassword({ ...valores, turnstileToken });
     setEnviado(true);
   });
 
@@ -67,7 +71,14 @@ export default function Recuperar() {
               {...form.props('email')}
             />
 
-            <Boton type="submit" ancho cargando={form.enviando}>
+            <Captcha onToken={setTurnstileToken} />
+
+            <Boton
+              type="submit"
+              ancho
+              cargando={form.enviando}
+              disabled={CAPTCHA_ACTIVO && !turnstileToken}
+            >
               {form.enviando ? 'Enviando...' : 'Enviar enlace'}
             </Boton>
           </form>
