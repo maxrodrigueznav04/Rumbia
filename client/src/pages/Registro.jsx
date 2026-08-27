@@ -31,7 +31,7 @@ export default function Registro() {
   const [perfilUso, setPerfilUso] = useState('agencia');
 
   const form = useFormulario(
-    { name: '', email: '', password: '' },
+    { name: '', email: '', password: '', referenciaContacto: '' },
     { name: reglas.nombre, email: reglas.email, password: reglas.password }
   );
 
@@ -75,6 +75,20 @@ export default function Registro() {
         </div>
 
         <form onSubmit={crear} className="pila" noValidate>
+          {/* Honeypot: invisible para una persona, tentador para un bot que
+              rellena todo lo que encuentra en el formulario. Ver registerSchema
+              y register() en el servidor. */}
+          <input
+            type="text"
+            name="referenciaContacto"
+            value={form.valores.referenciaContacto}
+            onChange={form.cambiar}
+            className="campo-senuelo"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+
           {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
           <div className="campo">

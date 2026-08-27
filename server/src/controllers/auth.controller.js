@@ -15,11 +15,24 @@ import { usuarioConAgencia } from './agency.controller.js';
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
 const RESET_MINUTOS = 30;
 
+// El rate-limit por IP (authLimiter) no frena un ataque distribuido en varias
+// IPs contra un mismo correo. Este bloqueo es POR CUENTA, no por IP.
+const MAX_INTENTOS_LOGIN = 6;
+const BLOQUEO_LOGIN_MINUTOS = 15;
+
 /** Lo que se guarda en la base es esto, nunca el token que viaja en el correo. */
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, perfilUso } = req.body;
+  const { name, email, password, perfilUso, referenciaContacto } = req.body;
+
+  // Honeypot: un humano nunca llena este campo porque no lo ve. Se corta
+  // antes de tocar la base, con el mismo tipo de error que vería alguien de
+  // verdad, para no dejar pistas de que existe un señuelo.
+  if (referenciaContacto) {
+    console.warn(`[honeypot] registro bloqueado (ip=${req.ip})`);
+    throw ApiError.badRequest('No pudimos crear la cuenta. Intenta de nuevo.');
+  }
 
   const exists = await User.findOne({ email });
   if (exists) throw ApiError.conflict('Ese email ya está registrado.');
@@ -42,13 +55,34 @@ export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   // El password tiene select:false, hay que pedirlo explicitamente.
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password +failedLoginAttempts +lockUntil');
 
-  // Mismo mensaje para email inexistente y password malo: no revela que emails existen.
-  if (!user || !(await user.comparePassword(password))) {
+  if (user?.lockUntil && user.lockUntil > new Date()) {
+    const minutos = Math.ceil((user.lockUntil - Date.now()) / 60000);
+    throw ApiError.unauthorized(
+      `Demasiados intentos fallidos. Espera ${minutos} minuto(s) e intenta de nuevo.`
+    );
+  }
+
+  const valido = user && (await user.comparePassword(password));
+
+  if (!valido) {
+    if (user) {
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= MAX_INTENTOS_LOGIN) {
+        user.lockUntil = new Date(Date.now() + BLOQUEO_LOGIN_MINUTOS * 60 * 1000);
+        user.failedLoginAttempts = 0; // el contador se reinicia al bloquear
+      }
+      await user.save({ validateBeforeSave: false });
+    }
+    // Mismo mensaje para email inexistente y password malo: no revela que emails existen.
     throw ApiError.unauthorized('Email o contraseña incorrectos.');
   }
 
+  if (user.failedLoginAttempts || user.lockUntil) {
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+  }
   user.lastLoginAt = new Date();
   await user.save({ validateBeforeSave: false });
 

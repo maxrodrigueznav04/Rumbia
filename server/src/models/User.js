@@ -88,6 +88,12 @@ const userSchema = new mongoose.Schema(
     // filtrara, lo que hay aqui no sirve para restablecer nada.
     resetTokenHash: { type: String, select: false },
     resetTokenExpires: { type: Date, select: false },
+    // Bloqueo de cuenta por intentos fallidos, aparte del rate-limit por IP:
+    // ese ultimo no frena un ataque distribuido en varias IPs contra un mismo
+    // correo. Van con select:false porque son datos de seguridad interna, no
+    // algo que la app deba mostrar nunca.
+    failedLoginAttempts: { type: Number, default: 0, select: false },
+    lockUntil: { type: Date, select: false },
     preferences: { type: preferencesSchema, default: () => ({}) },
     branding: { type: brandingSchema, default: () => ({}) },
     // Si el agente pertenece a una agencia, su membrete efectivo es el de la

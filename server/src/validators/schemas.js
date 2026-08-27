@@ -50,6 +50,10 @@ export const registerSchema = z.object({
     .min(8, 'La contraseña debe tener al menos 8 caracteres.')
     .max(72, 'Máximo 72 caracteres.'), // limite real de bcrypt
   perfilUso: z.enum(PERFIL_USO).optional(),
+  // Honeypot: campo invisible para una persona, tentador para un bot que
+  // rellena todo lo que encuentra. Vacio es lo unico que deja pasar.
+  // Ver register() en auth.controller.js.
+  referenciaContacto: z.string().max(200).optional(),
 });
 
 export const loginSchema = z.object({

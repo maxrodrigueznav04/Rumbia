@@ -625,6 +625,16 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .campo textarea[aria-invalid='true'] { border-color: var(--error); }
 
 .campo-error { font-size: 0.8rem; color: var(--error); font-weight: 500; }
+
+/* Honeypot: fuera de la pantalla, no display:none — algunos bots sí revisan
+   eso. Una persona jamás la ve ni la alcanza con tab. */
+.campo-senuelo {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
 .campo-ayuda { font-size: 0.8rem; color: var(--texto-tenue); }
 
 .selector-perfil-uso { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
