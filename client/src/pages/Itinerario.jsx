@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { tripsApi, itineraryApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
@@ -17,8 +17,10 @@ import {
 import Icono from '../components/Icono.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
+import RevisionItinerario from '../components/RevisionItinerario.jsx';
 import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { revisarItinerario } from '../utils/revisionItinerario.js';
 import {
   formatoMoneda,
   formatoFecha,
@@ -114,6 +116,7 @@ export default function Itinerario() {
 
   const viajeReq = useFetch(({ signal }) => tripsApi.get(id, { signal }), [id]);
   const itinReq = useFetch(({ signal }) => itineraryApi.get(id, { signal }), [id]);
+  const climaReq = useFetch(({ signal }) => tripsApi.weather(id, { signal }), [id]);
 
   const [generando, setGenerando] = useState(false);
   const [errorGen, setErrorGen] = useState(null);
@@ -134,6 +137,10 @@ export default function Itinerario() {
   const viaje = viajeReq.data?.trip;
   const itinerario = itinReq.data?.itinerary;
   const pines = itinReq.data?.pins || [];
+  const avisosRevision = useMemo(
+    () => revisarItinerario(itinerario, climaReq.data),
+    [itinerario, climaReq.data]
+  );
   const moneda = viaje?.budget?.currency || 'MXN';
   const paraCuantos = Math.min(personas ?? viaje?.travelers ?? 1, viaje?.travelers || 1);
   const ocultarCosto = Boolean(viaje?.ocultarDesglose);
@@ -535,6 +542,8 @@ export default function Itinerario() {
                 </Aviso>
               </div>
             )}
+
+            <RevisionItinerario avisos={avisosRevision} />
 
             {itinerario.days.length > viaje.durationDays && (
               <Aviso tipo="alerta" titulo="Hay días fuera del viaje">

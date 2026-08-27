@@ -776,6 +776,29 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .aviso.info { background: var(--verde-50); color: var(--verde-800); border-color: var(--verde-100); }
 .aviso strong { display: block; margin-bottom: 2px; }
 
+/* ---------------------- Revisión del itinerario ---------------------- */
+
+.revision-itinerario.ok { background: var(--verde-50); border-color: var(--verde-100); }
+.revision-itinerario.ok p { color: var(--verde-800); }
+.revision-lista { margin: 0; padding: 0; list-style: none; }
+.revision-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  border-top: 1px solid var(--border);
+}
+.revision-item:first-child { border-top: none; padding-top: 0; }
+.revision-etiqueta { display: inline; }
+.revision-item.solape .icono,
+.revision-item.solape .revision-etiqueta { color: var(--error); }
+.revision-item.hueco .icono,
+.revision-item.hueco .revision-etiqueta,
+.revision-item.clima .icono,
+.revision-item.clima .revision-etiqueta { color: var(--alerta); }
+
 /* ---------------------- Estados ---------------------- */
 
 .vacio {
