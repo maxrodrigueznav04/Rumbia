@@ -57,6 +57,7 @@ const TRAZOS = {
   lapiz: <path d="M4 20l1-4 11-11 3 3-11 11-4 1z" />,
   flechaSalida: <path d="M7 17L17 7M9 7h8v8" />,
   flechaIzq: <path d="M19 12H5M11 6l-6 6 6 6" />,
+  chevronAbajo: <path d="M6 9l6 6 6-6" />,
   arrastrar: (
     <>
       <circle cx="9" cy="6" r="1.2" />

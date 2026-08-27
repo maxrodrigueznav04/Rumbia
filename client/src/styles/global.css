@@ -1147,6 +1147,25 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 /* ---------------------- Enlaces externos ---------------------- */
 
+.enlaces-desplegable { margin-top: 14px; }
+.enlaces-desplegable summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.enlaces-desplegable summary::-webkit-details-marker { display: none; }
+.enlaces-desplegable summary .etiqueta { margin: 0; }
+.enlaces-desplegable summary .chevron {
+  color: var(--texto-tenue);
+  transition: transform 0.15s ease;
+  margin-left: auto;
+}
+.enlaces-desplegable[open] summary .chevron { transform: rotate(180deg); }
+.enlaces-desplegable > .pila-sm { margin-top: 10px; }
+
 .link-externo {
   display: flex;
   align-items: center;

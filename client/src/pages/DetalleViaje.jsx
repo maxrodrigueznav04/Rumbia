@@ -70,12 +70,14 @@ function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces,
       )}
 
       {enlaces?.length > 0 && (
-        <>
-          <div className="etiqueta" style={{ margin: '14px 0 8px' }}>
-            Buscar y reservar
-          </div>
+        <details className="enlaces-desplegable">
+          <summary>
+            <span className="etiqueta">Buscar y reservar</span>
+            <span className="tenue">({enlaces.length})</span>
+            <Icono nombre="chevronAbajo" tamano={16} className="chevron" />
+          </summary>
           <EnlacesReserva enlaces={enlaces} seccion={seccion} destino={destino} origen="app" />
-        </>
+        </details>
       )}
     </Tarjeta>
   );
