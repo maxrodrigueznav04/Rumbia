@@ -95,9 +95,25 @@ export const generate = asyncHandler(async (req, res) => {
     version: existing ? existing.version + 1 : 1,
   };
 
-  const itinerary = existing
-    ? await Itinerary.findOneAndUpdate({ trip: trip._id }, payload, { new: true, runValidators: true })
-    : await Itinerary.create(payload);
+  let itinerary;
+  let huboCarrera = false;
+  try {
+    itinerary = existing
+      ? await Itinerary.findOneAndUpdate({ trip: trip._id }, payload, { new: true, runValidators: true })
+      : await Itinerary.create(payload);
+  } catch (err) {
+    // Dos generaciones a la vez para el mismo viaje (doble clic, dos pestañas):
+    // ambas ven `existing` en null y ambas intentan crear. La que pierde la
+    // carrera choca contra el indice unico de `trip`; en vez de tronar con un
+    // error de Mongo crudo, se queda con lo que la otra ya guardo.
+    if (err.code === 11000 && !existing) {
+      itinerary = await Itinerary.findOne({ trip: trip._id });
+      huboCarrera = true;
+      if (!itinerary) throw err;
+    } else {
+      throw err;
+    }
+  }
 
   // Un viaje con itinerario ya no es un borrador.
   if (trip.status === 'borrador') {
@@ -105,7 +121,7 @@ export const generate = asyncHandler(async (req, res) => {
     await trip.save({ validateBeforeSave: false });
   }
 
-  res.status(existing ? 200 : 201).json({
+  res.status(existing || huboCarrera ? 200 : 201).json({
     success: true,
     message: existing ? 'Itinerario regenerado.' : 'Itinerario generado.',
     data: { itinerary, pins: itinerary.mapPins(), summary: result.summary },
