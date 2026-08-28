@@ -153,6 +153,45 @@ await check('User rechaza mas de 5 estilos', async () => {
   return 'max 5';
 });
 
+console.log('\n== Itinerario: reordenar por hora ==');
+
+const { reorderByTime } = await import('../src/controllers/itinerary.controller.js');
+
+await check('mueve la actividad editada a su lugar cronologico', async () => {
+  const it = new Itinerary({
+    trip: uid, user: uid,
+    days: [{ dayNumber: 1, activities: [
+      { title: 'Desayuno', time: '08:00' },
+      { title: 'Museo', time: '10:00' },
+      { title: 'Comida', time: '13:00' },
+    ]}],
+  });
+  const day = it.days[0];
+  // El usuario adelanta "Comida" a las 07:00: debe pasar a ser la primera.
+  day.activities[2].time = '07:00';
+  reorderByTime(day);
+  const orden = day.activities.map((a) => a.title).join(',');
+  assert(orden === 'Comida,Desayuno,Museo', orden);
+  assert(day.activities.map((a) => a.order).join(',') === '0,1,2', 'order renumerado');
+  return day.activities.map((a) => `${a.time} ${a.title}`).join(' / ');
+});
+
+await check('las actividades sin hora se van al final, sin perder su orden relativo', async () => {
+  const it = new Itinerary({
+    trip: uid, user: uid,
+    days: [{ dayNumber: 1, activities: [
+      { title: 'Checkout', time: '' },
+      { title: 'Comida', time: '13:00' },
+      { title: 'Souvenirs', time: '' },
+    ]}],
+  });
+  const day = it.days[0];
+  reorderByTime(day);
+  const orden = day.activities.map((a) => a.title).join(',');
+  assert(orden === 'Comida,Checkout,Souvenirs', orden);
+  return orden;
+});
+
 console.log('\n== Validadores (Zod) ==');
 
 await check('createTripSchema acepta payload valido', async () => {
