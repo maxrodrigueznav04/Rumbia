@@ -469,9 +469,5 @@ Todas las respuestas siguen la misma forma:
 
 ## Pendientes conocidos
 
-- Sin recuperación de contraseña por correo.
-- El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
-- Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
-  actividad para cambiarla de sitio).
-- Falta poner el responsable y el correo de contacto en `client/src/config/legal.js`: mientras
-  tengan los marcadores, las páginas legales muestran un aviso pidiéndolo.
+- El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas (con el
+  dedo, el ratón o el teclado).
