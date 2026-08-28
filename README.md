@@ -246,7 +246,7 @@ necesita la URL del anterior.
 
 ### 0. Subir el repo a GitHub
 
-Render y Vercel despliegan desde un repositorio, asi que este paso va primero.
+Render y Cloudflare Pages despliegan desde un repositorio, asi que este paso va primero.
 El repo ya esta inicializado y con el commit inicial hecho:
 
 ```bash
@@ -295,20 +295,30 @@ Cuando termine, copia la URL del servicio (algo como
 curl https://rumbo-api.onrender.com/api/health
 ```
 
-### 3. Frontend en Vercel
+### 3. Frontend en Cloudflare Pages
+
+En el dashboard de Cloudflare: **Workers & Pages -> Create -> Pages -> Connect to Git**,
+apunta a este repositorio y captura:
 
 - Root directory: `client`
-- Build command: `npm run build` - Output: `dist`
+- Build command: `npm run build`
+- Build output directory: `dist`
 - Variable de entorno: `VITE_API_URL = https://rumbo-api.onrender.com/api`
   (con `/api` al final, sin barra despues)
 
-[`client/vercel.json`](client/vercel.json) reescribe todas las rutas a
-`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al recargar.
+El plan gratuito de Cloudflare Pages permite uso comercial sin restricciones
+(a diferencia del plan Hobby de Vercel) y no tiene limite de ancho de banda
+para contenido estatico.
+
+[`client/public/_redirects`](client/public/_redirects) manda todas las rutas a
+`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al
+recargar; Vite lo copia a `dist/` en cada build y Cloudflare Pages lo detecta
+solo.
 
 ### 4. Cerrar el circulo
 
-Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Vercel
-(`https://rumbo.vercel.app`, **sin barra final** — aunque el servidor la
+Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Cloudflare Pages
+(`https://rumbo.pages.dev`, **sin barra final** — aunque el servidor la
 normaliza, es mas claro sin ella). Redespliega. Sin este paso el navegador
 bloquea las peticiones por CORS y la app se ve vacia.
 
