@@ -469,9 +469,11 @@ Todas las respuestas siguen la misma forma:
 
 ## Pendientes conocidos
 
-- Sin recuperación de contraseña por correo.
 - El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
 - Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
   actividad para cambiarla de sitio).
-- Falta poner el responsable y el correo de contacto en `client/src/config/legal.js`: mientras
-  tengan los marcadores, las páginas legales muestran un aviso pidiéndolo.
+- El captcha con Cloudflare Turnstile (`server/src/services/turnstile.service.js`,
+  `client/src/components/Captcha.jsx`) existe en el código pero se queda apagado a propósito:
+  sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
+  recuperación funcionan igual que si no existiera. Dar de alta la cuenta en Cloudflare causó
+  crasheos, así que por ahora no se va a activar.
