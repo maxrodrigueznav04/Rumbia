@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Nombre del proyecto en Cloudflare. Debe coincidir con "Project name" en el
+  // formulario de creacion (rumbo).
+  "name": "rumbo",
+  "compatibility_date": "2026-08-28",
+
+  // Sin Worker script: esto es solo el build estatico de Vite (dist/) servido
+  // como asset. "single-page-application" hace que cualquier ruta que no sea
+  // un archivo real (ej. /viajes/abc123) caiga a index.html en vez de dar 404,
+  // que es lo que necesita el ruteo de react-router en el navegador.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
