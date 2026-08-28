@@ -117,7 +117,9 @@ Todo el stack corre en tiers gratuitos.
 - **Itinerario con IA.** Gemini devuelve un plan día por día en JSON estructurado (actividades con
   hora, categoría, coordenadas y costo estimado). Todo es editable desde la interfaz: agregar,
   editar, quitar, renombrar días y arrastrar actividades para reordenarlas dentro de un día o
-  moverlas a otro.
+  moverlas a otro (con ratón, dedo o teclado). Cambiar la hora de una actividad la reacomoda sola
+  entre sus vecinas del día; arrastrar sigue sin tocar la hora, para poder acomodar algo fuera de
+  su orden cronológico sin que un guardado cualquiera lo deshaga.
 - **Gastos sueltos.** Comidas, entradas y souvenirs con categoría, fecha y marca de pagado, que
   entran al desglose sin duplicar lo ya capturado en el viaje.
 - **Mapa y clima.** Leaflet con un pin por actividad; clima real a 5 días y estimación por
@@ -469,9 +471,6 @@ Todas las respuestas siguen la misma forma:
 
 ## Pendientes conocidos
 
-- El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas.
-- Arrastrar funciona con ratón; en móvil aún no hay gesto táctil equivalente (se puede editar la
-  actividad para cambiarla de sitio).
 - El captcha con Cloudflare Turnstile (`server/src/services/turnstile.service.js`,
   `client/src/components/Captcha.jsx`) existe en el código pero se queda apagado a propósito:
   sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
