@@ -7,6 +7,7 @@ import env from './config/env.js';
 import routes from './routes/index.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiters.js';
+import { webhook as stripeWebhook } from './controllers/billing.controller.js';
 
 const app = express();
 
@@ -42,6 +43,10 @@ app.use(
     credentials: true,
   })
 );
+
+// Antes de express.json(): Stripe firma el body crudo, byte por byte, y
+// verificar la firma contra un JSON ya re-serializado nunca coincide.
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));

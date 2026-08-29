@@ -2,7 +2,7 @@
 process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbo';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
 
-const { Trip, Itinerary, Expense, User } = await import('../src/models/index.js');
+const { Trip, Itinerary, Expense, User, Agency } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange } = await import('../src/services/weather.service.js');
@@ -153,6 +153,26 @@ await check('User rechaza mas de 5 estilos', async () => {
   return 'max 5';
 });
 
+await check('Agency nace pendiente, sin agentes extra', async () => {
+  const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid });
+  assert(!a.validateSync(), 'no deberia fallar');
+  assert(a.billing.status === 'pendiente', `status=${a.billing.status}`);
+  assert(a.capacidadAgentes === 3, `capacidad=${a.capacidadAgentes}`);
+  return 'pendiente, cupo 3';
+});
+
+await check('Agency: agentes extra suman a la capacidad', async () => {
+  const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid, billing: { extraAgentes: 5 } });
+  assert(a.capacidadAgentes === 8, `capacidad=${a.capacidadAgentes}`);
+  return '3 incluidos + 5 extra = 8';
+});
+
+await check('Agency rechaza un plan que no existe', async () => {
+  const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
+  assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
+  return 'enum aplicado';
+});
+
 console.log('\n== Itinerario: reordenar por hora ==');
 
 const { reorderByTime } = await import('../src/controllers/itinerary.controller.js');
@@ -231,6 +251,14 @@ await check('activitySchema valida hora', async () => {
 await check('updateTripSchema rechaza body vacio', async () => {
   assert(!schemas.updateTripSchema.safeParse({}).success, 'deberia fallar');
   return 'body vacio rechazado';
+});
+
+await check('checkoutAgencySchema exige un plan valido y por defecto 0 agentes extra', async () => {
+  const ok = schemas.checkoutAgencySchema.safeParse({ plan: 'anual' });
+  assert(ok.success && ok.data.extraAgentes === 0, 'default extraAgentes=0');
+  const mal = schemas.checkoutAgencySchema.safeParse({ plan: 'trimestral' });
+  assert(!mal.success, 'plan invalido deberia fallar');
+  return 'anual + default 0, plan invalido rechazado';
 });
 
 await check('tripListQuerySchema aplica defaults', async () => {
@@ -427,6 +455,20 @@ await check('decorarSecciones respeta la forma que espera el cliente', conConfig
     assert(r.hospedaje[0].label === 'Buscar hoteles', 'conserva la etiqueta');
     return '2 enlaces, 1 marcado';
   }));
+
+console.log('\n== Stripe (sin configurar) ==');
+
+const stripeService = (await import('../src/services/stripe.service.js')).default;
+
+await check('crearSesionCheckout avisa claro si falta STRIPE_SECRET_KEY', async () => {
+  try {
+    await stripeService.crearSesionCheckout({ agencia: {}, user: {}, plan: 'mensual' });
+    throw new Error('deberia haber lanzado');
+  } catch (e) {
+    assert(e.statusCode === 503, `statusCode=${e.statusCode}`);
+    return e.message;
+  }
+});
 
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);
 process.exit(fail === 0 ? 0 : 1);

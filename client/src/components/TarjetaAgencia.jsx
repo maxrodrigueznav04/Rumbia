@@ -1,8 +1,20 @@
-import { useRef, useState } from 'react';
-import { agencyApi, authApi } from '../api/index.js';
+import { useEffect, useRef, useState } from 'react';
+import { agencyApi, authApi, billingApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import Icono from './Icono.jsx';
 import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, ErrorCarga } from './ui.jsx';
+
+/**
+ * Precios de referencia, solo para mostrar en pantalla: lo que de verdad se
+ * cobra lo decide Stripe con los Price que arma "npm run stripe:setup". Si
+ * cambian ahi, hay que actualizar esto a mano para que no digan cosas
+ * distintas.
+ */
+const PLANES = {
+  mensual: { etiqueta: 'Mensual', base: '$20/mes', agente: '+$10/mes por agente extra' },
+  anual: { etiqueta: 'Anual', base: '$200/año', agente: '+$100/año por agente extra' },
+  vitalicio: { etiqueta: 'De por vida', base: '$500 pago único', agente: '+$250 único por agente extra' },
+};
 
 /**
  * La marca del PDF, en sus tres estados posibles: sin agencia (marca propia,
@@ -268,6 +280,32 @@ function UnirseOCrear({ actualizarUsuario }) {
 
 function VistaConAgencia({ actualizarUsuario }) {
   const { data, cargando, error, recargar } = useFetch(({ signal }) => agencyApi.obtener({ signal }), []);
+  const [avisoStripe, setAvisoStripe] = useState(null);
+
+  // Vuelta de Stripe Checkout: se limpia el query param de la URL y se
+  // refresca la agencia. El webhook puede tardar un par de segundos mas que
+  // la redirección del navegador, asi que se recarga una segunda vez.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resultado = params.get('billing');
+    if (!resultado) return;
+
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (resultado === 'exito') {
+      setAvisoStripe('Pago recibido. Activando tu plan...');
+      recargar();
+      const t = setTimeout(() => {
+        recargar();
+        setAvisoStripe(null);
+      }, 2500);
+      return () => clearTimeout(t);
+    }
+    if (resultado === 'cancelado') {
+      setAvisoStripe('No se completó el pago: no se hizo ningún cargo.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (cargando) {
     return (
@@ -285,15 +323,31 @@ function VistaConAgencia({ actualizarUsuario }) {
   }
   if (!data) return null;
 
-  return data.esDueno ? (
-    <VistaDueno
-      agencia={data.agency}
-      miembros={data.miembros}
-      actualizarUsuario={actualizarUsuario}
-      recargar={recargar}
-    />
-  ) : (
-    <VistaMiembro agencia={data.agency} actualizarUsuario={actualizarUsuario} />
+  return (
+    <>
+      {avisoStripe && <Aviso tipo="info">{avisoStripe}</Aviso>}
+      {data.esDueno ? (
+        <VistaDueno
+          agencia={data.agency}
+          miembros={data.miembros}
+          actualizarUsuario={actualizarUsuario}
+          recargar={recargar}
+        />
+      ) : (
+        <VistaMiembro agencia={data.agency} actualizarUsuario={actualizarUsuario} />
+      )}
+    </>
+  );
+}
+
+/** Aparece cuando la suscripción de la agencia no está activa. Nadie pierde datos: solo no se puede crear ni editar hasta reactivarla. */
+function AvisoCongelada({ paraDueno }) {
+  return (
+    <Aviso tipo="alerta" titulo="El plan de esta agencia no está activo">
+      {paraDueno
+        ? 'Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta que reactives el plan más abajo.'
+        : 'Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia reactive el plan.'}
+    </Aviso>
   );
 }
 
@@ -319,6 +373,8 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
         Perteneces a una agencia: tus PDF salen con su marca, no con la tuya. Solo quien la creó
         puede editarla.
       </p>
+
+      {agencia.billing?.status && agencia.billing.status !== 'activa' && <AvisoCongelada paraDueno={false} />}
 
       {error && <Aviso tipo="error">{error}</Aviso>}
 
@@ -347,6 +403,112 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
           Salir de la agencia
         </Boton>
       </div>
+    </Tarjeta>
+  );
+}
+
+/**
+ * Plan de la agencia: solo lo ve y lo maneja el dueño, es su tarjeta la que
+ * se cobra. Si ya hay un plan (activo o vencido) manda al portal de Stripe
+ * para cambiarlo o cancelarlo; si nunca hubo uno, arma una sesión de
+ * Checkout nueva con el plan y los agentes extra que elija.
+ */
+function PanelBilling({ agencia, totalAgentes }) {
+  const billing = agencia.billing || {};
+  const yaTuvoPlan = Boolean(billing.stripeCustomerId);
+
+  const [plan, setPlan] = useState(billing.plan || 'mensual');
+  // El 3 espeja AGENTES_INCLUIDOS en server/src/models/Agency.js: es solo el
+  // valor inicial del formulario, la capacidad real la calcula el backend.
+  const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - 3));
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+
+  const irACheckout = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setCargando(true);
+    try {
+      const data = await billingApi.checkout({ plan, extraAgentes: Number(extraAgentes) || 0 });
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err.message);
+      setCargando(false);
+    }
+  };
+
+  const irAlPortal = async () => {
+    setError(null);
+    setCargando(true);
+    try {
+      const data = await billingApi.portal();
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err.message);
+      setCargando(false);
+    }
+  };
+
+  return (
+    <Tarjeta
+      titulo="Plan de la agencia"
+      accion={
+        billing.status && (
+          <Insignia color={billing.status === 'activa' ? 'verde' : 'ambar'}>
+            {billing.status === 'activa' ? 'Activo' : billing.status === 'congelada' ? 'Vencido' : 'Sin activar'}
+          </Insignia>
+        )
+      }
+    >
+      {error && <Aviso tipo="error">{error}</Aviso>}
+
+      {billing.status === 'activa' && (
+        <p className="suave" style={{ marginTop: 0 }}>
+          Plan {PLANES[billing.plan]?.etiqueta.toLowerCase() || billing.plan}, {agencia.capacidadAgentes} agente(s)
+          de cupo ({totalAgentes} en uso)
+          {billing.periodoHasta && ` · se renueva el ${new Date(billing.periodoHasta).toLocaleDateString('es-MX')}`}.
+        </p>
+      )}
+
+      {yaTuvoPlan ? (
+        <Boton variante="secundario" chico cargando={cargando} onClick={irAlPortal}>
+          {billing.status === 'activa' ? 'Administrar plan' : 'Reactivar plan'}
+        </Boton>
+      ) : (
+        <>
+          <p className="suave" style={{ marginTop: 0 }}>
+            Mientras seas la única persona en la agencia, Rumbo es gratis. En cuanto quieras que se te
+            una un agente, activa un plan.
+          </p>
+          <form onSubmit={irACheckout} className="pila-sm">
+            <div className="campos-2">
+              <Campo label="Plan">
+                <select value={plan} onChange={(e) => setPlan(e.target.value)}>
+                  {Object.entries(PLANES).map(([valor, p]) => (
+                    <option key={valor} value={valor}>
+                      {p.etiqueta} — {p.base}
+                    </option>
+                  ))}
+                </select>
+              </Campo>
+              <Campo
+                label="Agentes extra"
+                type="number"
+                min="0"
+                step="1"
+                value={extraAgentes}
+                onChange={(e) => setExtraAgentes(e.target.value)}
+                ayuda={PLANES[plan]?.agente}
+              />
+            </div>
+            <div>
+              <Boton type="submit" cargando={cargando}>
+                Suscribirme
+              </Boton>
+            </div>
+          </form>
+        </>
+      )}
     </Tarjeta>
   );
 }
@@ -449,6 +611,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
 
   return (
     <>
+      {agencia.billing?.status !== 'activa' && miembros.length > 0 && <AvisoCongelada paraDueno />}
+
       <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
         <p className="suave" style={{ marginTop: 0 }}>
           Esta marca la ven todos los agentes de tu agencia en sus PDF. Solo tú puedes editarla.
@@ -511,6 +675,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
           </div>
         </form>
       </Tarjeta>
+
+      <PanelBilling agencia={agencia} totalAgentes={miembros.length + 1} />
 
       <Tarjeta titulo="Código de invitación">
         <p className="suave" style={{ marginTop: 0 }}>

@@ -50,6 +50,24 @@ export const env = {
       process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
     ),
   },
+  // Cobro a agencias. Sin STRIPE_SECRET_KEY, /agency/billing responde 503 con
+  // un aviso claro: el resto de la app (uso personal, agencia con un solo
+  // dueño) sigue funcionando igual.
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    // Un Price de Stripe por casilla: base de cada plan + el costo de un
+    // agente extra en ese mismo plan. Los crea `npm run stripe:setup`.
+    precios: {
+      mensualBase: process.env.STRIPE_PRICE_MENSUAL_BASE || '',
+      mensualAgente: process.env.STRIPE_PRICE_MENSUAL_AGENTE || '',
+      anualBase: process.env.STRIPE_PRICE_ANUAL_BASE || '',
+      anualAgente: process.env.STRIPE_PRICE_ANUAL_AGENTE || '',
+      vitalicioBase: process.env.STRIPE_PRICE_VITALICIO_BASE || '',
+      vitalicioAgente: process.env.STRIPE_PRICE_VITALICIO_AGENTE || '',
+    },
+    enabled: Boolean(process.env.STRIPE_SECRET_KEY),
+  },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
   // Quien puede ver el reporte de clics. Vacio = cerrado para todos, que es el
   // valor seguro por defecto.

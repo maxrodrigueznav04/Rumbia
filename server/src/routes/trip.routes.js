@@ -3,6 +3,7 @@ import * as ctrl from '../controllers/trip.controller.js';
 import { listTripExpenses } from '../controllers/expense.controller.js';
 import { getTripWeather } from '../controllers/weather.controller.js';
 import { protect } from '../middleware/auth.js';
+import { soloLecturaSiCongelada } from '../middleware/billing.js';
 import validate from '../middleware/validate.js';
 import itineraryRoutes from './itinerary.routes.js';
 import {
@@ -16,6 +17,8 @@ const router = Router();
 
 // Todo lo de viajes requiere sesion.
 router.use(protect);
+// Cubre tambien /itinerary anidado: nada de esto escribe si la agencia esta congelada.
+router.use(soloLecturaSiCongelada);
 
 router.get('/', validate(tripListQuerySchema, 'query'), ctrl.listTrips);
 router.post('/', validate(createTripSchema), ctrl.createTrip);
