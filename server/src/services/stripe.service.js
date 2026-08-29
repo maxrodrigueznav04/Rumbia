@@ -56,33 +56,37 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
   const s = requerirStripe();
   const cfg = configDePlan(plan);
 
-  let customerId = agencia.billing?.stripeCustomerId;
-  if (!customerId) {
-    const customer = await s.customers.create({
-      email: user.email,
-      name: agencia.agencyName,
-      metadata: { agencyId: String(agencia._id) },
+  try {
+    let customerId = agencia.billing?.stripeCustomerId;
+    if (!customerId) {
+      const customer = await s.customers.create({
+        email: user.email,
+        name: agencia.agencyName,
+        metadata: { agencyId: String(agencia._id) },
+      });
+      customerId = customer.id;
+    }
+
+    const lineItems = [{ price: cfg.base(), quantity: 1 }];
+    if (extraAgentes > 0) lineItems.push({ price: cfg.agente(), quantity: extraAgentes });
+
+    const session = await s.checkout.sessions.create({
+      customer: customerId,
+      mode: cfg.modo,
+      line_items: lineItems,
+      success_url: `${env.clientUrl}/perfil?billing=exito`,
+      cancel_url: `${env.clientUrl}/perfil?billing=cancelado`,
+      metadata: { agencyId: String(agencia._id), plan, extraAgentes: String(extraAgentes) },
+      // El modo "payment" (vitalicio) no acepta subscription_data.
+      ...(cfg.modo === 'subscription'
+        ? { subscription_data: { metadata: { agencyId: String(agencia._id), plan } } }
+        : {}),
     });
-    customerId = customer.id;
+
+    return session.url;
+  } catch (err) {
+    throw traducirErrorStripe(err);
   }
-
-  const lineItems = [{ price: cfg.base(), quantity: 1 }];
-  if (extraAgentes > 0) lineItems.push({ price: cfg.agente(), quantity: extraAgentes });
-
-  const session = await s.checkout.sessions.create({
-    customer: customerId,
-    mode: cfg.modo,
-    line_items: lineItems,
-    success_url: `${env.clientUrl}/perfil?billing=exito`,
-    cancel_url: `${env.clientUrl}/perfil?billing=cancelado`,
-    metadata: { agencyId: String(agencia._id), plan, extraAgentes: String(extraAgentes) },
-    // El modo "payment" (vitalicio) no acepta subscription_data.
-    ...(cfg.modo === 'subscription'
-      ? { subscription_data: { metadata: { agencyId: String(agencia._id), plan } } }
-      : {}),
-  });
-
-  return session.url;
 }
 
 /** Enlace al Customer Portal de Stripe: ahi cambian tarjeta, cancelan o ven facturas, sin que Rumbo construya nada de eso. */
@@ -91,11 +95,32 @@ export async function crearSesionPortal({ agencia }) {
   if (!agencia.billing?.stripeCustomerId) {
     throw ApiError.badRequest('Esta agencia todavia no tiene un plan. Activa uno primero.');
   }
-  const session = await s.billingPortal.sessions.create({
-    customer: agencia.billing.stripeCustomerId,
-    return_url: `${env.clientUrl}/perfil`,
-  });
-  return session.url;
+  try {
+    const session = await s.billingPortal.sessions.create({
+      customer: agencia.billing.stripeCustomerId,
+      return_url: `${env.clientUrl}/perfil`,
+    });
+    return session.url;
+  } catch (err) {
+    throw traducirErrorStripe(err);
+  }
+}
+
+/**
+ * Los errores de la API de Stripe ya traen el detalle util (que parametro y
+ * por que), pero solo en `type`/`param`/`message` — sin esto el usuario ve un
+ * "Not a valid URL" pelón sin saber si fue el success_url, el customer o el
+ * price.
+ */
+function traducirErrorStripe(err) {
+  if (err instanceof ApiError) return err;
+  if (typeof err?.type === 'string' && err.type.startsWith('Stripe')) {
+    console.error(`[stripe] ${err.type}${err.param ? ` (param: ${err.param})` : ''}: ${err.message}`);
+    return ApiError.badRequest(
+      err.param ? `Stripe rechazó "${err.param}": ${err.message}` : `Stripe rechazó la solicitud: ${err.message}`
+    );
+  }
+  return err;
 }
 
 /** Verifica la firma y arma el evento. Lanza si el body fue alterado o la firma no corresponde. */
