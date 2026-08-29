@@ -35,6 +35,14 @@ export const agencyApi = {
   eliminarMiembro: (userId) => api.delete(`/agency/miembros/${userId}`),
 };
 
+export const billingApi = {
+  obtener: (opts) => api.get('/agency/billing', opts),
+  // Redirige de inmediato a la sesion de Checkout de Stripe; no hay nada mas
+  // que hacer con la respuesta que ir a data.url.
+  checkout: (payload) => api.post('/agency/billing/checkout', payload),
+  portal: () => api.post('/agency/billing/portal'),
+};
+
 const qs = (params) => {
   const limpio = Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== '');
   return limpio.length ? `?${new URLSearchParams(limpio)}` : '';
