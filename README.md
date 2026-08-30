@@ -503,10 +503,6 @@ Todas las respuestas siguen la misma forma:
   sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
   recuperación funcionan igual que si no existiera. Dar de alta la cuenta en Cloudflare causó
   crasheos, así que por ahora no se va a activar.
-- El cobro a agencias con Stripe está completo del lado del código (modelo, endpoints, webhook,
-  candado de solo lectura, script de setup) y pasa sus pruebas sin necesitar una cuenta real, pero
-  todavía no se probó de punta a punta contra Stripe de verdad: falta crear la cuenta, correr
-  `npm run stripe:setup`, dar de alta el webhook en Render y hacer un pago de prueba completo.
-- Cambiar la cantidad de agentes extra de una agencia ya activa (comprar más asientos sin cambiar
-  de plan) no tiene un flujo propio todavía: hay que cancelar y volver a suscribirse con el número
-  nuevo. Vale la pena resolverlo si una agencia real lo pide.
+- El cobro a agencias con Stripe ya se probó de punta a punta en modo prueba (Checkout, webhook,
+  activación del plan). Falta el paso a llaves live cuando se vaya a cobrar de verdad: cuenta en
+  modo live, `npm run stripe:setup` contra esas llaves, webhook nuevo en Render.
