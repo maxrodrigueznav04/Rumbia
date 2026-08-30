@@ -55,6 +55,9 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
         logoUrl: agencia.logoUrl,
         contact: agencia.contact,
         owner: agencia.owner,
+        // Solo el estado, no los ids de Stripe: un miembro necesita saber por
+        // que no puede crear ni editar, no los detalles de la suscripcion.
+        billing: { status: agencia.billing?.status },
       };
 
   let miembros = [];
@@ -108,6 +111,23 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   const agencia = await Agency.findOne({ inviteCode: req.body.inviteCode });
   if (!agencia) throw ApiError.notFound('Ese código no corresponde a ninguna agencia.');
+
+  // Un dueño solo, sin nadie más, no necesita plan (es uso personal con marca
+  // de agencia). En cuanto alguien más se une, ya es el producto de pago: no
+  // se deja sumar gente a una agencia sin un plan activo.
+  if (agencia.billing?.status !== 'activa') {
+    throw ApiError.forbidden(
+      'Esta agencia todavía no tiene un plan activo. Pídele al dueño que lo active antes de unirte.'
+    );
+  }
+
+  const cupo = agencia.capacidadAgentes;
+  const miembrosActuales = await User.countDocuments({ agency: agencia._id });
+  if (miembrosActuales >= cupo) {
+    throw ApiError.conflict(
+      `Esta agencia ya llegó a su límite de ${cupo} agente(s). El dueño puede sumar más asientos desde su plan.`
+    );
+  }
 
   req.user.agency = agencia._id;
   await req.user.save();
@@ -183,7 +203,7 @@ export const regenerarCodigo = asyncHandler(async (req, res) => {
 });
 
 /** Carga la agencia del usuario en sesion y revienta si no es el dueno. */
-async function agenciaComoDueno(req) {
+export async function agenciaComoDueno(req) {
   if (!req.user.agency) throw ApiError.notFound('No perteneces a ninguna agencia.');
   const agencia = await Agency.findById(req.user.agency);
   if (!agencia) throw ApiError.notFound('No perteneces a ninguna agencia.');

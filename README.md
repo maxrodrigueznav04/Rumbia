@@ -11,7 +11,7 @@ control de presupuesto.
 > Es una decisión de diseño consciente: reservar de verdad exige acuerdos comerciales con
 > aerolíneas y hoteles que un proyecto individual no puede tener.
 
-**Demo en vivo:** <https://rumbo-self.vercel.app> — cuenta de prueba `demo@rumbo.app` / `demo1234`
+**Demo en vivo:** <https://rumbo.maxrodrigueznav04.workers.dev> — cuenta de prueba `demo@rumbo.app` / `demo1234`
 
 > El backend corre en el plan gratuito de Render, que duerme el servicio tras 15 minutos sin uso.
 > La primera petición puede tardar cerca de un minuto; la app lo avisa mientras despierta.
@@ -54,6 +54,7 @@ regenerar; el mapa ubica las actividades que traen coordenadas.
 | Mapas | Leaflet + OpenStreetMap (sin API key) |
 | Clima | OpenWeatherMap (5 días) + estimación climatológica propia para fechas lejanas |
 | Validación | Zod en el borde de la API |
+| Cobros | Stripe (Checkout + Customer Portal + webhooks) |
 
 Todo el stack corre en tiers gratuitos.
 
@@ -107,6 +108,14 @@ Todo el stack corre en tiers gratuitos.
   el nombre, el logo y el contacto, y comparte un código de invitación fuera de la app (whatsapp,
   correo) para que los demás se unan desde su perfil. Mientras un agente pertenece a una agencia,
   su marca personal queda guardada pero inerte: la de la agencia es la que se imprime.
+- **Cobro a agencias, con Stripe.** Crear una agencia y usarla en solitario es gratis: el plan
+  solo hace falta en cuanto un segundo agente quiere unirse. Tres planes (mensual, anual, de por
+  vida) con 3 agentes incluidos y costo extra por asiento adicional; `npm run stripe:setup` en
+  `server` crea los Products/Prices en Stripe y devuelve las variables listas para pegar en
+  `.env`. Si el plan se vence o se cancela, la agencia no pierde nada: se congela en modo de
+  solo lectura (se puede ver todo, no crear ni editar) hasta reactivarlo, y solo si ya había más
+  de un agente — un dueño solo nunca queda bloqueado. Sin `STRIPE_SECRET_KEY` el resto de la app
+  sigue funcionando igual, simplemente no hay forma de cobrar.
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos
@@ -117,7 +126,9 @@ Todo el stack corre en tiers gratuitos.
 - **Itinerario con IA.** Gemini devuelve un plan día por día en JSON estructurado (actividades con
   hora, categoría, coordenadas y costo estimado). Todo es editable desde la interfaz: agregar,
   editar, quitar, renombrar días y arrastrar actividades para reordenarlas dentro de un día o
-  moverlas a otro.
+  moverlas a otro (con ratón, dedo o teclado). Cambiar la hora de una actividad la reacomoda sola
+  entre sus vecinas del día; arrastrar sigue sin tocar la hora, para poder acomodar algo fuera de
+  su orden cronológico sin que un guardado cualquiera lo deshaga.
 - **Gastos sueltos.** Comidas, entradas y souvenirs con categoría, fecha y marca de pagado, que
   entran al desglose sin duplicar lo ya capturado en el viaje.
 - **Mapa y clima.** Leaflet con un pin por actividad; clima real a 5 días y estimación por
@@ -158,6 +169,8 @@ Llena `server/.env`:
 | `RESEND_API_KEY` | no* | [Resend](https://resend.com/api-keys). Sin ella no sale el correo de recuperación; en desarrollo el enlace se imprime en la consola. |
 | `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
 | `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | no* | [Cloudinary](https://cloudinary.com), plan gratis (25 GB/mes). Los tres valores están juntos en el Dashboard. Sin ellos el botón de subir logo responde con un aviso claro; el campo de URL manual sigue funcionando igual. |
+| `STRIPE_SECRET_KEY` `STRIPE_WEBHOOK_SECRET` | no* | Cobro a agencias. La primera sale de la [consola de Stripe](https://dashboard.stripe.com/apikeys); la segunda, de crear el endpoint del webhook ahí mismo. Sin ellas `/agency/billing` responde con un aviso claro; el resto de la app no se entera. |
+| `STRIPE_PRICE_*` (6 variables) | no* | Los Price de cada plan y su agente extra. Los crea `npm run stripe:setup` en `server`, que imprime las seis líneas listas para pegar aquí. |
 
 Para generar el secreto:
 
@@ -244,7 +257,7 @@ necesita la URL del anterior.
 
 ### 0. Subir el repo a GitHub
 
-Render y Vercel despliegan desde un repositorio, asi que este paso va primero.
+Render y Cloudflare Pages despliegan desde un repositorio, asi que este paso va primero.
 El repo ya esta inicializado y con el commit inicial hecho:
 
 ```bash
@@ -293,20 +306,36 @@ Cuando termine, copia la URL del servicio (algo como
 curl https://rumbo-api.onrender.com/api/health
 ```
 
-### 3. Frontend en Vercel
+Si vas a cobrar a agencias: corre `npm run stripe:setup` (local, contra tu cuenta de Stripe)
+para conseguir los seis `STRIPE_PRICE_*`, y crea el webhook en el dashboard de Stripe apuntando
+a `https://rumbo-api.onrender.com/api/billing/webhook` con los eventos `checkout.session.completed`,
+`customer.subscription.updated` y `customer.subscription.deleted` — de ahí sale `STRIPE_WEBHOOK_SECRET`.
+Sin esto la app funciona igual, solo que nadie puede pagarte.
+
+### 3. Frontend en Cloudflare Pages
+
+En el dashboard de Cloudflare: **Workers & Pages -> Create -> Pages -> Connect to Git**,
+apunta a este repositorio y captura:
 
 - Root directory: `client`
-- Build command: `npm run build` - Output: `dist`
+- Build command: `npm run build`
+- Build output directory: `dist`
 - Variable de entorno: `VITE_API_URL = https://rumbo-api.onrender.com/api`
   (con `/api` al final, sin barra despues)
 
-[`client/vercel.json`](client/vercel.json) reescribe todas las rutas a
-`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al recargar.
+El plan gratuito de Cloudflare Pages permite uso comercial sin restricciones
+(a diferencia del plan Hobby de Vercel) y no tiene limite de ancho de banda
+para contenido estatico.
+
+[`client/public/_redirects`](client/public/_redirects) manda todas las rutas a
+`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al
+recargar; Vite lo copia a `dist/` en cada build y Cloudflare Pages lo detecta
+solo.
 
 ### 4. Cerrar el circulo
 
-Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Vercel
-(`https://rumbo.vercel.app`, **sin barra final** — aunque el servidor la
+Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Cloudflare Pages
+(`https://rumbo.pages.dev`, **sin barra final** — aunque el servidor la
 normaliza, es mas claro sin ella). Redespliega. Sin este paso el navegador
 bloquea las peticiones por CORS y la app se ve vacia.
 
@@ -469,5 +498,15 @@ Todas las respuestas siguen la misma forma:
 
 ## Pendientes conocidos
 
-- El itinerario no reordena las actividades al cambiar la hora: hay que arrastrarlas (con el
-  dedo, el ratón o el teclado).
+- El captcha con Cloudflare Turnstile (`server/src/services/turnstile.service.js`,
+  `client/src/components/Captcha.jsx`) existe en el código pero se queda apagado a propósito:
+  sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
+  recuperación funcionan igual que si no existiera. Dar de alta la cuenta en Cloudflare causó
+  crasheos, así que por ahora no se va a activar.
+- El cobro a agencias con Stripe está completo del lado del código (modelo, endpoints, webhook,
+  candado de solo lectura, script de setup) y pasa sus pruebas sin necesitar una cuenta real, pero
+  todavía no se probó de punta a punta contra Stripe de verdad: falta crear la cuenta, correr
+  `npm run stripe:setup`, dar de alta el webhook en Render y hacer un pago de prueba completo.
+- Cambiar la cantidad de agentes extra de una agencia ya activa (comprar más asientos sin cambiar
+  de plan) no tiene un flujo propio todavía: hay que cancelar y volver a suscribirse con el número
+  nuevo. Vale la pena resolverlo si una agencia real lo pide.

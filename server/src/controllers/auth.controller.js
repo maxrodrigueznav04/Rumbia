@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Trip from '../models/Trip.js';
 import Itinerary from '../models/Itinerary.js';
@@ -22,6 +23,13 @@ const BLOQUEO_LOGIN_MINUTOS = 15;
 
 /** Lo que se guarda en la base es esto, nunca el token que viaja en el correo. */
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
+// Hash valido pero de nadie, con el mismo costo (12 rondas) que los de verdad.
+// Cuando el email no existe, login igual corre un bcrypt.compare contra este
+// en vez de saltarselo: si no, responder "no existe" tarda medible-mente menos
+// que "password incorrecta", y ese tiempo delata que correos estan
+// registrados aunque el mensaje de error sea identico.
+const HASH_SENUELO = bcrypt.hashSync('nadie-tiene-esta-contrasena', 12);
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, perfilUso, referenciaContacto } = req.body;
@@ -64,7 +72,10 @@ export const login = asyncHandler(async (req, res) => {
     );
   }
 
-  const valido = user && (await user.comparePassword(password));
+  // Siempre corre un bcrypt.compare, exista o no la cuenta: contra la de
+  // verdad si existe, contra el señuelo si no. Así "no existe" y "password
+  // incorrecta" tardan lo mismo (ver HASH_SENUELO arriba).
+  const valido = user ? await user.comparePassword(password) : await bcrypt.compare(password, HASH_SENUELO);
 
   if (!valido) {
     if (user) {

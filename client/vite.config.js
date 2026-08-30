@@ -19,11 +19,15 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        // Separa las libs pesadas para que el bundle inicial no cargue mapa ni graficas.
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          maps: ['leaflet', 'react-leaflet'],
-          charts: ['recharts'],
+        // Separa las libs pesadas para que el bundle inicial no cargue mapa ni
+        // graficas. Rolldown (el bundler de Vite 8) solo acepta manualChunks
+        // como funcion, ya no como objeto {chunk: [paquetes]}.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/node_modules\/(leaflet|react-leaflet)\//.test(id)) return 'maps';
+          if (/node_modules\/recharts\//.test(id)) return 'charts';
+          if (/node_modules\/(react|react-dom|react-router|react-router-dom)\//.test(id)) return 'vendor';
+          return undefined;
         },
       },
     },

@@ -121,10 +121,10 @@ export default function ResumenPresupuesto({ resumen }) {
 
       {itineraryEstimate && (
         <p className="tenue" style={{ margin: '12px 0 0' }}>
-          El itinerario sugiere{' '}
-          <strong>{formatoMoneda(itineraryEstimate.allTravelers, currency)}</strong> extra en
-          actividades ({itineraryEstimate.activityCount} en total). No se suma automáticamente: se
-          cuenta cuando lo registras como gasto.
+          El itinerario sugiere <strong>{formatoMoneda(itineraryEstimate.perTraveler, currency)}</strong>{' '}
+          por persona en actividades ({formatoMoneda(itineraryEstimate.allTravelers, currency)} en
+          total del grupo, {itineraryEstimate.activityCount} actividad(es)). No se suma
+          automáticamente: se cuenta cuando lo registras como gasto.
         </p>
       )}
     </Tarjeta>

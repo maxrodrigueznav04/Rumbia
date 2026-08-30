@@ -3,11 +3,15 @@ import * as ctrl from '../controllers/agency.controller.js';
 import { protect } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
 import subirLogo from '../middleware/subirLogo.js';
+import billingRoutes from './billing.routes.js';
 import { createAgencySchema, updateAgencySchema, joinAgencySchema } from '../validators/schemas.js';
 
 /** Todo aqui requiere sesion: una agencia solo existe en relacion a sus agentes. */
 const router = Router();
 router.use(protect);
+
+// /api/agency/billing/...
+router.use('/billing', billingRoutes);
 
 router.post('/', validate(createAgencySchema), ctrl.crearAgencia);
 router.get('/', ctrl.obtenerAgencia);

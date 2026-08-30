@@ -24,6 +24,22 @@ function resequence(day) {
   });
 }
 
+/**
+ * Reordena las actividades del dia por hora tras editar la de una de ellas.
+ * Las que no tienen hora se van al final, en el orden en que ya estaban entre
+ * si (sort es estable). Es lo unico que dispara este reordenamiento: arrastrar
+ * (reorderActivities) sigue sin tocar la hora, a proposito, para poder acomodar
+ * actividades fuera de su orden cronologico sin que un guardado cualquiera lo
+ * deshaga.
+ */
+export function reorderByTime(day) {
+  const conHora = day.activities.filter((a) => a.time);
+  const sinHora = day.activities.filter((a) => !a.time);
+  conHora.sort((a, b) => a.time.localeCompare(b.time));
+  day.activities = [...conHora, ...sinHora];
+  resequence(day);
+}
+
 export const getItinerary = asyncHandler(async (req, res) => {
   await findOwnedTrip(req.params.id, req.user._id);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
@@ -267,14 +283,17 @@ export const updateActivity = asyncHandler(async (req, res) => {
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
-  const { activity } = locate(itinerary, req.params.dayId, req.params.activityId);
+  const { day, activity } = locate(itinerary, req.params.dayId, req.params.activityId);
   const { location, ...rest } = req.body;
+
+  const horaCambio = 'time' in rest && rest.time !== activity.time;
 
   Object.assign(activity, rest);
   if (location) activity.location = { ...activity.location?.toObject(), ...location };
+  if (horaCambio) reorderByTime(day);
 
   await itinerary.save();
-  res.json({ success: true, message: 'Actividad actualizada.', data: { activity } });
+  res.json({ success: true, message: 'Actividad actualizada.', data: { activity, day } });
 });
 
 export const deleteActivity = asyncHandler(async (req, res) => {

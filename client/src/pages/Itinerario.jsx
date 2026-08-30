@@ -12,6 +12,7 @@ import {
   ErrorCarga,
   Esqueleto,
   Aviso,
+  Modal,
   ModalConfirmar,
 } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
@@ -569,9 +570,9 @@ export default function Itinerario() {
                       Día {dia.dayNumber}
                       {dia.date && ` · ${formatoFecha(dia.date, { weekday: 'long', year: undefined })}`}
                     </div>
-                    {dia.dayNumber > viaje.durationDays && (
+                    {(dia.dayNumber > viaje.durationDays || itinerario.days.length > 1) && (
                       <span className="fila" style={{ gap: 6 }}>
-                        <Insignia color="error">Fuera del viaje</Insignia>
+                        {dia.dayNumber > viaje.durationDays && <Insignia color="error">Fuera del viaje</Insignia>}
                         <Boton
                           variante="fantasma"
                           chico
@@ -751,14 +752,45 @@ export default function Itinerario() {
         textoConfirmar="Quitar día"
       />
 
-      <ModalConfirmar
+      <Modal
         abierto={confirmarRegenerar}
         onCerrar={() => setConfirmarRegenerar(false)}
-        onConfirmar={() => generar(true)}
         titulo="Regenerar itinerario"
-        mensaje="La IA va a crear un plan nuevo desde cero. Se pierde el itinerario actual, incluyendo las actividades que hayas editado o agregado a mano."
-        textoConfirmar="Regenerar"
-      />
+        ancho={440}
+      >
+        <p className="suave" style={{ marginTop: 0 }}>
+          La IA va a crear un plan nuevo desde cero. Se pierde el itinerario actual, incluyendo las
+          actividades que hayas editado o agregado a mano.
+        </p>
+
+        <div className="campo">
+          <label htmlFor="notas-regenerar">¿Algo que la IA deba tomar en cuenta? (opcional)</label>
+          <textarea
+            id="notas-regenerar"
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            maxLength={500}
+            placeholder="Viajamos con un niño de 6 años, preferimos lugares poco turísticos, no comemos carne..."
+          />
+          <span className="campo-ayuda">{notas.length}/500</span>
+        </div>
+
+        <div className="modal-acciones">
+          <Boton variante="secundario" onClick={() => setConfirmarRegenerar(false)}>
+            Cancelar
+          </Boton>
+          <Boton
+            variante="peligro"
+            cargando={generando}
+            onClick={async () => {
+              await generar(true);
+              setConfirmarRegenerar(false);
+            }}
+          >
+            Regenerar
+          </Boton>
+        </div>
+      </Modal>
     </div>
   );
 }
