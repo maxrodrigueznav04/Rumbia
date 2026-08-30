@@ -41,6 +41,7 @@ export const billingApi = {
   // que hacer con la respuesta que ir a data.url.
   checkout: (payload) => api.post('/agency/billing/checkout', payload),
   portal: () => api.post('/agency/billing/portal'),
+  cambiarAgentes: (payload) => api.patch('/agency/billing/agentes', payload),
 };
 
 const qs = (params) => {

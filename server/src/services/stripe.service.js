@@ -107,6 +107,45 @@ export async function crearSesionPortal({ agencia }) {
 }
 
 /**
+ * Sube o baja los agentes extra de una suscripcion ya activa (mensual o
+ * anual) sin cancelarla ni pasar por Checkout otra vez: Stripe prorratea la
+ * diferencia en la siguiente factura. "vitalicio" es pago unico, no tiene
+ * suscripcion que actualizar.
+ */
+export async function cambiarAgentesSuscripcion({ agencia, plan, nuevoExtraAgentes }) {
+  const s = requerirStripe();
+  const cfg = configDePlan(plan);
+  if (cfg.modo !== 'subscription') {
+    throw ApiError.badRequest('El plan "vitalicio" es un pago único: no tiene una suscripción que ajustar.');
+  }
+
+  try {
+    const sub = await s.subscriptions.retrieve(agencia.billing.stripeSubscriptionId);
+    const itemAgente = sub.items.data.find((it) => it.price.id === cfg.agente());
+
+    if (nuevoExtraAgentes === 0) {
+      if (!itemAgente) return; // Ya no habia agentes extra que quitar.
+      await s.subscriptions.update(sub.id, {
+        items: [{ id: itemAgente.id, deleted: true }],
+        proration_behavior: 'create_prorations',
+      });
+      return;
+    }
+
+    await s.subscriptions.update(sub.id, {
+      items: [
+        itemAgente
+          ? { id: itemAgente.id, quantity: nuevoExtraAgentes }
+          : { price: cfg.agente(), quantity: nuevoExtraAgentes },
+      ],
+      proration_behavior: 'create_prorations',
+    });
+  } catch (err) {
+    throw traducirErrorStripe(err);
+  }
+}
+
+/**
  * Los errores de la API de Stripe ya traen el detalle util (que parametro y
  * por que), pero solo en `type`/`param`/`message` — sin esto el usuario ve un
  * "Not a valid URL" pelón sin saber si fue el success_url, el customer o el
@@ -132,4 +171,4 @@ export function construirEvento(payloadCrudo, firma) {
   return s.webhooks.constructEvent(payloadCrudo, firma, env.stripe.webhookSecret);
 }
 
-export default { crearSesionCheckout, crearSesionPortal, construirEvento };
+export default { crearSesionCheckout, crearSesionPortal, cambiarAgentesSuscripcion, construirEvento };

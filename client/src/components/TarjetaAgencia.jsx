@@ -413,7 +413,67 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
  * para cambiarlo o cancelarlo; si nunca hubo uno, arma una sesión de
  * Checkout nueva con el plan y los agentes extra que elija.
  */
-function PanelBilling({ agencia, totalAgentes }) {
+/**
+ * Solo aparece con una suscripción activa (mensual/anual): sube o baja los
+ * agentes extra sin cancelar el plan. "vitalicio" es pago único y no tiene
+ * suscripción que ajustar, así que PanelBilling ni la monta para ese caso.
+ */
+function AjusteAgentesExtra({ agencia, recargar }) {
+  const billing = agencia.billing || {};
+  const [valor, setValor] = useState(billing.extraAgentes ?? 0);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState(null);
+  const [exito, setExito] = useState(false);
+
+  const cambiado = Number(valor) !== (billing.extraAgentes ?? 0);
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setExito(false);
+    setGuardando(true);
+    try {
+      await billingApi.cambiarAgentes({ extraAgentes: Number(valor) || 0 });
+      setExito(true);
+      recargar();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <form onSubmit={guardar} className="pila-sm" style={{ marginTop: 12 }}>
+      <div className="fila" style={{ gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <Campo
+          label="Agentes extra"
+          type="number"
+          min="0"
+          step="1"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          ayuda={PLANES[billing.plan]?.agente}
+        />
+        <Boton type="submit" variante="secundario" chico cargando={guardando} disabled={!cambiado}>
+          Guardar cambio
+        </Boton>
+      </div>
+      {error && (
+        <span className="campo-error" role="alert">
+          {error}
+        </span>
+      )}
+      {exito && (
+        <span className="tenue" style={{ fontSize: '0.85rem' }}>
+          Actualizado. El ajuste se prorratea en tu próxima factura.
+        </span>
+      )}
+    </form>
+  );
+}
+
+function PanelBilling({ agencia, totalAgentes, recargar }) {
   const billing = agencia.billing || {};
   const yaTuvoPlan = Boolean(billing.stripeCustomerId);
 
@@ -463,11 +523,20 @@ function PanelBilling({ agencia, totalAgentes }) {
       {error && <Aviso tipo="error">{error}</Aviso>}
 
       {billing.status === 'activa' && (
-        <p className="suave" style={{ marginTop: 0 }}>
-          Plan {PLANES[billing.plan]?.etiqueta.toLowerCase() || billing.plan}, {agencia.capacidadAgentes} agente(s)
-          de cupo ({totalAgentes} en uso)
-          {billing.periodoHasta && ` · se renueva el ${new Date(billing.periodoHasta).toLocaleDateString('es-MX')}`}.
-        </p>
+        <>
+          <p className="suave" style={{ marginTop: 0 }}>
+            Plan {PLANES[billing.plan]?.etiqueta.toLowerCase() || billing.plan}, {agencia.capacidadAgentes} agente(s)
+            de cupo ({totalAgentes} en uso)
+            {billing.periodoHasta && ` · se renueva el ${new Date(billing.periodoHasta).toLocaleDateString('es-MX')}`}.
+          </p>
+          {billing.plan === 'vitalicio' ? (
+            <p className="tenue" style={{ marginTop: 0, fontSize: '0.85rem' }}>
+              El plan De por vida es un pago único: para sumar más agentes, contáctanos.
+            </p>
+          ) : (
+            <AjusteAgentesExtra agencia={agencia} recargar={recargar} />
+          )}
+        </>
       )}
 
       {yaTuvoPlan ? (
@@ -676,7 +745,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
         </form>
       </Tarjeta>
 
-      <PanelBilling agencia={agencia} totalAgentes={miembros.length + 1} />
+      <PanelBilling agencia={agencia} totalAgentes={miembros.length + 1} recargar={recargar} />
 
       <Tarjeta titulo="Código de invitación">
         <p className="suave" style={{ marginTop: 0 }}>
