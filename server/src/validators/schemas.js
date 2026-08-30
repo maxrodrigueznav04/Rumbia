@@ -128,6 +128,10 @@ export const checkoutAgencySchema = z.object({
   extraAgentes: z.coerce.number().int().min(0).max(500).default(0),
 });
 
+export const cambiarAgentesSchema = z.object({
+  extraAgentes: z.coerce.number().int().min(0).max(500),
+});
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Ingresa tu contraseña actual.'),
   newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.').max(72),

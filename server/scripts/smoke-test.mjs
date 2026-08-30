@@ -261,6 +261,14 @@ await check('checkoutAgencySchema exige un plan valido y por defecto 0 agentes e
   return 'anual + default 0, plan invalido rechazado';
 });
 
+await check('cambiarAgentesSchema exige extraAgentes explicito (sin default)', async () => {
+  const ok = schemas.cambiarAgentesSchema.safeParse({ extraAgentes: '4' });
+  assert(ok.success && ok.data.extraAgentes === 4, 'coerciona a numero');
+  const mal = schemas.cambiarAgentesSchema.safeParse({});
+  assert(!mal.success, 'sin extraAgentes deberia fallar');
+  return '4 agentes extra, body vacio rechazado';
+});
+
 await check('tripListQuerySchema aplica defaults', async () => {
   const r = schemas.tripListQuerySchema.safeParse({});
   assert(r.success && r.data.page === 1 && r.data.limit === 20, 'defaults');
@@ -463,6 +471,16 @@ const stripeService = (await import('../src/services/stripe.service.js')).defaul
 await check('crearSesionCheckout avisa claro si falta STRIPE_SECRET_KEY', async () => {
   try {
     await stripeService.crearSesionCheckout({ agencia: {}, user: {}, plan: 'mensual' });
+    throw new Error('deberia haber lanzado');
+  } catch (e) {
+    assert(e.statusCode === 503, `statusCode=${e.statusCode}`);
+    return e.message;
+  }
+});
+
+await check('cambiarAgentesSuscripcion tambien avisa claro sin STRIPE_SECRET_KEY', async () => {
+  try {
+    await stripeService.cambiarAgentesSuscripcion({ agencia: {}, plan: 'mensual', nuevoExtraAgentes: 2 });
     throw new Error('deberia haber lanzado');
   } catch (e) {
     assert(e.statusCode === 503, `statusCode=${e.statusCode}`);

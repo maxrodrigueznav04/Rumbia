@@ -1,4 +1,5 @@
-import { Agency } from '../models/index.js';
+import { Agency, User } from '../models/index.js';
+import { AGENTES_INCLUIDOS } from '../models/Agency.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import stripeService from '../services/stripe.service.js';
@@ -29,6 +30,39 @@ export const iniciarCheckout = asyncHandler(async (req, res) => {
   });
 
   res.json({ success: true, data: { url } });
+});
+
+/**
+ * Sube o baja los agentes extra de una suscripción ya activa (mensual/anual)
+ * sin pasar por Checkout de nuevo. El plan "vitalicio" es pago único: no hay
+ * suscripción que ajustar, así que no aplica aquí.
+ */
+export const cambiarAgentes = asyncHandler(async (req, res) => {
+  const agencia = await agenciaComoDueno(req);
+  const { extraAgentes } = req.body;
+
+  if (agencia.billing?.status !== 'activa' || !agencia.billing?.stripeSubscriptionId) {
+    throw ApiError.badRequest('Esta agencia no tiene una suscripción activa que ajustar.');
+  }
+
+  const miembrosActuales = await User.countDocuments({ agency: agencia._id });
+  const nuevaCapacidad = AGENTES_INCLUIDOS + extraAgentes;
+  if (nuevaCapacidad < miembrosActuales) {
+    throw ApiError.conflict(
+      `Ya tienes ${miembrosActuales} agente(s) en la agencia; no puedes bajar el cupo por debajo de eso. Saca agentes primero.`
+    );
+  }
+
+  await stripeService.cambiarAgentesSuscripcion({
+    agencia,
+    plan: agencia.billing.plan,
+    nuevoExtraAgentes: extraAgentes,
+  });
+
+  agencia.billing.extraAgentes = extraAgentes;
+  await agencia.save();
+
+  res.json({ success: true, message: 'Agentes extra actualizados.', data: { agency: agencia } });
 });
 
 /** Portal de Stripe: cambiar tarjeta, cancelar, ver facturas. Nada de eso vive en Rumbo. */
