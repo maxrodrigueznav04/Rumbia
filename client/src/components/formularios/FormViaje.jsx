@@ -153,7 +153,11 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
         <CampoFechas
           inicio={valores.startDate}
           fin={valores.endDate}
-          minimo={undefined}
+          // null, no undefined: el default de CampoFechas (minimo = HOY) solo
+          // se salta con null, undefined lo dispara igual por como funcionan
+          // los parametros por defecto en JS — con undefined, un viaje que ya
+          // empezo no dejaba corregir la fecha de salida a algo anterior a hoy.
+          minimo={null}
           onCambio={({ inicio, fin }) => {
             form.fijar('startDate', inicio);
             form.fijar('endDate', fin);

@@ -4,7 +4,7 @@ import Icono from './Icono.jsx';
 
 /** Kit de componentes base. Todo apoyado en las clases de global.css. */
 
-export function Boton({ variante = 'primario', chico, ancho, cargando, children, ...props }) {
+export function Boton({ variante = 'primario', chico, ancho, cargando, children, disabled, ...props }) {
   const clases = [
     'boton',
     variante !== 'primario' ? variante : '',
@@ -15,7 +15,10 @@ export function Boton({ variante = 'primario', chico, ancho, cargando, children,
     .join(' ');
 
   return (
-    <button className={clases} disabled={cargando || props.disabled} {...props}>
+    // disabled se saca del spread a proposito: {...props} despues de un
+    // disabled explicito lo pisaba con el disabled propio del llamador
+    // (cuando lo mandaba), dejando el boton clickeable durante cargando=true.
+    <button className={clases} disabled={cargando || disabled} {...props}>
       {cargando && <span className="spinner" style={{ width: 15, height: 15, borderWidth: 2 }} />}
       {children}
     </button>
@@ -181,12 +184,25 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
 /** Confirmación destructiva sin usar window.confirm (que no se puede estilizar). */
 export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje, textoConfirmar = 'Eliminar' }) {
   const [procesando, setProcesando] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Se limpia cada vez que el modal se vuelve a abrir, para no arrastrar el
+  // error de un intento anterior a una confirmacion distinta.
+  useEffect(() => {
+    if (abierto) setError(null);
+  }, [abierto]);
 
   const confirmar = async () => {
+    setError(null);
     setProcesando(true);
     try {
       await onConfirmar();
       onCerrar();
+    } catch (err) {
+      // Sin esto, un fallo (red, 404 porque ya se borro en otra pestana, 500)
+      // solo apagaba el spinner sin decir nada: el modal se quedaba abierto
+      // sin ninguna pista de que la accion no se completo.
+      setError(err.message || 'No se pudo completar la acción.');
     } finally {
       setProcesando(false);
     }
@@ -195,6 +211,7 @@ export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje
   return (
     <Modal abierto={abierto} onCerrar={onCerrar} titulo={titulo} ancho={420}>
       <p className="suave">{mensaje}</p>
+      {error && <Aviso tipo="error">{error}</Aviso>}
       <div className="modal-acciones">
         <Boton variante="secundario" onClick={onCerrar}>
           Cancelar
@@ -273,7 +290,7 @@ export function ErrorCarga({ error, onReintentar, contexto }) {
   const esServicio = error?.status === 503;
 
   return (
-    <Aviso tipo={esServicio ? 'alerta' : 'error'} titulo={contexto || 'Algo salio mal'}>
+    <Aviso tipo={esServicio ? 'alerta' : 'error'} titulo={contexto || 'Algo salió mal'}>
       <p style={{ margin: '2px 0 0' }}>{error?.message || 'Error inesperado.'}</p>
       {Array.isArray(error?.details) && error.details.length > 0 && (
         <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
@@ -285,7 +302,7 @@ export function ErrorCarga({ error, onReintentar, contexto }) {
       {onReintentar && (
         <div style={{ marginTop: 10 }}>
           <Boton variante="secundario" chico onClick={onReintentar}>
-            {esRed ? 'Reintentar conexion' : 'Reintentar'}
+            {esRed ? 'Reintentar conexión' : 'Reintentar'}
           </Boton>
         </div>
       )}

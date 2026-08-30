@@ -52,7 +52,12 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
       category: v.category,
       location: { name: v.lugar.trim() },
       estimatedCost: Number(v.estimatedCost) || 0,
-      durationMinutes: Number(v.durationMinutes) || 60,
+      // Number(v.durationMinutes) || 60 forzaba 60 cuando el usuario escribia
+      // 0 a proposito (0 || 60 da 60 en JS): Number.isFinite distingue "puso
+      // 0" de "no puso nada" o "puso algo invalido".
+      durationMinutes: Number.isFinite(Number(v.durationMinutes)) && v.durationMinutes !== ''
+        ? Number(v.durationMinutes)
+        : 60,
       bookingUrl: v.bookingUrl.trim(),
     };
 

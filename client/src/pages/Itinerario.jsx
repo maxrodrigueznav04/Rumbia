@@ -392,6 +392,13 @@ export default function Itinerario() {
     return <ErrorCarga error={viajeReq.error} onReintentar={viajeReq.recargar} contexto="Viaje" />;
   }
 
+  // Sin esto, si fallaba la peticion del itinerario (pero la del viaje si
+  // cargaba) la pantalla mostraba "Deja que la IA arme tu plan" como si el
+  // viaje de verdad no tuviera itinerario, en vez de avisar del error.
+  if (itinReq.error) {
+    return <ErrorCarga error={itinReq.error} onReintentar={itinReq.recargar} contexto="Itinerario" />;
+  }
+
   return (
     <div className="pila">
       {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}

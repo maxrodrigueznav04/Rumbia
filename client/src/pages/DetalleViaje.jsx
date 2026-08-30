@@ -48,7 +48,20 @@ const ICONO_MODO = {
   otro: 'brujula',
 };
 
-function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces, vacio, seccion, destino }) {
+function SeccionGasto({
+  titulo,
+  icono,
+  monto,
+  moneda,
+  accion,
+  children,
+  enlaces,
+  vacio,
+  seccion,
+  destino,
+  errorEnlaces,
+  onReintentarEnlaces,
+}) {
   return (
     <Tarjeta
       titulo={
@@ -79,6 +92,20 @@ function SeccionGasto({ titulo, icono, monto, moneda, accion, children, enlaces,
           </summary>
           <EnlacesReserva enlaces={enlaces} seccion={seccion} destino={destino} origen="app" />
         </details>
+      )}
+
+      {/* Sin esto, si tripsApi.bookingLinks() fallaba, la seccion de enlaces
+          simplemente desaparecia (enlaces?.length es undefined) sin ningun
+          aviso ni forma de reintentar. */}
+      {!enlaces?.length && errorEnlaces && (
+        <p className="tenue fila" style={{ margin: '10px 0 0', gap: 6, fontSize: '0.85rem' }}>
+          No se pudieron cargar los enlaces de reserva.
+          {onReintentarEnlaces && (
+            <Boton variante="fantasma" chico onClick={onReintentarEnlaces}>
+              Reintentar
+            </Boton>
+          )}
+        </p>
       )}
     </Tarjeta>
   );
@@ -293,6 +320,8 @@ export default function DetalleViaje() {
             monto={escalar((ida?.cost || 0) + (vuelta?.cost || 0))}
             moneda={moneda}
             enlaces={enlaces.transporte}
+            errorEnlaces={enlacesReq.error}
+            onReintentarEnlaces={enlacesReq.recargar}
             vacio="Aún no registras cómo llegas ni cómo regresas."
           >
             <div className="pila-sm">
@@ -348,6 +377,8 @@ export default function DetalleViaje() {
             monto={escalar(viaje.coreCosts?.lodging)}
             moneda={moneda}
             enlaces={enlaces.hospedaje}
+            errorEnlaces={enlacesReq.error}
+            onReintentarEnlaces={enlacesReq.recargar}
             accion={
               <Boton chico variante="secundario" onClick={() => setModal({ tipo: 'hospedaje' })}>
                 + Agregar
@@ -400,6 +431,8 @@ export default function DetalleViaje() {
             monto={escalar(viaje.coreCosts?.localTransport)}
             moneda={moneda}
             enlaces={enlaces['transporte-local']}
+            errorEnlaces={enlacesReq.error}
+            onReintentarEnlaces={enlacesReq.recargar}
             accion={
               <Boton
                 chico
@@ -524,6 +557,7 @@ export default function DetalleViaje() {
             setAvisoItinerario(info || null);
             refrescar();
             climaReq.recargar(); // el destino o las fechas pudieron cambiar
+            enlacesReq.recargar(); // los enlaces de reserva se arman con el destino
           }}
         />
       )}

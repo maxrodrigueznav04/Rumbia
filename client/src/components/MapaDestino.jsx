@@ -36,6 +36,12 @@ function icono(categoria, esDestino) {
 /** Reencuadra el mapa cuando cambian los pines (p. ej. al generar el itinerario). */
 function Encuadrar({ puntos }) {
   const map = useMap();
+  // `puntos` es un arreglo literal nuevo en cada render del padre (MapaDestino
+  // lo arma con spread), asi que depender de el reencuadraba el mapa en
+  // cualquier re-render, no solo cuando los pines de verdad cambiaban —
+  // deshaciendo el pan/zoom que el usuario acababa de hacer. Se depende de
+  // una clave de coordenadas (valor, no referencia) en su lugar.
+  const clave = puntos.map((p) => `${p.lat},${p.lng}`).join(';');
 
   useEffect(() => {
     if (!puntos.length) return;
@@ -47,7 +53,8 @@ function Encuadrar({ puntos }) {
       L.latLngBounds(puntos.map((p) => [p.lat, p.lng])),
       { padding: [36, 36], maxZoom: 15 }
     );
-  }, [map, puntos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, clave]);
 
   return null;
 }

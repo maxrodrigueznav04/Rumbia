@@ -52,29 +52,35 @@ export function revisarItinerario(itinerario, clima) {
       }))
       .sort((a, b) => a.inicio - b.inicio);
 
+    // Se compara contra la actividad que termina mas tarde de todas las ya
+    // vistas (masLargo), no solo la inmediata anterior: si "Museo" 9-11 tiene
+    // adentro un "Cafe" 9:15-9:30 y despues un "Tour" a las 10:30, comparar
+    // Tour solo contra Cafe (que ya termino) no detecta que Tour sigue
+    // encimado con Museo.
+    let masLargo = conHora[0];
     for (let i = 1; i < conHora.length; i++) {
-      const prev = conHora[i - 1];
       const cur = conHora[i];
 
-      if (cur.inicio < prev.fin) {
+      if (cur.inicio < masLargo.fin) {
         avisos.push({
           id: `solape-${dia.dayNumber}-${i}`,
           tipo: 'solape',
           dia: dia.dayNumber,
-          mensaje: `Día ${dia.dayNumber}: "${prev.title}" termina hasta las ${formatoHora(prev.fin)}, pero "${cur.title}" empieza a las ${cur.time} — se encima.`,
+          mensaje: `Día ${dia.dayNumber}: "${masLargo.title}" termina hasta las ${formatoHora(masLargo.fin)}, pero "${cur.title}" empieza a las ${cur.time} — se encima.`,
         });
-        continue; // si ya se encima, el hueco no aplica entre este par
+      } else {
+        const hueco = cur.inicio - masLargo.fin;
+        if (hueco >= UMBRAL_HUECO_MIN) {
+          avisos.push({
+            id: `hueco-${dia.dayNumber}-${i}`,
+            tipo: 'hueco',
+            dia: dia.dayNumber,
+            mensaje: `Día ${dia.dayNumber}: quedan ${(hueco / 60).toFixed(1)} horas libres entre "${masLargo.title}" y "${cur.title}".`,
+          });
+        }
       }
 
-      const hueco = cur.inicio - prev.fin;
-      if (hueco >= UMBRAL_HUECO_MIN) {
-        avisos.push({
-          id: `hueco-${dia.dayNumber}-${i}`,
-          tipo: 'hueco',
-          dia: dia.dayNumber,
-          mensaje: `Día ${dia.dayNumber}: quedan ${(hueco / 60).toFixed(1)} horas libres entre "${prev.title}" y "${cur.title}".`,
-        });
-      }
+      if (cur.fin > masLargo.fin) masLargo = cur;
     }
 
     const fecha = dia.date ? fechaISO(dia.date) : null;

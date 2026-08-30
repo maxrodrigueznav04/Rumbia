@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { expensesApi } from '../api/index.js';
 import FormGasto from './formularios/FormGasto.jsx';
-import { Boton, Tarjeta, Vacio, ModalConfirmar, Insignia } from './ui.jsx';
+import { Boton, Tarjeta, Vacio, ModalConfirmar, Insignia, Aviso } from './ui.jsx';
 import { formatoMoneda, formatoFechaCorta, humanizar } from '../utils/format.js';
 
 const ICONOS = {
@@ -18,6 +18,7 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [porEliminar, setPorEliminar] = useState(null);
+  const [error, setError] = useState(null);
   const moneda = viaje.budget?.currency || 'MXN';
 
   const abrirNuevo = () => {
@@ -31,8 +32,15 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
   };
 
   const alternarPagado = async (gasto) => {
-    await expensesApi.update(gasto._id, { isPaid: !gasto.isPaid });
-    onCambio();
+    setError(null);
+    try {
+      await expensesApi.update(gasto._id, { isPaid: !gasto.isPaid });
+      onCambio();
+    } catch (err) {
+      // Sin esto, si la peticion fallaba el check simplemente no cambiaba y
+      // no habia ninguna pista de que algo salio mal.
+      setError(err.message);
+    }
   };
 
   const total = gastos.reduce((s, g) => s + g.amount, 0);
@@ -52,6 +60,7 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
           </Boton>
         }
       >
+        {error && <Aviso tipo="error">{error}</Aviso>}
         {gastos.length === 0 ? (
           <Vacio icono="🧾" titulo="Sin gastos registrados">
             Comidas, entradas, souvenirs, propinas: lo que no cabe en transporte ni hospedaje va

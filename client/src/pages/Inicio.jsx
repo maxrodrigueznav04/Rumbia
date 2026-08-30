@@ -64,7 +64,11 @@ export default function Inicio() {
         destination: destino.trim(),
         startDate: fechas.inicio,
         endDate: fechas.fin,
-        travelers: Number(viajeros) || 1,
+        // El input es type="number" min="1" max="20", pero el <form> tiene
+        // noValidate: un valor tecleado a mano fuera de ese rango (o
+        // negativo) llegaba tal cual, y "-5" || 1 da -5 porque es un numero
+        // truthy en JS.
+        travelers: Math.min(20, Math.max(1, Number(viajeros) || 1)),
         interests: estilos,
       });
       setResultado(datos);

@@ -84,7 +84,11 @@ export default function NuevoViaje() {
     }
   };
 
-  const errorDe = (campo) => detalles.find((d) => d.field === campo || d.field.endsWith(campo))?.message;
+  // "destination.name" no matchea con endsWith('destination'): terminaba en
+  // "name", no en "destination". startsWith(campo + '.') si atrapa un campo
+  // anidado sin matchear otro que por casualidad termine en el mismo texto.
+  const errorDe = (campo) =>
+    detalles.find((d) => d.field === campo || d.field.startsWith(`${campo}.`))?.message;
 
   return (
     <div className="pila" style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -107,7 +111,7 @@ export default function NuevoViaje() {
           <CampoDestino
             label="¿A dónde vas?"
             name="destino"
-            placeholder="Oaxaca de Juarez, Lisboa, Tokio..."
+            placeholder="Oaxaca de Juárez, Lisboa, Tokio..."
             value={form.destino}
             onChange={cambiar}
             onSeleccionar={setLugarElegido}

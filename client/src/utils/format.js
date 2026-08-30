@@ -77,12 +77,14 @@ export function tiempoRelativo(valor) {
   const d = parse(valor);
   if (!d) return '';
 
+  // Igual que el resto del archivo: se compara por fecha de calendario UTC,
+  // no por hora local. setHours(0,0,0,0) local rompia esto en husos +12 o
+  // mayores, donde el mediodia UTC guardado ya cae en el dia local siguiente.
   const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const objetivo = new Date(d);
-  objetivo.setHours(0, 0, 0, 0);
+  const hoyUTC = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const objetivoUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 
-  const dias = Math.round((objetivo - hoy) / 86400000);
+  const dias = Math.round((objetivoUTC - hoyUTC) / 86400000);
   const rtf = new Intl.RelativeTimeFormat('es-MX', { numeric: 'auto' });
 
   if (Math.abs(dias) < 30) return rtf.format(dias, 'day');
