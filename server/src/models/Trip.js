@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { TRAVEL_STYLES, TRIP_PACES, BUDGET_LEVELS } from './User.js';
 
 export const TRIP_STATUSES = ['borrador', 'planeado', 'en-curso', 'completado'];
 export const OUTBOUND_MODES = ['avion', 'autobus', 'auto-propio', 'tren', 'otro'];
@@ -103,6 +104,19 @@ const tripSchema = new mongoose.Schema(
       amount: { type: Number, min: 0, default: 0 },
       currency: { type: String, uppercase: true, minlength: 3, maxlength: 3, default: 'MXN' },
     },
+    // Gustos del VIAJERO de este viaje, no de quien lo arma: un agente arma
+    // viajes para clientes distintos, cada uno con su propio gusto, asi que
+    // generar con las preferencias del perfil del agente (su gusto personal)
+    // no tiene sentido. Sin especificar, generate() en
+    // itinerary.controller.js cae al perfil de quien genera, para no romper
+    // el uso personal (ahi si tiene sentido usar el gusto propio).
+    interests: {
+      type: [{ type: String, enum: TRAVEL_STYLES }],
+      default: [],
+      validate: { validator: (v) => v.length <= 5, message: 'Máximo 5 estilos de viaje.' },
+    },
+    pace: { type: String, enum: TRIP_PACES, default: null },
+    budgetLevel: { type: String, enum: BUDGET_LEVELS, default: null },
     status: { type: String, enum: TRIP_STATUSES, default: 'borrador', index: true },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },

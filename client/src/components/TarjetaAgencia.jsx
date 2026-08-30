@@ -349,9 +349,17 @@ function VistaConAgencia({ actualizarUsuario }) {
 function AvisoCongelada({ paraDueno, yaTuvoPlan }) {
   return (
     <Aviso tipo="alerta" titulo="El plan de esta agencia no está activo">
-      {paraDueno
-        ? `Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta que ${yaTuvoPlan ? 'reactives' : 'actives'} el plan más abajo.`
-        : `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia ${yaTuvoPlan ? 'reactive' : 'active'} el plan.`}
+      {paraDueno ? (
+        <>
+          Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta
+          que {yaTuvoPlan ? 'reactives' : 'actives'} el plan.{' '}
+          <a href="#plan-agencia" style={{ fontWeight: 600 }}>
+            Ir a {yaTuvoPlan ? 'reactivarlo' : 'activarlo'} →
+          </a>
+        </>
+      ) : (
+        `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia ${yaTuvoPlan ? 'reactive' : 'active'} el plan.`
+      )}
     </Aviso>
   );
 }
@@ -518,6 +526,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
 
   return (
     <Tarjeta
+      id="plan-agencia"
       titulo="Plan de la agencia"
       accion={
         billing.status && (

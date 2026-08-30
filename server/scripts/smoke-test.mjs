@@ -232,7 +232,26 @@ await check('createTripSchema acepta payload valido', async () => {
   // la preferencia del usuario cuando no se manda, y necesita ver undefined
   // (no 'MXN') para saber que hay que heredar. Ver trip.controller.js.
   assert(r.data.budget.currency === undefined, 'sin default de moneda en el schema');
-  return 'coerce + default de monto, moneda sin forzar';
+  assert(r.data.interests === undefined && r.data.pace === undefined && r.data.budgetLevel === undefined,
+    'gustos del viajero sin default: generate() cae al perfil de quien genera si faltan');
+  return 'coerce + default de monto, moneda sin forzar, gustos del viajero opcionales';
+});
+
+await check('createTripSchema acepta los gustos del viajero cuando si se mandan', async () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'Oaxaca', destination: { name: 'Oaxaca' },
+    startDate: '2026-09-10', endDate: '2026-09-14',
+    interests: ['aventura', 'gastronomia'], pace: 'intenso', budgetLevel: 'alto',
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.interests.length === 2 && r.data.pace === 'intenso' && r.data.budgetLevel === 'alto',
+    'se guardan los del viaje, no los del perfil de quien lo crea');
+  const mal = schemas.createTripSchema.safeParse({
+    title: 'Oaxaca', destination: { name: 'Oaxaca' },
+    startDate: '2026-09-10', endDate: '2026-09-14', pace: 'turbo',
+  });
+  assert(!mal.success, 'ritmo invalido deberia fallar');
+  return '2 intereses + ritmo intenso + gasto alto guardados; ritmo invalido rechazado';
 });
 
 await check('createTripSchema rechaza fechas invertidas', async () => {

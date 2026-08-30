@@ -8,6 +8,16 @@ import CampoDestino from '../components/CampoDestino.jsx';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
+const ESTILOS = [
+  'aventura', 'cultura', 'relax', 'gastronomia',
+  'naturaleza', 'vida-nocturna', 'compras', 'familia',
+];
+const RITMOS = [
+  { valor: 'relajado', texto: 'Relajado (3 actividades al día)' },
+  { valor: 'moderado', texto: 'Moderado (4 actividades al día)' },
+  { valor: 'intenso', texto: 'Intenso (5 actividades al día)' },
+];
+
 export default function NuevoViaje() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -22,6 +32,22 @@ export default function NuevoViaje() {
     travelers: 1,
     presupuesto: '',
   });
+  // Gustos del viajero de ESTE viaje, no del perfil de quien lo crea: para
+  // una agencia, cada viaje es de un cliente distinto con su propio gusto.
+  // Vacios por defecto (a diferencia del perfil) porque no siempre se
+  // conocen todavia al crear el viaje — la IA cae al perfil si se dejan asi.
+  const [estilos, setEstilos] = useState([]);
+  const [pace, setPace] = useState('');
+  const [budgetLevel, setBudgetLevel] = useState('');
+
+  const alternarEstilo = (valor) =>
+    setEstilos((prev) =>
+      prev.includes(valor)
+        ? prev.filter((v) => v !== valor)
+        : prev.length < 5
+          ? [...prev, valor]
+          : prev
+    );
   const [error, setError] = useState(null);
   const [detalles, setDetalles] = useState([]);
   const [enviando, setEnviando] = useState(false);
@@ -73,6 +99,9 @@ export default function NuevoViaje() {
           amount: Number(form.presupuesto) || 0,
           currency: user?.preferences?.currency || 'MXN',
         },
+        interests: estilos,
+        pace: pace || undefined,
+        budgetLevel: budgetLevel || undefined,
       });
 
       navigate(`/viajes/${viaje.trip._id}`, { replace: true });
@@ -170,6 +199,53 @@ export default function NuevoViaje() {
               onChange={cambiar}
               ayuda={`En ${user?.preferences?.currency || 'MXN'}.`}
             />
+          </div>
+
+          <div className="campo">
+            <label>Gustos de quien viaja (opcional)</label>
+            <p className="campo-ayuda" style={{ marginTop: 0 }}>
+              {esAgencia
+                ? 'Son del cliente, no los tuyos: si los dejas vacíos, la IA usa tu perfil como respaldo al generar.'
+                : 'Si los dejas vacíos, usamos lo que configuraste en tu perfil.'}
+            </p>
+            <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }}>
+              {ESTILOS.map((valor) => {
+                const activo = estilos.includes(valor);
+                return (
+                  <button
+                    key={valor}
+                    type="button"
+                    onClick={() => alternarEstilo(valor)}
+                    aria-pressed={activo}
+                    className={`insignia ${activo ? 'marca' : ''}`}
+                    style={{ cursor: 'pointer', padding: '7px 12px', fontFamily: 'inherit' }}
+                  >
+                    {valor.replace('-', ' ')}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rejilla rejilla-2">
+            <Campo label="Ritmo de viaje">
+              <select value={pace} onChange={(e) => setPace(e.target.value)}>
+                <option value="">Usar el de mi perfil</option>
+                {RITMOS.map((r) => (
+                  <option key={r.valor} value={r.valor}>
+                    {r.texto}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo label="Nivel de gasto">
+              <select value={budgetLevel} onChange={(e) => setBudgetLevel(e.target.value)}>
+                <option value="">Usar el de mi perfil</option>
+                <option value="bajo">Bajo — mochilero, lo económico</option>
+                <option value="medio">Medio — cómodo sin excesos</option>
+                <option value="alto">Alto — sin fijarse mucho en el precio</option>
+              </select>
+            </Campo>
           </div>
 
           <div className="fila" style={{ marginTop: 4 }}>

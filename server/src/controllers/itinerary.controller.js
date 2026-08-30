@@ -101,9 +101,14 @@ export const generate = asyncHandler(async (req, res) => {
     endDate: isoDay(trip.endDate),
     days,
     travelers: trip.travelers,
-    interests: interests?.length ? interests : req.user.preferences?.travelStyles || [],
-    pace: pace || req.user.preferences?.pace || 'moderado',
-    budgetHint: req.user.preferences?.budgetLevel || 'medio',
+    // Orden: lo que mande esta generacion puntual, despues lo que se guardo
+    // en el viaje (el gusto del viajero/cliente), y solo al final el perfil
+    // de quien genera — que es el gusto del AGENTE, no del cliente al que le
+    // esta armando el viaje. Antes se saltaba directo al perfil, asi que
+    // todos los clientes de un mismo agente salian con el gusto del agente.
+    interests: interests?.length ? interests : trip.interests?.length ? trip.interests : req.user.preferences?.travelStyles || [],
+    pace: pace || trip.pace || req.user.preferences?.pace || 'moderado',
+    budgetHint: trip.budgetLevel || req.user.preferences?.budgetLevel || 'medio',
     budgetAmount: trip.budget?.amount || 0,
     currency: trip.budget?.currency || req.user.preferences?.currency || 'MXN',
     extraNotes,

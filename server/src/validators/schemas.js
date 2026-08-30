@@ -219,6 +219,11 @@ export const createTripSchema = z
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
     cliente: clienteSchema.optional(),
+    // Gustos del viajero de este viaje (no de quien lo arma). Opcionales: un
+    // agente puede no saberlos todavia al crear el viaje.
+    interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
+    pace: z.enum(TRIP_PACES).optional(),
+    budgetLevel: z.enum(BUDGET_LEVELS).optional(),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: 'La fecha de regreso no puede ser anterior a la de salida.',
@@ -241,6 +246,9 @@ export const updateTripSchema = z
     lodging: z.array(lodgingSchema).max(10).optional(),
     localTransport: z.array(localTransportSchema).max(10).optional(),
     ocultarDesglose: z.boolean().optional(),
+    interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
+    pace: z.enum(TRIP_PACES).optional(),
+    budgetLevel: z.enum(BUDGET_LEVELS).optional(),
     margen: z.object({ tipo: z.enum(['fijo', 'porcentaje']).optional(), monto: money.optional() }).optional(),
     cliente: clienteSchema.optional(),
   })
