@@ -1,10 +1,32 @@
 import { randomBytes } from 'node:crypto';
 import { Itinerary, Trip } from '../models/index.js';
+import { LIMITE_GENERACIONES_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { addDays, isoDay } from '../utils/dates.js';
+
+/**
+ * Sin agencia, hasta LIMITE_GENERACIONES_PERSONAL generaciones por mes.
+ * Con agencia el cupo lo cubre el plan de la agencia (o el candado de
+ * soloLecturaSiCongelada si no esta activo), asi que aqui no aplica.
+ */
+async function revisarCupoPersonal(user) {
+  if (user.agency) return;
+
+  const mesActual = new Date().toISOString().slice(0, 7);
+  if (user.usoIA?.mes !== mesActual) {
+    user.usoIA = { mes: mesActual, generaciones: 0 };
+  }
+  if (user.usoIA.generaciones >= LIMITE_GENERACIONES_PERSONAL) {
+    throw ApiError.forbidden(
+      `Llegaste al límite de ${LIMITE_GENERACIONES_PERSONAL} itinerarios generados con IA este mes en el plan personal. Vuelve el próximo mes, o crea una agencia si necesitas más.`
+    );
+  }
+  user.usoIA.generaciones += 1;
+  await user.save();
+}
 
 /** Localiza dia + actividad dentro del itinerario, o lanza 404. */
 function locate(itinerary, dayId, activityId) {
@@ -70,6 +92,8 @@ export const generate = asyncHandler(async (req, res) => {
   if (days > 21) {
     throw ApiError.badRequest('Por ahora la IA genera itinerarios de máximo 21 días.');
   }
+
+  await revisarCupoPersonal(req.user);
 
   const context = {
     destination: [trip.destination?.name, trip.destination?.country].filter(Boolean).join(', '),

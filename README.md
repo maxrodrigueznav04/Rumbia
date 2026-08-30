@@ -108,14 +108,19 @@ Todo el stack corre en tiers gratuitos.
   el nombre, el logo y el contacto, y comparte un código de invitación fuera de la app (whatsapp,
   correo) para que los demás se unan desde su perfil. Mientras un agente pertenece a una agencia,
   su marca personal queda guardada pero inerte: la de la agencia es la que se imprime.
-- **Cobro a agencias, con Stripe.** Crear una agencia y usarla en solitario es gratis: el plan
-  solo hace falta en cuanto un segundo agente quiere unirse. Tres planes (mensual, anual, de por
-  vida) con 3 agentes incluidos y costo extra por asiento adicional; `npm run stripe:setup` en
-  `server` crea los Products/Prices en Stripe y devuelve las variables listas para pegar en
-  `.env`. Si el plan se vence o se cancela, la agencia no pierde nada: se congela en modo de
-  solo lectura (se puede ver todo, no crear ni editar) hasta reactivarlo, y solo si ya había más
-  de un agente — un dueño solo nunca queda bloqueado. Sin `STRIPE_SECRET_KEY` el resto de la app
-  sigue funcionando igual, simplemente no hay forma de cobrar.
+- **Cobro a agencias, con Stripe.** Crear una agencia es gratis (es solo la marca: nombre, logo,
+  contacto), pero usarla —crear o editar viajes— requiere un plan activo desde el primer agente,
+  aunque el dueño esté solo. Tres planes (mensual, anual, de por vida) con 3 agentes incluidos y
+  costo extra por asiento adicional; `npm run stripe:setup` en `server` crea los Products/Prices
+  en Stripe y devuelve las variables listas para pegar en `.env`. Si el plan se vence o se cancela,
+  la agencia no pierde nada: se congela en modo de solo lectura (se puede ver todo, no crear ni
+  editar) hasta activarlo o reactivarlo. Sin `STRIPE_SECRET_KEY` el resto de la app sigue
+  funcionando igual, simplemente no hay forma de cobrar.
+- **Uso personal, siempre gratis, con un tope razonable.** Sin agencia de por medio (incluye la
+  marca personal del PDF, que no requiere crear ninguna agencia), generar itinerarios con IA es
+  gratis hasta 5 veces al mes por cuenta — de sobra para viajes propios o de familia, bajo para
+  correr una operación de agencia disfrazada de uso personal. El límite vive en
+  `LIMITE_GENERACIONES_PERSONAL` (`server/src/models/User.js`).
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos

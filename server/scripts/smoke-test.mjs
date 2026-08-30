@@ -153,6 +153,12 @@ await check('User rechaza mas de 5 estilos', async () => {
   return 'max 5';
 });
 
+await check('User nace sin uso de IA registrado este mes', async () => {
+  const u = new User({ name: 'Ana', email: 'a@b.com', password: 'secreto123' });
+  assert(u.usoIA.mes === '' && u.usoIA.generaciones === 0, 'sin mes ni generaciones todavia');
+  return 'mes vacio, 0 generaciones -> revisarCupoPersonal lo inicializa al generar';
+});
+
 await check('Agency nace pendiente, sin agentes extra', async () => {
   const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid });
   assert(!a.validateSync(), 'no deberia fallar');

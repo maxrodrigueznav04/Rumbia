@@ -19,6 +19,11 @@ export const TRIP_PACES = ['relajado', 'moderado', 'intenso'];
 // alguien que arma su propio viaje. Ver Layout/FormViaje/DetalleViaje.
 export const PERFIL_USO = ['personal', 'agencia'];
 
+// Cupo de generaciones con IA al mes para quien no pertenece a ninguna
+// agencia (uso personal, siempre gratis). Sin este tope, "uso personal" era
+// indistinguible de correr una operacion de agencia a volumen sin pagar.
+export const LIMITE_GENERACIONES_PERSONAL = 5;
+
 const preferencesSchema = new mongoose.Schema(
   {
     // Se usan como contexto del prompt de Gemini al generar itinerarios.
@@ -99,6 +104,14 @@ const userSchema = new mongoose.Schema(
     // Si el agente pertenece a una agencia, su membrete efectivo es el de la
     // agencia, no el de branding de arriba. Ver agency.controller.js.
     agency: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', default: null, index: true },
+    // Contador de generaciones con IA del mes en curso, solo relevante sin
+    // agencia (con agencia, el cupo lo decide el plan de la agencia). "mes"
+    // es YYYY-MM; se reinicia solo comparando contra el mes actual al
+    // generar, sin cron ni job aparte. Ver itinerary.controller.js.
+    usoIA: {
+      mes: { type: String, default: '' },
+      generaciones: { type: Number, default: 0 },
+    },
     lastLoginAt: { type: Date },
   },
   {

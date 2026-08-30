@@ -340,13 +340,18 @@ function VistaConAgencia({ actualizarUsuario }) {
   );
 }
 
-/** Aparece cuando la suscripción de la agencia no está activa. Nadie pierde datos: solo no se puede crear ni editar hasta reactivarla. */
-function AvisoCongelada({ paraDueno }) {
+/**
+ * Aparece cuando la agencia no tiene un plan activo — incluye al dueño solo,
+ * sin nadie más unido: crear una agencia es gratis, pero usarla (crear o
+ * editar viajes) ya requiere un plan activo desde el primer agente. Nadie
+ * pierde datos: solo no se puede crear ni editar hasta activarla.
+ */
+function AvisoCongelada({ paraDueno, yaTuvoPlan }) {
   return (
     <Aviso tipo="alerta" titulo="El plan de esta agencia no está activo">
       {paraDueno
-        ? 'Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta que reactives el plan más abajo.'
-        : 'Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia reactive el plan.'}
+        ? `Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta que ${yaTuvoPlan ? 'reactives' : 'actives'} el plan más abajo.`
+        : `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia ${yaTuvoPlan ? 'reactive' : 'active'} el plan.`}
     </Aviso>
   );
 }
@@ -374,7 +379,9 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
         puede editarla.
       </p>
 
-      {agencia.billing?.status && agencia.billing.status !== 'activa' && <AvisoCongelada paraDueno={false} />}
+      {agencia.billing?.status && agencia.billing.status !== 'activa' && (
+        <AvisoCongelada paraDueno={false} yaTuvoPlan={agencia.billing.status === 'congelada'} />
+      )}
 
       {error && <Aviso tipo="error">{error}</Aviso>}
 
@@ -680,7 +687,9 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
 
   return (
     <>
-      {agencia.billing?.status !== 'activa' && miembros.length > 0 && <AvisoCongelada paraDueno />}
+      {agencia.billing?.status !== 'activa' && (
+        <AvisoCongelada paraDueno yaTuvoPlan={agencia.billing?.status === 'congelada'} />
+      )}
 
       <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
         <p className="suave" style={{ marginTop: 0 }}>
