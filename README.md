@@ -252,25 +252,27 @@ npm run test:clima
 
 ## Deploy
 
-Los tres servicios corren en tiers gratuitos. El orden importa, porque cada uno
-necesita la URL del anterior.
+El backend corre en Render (tier gratuito) y el frontend en Cloudflare Workers (tier gratuito,
+con la CLI de `wrangler`, sin pasar por GitHub). El orden importa: el backend tiene que existir
+primero para saber a qué URL apunta el frontend, y el frontend tiene que existir para configurar
+`CLIENT_URL` en el backend.
 
 ### 0. Subir el repo a GitHub
 
-Render y Cloudflare Pages despliegan desde un repositorio, asi que este paso va primero.
-El repo ya esta inicializado y con el commit inicial hecho:
+Render despliega desde un repositorio, así que este paso va primero (Cloudflare no lo necesita:
+se despliega directo desde tu máquina). El repo ya está inicializado y con el commit inicial hecho:
 
 ```bash
 gh repo create rumbo --public --source=. --push
 ```
 
-Si prefieres hacerlo desde la web: crea el repositorio vacio en GitHub y luego
+Si prefieres hacerlo desde la web: crea el repositorio vacío en GitHub y luego
 
 ```bash
 git remote add origin https://github.com/TU-USUARIO/rumbo.git && git push -u origin main
 ```
 
-Antes de subir, confirma que `.env` no viaja (deberia devolver error, que es lo correcto):
+Antes de subir, confirma que `.env` no viaja (debería devolver error, que es lo correcto):
 
 ```bash
 git ls-files --error-unmatch server/.env
@@ -280,13 +282,13 @@ git ls-files --error-unmatch server/.env
 
 Cluster M0 (gratuito, 512 MB). En **Network Access** agrega `0.0.0.0/0` para que
 Render pueda conectarse, y usa un usuario dedicado a este proyecto. Guarda la
-cadena de conexion con el nombre de la base incluido:
+cadena de conexión con el nombre de la base incluido:
 
 ```
 mongodb+srv://usuario:password@cluster.xxxxx.mongodb.net/rumbo?retryWrites=true&w=majority
 ```
 
-Si la contrasena lleva `@`, `/`, `:` o `#`, cambiala: rompen la URL y el error
+Si la contraseña lleva `@`, `/`, `:` o `#`, cámbiala: rompen la URL y el error
 que sale no lo explica.
 
 ### 2. Backend en Render
@@ -298,7 +300,7 @@ apunta a este repositorio y captura las claves marcadas `sync: false`.
 A mano funciona igual: root directory `server`, build `npm install`,
 start `npm start`, health check `/api/health`.
 
-`CLIENT_URL` todavia no la sabes: pon cualquier valor y corrigela en el paso 4.
+`CLIENT_URL` todavía no la sabes: pon cualquier valor y corrígela en el paso 4.
 Cuando termine, copia la URL del servicio (algo como
 `https://rumbo-api.onrender.com`) y comprueba que responde:
 
@@ -312,36 +314,42 @@ a `https://rumbo-api.onrender.com/api/billing/webhook` con los eventos `checkout
 `customer.subscription.updated` y `customer.subscription.deleted` — de ahí sale `STRIPE_WEBHOOK_SECRET`.
 Sin esto la app funciona igual, solo que nadie puede pagarte.
 
-### 3. Frontend en Cloudflare Pages
+### 3. Frontend en Cloudflare Workers
 
-En el dashboard de Cloudflare: **Workers & Pages -> Create -> Pages -> Connect to Git**,
-apunta a este repositorio y captura:
+A diferencia de Render, esto no se conecta a GitHub: el build se hace en tu máquina y
+`wrangler deploy` sube el resultado directo a Cloudflare.
 
-- Root directory: `client`
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Variable de entorno: `VITE_API_URL = https://rumbo-api.onrender.com/api`
-  (con `/api` al final, sin barra despues)
+1. Copia `client/.env.example` a `client/.env` y pon
+   `VITE_API_URL=https://rumbo-api.onrender.com/api` (con `/api` al final, sin barra después).
+   Vite lo incrusta en el build, así que tiene que existir *antes* de compilar — no hay ningún
+   dashboard donde configurarlo después.
+2. Desde `client/`:
+   ```bash
+   npm run build && npm run deploy
+   ```
+   La primera vez, `wrangler` pide iniciar sesión con tu cuenta de Cloudflare (abre el navegador solo).
+3. El nombre del proyecto sale de `"name"` en [`client/wrangler.jsonc`](client/wrangler.jsonc); la
+   URL final queda como `https://<name>.<tu-subdominio>.workers.dev`.
 
-El plan gratuito de Cloudflare Pages permite uso comercial sin restricciones
-(a diferencia del plan Hobby de Vercel) y no tiene limite de ancho de banda
-para contenido estatico.
+El plan gratuito de Cloudflare Workers permite uso comercial sin restricciones
+(a diferencia del plan Hobby de Vercel) y no tiene límite de ancho de banda para contenido
+estático — 100,000 peticiones/día es el único tope.
 
-[`client/public/_redirects`](client/public/_redirects) manda todas las rutas a
-`index.html` para que los enlaces profundos (`/viajes/:id`) no den 404 al
-recargar; Vite lo copia a `dist/` en cada build y Cloudflare Pages lo detecta
-solo.
+[`client/wrangler.jsonc`](client/wrangler.jsonc) trae `not_found_handling: "single-page-application"`,
+que manda cualquier ruta que no sea un archivo real (`/viajes/:id`) a `index.html` en vez de dar
+404 al recargar. No agregues un archivo `_redirects`: choca con esta opción y Cloudflare rechaza
+el deploy con "Infinite loop detected".
 
-### 4. Cerrar el circulo
+### 4. Cerrar el círculo
 
-Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Cloudflare Pages
-(`https://rumbo.pages.dev`, **sin barra final** — aunque el servidor la
-normaliza, es mas claro sin ella). Redespliega. Sin este paso el navegador
-bloquea las peticiones por CORS y la app se ve vacia.
+Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Cloudflare
+(`https://rumbo.tu-subdominio.workers.dev`, **sin barra final** — aunque el servidor la
+normaliza, es más claro sin ella). Redespliega. Sin este paso el navegador
+bloquea las peticiones por CORS y la app se ve vacía.
 
 ### 5. Sembrar la cuenta demo
 
-Desde tu maquina, apuntando a la base de produccion:
+Desde tu máquina, apuntando a la base de producción:
 
 ```bash
 cd server && MONGO_URI="tu-cadena-de-atlas" npm run seed
@@ -349,10 +357,10 @@ cd server && MONGO_URI="tu-cadena-de-atlas" npm run seed
 
 ### Sobre el plan gratuito de Render
 
-El servicio se duerme tras 15 minutos sin trafico y la primera peticion tarda
+El servicio se duerme tras 15 minutos sin tráfico y la primera petición tarda
 ~30-50 s en despertarlo. La app lo maneja: muestra un aviso de "despertando el
 servidor" en vez de un spinner mudo, y el cliente espera hasta 70 s antes de
-rendirse. Aun asi, conviene avisarlo en el README de tu demo.
+rendirse. Aun así, conviene avisarlo en el README de tu demo.
 
 ## Arquitectura
 
