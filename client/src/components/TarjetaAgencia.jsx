@@ -11,9 +11,9 @@ import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, Error
  * distintas.
  */
 const PLANES = {
-  mensual: { etiqueta: 'Mensual', base: '$20/mes', agente: '+$10/mes por agente extra' },
-  anual: { etiqueta: 'Anual', base: '$200/año', agente: '+$100/año por agente extra' },
-  vitalicio: { etiqueta: 'De por vida', base: '$500 pago único', agente: '+$250 único por agente extra' },
+  mensual: { etiqueta: 'Mensual', base: '$20 USD/mes', agente: '+$10 USD/mes por agente extra' },
+  anual: { etiqueta: 'Anual', base: '$200 USD/año', agente: '+$100 USD/año por agente extra' },
+  vitalicio: { etiqueta: 'De por vida', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
 };
 
 /**
