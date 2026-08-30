@@ -14,7 +14,10 @@ if (missing.length) {
 export const env = {
   port: Number(process.env.PORT || 4000),
   nodeEnv: process.env.NODE_ENV || 'development',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  // .trim() + sin barra final: un espacio o salto de linea de mas al copiar
+  // la URL en Render pasa desapercibido en CORS (que ya normalizaba antes de
+  // comparar) pero Stripe si lo rechaza de plano al armar success_url/cancel_url.
+  clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, ''),
   mongoUri: process.env.MONGO_URI,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
