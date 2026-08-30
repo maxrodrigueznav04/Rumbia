@@ -129,14 +129,27 @@ export const updateTrip = asyncHandler(async (req, res) => {
   const fechasPrevias = `${trip.startDate?.getTime()}-${trip.endDate?.getTime()}`;
 
   // Fusion superficial por seccion: permite mandar solo transport.outbound
-  // sin borrar transport.inbound.
-  const { transport, budget, ...rest } = req.body;
+  // sin borrar transport.inbound. origin, margen y cliente necesitan el mismo
+  // trato: un PATCH con un solo subcampo no debe borrar los demas.
+  const { transport, budget, origin, margen, cliente, ...rest } = req.body;
   Object.assign(trip, rest);
 
   // budget tambien se fusiona: un PATCH con solo { amount } no debe dejar el
   // viaje sin moneda, que es lo que pasa al asignar el subdocumento entero.
   if (budget) {
     trip.budget = { ...trip.budget?.toObject?.(), ...trip.budget, ...budget };
+  }
+
+  if (origin) {
+    trip.origin = { ...trip.origin?.toObject?.(), ...origin };
+  }
+
+  if (margen) {
+    trip.margen = { ...trip.margen?.toObject?.(), ...margen };
+  }
+
+  if (cliente) {
+    trip.cliente = { ...trip.cliente?.toObject?.(), ...cliente };
   }
 
   if (transport) {

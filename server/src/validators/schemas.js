@@ -209,9 +209,12 @@ export const createTripSchema = z
     startDate: isoDate,
     endDate: isoDate,
     travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').default(1),
+    // Sin default en currency a proposito: el controller hereda la moneda del
+    // perfil del usuario cuando no se manda una, y necesita ver undefined (no
+    // 'MXN') para saber que hay que heredar.
     budget: z
-      .object({ amount: money.default(0), currency: currency.default('MXN') })
-      .default({ amount: 0, currency: 'MXN' }),
+      .object({ amount: money.default(0), currency: currency.optional() })
+      .default({ amount: 0 }),
     status: z.enum(TRIP_STATUSES).optional(),
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
@@ -317,7 +320,10 @@ export const createExpenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES).default('otros'),
   description: z.string().trim().min(1, 'Describe el gasto.').max(160),
   amount: money,
-  currency: currency.default('MXN'),
+  // Sin default aqui a proposito: el controller hereda la moneda del viaje
+  // cuando no se manda una, y necesita ver undefined (no 'MXN') para saber
+  // que hay que heredar.
+  currency: currency.optional(),
   date: isoDate.optional(),
   isPaid: z.boolean().default(false),
   isEstimate: z.boolean().default(true),

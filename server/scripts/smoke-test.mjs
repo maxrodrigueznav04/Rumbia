@@ -221,8 +221,12 @@ await check('createTripSchema acepta payload valido', async () => {
   });
   assert(r.success, JSON.stringify(r.error?.issues));
   assert(r.data.travelers === 2, 'coerce a numero');
-  assert(r.data.budget.currency === 'MXN', 'default de moneda');
-  return 'coerce + defaults ok';
+  assert(r.data.budget.amount === 0, 'default de monto');
+  // currency NO trae default a proposito: createTrip (el controller) hereda
+  // la preferencia del usuario cuando no se manda, y necesita ver undefined
+  // (no 'MXN') para saber que hay que heredar. Ver trip.controller.js.
+  assert(r.data.budget.currency === undefined, 'sin default de moneda en el schema');
+  return 'coerce + default de monto, moneda sin forzar';
 });
 
 await check('createTripSchema rechaza fechas invertidas', async () => {
@@ -251,6 +255,15 @@ await check('activitySchema valida hora', async () => {
 await check('updateTripSchema rechaza body vacio', async () => {
   assert(!schemas.updateTripSchema.safeParse({}).success, 'deberia fallar');
   return 'body vacio rechazado';
+});
+
+await check('createExpenseSchema no fuerza moneda: el controller hereda la del viaje', async () => {
+  const r = schemas.createExpenseSchema.safeParse({
+    trip: '507f1f77bcf86cd799439011', description: 'Cena', amount: 250,
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.currency === undefined, 'sin default de moneda en el schema');
+  return 'sin default, expense.controller.js hereda de trip.budget.currency';
 });
 
 await check('checkoutAgencySchema exige un plan valido y por defecto 0 agentes extra', async () => {

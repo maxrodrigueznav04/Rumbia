@@ -33,14 +33,4 @@ const expenseSchema = new mongoose.Schema(
 
 expenseSchema.index({ trip: 1, date: -1 });
 
-/** Total por categoria de un viaje, listo para la grafica de desglose. */
-expenseSchema.statics.breakdownByTrip = async function breakdownByTrip(tripId) {
-  const rows = await this.aggregate([
-    { $match: { trip: new mongoose.Types.ObjectId(String(tripId)) } },
-    { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
-    { $sort: { total: -1 } },
-  ]);
-  return rows.map((r) => ({ category: r._id, total: Number(r.total.toFixed(2)), count: r.count }));
-};
-
 export default mongoose.model('Expense', expenseSchema);

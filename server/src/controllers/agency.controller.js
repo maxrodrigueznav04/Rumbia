@@ -7,6 +7,23 @@ import asyncHandler from '../utils/asyncHandler.js';
 const AGENCIA_PUBLICA = 'agencyName logoUrl contact owner createdAt';
 
 /**
+ * Recorta el documento de Agency a lo que puede ver un miembro que no es el
+ * dueno: sin codigo de invitacion ni ids de Stripe, solo el estado del plan
+ * (para saber por que no puede crear/editar, no los detalles de la
+ * suscripcion). La usan tanto obtenerAgencia como unirseAgencia.
+ */
+function vistaAgenciaMiembro(agencia) {
+  return {
+    _id: agencia._id,
+    agencyName: agencia.agencyName,
+    logoUrl: agencia.logoUrl,
+    contact: agencia.contact,
+    owner: agencia.owner,
+    billing: { status: agencia.billing?.status },
+  };
+}
+
+/**
  * Crea una agencia y la deja como dueno de inmediato.
  *
  * Un agente solo puede estar en una agencia a la vez: si quiere crear otra,
@@ -47,18 +64,7 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
 
   // Mongoose ya trajo el documento completo; se recorta a mano para no
   // filtrar el codigo a quien no deberia poder verlo.
-  const agenciaVisible = esDueno
-    ? agencia.toObject()
-    : {
-        _id: agencia._id,
-        agencyName: agencia.agencyName,
-        logoUrl: agencia.logoUrl,
-        contact: agencia.contact,
-        owner: agencia.owner,
-        // Solo el estado, no los ids de Stripe: un miembro necesita saber por
-        // que no puede crear ni editar, no los detalles de la suscripcion.
-        billing: { status: agencia.billing?.status },
-      };
+  const agenciaVisible = esDueno ? agencia.toObject() : vistaAgenciaMiembro(agencia);
 
   let miembros = [];
   if (esDueno) {
@@ -135,7 +141,9 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: `Te uniste a ${agencia.agencyName}.`,
-    data: { agency: agencia, user: await usuarioConAgencia(req.user) },
+    // Quien se une no es el dueno: mismo recorte que obtenerAgencia, sin
+    // codigo de invitacion ni ids de Stripe.
+    data: { agency: vistaAgenciaMiembro(agencia), user: await usuarioConAgencia(req.user) },
   });
 });
 

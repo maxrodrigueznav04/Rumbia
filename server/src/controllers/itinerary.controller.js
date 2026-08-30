@@ -319,7 +319,10 @@ export const reorderActivities = asyncHandler(async (req, res) => {
   const { activityIds } = req.body;
 
   const current = new Map(day.activities.map((a) => [String(a._id), a]));
-  if (activityIds.length !== current.size || activityIds.some((id) => !current.has(id))) {
+  // new Set(...).size en vez de activityIds.length: una lista con un id
+  // repetido en lugar de otro que falta tenia el mismo largo que current y
+  // pasaba la validacion, perdiendo esa actividad en silencio al mapear.
+  if (new Set(activityIds).size !== current.size || activityIds.some((id) => !current.has(id))) {
     throw ApiError.badRequest('La lista debe contener exactamente los ids de las actividades del día.');
   }
 
