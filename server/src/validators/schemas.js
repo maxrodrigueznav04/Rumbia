@@ -327,6 +327,9 @@ export const aplicarPlantillaSchema = z
 export const bookingLinksQuerySchema = z.object({
   section: opcionalEnQuery(z.enum(['transporte', 'hospedaje', 'transporte-local'])),
   type: opcionalEnQuery(z.string().trim().max(40)),
+  // Que hospedaje de trip.lodging usar para armar el link (0 = primero). Sin
+  // mandarlo, se conserva el comportamiento de siempre (lodging[0]).
+  lodgingIndex: opcionalEnQuery(z.coerce.number().int().min(0)),
 });
 
 /* ----------------------------- Itinerary ---------------------------- */

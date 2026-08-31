@@ -533,6 +533,19 @@ await check('tripListQuerySchema aplica defaults', async () => {
   return 'page=1 limit=20';
 });
 
+await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => {
+  const sinIndice = schemas.bookingLinksQuerySchema.safeParse({ section: 'hospedaje' });
+  assert(sinIndice.success && sinIndice.data.lodgingIndex === undefined, 'sin lodgingIndex, sigue siendo opcional');
+
+  const conIndice = schemas.bookingLinksQuerySchema.safeParse({ section: 'hospedaje', lodgingIndex: '1' });
+  assert(conIndice.success && conIndice.data.lodgingIndex === 1, 'coerciona el string de query a numero');
+
+  const negativo = schemas.bookingLinksQuerySchema.safeParse({ lodgingIndex: '-1' });
+  assert(!negativo.success, 'rechaza negativos');
+
+  return 'opcional, coerciona a numero, rechaza negativos';
+});
+
 console.log('\n== Servicios ==');
 
 await check('buildLinksForTrip arma las 3 secciones', async () => {
@@ -596,6 +609,32 @@ await check('buildLinksForTrip: destinationIndex huerfano (parada borrada) cae a
   const links = buildLinksForTrip(trip, { section: 'hospedaje' });
   assert(links.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'deberia caer al destino principal');
   return links.hospedaje[0].url;
+});
+
+await check('buildLinksForTrip: lodgingIndex opt-in apunta a un hospedaje especifico', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [
+      { place: { name: 'Barcelona' }, startDate: new Date('2026-09-13'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [
+      { type: 'hotel', destinationIndex: 0, checkIn: new Date('2026-09-10'), checkOut: new Date('2026-09-13') },
+      { type: 'airbnb', destinationIndex: 1, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') },
+    ],
+  });
+  const sinIndice = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(sinIndice.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'sin indice, usa lodging[0] -> Madrid');
+
+  const conIndice = buildLinksForTrip(trip, { section: 'hospedaje', lodgingIndex: 1 });
+  assert(conIndice.hospedaje[0].provider === 'Airbnb', 'lodgingIndex 1 es el airbnb');
+  assert(conIndice.hospedaje[0].url.includes(encodeURIComponent('Barcelona')), 'lodgingIndex 1 -> Barcelona');
+
+  const fueraDeRango = buildLinksForTrip(trip, { section: 'hospedaje', lodgingIndex: 99 });
+  assert(fueraDeRango.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'indice invalido cae a lodging[0]');
+
+  return 'sin indice=Madrid, indice 1=Barcelona/Airbnb, indice invalido=Madrid';
 });
 
 await check('buildLinksForTrip: sin lodging usa el destino principal (comportamiento previo intacto)', async () => {
