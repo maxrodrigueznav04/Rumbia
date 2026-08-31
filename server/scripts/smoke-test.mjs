@@ -8,6 +8,7 @@ const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
 const { buildRouteLines } = await import('../src/services/gemini.service.js');
+const { buildTripContext } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
 const mongoose = (await import('mongoose')).default;
 
@@ -376,6 +377,40 @@ await check('verificarCupoPersonal NO consume cupo por si sola (a diferencia de 
   return 'diez llamadas seguidas, el contador se queda en 4 (consumirCupoPersonal es quien lo mueve, tras exito real)';
 });
 
+console.log('\n== Cupo mensual del chat de IA (uso personal) ==');
+
+const { verificarCupoChat } = await import('../src/controllers/chat.controller.js');
+
+await check('verificarCupoChat no lanza con cupo disponible, y es independiente del de generaciones', async () => {
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    usoIA: { mes: mesActual, generaciones: 5, mensajesChat: 10 },
+  });
+  verificarCupoChat(u); // no deberia lanzar aunque generaciones ya este al tope
+  return '10 de 60 mensajes usados, generaciones al tope no afecta al chat';
+});
+
+await check('verificarCupoChat lanza al llegar al limite', async () => {
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    usoIA: { mes: mesActual, mensajesChat: 60 },
+  });
+  let err;
+  try { verificarCupoChat(u); } catch (e) { err = e; }
+  assert(err, 'deberia lanzar al llegar a 60');
+  return err.message;
+});
+
+await check('verificarCupoChat no aplica a cuentas con agencia', async () => {
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    agency: new mongoose.Types.ObjectId(),
+    usoIA: { mes: mesActual, mensajesChat: 999 },
+  });
+  verificarCupoChat(u); // no deberia lanzar: con agencia, el cupo mensual no aplica
+  return 'agencia sin limite mensual, igual que verificarCupoPersonal';
+});
+
 console.log('\n== Validadores (Zod) ==');
 
 await check('createTripSchema acepta payload valido', async () => {
@@ -533,6 +568,19 @@ await check('tripListQuerySchema aplica defaults', async () => {
   return 'page=1 limit=20';
 });
 
+await check('sendChatMessageSchema exige texto no vacio, tope 2000 caracteres', async () => {
+  const vacio = schemas.sendChatMessageSchema.safeParse({ message: '  ' });
+  assert(!vacio.success, 'mensaje solo con espacios se rechaza (trim + min(1))');
+
+  const valido = schemas.sendChatMessageSchema.safeParse({ message: 'hola' });
+  assert(valido.success && valido.data.message === 'hola', 'mensaje valido pasa');
+
+  const largo = schemas.sendChatMessageSchema.safeParse({ message: 'a'.repeat(2001) });
+  assert(!largo.success, 'mas de 2000 caracteres se rechaza');
+
+  return 'vacio rechazado, valido conservado, tope de 2000 respetado';
+});
+
 await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => {
   const sinIndice = schemas.bookingLinksQuerySchema.safeParse({ section: 'hospedaje' });
   assert(sinIndice.success && sinIndice.data.lodgingIndex === undefined, 'sin lodgingIndex, sigue siendo opcional');
@@ -645,6 +693,56 @@ await check('buildLinksForTrip: sin lodging usa el destino principal (comportami
   const links = buildLinksForTrip(trip, { section: 'hospedaje' });
   assert(links.hospedaje[0].url.includes(encodeURIComponent('Oaxaca')), 'sin hospedajes, cae al destino principal');
   return links.hospedaje[0].url;
+});
+
+await check('buildTripContext incluye destino, presupuesto y la ciudad real de cada hospedaje', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip 2027',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [
+      { place: { name: 'Barcelona' }, startDate: new Date('2027-06-13'), endDate: new Date('2027-06-16') },
+    ],
+    startDate: new Date('2027-06-10'), endDate: new Date('2027-06-16'),
+    travelers: 2,
+    budget: { amount: 50000, currency: 'MXN' },
+    lodging: [
+      { type: 'hotel', name: 'Hotel Centro', destinationIndex: 0, checkIn: new Date('2027-06-10'), checkOut: new Date('2027-06-13') },
+      { type: 'airbnb', name: 'Depa Born', destinationIndex: 1, checkIn: new Date('2027-06-13'), checkOut: new Date('2027-06-16') },
+    ],
+  });
+  const contexto = buildTripContext(trip, null);
+  assert(contexto.includes('Madrid'), 'incluye el destino principal');
+  assert(contexto.includes('Barcelona'), 'incluye la parada adicional');
+  assert(contexto.includes('50000'), 'incluye el presupuesto');
+  assert(contexto.includes('Hotel Centro en Madrid'), 'primer hospedaje con su ciudad real');
+  assert(contexto.includes('Depa Born en Barcelona'), 'segundo hospedaje con su ciudad real, no la principal');
+  return contexto.split('\n').length + ' lineas de contexto';
+});
+
+await check('buildTripContext no truena sin hospedaje, sin paradas ni sin itinerario', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Oaxaca', destination: { name: 'Oaxaca' },
+    startDate: new Date('2027-01-01'), endDate: new Date('2027-01-05'),
+  });
+  const contexto = buildTripContext(trip, null);
+  assert(contexto.includes('Todavia no hay hospedaje capturado'), 'aviso de sin hospedaje');
+  assert(contexto.includes('Todavia no hay itinerario armado'), 'aviso de sin itinerario');
+  return 'viaje minimo, contexto sin tronar';
+});
+
+await check('buildTripContext resume el itinerario existente cuando lo hay', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Oaxaca', destination: { name: 'Oaxaca' },
+    startDate: new Date('2027-01-01'), endDate: new Date('2027-01-02'),
+  });
+  const itinerary = new Itinerary({
+    trip: trip._id, user: uid, generatedBy: 'ia',
+    days: [{ dayNumber: 1, title: 'Centro historico', activities: [] }],
+  });
+  const contexto = buildTripContext(trip, itinerary);
+  assert(contexto.includes('generado con IA'), 'dice como se genero');
+  assert(contexto.includes('Centro historico'), 'incluye el titulo del dia');
+  return 'itinerario existente resumido en el contexto';
 });
 
 await check('buildRouteLines: un solo destino devuelve un tramo que cubre todo el viaje', async () => {

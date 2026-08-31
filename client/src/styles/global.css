@@ -1398,6 +1398,86 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ---------------------- Chat con el asistente ---------------------- */
+
+/* Alto fijo propio para que la lista de mensajes scrollee sola y el input se
+   quede pegado abajo, en vez de que todo el modal-cuerpo scrollee junto. */
+.chat-panel { display: flex; flex-direction: column; height: min(65vh, 560px); }
+
+.chat-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+  padding-right: 2px;
+}
+
+.chat-burbuja {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: var(--radio-sm);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.chat-burbuja.usuario {
+  align-self: flex-end;
+  background: var(--verde-100);
+  color: var(--texto);
+  border-bottom-right-radius: 3px;
+}
+.chat-burbuja.modelo {
+  align-self: flex-start;
+  background: var(--arena-100);
+  border: 1.5px solid var(--arena-500);
+  border-bottom-left-radius: 3px;
+}
+.chat-burbuja.pensando { display: flex; align-items: center; gap: 8px; color: var(--texto-tenue); }
+
+.chat-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--e3);
+  padding-top: var(--e4);
+  margin-top: var(--e4);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-form textarea {
+  flex: 1;
+  min-height: 46px;
+  max-height: 120px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  resize: none;
+  color: var(--texto);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+}
+.chat-form textarea:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px var(--verde-100);
+}
+
+.chat-ejemplos { display: flex; flex-wrap: wrap; gap: 8px; }
+.chat-ejemplos button {
+  text-align: left;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+  background: var(--surface);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.chat-ejemplos button:hover { border-color: var(--verde); color: var(--texto); }
+
 /* ---------------------- Aviso de servidor ---------------------- */
 
 .aviso-servidor {

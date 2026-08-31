@@ -132,6 +132,13 @@ export const itineraryApi = {
   guardarComoPlantilla: (tripId, payload) => api.post(`/trips/${tripId}/itinerary/plantilla`, payload),
 };
 
+export const chatApi = {
+  get: (tripId, opts) => api.get(`/trips/${tripId}/chat`, opts),
+  // Timeout propio: llama a Gemini igual que generar itinerario.
+  send: (tripId, payload) => api.post(`/trips/${tripId}/chat`, payload, { timeout: TIMEOUT_IA_MS }),
+  clear: (tripId) => api.delete(`/trips/${tripId}/chat`),
+};
+
 export const templatesApi = {
   listar: (opts) => api.get('/templates', opts),
   eliminar: (id) => api.delete(`/templates/${id}`),

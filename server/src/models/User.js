@@ -24,6 +24,12 @@ export const PERFIL_USO = ['personal', 'agencia'];
 // indistinguible de correr una operacion de agencia a volumen sin pagar.
 export const LIMITE_GENERACIONES_PERSONAL = 5;
 
+// Cupo de mensajes al chat de IA al mes, mismo espiritu que el de arriba
+// pero mucho mas alto: una conversacion manda muchos mensajes cortos, no
+// una generacion pesada de itinerario. Igual que LIMITE_GENERACIONES_PERSONAL,
+// solo aplica sin agencia.
+export const LIMITE_MENSAJES_CHAT_PERSONAL = 60;
+
 const preferencesSchema = new mongoose.Schema(
   {
     // Se usan como contexto del prompt de Gemini al generar itinerarios.
@@ -111,6 +117,10 @@ const userSchema = new mongoose.Schema(
     usoIA: {
       mes: { type: String, default: '' },
       generaciones: { type: Number, default: 0 },
+      // Mismo "mes" de arriba, contador aparte: mandar mensajes al chat de
+      // IA no consume el cupo de generar itinerarios ni viceversa. Ver
+      // chat.controller.js.
+      mensajesChat: { type: Number, default: 0 },
     },
     lastLoginAt: { type: Date },
   },
