@@ -1,13 +1,17 @@
 import mongoose from 'mongoose';
 import { TRAVEL_STYLES, TRIP_PACES, BUDGET_LEVELS } from './User.js';
 
-export const TRIP_STATUSES = ['borrador', 'planeado', 'en-curso', 'completado'];
+// "aprobado": el cliente ya dijo que si a la propuesta, pero el viaje todavia
+// no arranca. Vive entre "planeado" y "en-curso" para que un agente pueda
+// distinguir "armado, esperando visto bueno" de "ya aprobado, listo para
+// salir".
+export const TRIP_STATUSES = ['borrador', 'planeado', 'aprobado', 'en-curso', 'completado'];
 export const OUTBOUND_MODES = ['avion', 'autobus', 'auto-propio', 'tren', 'otro'];
 export const LODGING_TYPES = ['hotel', 'hostal', 'airbnb', 'cabana', 'casa-amigos', 'camping', 'otro'];
 export const LOCAL_TRANSPORT_TYPES = ['renta-auto', 'app-transporte', 'taxi', 'transporte-publico', 'bicicleta', 'a-pie'];
 
 /** Punto geografico reutilizable (destino, origen, hospedaje, actividad). */
-const placeSchema = new mongoose.Schema(
+export const placeSchema = new mongoose.Schema(
   {
     name: { type: String, trim: true, maxlength: 160 },
     address: { type: String, trim: true, maxlength: 240 },

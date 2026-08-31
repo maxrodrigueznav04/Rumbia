@@ -6,6 +6,7 @@ import tripRoutes from './trip.routes.js';
 import expenseRoutes from './expense.routes.js';
 import weatherRoutes from './weather.routes.js';
 import agencyRoutes from './agency.routes.js';
+import templateRoutes from './templates.routes.js';
 import env from '../config/env.js';
 
 const router = Router();
@@ -31,5 +32,6 @@ router.use('/trips', tripRoutes);
 router.use('/expenses', expenseRoutes);
 router.use('/weather', weatherRoutes);
 router.use('/agency', agencyRoutes);
+router.use('/templates', templateRoutes);
 
 export default router;

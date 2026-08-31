@@ -598,6 +598,39 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   );
 }
 
+/**
+ * Cuantos viajes armo cada agente este mes (dueno incluido). Se carga aparte
+ * del resto de la pantalla: es lo menos urgente de ver y no tiene por que
+ * bloquear ni volver a pedir todo lo demas si falla.
+ */
+function ReporteAgencia() {
+  const { data, cargando, error, recargar } = useFetch(({ signal }) => agencyApi.reporte({ signal }), []);
+
+  return (
+    <Tarjeta titulo="Reporte del mes">
+      {cargando && <Cargando texto="Cargando reporte..." />}
+      {error && <ErrorCarga error={error} onReintentar={recargar} />}
+      {data && (
+        <>
+          <p className="suave" style={{ marginTop: 0 }}>
+            {data.totalMes === 0
+              ? 'Nadie ha armado un viaje todavía este mes.'
+              : `${data.totalMes} viaje(s) armado(s) este mes en total.`}
+          </p>
+          <div className="pila-sm">
+            {data.porAgente.map((a) => (
+              <div key={a.userId} className="fila-entre">
+                <span>{a.name}</span>
+                <Insignia color={a.cantidad > 0 ? 'marca' : ''}>{a.cantidad}</Insignia>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </Tarjeta>
+  );
+}
+
 function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
   const [form, setForm] = useState({ agencyName: agencia.agencyName, contact: agencia.contact || '' });
   const [logoUrl, setLogoUrl] = useState(agencia.logoUrl || '');
@@ -805,6 +838,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
           </div>
         )}
       </Tarjeta>
+
+      <ReporteAgencia />
 
       <Tarjeta className="zona-peligro">
         <p className="suave" style={{ marginTop: 0 }}>

@@ -2,7 +2,7 @@
 process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbo';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
 
-const { Trip, Itinerary, Expense, User, Agency } = await import('../src/models/index.js');
+const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange } = await import('../src/services/weather.service.js');
@@ -51,6 +51,20 @@ await check('Trip rechaza destino sin nombre', async () => {
   const err = t.validateSync();
   assert(err?.errors?.destination, 'deberia invalidar destination');
   return 'destino obligatorio';
+});
+
+await check('Trip acepta el estado "aprobado" y rechaza uno inventado', async () => {
+  const ok = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'), status: 'aprobado',
+  });
+  assert(!ok.validateSync(), 'aprobado deberia ser un estado valido');
+  const mal = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'), status: 'en-revision',
+  });
+  assert(mal.validateSync()?.errors?.status, 'estado inventado deberia fallar');
+  return 'aprobado valido, estado inventado rechazado';
 });
 
 await check('coreCosts suma transporte + hospedaje + local', async () => {
@@ -179,6 +193,34 @@ await check('Agency rechaza un plan que no existe', async () => {
   return 'enum aplicado';
 });
 
+await check('ItineraryTemplate valida y cuenta actividades sin fechas', async () => {
+  const t = new ItineraryTemplate({
+    user: uid,
+    name: 'Cancún todo incluido',
+    destination: { name: 'Cancún', country: 'México' },
+    days: [
+      { dayNumber: 1, title: 'Llegada', activities: [{ title: 'Check-in', category: 'descanso' }] },
+      { dayNumber: 2, title: 'Playa', activities: [{ title: 'Snorkel' }, { title: 'Comida' }] },
+    ],
+  });
+  assert(!t.validateSync(), 'no deberia fallar');
+  assert(t.activityCount === 3, `activityCount=${t.activityCount}`);
+  assert(t.days[0].dayNumber === 1 && t.days[0].date === undefined, 'dias relativos, sin fecha de calendario');
+  return '2 dias, 3 actividades, sin fechas';
+});
+
+await check('ItineraryTemplate exige nombre a cada actividad', async () => {
+  const t = new ItineraryTemplate({
+    user: uid,
+    name: 'X',
+    destination: { name: 'Y' },
+    days: [{ dayNumber: 1, activities: [{ category: 'comida' }] }],
+  });
+  const err = t.validateSync();
+  assert(err, 'deberia fallar sin title en la actividad');
+  return 'title obligatorio en cada actividad';
+});
+
 console.log('\n== Itinerario: reordenar por hora ==');
 
 const { reorderByTime } = await import('../src/controllers/itinerary.controller.js');
@@ -305,6 +347,27 @@ await check('cambiarAgentesSchema exige extraAgentes explicito (sin default)', a
   const mal = schemas.cambiarAgentesSchema.safeParse({});
   assert(!mal.success, 'sin extraAgentes deberia fallar');
   return '4 agentes extra, body vacio rechazado';
+});
+
+await check('crearPlantillaSchema exige nombre', async () => {
+  const ok = schemas.crearPlantillaSchema.safeParse({ name: 'Cancún todo incluido' });
+  assert(ok.success, JSON.stringify(ok.error?.issues));
+  const mal = schemas.crearPlantillaSchema.safeParse({ name: 'X' });
+  assert(!mal.success, 'un solo caracter deberia fallar (min 2)');
+  return 'nombre valido aceptado, uno muy corto rechazado';
+});
+
+await check('aplicarPlantillaSchema valida fechas y trae defaults', async () => {
+  const ok = schemas.aplicarPlantillaSchema.safeParse({
+    title: 'Viaje de los Hernandez', startDate: '2026-11-01', endDate: '2026-11-05',
+  });
+  assert(ok.success, JSON.stringify(ok.error?.issues));
+  assert(ok.data.travelers === 1 && ok.data.budget.amount === 0, 'defaults de travelers y budget');
+  const mal = schemas.aplicarPlantillaSchema.safeParse({
+    title: 'X', startDate: '2026-11-05', endDate: '2026-11-01',
+  });
+  assert(!mal.success, 'fecha de regreso antes de la salida deberia fallar');
+  return 'defaults ok, fechas invertidas rechazadas';
 });
 
 await check('tripListQuerySchema aplica defaults', async () => {

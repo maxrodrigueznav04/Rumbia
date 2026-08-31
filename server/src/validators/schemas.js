@@ -265,6 +265,26 @@ export const tripListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+export const crearPlantillaSchema = z.object({
+  name: z.string().trim().min(2, 'Ponle un nombre a la plantilla.').max(120),
+});
+
+export const aplicarPlantillaSchema = z
+  .object({
+    title: z.string().trim().min(2, 'Ponle un título al viaje.').max(120),
+    startDate: isoDate,
+    endDate: isoDate,
+    travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').default(1),
+    budget: z
+      .object({ amount: money.default(0), currency: currency.optional() })
+      .default({ amount: 0 }),
+    cliente: clienteSchema.optional(),
+  })
+  .refine((v) => v.endDate >= v.startDate, {
+    message: 'La fecha de regreso no puede ser anterior a la de salida.',
+    path: ['endDate'],
+  });
+
 export const bookingLinksQuerySchema = z.object({
   section: opcionalEnQuery(z.enum(['transporte', 'hospedaje', 'transporte-local'])),
   type: opcionalEnQuery(z.string().trim().max(40)),

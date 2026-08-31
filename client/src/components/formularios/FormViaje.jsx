@@ -11,6 +11,7 @@ import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 const ESTADOS = [
   { valor: 'borrador', texto: 'Borrador' },
   { valor: 'planeado', texto: 'Planeado' },
+  { valor: 'aprobado', texto: 'Aprobado por el cliente' },
   { valor: 'en-curso', texto: 'En curso' },
   { valor: 'completado', texto: 'Completado' },
 ];

@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { Itinerary, Trip } from '../models/index.js';
+import { Itinerary, Trip, ItineraryTemplate } from '../models/index.js';
 import { LIMITE_GENERACIONES_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -241,6 +241,40 @@ export const deleteItinerary = asyncHandler(async (req, res) => {
   if (!deleted) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
   res.json({ success: true, message: 'Itinerario eliminado.' });
+});
+
+/**
+ * Copia el itinerario de este viaje en una plantilla reutilizable: mismo
+ * destino y actividades, sin fechas (dias relativos). Si quien la guarda
+ * tiene agencia, queda visible para todo el equipo — ver ItineraryTemplate.js.
+ */
+export const crearPlantilla = asyncHandler(async (req, res) => {
+  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const itinerary = await Itinerary.findOne({ trip: trip._id });
+  if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario que convertir en plantilla.');
+
+  const plantilla = await ItineraryTemplate.create({
+    user: req.user._id,
+    agency: req.user.agency || null,
+    name: req.body.name,
+    destination: trip.destination,
+    days: itinerary.days.map((d) => ({
+      dayNumber: d.dayNumber,
+      title: d.title,
+      summary: d.summary,
+      activities: d.activities.map((a) => ({
+        time: a.time,
+        title: a.title,
+        description: a.description,
+        category: a.category,
+        location: a.location,
+        estimatedCost: a.estimatedCost,
+        durationMinutes: a.durationMinutes,
+      })),
+    })),
+  });
+
+  res.status(201).json({ success: true, message: 'Plantilla guardada.', data: { template: plantilla } });
 });
 
 export const updateDay = asyncHandler(async (req, res) => {

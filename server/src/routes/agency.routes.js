@@ -21,5 +21,6 @@ router.post('/unirse', validate(joinAgencySchema), ctrl.unirseAgencia);
 router.post('/salir', ctrl.salirAgencia);
 router.post('/codigo', ctrl.regenerarCodigo);
 router.delete('/miembros/:userId', ctrl.eliminarMiembro);
+router.get('/reporte', ctrl.obtenerReporte);
 
 export default router;

@@ -159,6 +159,7 @@ export function humanizar(slug = '') {
 export const ETIQUETAS_ESTADO = {
   borrador: { texto: 'Borrador', color: '' },
   planeado: { texto: 'Planeado', color: 'marca' },
+  aprobado: { texto: 'Aprobado por el cliente', color: 'exito' },
   'en-curso': { texto: 'En curso', color: 'ambar' },
   completado: { texto: 'Completado', color: 'verde' },
 };

@@ -9,6 +9,7 @@ import {
   updateDaySchema,
   reorderActivitiesSchema,
   moveActivitySchema,
+  crearPlantillaSchema,
 } from '../validators/schemas.js';
 
 // mergeParams: hereda :id (el viaje) del router padre.
@@ -20,6 +21,8 @@ router.delete('/', ctrl.deleteItinerary);
 
 router.post('/share', ctrl.compartir);
 router.delete('/share', ctrl.dejarDeCompartir);
+
+router.post('/plantilla', validate(crearPlantillaSchema), ctrl.crearPlantilla);
 
 // El unico endpoint que consume cuota de Gemini: limitado por usuario/hora.
 router.post('/generate', aiLimiter, validate(generateItinerarySchema), ctrl.generate);

@@ -33,6 +33,7 @@ export const agencyApi = {
   salir: () => api.post('/agency/salir'),
   regenerarCodigo: () => api.post('/agency/codigo'),
   eliminarMiembro: (userId) => api.delete(`/agency/miembros/${userId}`),
+  reporte: (opts) => api.get('/agency/reporte', opts),
 };
 
 export const billingApi = {
@@ -128,6 +129,13 @@ export const itineraryApi = {
     api.patch(`/trips/${tripId}/itinerary/days/${dayId}/activities/${activityId}/move`, payload),
   removeActivity: (tripId, dayId, activityId) =>
     api.delete(`/trips/${tripId}/itinerary/days/${dayId}/activities/${activityId}`),
+  guardarComoPlantilla: (tripId, payload) => api.post(`/trips/${tripId}/itinerary/plantilla`, payload),
+};
+
+export const templatesApi = {
+  listar: (opts) => api.get('/templates', opts),
+  eliminar: (id) => api.delete(`/templates/${id}`),
+  aplicar: (id, payload) => api.post(`/templates/${id}/aplicar`, payload),
 };
 
 export const expensesApi = {

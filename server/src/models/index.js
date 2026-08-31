@@ -10,3 +10,4 @@ export { default as Itinerary, ACTIVITY_CATEGORIES } from './Itinerary.js';
 export { default as Expense, EXPENSE_CATEGORIES } from './Expense.js';
 export { default as ClickSalida, ORIGENES_CLICK } from './ClickSalida.js';
 export { default as Agency } from './Agency.js';
+export { default as ItineraryTemplate } from './ItineraryTemplate.js';

@@ -6,6 +6,7 @@ import FormActividad from '../components/formularios/FormActividad.jsx';
 import FormDia from '../components/formularios/FormDia.jsx';
 import {
   Boton,
+  Campo,
   Tarjeta,
   Insignia,
   Vacio,
@@ -134,6 +135,11 @@ export default function Itinerario() {
   const [destino, setDestino] = useState(null); // { diaId, indice }
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
   const [personas, setPersonas] = useState(null);
+  const [plantillaAbierta, setPlantillaAbierta] = useState(false);
+  const [nombrePlantilla, setNombrePlantilla] = useState('');
+  const [guardandoPlantilla, setGuardandoPlantilla] = useState(false);
+  const [errorPlantilla, setErrorPlantilla] = useState(null);
+  const [plantillaGuardada, setPlantillaGuardada] = useState(false);
 
   const viaje = viajeReq.data?.trip;
   const itinerario = itinReq.data?.itinerary;
@@ -224,6 +230,23 @@ export default function Itinerario() {
       // Sin permiso de portapapeles (o sin HTTPS) el input sigue ahi para
       // seleccionarlo a mano: no se deja al usuario sin salida.
       setCopiado(false);
+    }
+  };
+
+  const guardarComoPlantilla = async (e) => {
+    e.preventDefault();
+    setErrorPlantilla(null);
+    setGuardandoPlantilla(true);
+    try {
+      await itineraryApi.guardarComoPlantilla(id, { name: nombrePlantilla.trim() });
+      setPlantillaAbierta(false);
+      setNombrePlantilla('');
+      setPlantillaGuardada(true);
+      setTimeout(() => setPlantillaGuardada(false), 4000);
+    } catch (err) {
+      setErrorPlantilla(err.message);
+    } finally {
+      setGuardandoPlantilla(false);
     }
   };
 
@@ -434,9 +457,19 @@ export default function Itinerario() {
             >
               <Icono nombre="chispa" tamano={15} /> Regenerar
             </Boton>
+            <Boton variante="secundario" onClick={() => setPlantillaAbierta(true)}>
+              <Icono nombre="recibo" tamano={15} /> Guardar como plantilla
+            </Boton>
           </div>
         )}
       </header>
+
+      {plantillaGuardada && (
+        <Aviso tipo="exito" titulo="Plantilla guardada">
+          Ya la puedes usar para armar el próximo viaje a este destino desde{' '}
+          <Link to="/plantillas">Plantillas</Link>.
+        </Aviso>
+      )}
 
       {enlacePublico && (
         <div className="no-imprimir">
@@ -797,6 +830,42 @@ export default function Itinerario() {
             Regenerar
           </Boton>
         </div>
+      </Modal>
+
+      <Modal
+        abierto={plantillaAbierta}
+        onCerrar={() => setPlantillaAbierta(false)}
+        titulo="Guardar como plantilla"
+        ancho={440}
+      >
+        <form onSubmit={guardarComoPlantilla} className="pila">
+          <p className="suave" style={{ marginTop: 0 }}>
+            Copia el destino y las actividades de este itinerario en una plantilla reutilizable, sin
+            fechas. La podrás aplicar a un viaje nuevo desde{' '}
+            <Link to="/plantillas">Plantillas</Link>
+            {user?.agency ? ', y la verá todo tu equipo.' : '.'}
+          </p>
+
+          {errorPlantilla && <Aviso tipo="error">{errorPlantilla}</Aviso>}
+
+          <Campo
+            label="Nombre de la plantilla"
+            name="nombrePlantilla"
+            value={nombrePlantilla}
+            onChange={(e) => setNombrePlantilla(e.target.value)}
+            placeholder={`${viaje?.destination?.name || 'Destino'} todo incluido`}
+            autoFocus
+          />
+
+          <div className="modal-acciones">
+            <Boton type="button" variante="secundario" onClick={() => setPlantillaAbierta(false)}>
+              Cancelar
+            </Boton>
+            <Boton type="submit" cargando={guardandoPlantilla} disabled={nombrePlantilla.trim().length < 2}>
+              Guardar plantilla
+            </Boton>
+          </div>
+        </form>
       </Modal>
     </div>
   );

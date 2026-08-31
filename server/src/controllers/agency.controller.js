@@ -1,4 +1,4 @@
-import { Agency, User } from '../models/index.js';
+import { Agency, User, Trip } from '../models/index.js';
 import { subirLogo as subirLogoCloudinary } from '../services/logo.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -208,6 +208,41 @@ export const regenerarCodigo = asyncHandler(async (req, res) => {
   await agencia.save();
 
   res.json({ success: true, message: 'Código regenerado.', data: { agency: agencia } });
+});
+
+/**
+ * Reporte del mes en curso: cuantos viajes armo cada agente (dueno incluido).
+ * Solo lo ve el dueno, igual que la lista de miembros — un agente cualquiera
+ * no necesita saber que tanto produce el resto del equipo.
+ */
+export const obtenerReporte = asyncHandler(async (req, res) => {
+  const agencia = await agenciaComoDueno(req);
+
+  const miembros = await User.find({ agency: agencia._id }).select('name email').lean();
+  const idsAgentes = miembros.map((m) => m._id);
+
+  const inicioMes = new Date();
+  inicioMes.setUTCDate(1);
+  inicioMes.setUTCHours(0, 0, 0, 0);
+
+  const conteos = await Trip.aggregate([
+    { $match: { user: { $in: idsAgentes }, createdAt: { $gte: inicioMes } } },
+    { $group: { _id: '$user', cantidad: { $sum: 1 } } },
+  ]);
+
+  const cantidadPorId = new Map(conteos.map((c) => [String(c._id), c.cantidad]));
+  const porAgente = miembros
+    .map((m) => ({ userId: m._id, name: m.name, cantidad: cantidadPorId.get(String(m._id)) || 0 }))
+    .sort((a, b) => b.cantidad - a.cantidad);
+
+  res.json({
+    success: true,
+    data: {
+      mes: inicioMes.toISOString().slice(0, 7),
+      totalMes: porAgente.reduce((sum, a) => sum + a.cantidad, 0),
+      porAgente,
+    },
+  });
 });
 
 /** Carga la agencia del usuario en sesion y revienta si no es el dueno. */
