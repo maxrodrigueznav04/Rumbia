@@ -32,6 +32,7 @@ import {
   tiempoRelativo,
   humanizar,
   porPersonas,
+  ciudadDeHospedaje,
   ETIQUETAS_ESTADO,
 } from '../utils/format.js';
 
@@ -392,6 +393,11 @@ export default function DetalleViaje() {
                   <div className="linea-gasto" key={l._id || i}>
                     <span className="crece" style={{ minWidth: 0 }}>
                       <strong>{l.name || humanizar(l.type)}</strong>
+                      {viaje.additionalDestinations?.length > 0 && (
+                        <span style={{ marginLeft: 8 }}>
+                          <Insignia color="cielo">{ciudadDeHospedaje(viaje, l)}</Insignia>
+                        </span>
+                      )}
                       <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
                         {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'}
                         {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} por noche` : ''}

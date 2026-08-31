@@ -28,12 +28,19 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
   const editando = indice != null;
   const datos = editando ? viaje.lodging[indice] : {};
   const moneda = viaje.budget?.currency || 'MXN';
+  // Viajes de un solo destino no ven ningun campo nuevo: el selector solo
+  // aparece cuando de verdad hay entre que ciudad elegir.
+  const paradas = viaje.additionalDestinations || [];
 
   const form = useFormulario(
     {
       type: datos.type || 'hotel',
       name: datos.name || '',
       lugar: datos.place?.name || '',
+      // 0 = destino principal, 1..N = indice en paradas. Mismo indice
+      // informativo que Itinerary.days, nunca validado contra el largo de
+      // paradas (ver Trip.js): un dato huerfano simplemente cae de vuelta a 0.
+      destinationIndex: datos.destinationIndex ?? 0,
       checkIn: paraInputFecha(datos.checkIn || viaje.startDate),
       checkOut: paraInputFecha(datos.checkOut || viaje.endDate),
       // Al abrir un hospedaje guardado antes del cambio no hay totalCost: se
@@ -48,6 +55,17 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
   );
 
   const { valores, fijar } = form;
+
+  // Al elegir la ciudad, sugiere (no obliga) las fechas de esa parada: pasa
+  // por los mismos setters que ya recalculan noches, asi que el usuario
+  // sigue pudiendo ajustarlas despues.
+  const cambiarCiudad = (e) => {
+    form.cambiar(e);
+    const idx = Number(e.target.value) || 0;
+    const parada = idx > 0 ? paradas[idx - 1] : null;
+    if (parada?.startDate) fijar('checkIn', paraInputFecha(parada.startDate));
+    if (parada?.endDate) fijar('checkOut', paraInputFecha(parada.endDate));
+  };
 
   // Las noches se recalculan solas al mover las fechas: nadie quiere hacer esa resta.
   useEffect(() => {
@@ -67,6 +85,7 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
       type: v.type,
       name: v.name.trim(),
       place: v.lugar.trim() ? { name: v.lugar.trim() } : undefined,
+      destinationIndex: Number(v.destinationIndex) || 0,
       checkIn: desdeInputFecha(v.checkIn),
       checkOut: desdeInputFecha(v.checkOut),
       totalCost: Number(v.totalCost) || 0,
@@ -120,6 +139,19 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
           ayuda="Opcional, para ubicarlo."
           {...form.props('lugar')}
         />
+
+        {paradas.length > 0 && (
+          <Campo label="¿Para qué ciudad es?">
+            <select name="destinationIndex" value={valores.destinationIndex} onChange={cambiarCiudad}>
+              <option value={0}>{viaje.destination?.name || 'Destino principal'}</option>
+              {paradas.map((p, i) => (
+                <option key={i} value={i + 1}>
+                  {p.place?.name || `Parada ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Campo>
+        )}
 
         <div className="campos-2">
           <Campo
