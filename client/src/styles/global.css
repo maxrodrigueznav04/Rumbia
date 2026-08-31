@@ -13,6 +13,10 @@
    ========================================================================== */
 
 :root {
+  /* Para que los controles nativos (selector de fecha, scrollbar) usen su
+     variante clara u oscura en vez de quedarse blancos siempre. */
+  color-scheme: light;
+
   /* ---------- Verde bitacora ----------
      El 1F6F5C es el primario del mockup: da 5.36:1 sobre el fondo arena, asi
      que sirve para texto, enlaces y como fondo de boton con blanco encima. */
@@ -122,6 +126,110 @@
   --fuente: 'Manrope Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --fuente-titulo: 'Sora Variable', 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ==========================================================================
+   Modo oscuro — mismos tokens, valores invertidos.
+
+   Todo el sistema de diseño esta armado sobre variables, asi que ningun
+   componente cambia: solo hace falta redefinir el mismo juego de tokens.
+   Dos reglas para los tres estados posibles:
+   - Sin elegir nada (data-theme ausente): sigue al sistema operativo via
+     prefers-color-scheme, sin pedirle nada al usuario.
+   - Eleccion explicita ([data-theme="oscuro"] o "claro"): gana sobre el
+     sistema en los dos sentidos, para cuando alguien prefiere lo contrario
+     a como tiene configurado su dispositivo.
+   El verde y el naranja de marca se aclaran un poco (mismo tono, mas brillo)
+   para seguir pasando contraste sobre fondos oscuros. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='claro']) {
+    color-scheme: dark;
+
+    --verde-900: #0A1F19;
+    --verde-800: #17453A;
+    --verde: #34A388;
+    --verde-300: #5FA792;
+    --verde-100: #1C3A30;
+    --verde-50: #16261F;
+
+    --naranja: #F0946A;
+    --naranja-claro: #F5B37E;
+    --naranja-oscuro: #C97B4C;
+
+    --arena-0: #1E2723;
+    --arena-50: #19211D;
+    --arena-100: #141A17;
+    --arena-200: #212B25;
+    --arena-300: #26302A;
+    --arena-400: #2C372F;
+    --arena-500: #3A473E;
+    --arena-600: #4C5B50;
+    --arena-700: #5E6E61;
+
+    --tinta: #ECF2ED;
+    --tinta-700: #C6D1CA;
+    --tinta-600: #A7B4AC;
+    --tinta-500: #8A978F;
+
+    --exito: #6FD9B5;
+    --alerta: #E8C77E;
+    --alerta-bg: #362B14;
+    --error: #F2A08F;
+    --error-bg: #3A241F;
+
+    --sombra-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
+    --sombra: 0 4px 14px rgba(0, 0, 0, 0.28);
+    --sombra-lg: 0 8px 24px rgba(0, 0, 0, 0.36);
+  }
+}
+
+[data-theme='oscuro'] {
+  color-scheme: dark;
+
+  --verde-900: #0A1F19;
+  --verde-800: #17453A;
+  --verde: #34A388;
+  --verde-300: #5FA792;
+  --verde-100: #1C3A30;
+  --verde-50: #16261F;
+
+  --naranja: #F0946A;
+  --naranja-claro: #F5B37E;
+  --naranja-oscuro: #C97B4C;
+
+  --arena-0: #1E2723;
+  --arena-50: #19211D;
+  --arena-100: #141A17;
+  --arena-200: #212B25;
+  --arena-300: #26302A;
+  --arena-400: #2C372F;
+  --arena-500: #3A473E;
+  --arena-600: #4C5B50;
+  --arena-700: #5E6E61;
+
+  --tinta: #ECF2ED;
+  --tinta-700: #C6D1CA;
+  --tinta-600: #A7B4AC;
+  --tinta-500: #8A978F;
+
+  --exito: #6FD9B5;
+  --alerta: #E8C77E;
+  --alerta-bg: #362B14;
+  --error: #F2A08F;
+  --error-bg: #3A241F;
+
+  --sombra-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
+  --sombra: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --sombra-lg: 0 8px 24px rgba(0, 0, 0, 0.36);
+}
+
+/* Un par de reglas quedaron con el color a mano en vez de una variable;
+   se cubren aparte en los dos temas oscuros. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='claro']) .aviso.error { color: #F2A08F; border-color: #4A2E27; }
+  :root:not([data-theme='claro']) .dia.fuera-de-rango::before { box-shadow: 0 0 0 1px #4A2E27; }
+}
+[data-theme='oscuro'] .aviso.error { color: #F2A08F; border-color: #4A2E27; }
+[data-theme='oscuro'] .dia.fuera-de-rango::before { box-shadow: 0 0 0 1px #4A2E27; }
 
 *,
 *::before,

@@ -1,13 +1,37 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useTema } from '../hooks/useTema.js';
 import { Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
 
 const enlaces = [
   { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
   { to: '/viajes/nuevo', texto: 'Nuevo viaje', icono: 'mas' },
+  { to: '/plantillas', texto: 'Plantillas', icono: 'recibo' },
   { to: '/perfil', texto: 'Perfil', icono: 'persona' },
 ];
+
+const ORDEN_TEMA = ['sistema', 'claro', 'oscuro'];
+const ICONO_TEMA = { sistema: 'monitor', claro: 'sol', oscuro: 'luna' };
+const ETIQUETA_TEMA = { sistema: 'Tema: siguiendo al sistema', claro: 'Tema: claro', oscuro: 'Tema: oscuro' };
+
+/** Cicla sistema -> claro -> oscuro -> sistema. Un solo botón, sin menú, para no ocupar espacio del header. */
+function ToggleTema() {
+  const { tema, cambiarTema } = useTema();
+  const siguiente = ORDEN_TEMA[(ORDEN_TEMA.indexOf(tema) + 1) % ORDEN_TEMA.length];
+
+  return (
+    <Boton
+      variante="fantasma"
+      chico
+      onClick={() => cambiarTema(siguiente)}
+      title={`${ETIQUETA_TEMA[tema]} · toca para cambiar a ${siguiente}`}
+      aria-label={`${ETIQUETA_TEMA[tema]}. Cambiar a ${siguiente}`}
+    >
+      <Icono nombre={ICONO_TEMA[tema]} tamano={17} />
+    </Boton>
+  );
+}
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -46,6 +70,7 @@ export default function Layout() {
             <span className="tenue" style={{ display: 'none' }} data-nombre>
               {user?.name}
             </span>
+            <ToggleTema />
             <Boton variante="fantasma" chico onClick={cerrarSesion}>
               Salir
             </Boton>
