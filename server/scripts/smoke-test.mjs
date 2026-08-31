@@ -163,6 +163,31 @@ await check('lodging: sin noches no revienta el por-noche', async () => {
   return 'sin division por cero';
 });
 
+await check('lodging: sin destinationIndex, por defecto es 0 (destino principal)', async () => {
+  const l = viajeCon([{ totalCost: 1000, nights: 1 }]).lodging[0];
+  assert(l.destinationIndex === 0, `destinationIndex=${l.destinationIndex}`);
+  return 'retrocompatible: viajes viejos se leen como destino principal';
+});
+
+await check('lodging: destinationIndex fuera de rango NO bloquea el guardado', async () => {
+  // Igual que Itinerary.days.destinationIndex: es informativo, no bloqueante.
+  // Un viaje con 1 sola parada (additionalDestinations.length === 1) y un
+  // hospedaje con destinationIndex: 5 (huerfano, p.ej. porque se borro una
+  // parada) debe seguir pasando validacion -- nunca dejar el viaje sin poder
+  // guardarse por un dato de un hospedaje que ni siquiera esta en pantalla.
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Madrid' },
+    additionalDestinations: [
+      { place: { name: 'Roma' }, startDate: new Date('2026-09-14'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+    lodging: [{ totalCost: 1000, nights: 1, destinationIndex: 5 }],
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(!err, err?.message);
+  return 'destinationIndex huerfano (5, sin parada 5) no truena la validacion';
+});
+
 await check('Itinerary rechaza hora mal formada', async () => {
   const it = new Itinerary({
     trip: uid, user: uid,
@@ -445,6 +470,15 @@ await check('updateTripSchema con solo additionalDestinations no dispara "body v
   const r = schemas.updateTripSchema.safeParse({ additionalDestinations: [] });
   assert(r.success, JSON.stringify(r.error?.issues));
   return 'additionalDestinations vacio es un campo valido a actualizar';
+});
+
+await check('updateTripSchema conserva destinationIndex en lodging (no lo descarta)', async () => {
+  const r = schemas.updateTripSchema.safeParse({
+    lodging: [{ type: 'hotel', totalCost: 2000, nights: 2, destinationIndex: 1 }],
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.lodging[0].destinationIndex === 1, 'destinationIndex no deberia perderse');
+  return 'destinationIndex conservado tal cual se mando';
 });
 
 await check('createExpenseSchema no fuerza moneda: el controller hereda la del viaje', async () => {

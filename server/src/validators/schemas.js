@@ -191,6 +191,10 @@ export const lodgingSchema = z.object({
   type: z.enum(LODGING_TYPES).optional(),
   name: z.string().trim().max(160).optional(),
   place: place.partial().optional(),
+  // 0 = destino principal, 1..N = indice en additionalDestinations. Sin tope
+  // superior a proposito: el rango real depende de cuantas paradas tenga el
+  // viaje, y esto es informativo, no bloqueante (ver comentario en Trip.js).
+  destinationIndex: entero('Índice inválido.').min(0).optional(),
   checkIn: isoDate.optional().nullable(),
   checkOut: isoDate.optional().nullable(),
   totalCost: money.optional(),

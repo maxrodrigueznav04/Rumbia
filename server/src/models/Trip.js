@@ -57,6 +57,15 @@ const lodgingSchema = new mongoose.Schema({
   type: { type: String, enum: LODGING_TYPES, default: 'hotel' },
   name: { type: String, trim: true, maxlength: 160 },
   place: { type: placeSchema, default: () => ({}) },
+  // A que parada del viaje pertenece este hospedaje: 0 = destino principal,
+  // 1..N = indice en additionalDestinations. Mismo patron e igual de
+  // informativo que Itinerary.days.destinationIndex: a proposito NO se
+  // valida contra additionalDestinations.length en ningun hook (ver
+  // pre('validate') mas abajo) -- si se borra la parada que un hospedaje
+  // referenciaba, el dato queda huerfano pero no bloquea guardar nada; quien
+  // lo lee (bookingLinks.service.js, el cliente) lo clampea a la defensiva y
+  // cae de vuelta al destino principal.
+  destinationIndex: { type: Number, min: 0, default: 0 },
   checkIn: { type: Date },
   checkOut: { type: Date },
   // Booking, Airbnb y compañía cotizan la estancia completa ("$3,000 por 3
