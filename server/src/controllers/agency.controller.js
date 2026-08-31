@@ -2,6 +2,7 @@ import { Agency, User, Trip } from '../models/index.js';
 import { subirLogo as subirLogoCloudinary } from '../services/logo.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { esAdmin } from '../utils/esAdmin.js';
 
 /** Selecciona solo lo que un agente cualquiera (no el dueno) puede ver de su agencia. */
 const AGENCIA_PUBLICA = 'agencyName logoUrl contact owner createdAt';
@@ -120,8 +121,9 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   // Un dueño solo, sin nadie más, no necesita plan (es uso personal con marca
   // de agencia). En cuanto alguien más se une, ya es el producto de pago: no
-  // se deja sumar gente a una agencia sin un plan activo.
-  if (agencia.billing?.status !== 'activa') {
+  // se deja sumar gente a una agencia sin un plan activo. La cuenta admin
+  // (ADMIN_EMAIL) no tiene tope de cupo ni necesita plan activo para unirse.
+  if (agencia.billing?.status !== 'activa' && !esAdmin(req.user)) {
     throw ApiError.forbidden(
       'Esta agencia todavía no tiene un plan activo. Pídele al dueño que lo active antes de unirte.'
     );
@@ -129,7 +131,7 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   const cupo = agencia.capacidadAgentes;
   const miembrosActuales = await User.countDocuments({ agency: agencia._id });
-  if (miembrosActuales >= cupo) {
+  if (miembrosActuales >= cupo && !esAdmin(req.user)) {
     throw ApiError.conflict(
       `Esta agencia ya llegó a su límite de ${cupo} agente(s). El dueño puede sumar más asientos desde su plan.`
     );

@@ -6,6 +6,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { addDays, isoDay } from '../utils/dates.js';
+import { esAdmin } from '../utils/esAdmin.js';
 
 /**
  * Sin agencia, hasta LIMITE_GENERACIONES_PERSONAL generaciones por mes.
@@ -13,7 +14,7 @@ import { addDays, isoDay } from '../utils/dates.js';
  * soloLecturaSiCongelada si no esta activo), asi que aqui no aplica.
  */
 async function revisarCupoPersonal(user) {
-  if (user.agency) return;
+  if (user.agency || esAdmin(user)) return;
 
   const mesActual = new Date().toISOString().slice(0, 7);
   if (user.usoIA?.mes !== mesActual) {

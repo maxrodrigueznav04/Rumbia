@@ -130,6 +130,12 @@ Todo el stack corre en tiers gratuitos.
   gratis hasta 5 veces al mes por cuenta — de sobra para viajes propios o de familia, bajo para
   correr una operación de agencia disfrazada de uso personal. El límite vive en
   `LIMITE_GENERACIONES_PERSONAL` (`server/src/models/User.js`).
+- **Cuenta admin, sin topes de uso.** Quien inicia sesión con el correo de `ADMIN_EMAIL` no tiene
+  límite de generaciones con IA, nunca ve el candado de facturación congelada, y puede unirse a
+  cualquier agencia aunque no tenga plan activo o esté al cupo. A propósito **no** salta ningún
+  control de pertenencia: sigue sin poder ver o editar viajes, gastos o agencias de otras cuentas —
+  `esAdmin()` (`server/src/utils/esAdmin.js`) solo quita topes de uso, nunca permisos sobre datos
+  ajenos.
 - **Medición de los clics de salida.** Propia, sin cookies ni herramientas de terceros: se
   guarda proveedor, sección, destino y fecha, nunca quién pulsó. Se ve con `npm run clicks` en
   `server`, o vía `GET /api/stats/clicks` si defines `ADMIN_EMAIL`. Los eventos se borran solos
@@ -185,6 +191,7 @@ Llena `server/.env`:
 | `GEMINI_MODEL` | no | `gemini-3.6-flash` por defecto. |
 | `OPENWEATHER_API_KEY` | no* | [OpenWeatherMap](https://openweathermap.org/api). Sin ella el clima cae a estimación por temporada. |
 | `AI_RATE_LIMIT_PER_HOUR` | no | Generaciones con IA por usuario por hora (10 por defecto). |
+| `ADMIN_EMAIL` | no | Correo con reporte de clics y sin topes de uso (generaciones ilimitadas, sin candado de facturación). Sin definirla, nadie tiene ninguno de los dos. |
 | `RESEND_API_KEY` | no* | [Resend](https://resend.com/api-keys). Sin ella no sale el correo de recuperación; en desarrollo el enlace se imprime en la consola. |
 | `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
 | `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | no* | [Cloudinary](https://cloudinary.com), plan gratis (25 GB/mes). Los tres valores están juntos en el Dashboard. Sin ellos el botón de subir logo responde con un aviso claro; el campo de URL manual sigue funcionando igual. |

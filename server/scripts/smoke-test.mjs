@@ -1,11 +1,13 @@
 // Verifica modelos, validadores y servicios sin necesitar MongoDB.
 process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbo';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
+process.env.ADMIN_EMAIL ||= 'admin@rumbo.app';
 
 const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange } = await import('../src/services/weather.service.js');
+const { esAdmin } = await import('../src/utils/esAdmin.js');
 const mongoose = (await import('mongoose')).default;
 
 let pass = 0, fail = 0;
@@ -165,6 +167,13 @@ await check('User rechaza mas de 5 estilos', async () => {
     preferences: { travelStyles: ['aventura','cultura','relax','gastronomia','naturaleza','compras'] } });
   assert(u.validateSync(), 'deberia fallar por limite de 5');
   return 'max 5';
+});
+
+await check('esAdmin reconoce solo al correo de ADMIN_EMAIL', async () => {
+  assert(esAdmin({ email: 'admin@rumbo.app' }) === true, 'deberia reconocer al admin');
+  assert(esAdmin({ email: 'otro@correo.com' }) === false, 'nadie mas deberia pasar');
+  assert(esAdmin(null) === false, 'sin usuario no truena, da false');
+  return 'admin reconocido, cualquier otro correo rechazado, null seguro';
 });
 
 await check('User nace sin uso de IA registrado este mes', async () => {

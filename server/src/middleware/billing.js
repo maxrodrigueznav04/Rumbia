@@ -1,6 +1,7 @@
 import { Agency } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { esAdmin } from '../utils/esAdmin.js';
 
 /**
  * Bloquea crear o editar viajes, itinerarios y gastos si la agencia del
@@ -12,10 +13,10 @@ import asyncHandler from '../utils/asyncHandler.js';
  * requiere un plan activo desde el primer agente, sea el dueño solo o no. El
  * uso sin marca de agencia (branding personal, sin Agency de por medio) sigue
  * siendo gratis siempre — este candado solo aplica a quien ya tiene una
- * agencia creada.
+ * agencia creada. La cuenta admin (ADMIN_EMAIL) tampoco se congela nunca.
  */
 export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
-  if (!req.user.agency || req.method === 'GET') return next();
+  if (!req.user.agency || req.method === 'GET' || esAdmin(req.user)) return next();
 
   const agencia = await Agency.findById(req.user.agency).select('billing');
   if (!agencia || agencia.billing?.status === 'activa') return next();
