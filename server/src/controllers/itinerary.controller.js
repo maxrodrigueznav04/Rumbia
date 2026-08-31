@@ -12,18 +12,32 @@ import { esAdmin } from '../utils/esAdmin.js';
  * Sin agencia, hasta LIMITE_GENERACIONES_PERSONAL generaciones por mes.
  * Con agencia el cupo lo cubre el plan de la agencia (o el candado de
  * soloLecturaSiCongelada si no esta activo), asi que aqui no aplica.
+ *
+ * Separado en dos pasos a proposito: verificar corre ANTES de llamarle a
+ * Gemini (para no gastar la cuota si ya no queda), y consumir corre DESPUES
+ * de que la generacion y el guardado salieron bien. Igual que aiLimiter
+ * (rateLimiters.js, skipFailedRequests) ya hace con el rate-limit por hora:
+ * un intento que fallo (Gemini saturado, timeout, respuesta vacia) no gasta
+ * cupo real, aunque haya llegado a intentarlo.
  */
-async function revisarCupoPersonal(user) {
+export function verificarCupoPersonal(user) {
+  if (user.agency || esAdmin(user)) return;
+
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const generacionesEsteMes = user.usoIA?.mes === mesActual ? user.usoIA.generaciones : 0;
+  if (generacionesEsteMes >= LIMITE_GENERACIONES_PERSONAL) {
+    throw ApiError.forbidden(
+      `Llegaste al límite de ${LIMITE_GENERACIONES_PERSONAL} itinerarios generados con IA este mes en el plan personal. Vuelve el próximo mes, o crea una agencia si necesitas más.`
+    );
+  }
+}
+
+export async function consumirCupoPersonal(user) {
   if (user.agency || esAdmin(user)) return;
 
   const mesActual = new Date().toISOString().slice(0, 7);
   if (user.usoIA?.mes !== mesActual) {
     user.usoIA = { mes: mesActual, generaciones: 0 };
-  }
-  if (user.usoIA.generaciones >= LIMITE_GENERACIONES_PERSONAL) {
-    throw ApiError.forbidden(
-      `Llegaste al límite de ${LIMITE_GENERACIONES_PERSONAL} itinerarios generados con IA este mes en el plan personal. Vuelve el próximo mes, o crea una agencia si necesitas más.`
-    );
   }
   user.usoIA.generaciones += 1;
   await user.save();
@@ -94,7 +108,7 @@ export const generate = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Por ahora la IA genera itinerarios de máximo 21 días.');
   }
 
-  await revisarCupoPersonal(req.user);
+  verificarCupoPersonal(req.user);
 
   // Paradas del viaje, traducidas a dias relativos (1..N) para que el prompt
   // pueda decir "dias 4-6" en vez de fechas de calendario. Se ordenan por
@@ -180,6 +194,11 @@ export const generate = asyncHandler(async (req, res) => {
     trip.status = 'planeado';
     await trip.save({ validateBeforeSave: false });
   }
+
+  // Recien aqui, con la generacion y el guardado ya confirmados, se gasta
+  // el cupo mensual. Antes de este punto, cualquier throw (Gemini saturado,
+  // timeout, JSON invalido) deja el cupo intacto.
+  await consumirCupoPersonal(req.user);
 
   res.status(existing || huboCarrera ? 200 : 201).json({
     success: true,
