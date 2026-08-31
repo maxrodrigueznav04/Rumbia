@@ -332,6 +332,12 @@ export const bookingLinksQuerySchema = z.object({
   lodgingIndex: opcionalEnQuery(z.coerce.number().int().min(0)),
 });
 
+/* -------------------------------- Chat -------------------------------- */
+
+export const sendChatMessageSchema = z.object({
+  message: z.string().trim().min(1, 'Escribe un mensaje.').max(2000, 'Máximo 2000 caracteres.'),
+});
+
 /* ----------------------------- Itinerary ---------------------------- */
 
 export const generateItinerarySchema = z.object({

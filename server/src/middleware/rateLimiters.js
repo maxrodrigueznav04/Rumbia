@@ -85,3 +85,21 @@ export const aiLimiter = rateLimit({
     `Límite de generaciones con IA alcanzado (${env.aiRateLimitPerHour} por hora). Intenta más tarde.`
   ),
 });
+
+/**
+ * Chat con el asistente de IA: mismo espiritu que aiLimiter (por usuario, no
+ * por IP; un mensaje fallido no cuenta) pero con un tope mucho mas alto,
+ * porque una conversacion normal manda muchos mensajes cortos en una sola
+ * sesion en vez de una llamada pesada cada tanto.
+ */
+export const chatLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: env.aiChatRateLimitPerHour,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => String(req.user?._id || req.ip),
+  skipFailedRequests: true,
+  message: jsonMessage(
+    `Límite de mensajes al chat alcanzado (${env.aiChatRateLimitPerHour} por hora). Intenta más tarde.`
+  ),
+});

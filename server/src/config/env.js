@@ -86,6 +86,10 @@ export const env = {
     enabled: Boolean(process.env.STRIPE_SECRET_KEY),
   },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
+  // El chat manda muchos mensajes cortos en una sola sesion, a diferencia de
+  // generar un itinerario completo: un tope tan bajo como el de arriba haria
+  // el chat inutilizable a medio de una conversacion normal.
+  aiChatRateLimitPerHour: Number(process.env.AI_CHAT_RATE_LIMIT_PER_HOUR || 30),
   // Quien puede ver el reporte de clics. Vacio = cerrado para todos, que es el
   // valor seguro por defecto.
   adminEmail: (process.env.ADMIN_EMAIL || '').toLowerCase(),
