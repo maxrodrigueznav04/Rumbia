@@ -45,7 +45,12 @@ function flightLinks({ origin, destination, startDate, endDate, travelers, origi
     links.push({
       provider: 'Skyscanner',
       label: 'Buscar vuelos',
-      url: 'https://www.skyscanner.com.mx/transport/vuelos/',
+      // Sin codigos IATA no hay una URL de busqueda por nombre de ciudad que
+      // funcione de forma confiable en Skyscanner (a diferencia de Google
+      // Flights, que si acepta texto libre en su parametro q=). La portada
+      // es lo unico que se puede prometer que no da 404 -- "/transport/vuelos/"
+      // ya no existe en el sitio real.
+      url: 'https://www.skyscanner.com.mx/',
     });
   }
 
