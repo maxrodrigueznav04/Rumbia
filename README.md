@@ -85,6 +85,9 @@ Todo el stack corre en tiers gratuitos.
 - **Portada pública y generador sin cuenta.** Cualquiera puede armar un itinerario con IA y ver
   los enlaces de reserva sin registrarse; la cuenta se pide solo para guardarlo. Limitado por IP
   y a 7 días por itinerario, porque gasta cuota de Gemini.
+- **Modo oscuro.** Claro, oscuro o "seguir al sistema" (default), con un botón en el header que
+  cicla entre los tres. Redefine el mismo juego de variables CSS que ya usa toda la interfaz — no
+  hubo que tocar ningún componente — y persiste en `localStorage`.
 - **Compartir el itinerario.** Enlace público de solo lectura en `/i/:token`, revocable cuando
   quieras. No expone presupuesto, gastos ni datos de la cuenta. También se puede descargar en PDF
   con el mismo membrete de marca propia que el itinerario privado: quien reciba el enlace no ve
@@ -116,6 +119,12 @@ Todo el stack corre en tiers gratuitos.
   la agencia no pierde nada: se congela en modo de solo lectura (se puede ver todo, no crear ni
   editar) hasta activarlo o reactivarlo. Sin `STRIPE_SECRET_KEY` el resto de la app sigue
   funcionando igual, simplemente no hay forma de cobrar.
+- **Estado "aprobado por el cliente".** Un valor más en el estado del viaje, entre "planeado" y
+  "en curso", para que un agente distinga una propuesta que ya armó de una que el cliente ya
+  confirmó.
+- **Reporte del dueño.** `GET /api/agency/reporte` cuenta cuántos viajes armó cada agente en el mes
+  en curso (dueño incluido), ordenado de más a menos activo. Solo lo ve el dueño, mismo criterio
+  que la lista de miembros.
 - **Uso personal, siempre gratis, con un tope razonable.** Sin agencia de por medio (incluye la
   marca personal del PDF, que no requiere crear ninguna agencia), generar itinerarios con IA es
   gratis hasta 5 veces al mes por cuenta — de sobra para viajes propios o de familia, bajo para
@@ -134,6 +143,11 @@ Todo el stack corre en tiers gratuitos.
   moverlas a otro (con ratón, dedo o teclado). Cambiar la hora de una actividad la reacomoda sola
   entre sus vecinas del día; arrastrar sigue sin tocar la hora, para poder acomodar algo fuera de
   su orden cronológico sin que un guardado cualquiera lo deshaga.
+- **Plantillas de itinerario reutilizables.** El botón *Guardar como plantilla* en un itinerario ya
+  armado lo copia (destino y actividades, sin fechas de calendario) para aplicarlo a un cliente
+  nuevo desde `/plantillas` sin volver a capturar nada a mano. Con agencia se comparten con todo el
+  equipo; sin ella, son privadas. Aplicar una plantilla no pasa por Gemini, así que no cuenta
+  contra el cupo de generaciones del plan personal.
 - **Gastos sueltos.** Comidas, entradas y souvenirs con categoría, fecha y marca de pagado, que
   entran al desglose sin duplicar lo ya capturado en el viaje.
 - **Mapa y clima.** Leaflet con un pin por actividad; clima real a 5 días y estimación por
