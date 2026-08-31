@@ -225,14 +225,25 @@ export function buildLinksForTrip(trip, { section, type } = {}) {
       if (mode === 'auto-propio') return carLinks(base);
       return [...flightLinks(base), ...busLinks(base)];
     },
-    hospedaje: () =>
-      lodgingLinks({
-        destination,
-        checkIn: trip.lodging?.[0]?.checkIn || trip.startDate,
-        checkOut: trip.lodging?.[0]?.checkOut || trip.endDate,
+    hospedaje: () => {
+      const primero = trip.lodging?.[0];
+      // Mismo indice informativo que Itinerary.days: 0 = destino principal,
+      // 1..N = parada. Clampeado a la defensiva por si la parada referenciada
+      // ya no existe (ver razonamiento en Trip.js sobre por que no se valida
+      // el rango al guardar).
+      const idx = primero
+        ? Math.min(Math.max(0, Number(primero.destinationIndex) || 0), (trip.additionalDestinations || []).length)
+        : 0;
+      const ciudadHospedaje =
+        idx === 0 ? destination : trip.additionalDestinations?.[idx - 1]?.place?.name || destination;
+      return lodgingLinks({
+        destination: ciudadHospedaje,
+        checkIn: primero?.checkIn || trip.startDate,
+        checkOut: primero?.checkOut || trip.endDate,
         travelers: trip.travelers,
-        type: type || trip.lodging?.[0]?.type || 'hotel',
-      }),
+        type: type || primero?.type || 'hotel',
+      });
+    },
     'transporte-local': () =>
       localTransportLinks({ ...base, type: type || trip.localTransport?.[0]?.type }),
   };

@@ -568,6 +568,46 @@ await check('buildLinksForTrip cambia con el modo de transporte', async () => {
   return links.transporte.map((l) => l.provider).join(', ');
 });
 
+await check('buildLinksForTrip: hospedaje usa la ciudad de la parada real, no siempre el destino principal', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [
+      { place: { name: 'Barcelona' }, startDate: new Date('2026-09-13'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [
+      { type: 'hotel', destinationIndex: 1, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') },
+    ],
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Barcelona')), 'deberia buscar en Barcelona, no Madrid');
+  return links.hospedaje[0].url;
+});
+
+await check('buildLinksForTrip: destinationIndex huerfano (parada borrada) cae al destino principal sin tronar', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [{ type: 'hotel', destinationIndex: 3, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') }],
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'deberia caer al destino principal');
+  return links.hospedaje[0].url;
+});
+
+await check('buildLinksForTrip: sin lodging usa el destino principal (comportamiento previo intacto)', async () => {
+  const trip = new Trip({
+    user: uid, title: 'X', destination: { name: 'Oaxaca' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'),
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Oaxaca')), 'sin hospedajes, cae al destino principal');
+  return links.hospedaje[0].url;
+});
+
 await check('buildRouteLines: un solo destino devuelve un tramo que cubre todo el viaje', async () => {
   const ruta = buildRouteLines('Paris', 5, []);
   assert(ruta.length === 1, 'un solo tramo');
