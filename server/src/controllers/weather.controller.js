@@ -1,6 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
-import { getWeatherForRange, geocode, geocodeSugerencias } from '../services/weather.service.js';
+import { getWeatherForRange, getWeatherForStops, geocode, geocodeSugerencias } from '../services/weather.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 
 /** GET /api/weather?lat&lng&startDate&endDate */
@@ -44,9 +44,14 @@ export const getTripWeather = asyncHandler(async (req, res) => {
     endDate: trip.endDate,
   });
 
+  // Clima por parada, si el viaje tiene mas de un destino. A diferencia del
+  // destino principal (estricto arriba), una parada que falla no tumba el
+  // resto: ver getWeatherForStops en weather.service.js.
+  const paradas = await getWeatherForStops(trip.additionalDestinations);
+
   res.json({
     success: true,
-    data: { ...weather, location: { lat, lng, name: trip.destination?.name } },
+    data: { ...weather, location: { lat, lng, name: trip.destination?.name }, paradas },
   });
 });
 

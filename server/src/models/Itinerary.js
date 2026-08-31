@@ -73,6 +73,10 @@ const itinerarySchema = new mongoose.Schema(
     // Snapshot del contexto usado: sirve para depurar y para mostrar "generado con estos datos".
     promptContext: {
       destination: String,
+      // Ruta usada para pedirle a Gemini un viaje multi-ciudad (ver
+      // gemini.service.js buildRouteLines). Vacio en un viaje de un solo
+      // destino.
+      paradas: [{ _id: false, nombre: String, startDay: Number, endDay: Number }],
       days: Number,
       travelers: Number,
       interests: [String],

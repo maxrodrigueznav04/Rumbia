@@ -5,7 +5,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { findOwnedTrip } from './trip.controller.js';
-import { addDays, isoDay } from '../utils/dates.js';
+import { addDays, isoDay, daysBetween } from '../utils/dates.js';
 import { esAdmin } from '../utils/esAdmin.js';
 
 /**
@@ -96,8 +96,21 @@ export const generate = asyncHandler(async (req, res) => {
 
   await revisarCupoPersonal(req.user);
 
+  // Paradas del viaje, traducidas a dias relativos (1..N) para que el prompt
+  // pueda decir "dias 4-6" en vez de fechas de calendario. Se ordenan por
+  // inicio: es el orden en que buildRouteLines arma la ruta y en que
+  // destinationIndex numera cada parada (ver gemini.service.js).
+  const paradas = [...(trip.additionalDestinations || [])]
+    .sort((a, b) => a.startDate - b.startDate)
+    .map((p) => ({
+      nombre: [p.place?.name, p.place?.country].filter(Boolean).join(', '),
+      startDay: daysBetween(trip.startDate, p.startDate),
+      endDay: daysBetween(trip.startDate, p.endDate),
+    }));
+
   const context = {
     destination: [trip.destination?.name, trip.destination?.country].filter(Boolean).join(', '),
+    paradas,
     startDate: isoDay(trip.startDate),
     endDate: isoDay(trip.endDate),
     days,
@@ -130,6 +143,7 @@ export const generate = asyncHandler(async (req, res) => {
     model: result.model,
     promptContext: {
       destination: context.destination,
+      paradas: context.paradas,
       days: context.days,
       travelers: context.travelers,
       interests: context.interests,
@@ -259,8 +273,16 @@ export const crearPlantilla = asyncHandler(async (req, res) => {
     agency: req.user.agency || null,
     name: req.body.name,
     destination: trip.destination,
+    // Mismas paradas del viaje, pero con dias relativos: una plantilla no
+    // tiene fecha de salida propia (ver ItineraryTemplate.js).
+    additionalDestinations: (trip.additionalDestinations || []).map((p) => ({
+      place: p.place,
+      startDayNumber: daysBetween(trip.startDate, p.startDate),
+      endDayNumber: daysBetween(trip.startDate, p.endDate),
+    })),
     days: itinerary.days.map((d) => ({
       dayNumber: d.dayNumber,
+      destinationIndex: d.destinationIndex,
       title: d.title,
       summary: d.summary,
       activities: d.activities.map((a) => ({
