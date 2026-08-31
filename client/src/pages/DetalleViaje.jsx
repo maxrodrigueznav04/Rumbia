@@ -514,7 +514,10 @@ export default function DetalleViaje() {
         <div className="pila">
           <Tarjeta titulo="Dónde queda">
             <Suspense fallback={<div className="mapa" />}>
-              <MapaDestino destino={viaje.destination} />
+              <MapaDestino
+                destino={viaje.destination}
+                destinosExtra={viaje.additionalDestinations?.map((p) => p.place)}
+              />
             </Suspense>
           </Tarjeta>
 
@@ -527,6 +530,18 @@ export default function DetalleViaje() {
             )}
             {climaReq.data && <TiraClima clima={climaReq.data} />}
           </Tarjeta>
+
+          {climaReq.data?.paradas?.map((parada, i) => (
+            <Tarjeta key={i} titulo={`Clima en ${parada.place?.name || 'la parada'}`}>
+              {parada.error ? (
+                <p className="tenue" style={{ margin: 0 }}>
+                  No pudimos traer el clima de esta parada. {parada.error}
+                </p>
+              ) : (
+                <TiraClima clima={parada} />
+              )}
+            </Tarjeta>
+          ))}
 
           <ResumenGastosFijos viaje={viaje} personas={paraCuantos} />
 

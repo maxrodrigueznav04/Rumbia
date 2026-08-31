@@ -15,6 +15,7 @@ import {
   humanizar,
   porPersonas,
   ICONOS_CATEGORIA,
+  nombreDestino,
 } from '../utils/format.js';
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
@@ -80,7 +81,7 @@ export default function ItinerarioCompartido() {
                 <span className="etiqueta">Itinerario compartido</span>
                 <h1 style={{ margin: '4px 0' }}>{data.viaje.title}</h1>
                 <p className="suave" style={{ margin: 0 }}>
-                  {data.viaje.destination?.name} · {rangoFechas(data.viaje.startDate, data.viaje.endDate)} ·{' '}
+                  {nombreDestino(data.viaje)} · {rangoFechas(data.viaje.startDate, data.viaje.endDate)} ·{' '}
                   {data.viaje.durationDays} días · {data.viaje.travelers}{' '}
                   {data.viaje.travelers === 1 ? 'viajero' : 'viajeros'}
                 </p>
@@ -180,7 +181,10 @@ export default function ItinerarioCompartido() {
                 {data.pins?.length > 0 && (
                   <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
                     <Suspense fallback={<Cargando texto="Cargando mapa..." />}>
-                      <MapaDestino pines={data.pins} />
+                      <MapaDestino
+                        pines={data.pins}
+                        destinosExtra={data.viaje.additionalDestinations?.map((p) => p.place)}
+                      />
                     </Suspense>
                   </Tarjeta>
                 )}

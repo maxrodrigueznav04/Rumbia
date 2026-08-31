@@ -38,6 +38,21 @@ export const reglas = {
     return null;
   },
 
+  /**
+   * Rango de fechas de una parada adicional: tiene que caer dentro de las
+   * fechas del viaje completo. CampoFechas no tiene un prop `maximo` para
+   * bloquear esto en el propio input, asi que se valida aparte. Devuelve
+   * null si algo todavia no esta completo (el input ya avisa lo obvio).
+   */
+  paradaEnRango: (startDate, endDate, tripStart, tripEnd) => {
+    if (!startDate || !endDate || !tripStart || !tripEnd) return null;
+    if (endDate < startDate) return 'La salida de la parada no puede ser antes de la llegada.';
+    if (startDate < tripStart || endDate > tripEnd) {
+      return 'Las fechas de la parada deben caer dentro de las fechas del viaje.';
+    }
+    return null;
+  },
+
   urlOpcional: (v) => {
     const t = (v || '').trim();
     if (!t) return null;

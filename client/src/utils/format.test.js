@@ -6,6 +6,7 @@ import {
   paraInputFecha,
   desdeInputFecha,
   humanizar,
+  nombreDestino,
 } from './format.js';
 
 describe('formatoMoneda', () => {
@@ -62,6 +63,27 @@ describe('paraInputFecha / desdeInputFecha', () => {
   it('devuelven cadena vacia con entrada vacia', () => {
     expect(paraInputFecha('')).toBe('');
     expect(paraInputFecha(null)).toBe('');
+  });
+});
+
+describe('nombreDestino', () => {
+  it('solo el destino principal cuando no hay paradas', () => {
+    expect(nombreDestino({ destination: { name: 'Roma' } })).toBe('Roma');
+    expect(nombreDestino({ destination: { name: 'Roma' }, additionalDestinations: [] })).toBe('Roma');
+  });
+
+  it('agrega "+N más" cuando hay paradas adicionales', () => {
+    expect(
+      nombreDestino({
+        destination: { name: 'Roma' },
+        additionalDestinations: [{ place: { name: 'Berlín' } }, { place: { name: 'París' } }],
+      })
+    ).toBe('Roma + 2 más');
+  });
+
+  it('aguanta un viaje sin datos', () => {
+    expect(nombreDestino()).toBe('');
+    expect(nombreDestino({})).toBe('');
   });
 });
 

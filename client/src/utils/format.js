@@ -150,6 +150,19 @@ export function conMargen(costoPorPersona, margen, travelers) {
   return costoPorPersona + monto / (travelers > 0 ? travelers : 1);
 }
 
+/**
+ * Nombre del destino para tarjetas/encabezados: el principal solo, o con
+ * "+N más" cuando el viaje tiene paradas adicionales. Acepta el viaje
+ * completo o solo sus campos de destino, para no obligar a pasar el objeto
+ * entero desde cada llamador.
+ */
+export function nombreDestino({ destination, additionalDestinations } = {}) {
+  const principal = destination?.name || '';
+  const extra = additionalDestinations?.length || 0;
+  if (!extra) return principal;
+  return `${principal} + ${extra} más`;
+}
+
 /** "transporte-local" -> "Transporte local" */
 export function humanizar(slug = '') {
   const texto = String(slug).replace(/-/g, ' ');

@@ -5,6 +5,7 @@ import {
   rangoFechas,
   tiempoRelativo,
   ETIQUETAS_ESTADO,
+  nombreDestino,
 } from '../utils/format.js';
 
 /**
@@ -35,7 +36,7 @@ export default function TarjetaViaje({ viaje }) {
           {esFuturo && <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>}
         </div>
 
-        <h3 className="viaje-destino">{viaje.destination?.name}</h3>
+        <h3 className="viaje-destino">{nombreDestino(viaje)}</h3>
         <p className="viaje-titulo">{viaje.title}</p>
         {viaje.cliente?.nombre && (
           <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.85rem' }}>

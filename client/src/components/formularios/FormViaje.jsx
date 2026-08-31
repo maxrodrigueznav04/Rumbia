@@ -6,6 +6,7 @@ import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
 import CampoFechas from '../CampoFechas.jsx';
 import CampoDestino from '../CampoDestino.jsx';
+import CampoParadas, { paradasAPayload, payloadAParadas } from '../CampoParadas.jsx';
 import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 
 const ESTADOS = [
@@ -30,6 +31,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
   // Coordenadas de la sugerencia elegida en el autocompletado, si eligió una.
   const [lugarElegido, setLugarElegido] = useState(null);
+  const [paradas, setParadas] = useState(() => payloadAParadas(viaje.additionalDestinations));
 
   const form = useFormulario(
     {
@@ -80,6 +82,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       cliente: { nombre: v.clienteNombre.trim(), contacto: v.clienteContacto.trim() },
       ocultarDesglose: v.ocultarDesglose,
       margen: { tipo: v.margenTipo, monto: Number(v.margenMonto) || 0 },
+      additionalDestinations: paradasAPayload(paradas),
     };
 
     // Si cambió el destino hay que volver a geocodificar: si no, el mapa y el
@@ -165,6 +168,13 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           }}
           errorInicio={form.errores.startDate}
           errorFin={form.errores.endDate}
+        />
+
+        <CampoParadas
+          paradas={paradas}
+          onCambio={setParadas}
+          tripStart={valores.startDate}
+          tripEnd={valores.endDate}
         />
 
         {cambioFechas && diasNuevos > 0 && (
