@@ -55,6 +55,46 @@ await check('Trip rechaza destino sin nombre', async () => {
   return 'destino obligatorio';
 });
 
+await check('Trip valido con paradas adicionales pasa validacion', async () => {
+  const t = new Trip({
+    user: uid, title: 'Ruta europea',
+    destination: { name: 'Paris', country: 'FR' },
+    additionalDestinations: [
+      { place: { name: 'Roma', country: 'IT' }, startDate: new Date('2026-09-14'), endDate: new Date('2026-09-18') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(!err, err?.message);
+  return '1 parada dentro del rango del viaje, sin errores';
+});
+
+await check('Trip rechaza una parada con endDate < startDate propia', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: new Date('2026-09-16'), endDate: new Date('2026-09-14') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(err?.errors?.['additionalDestinations.0.endDate'], 'deberia invalidar la parada');
+  return err.errors['additionalDestinations.0.endDate'].message;
+});
+
+await check('Trip rechaza una parada fuera del rango del viaje', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: new Date('2026-09-05'), endDate: new Date('2026-09-08') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(err?.errors?.['additionalDestinations.0'], 'deberia invalidar la parada por caer fuera del rango');
+  return 'parada anterior al inicio del viaje rechazada';
+});
+
 await check('Trip acepta el estado "aprobado" y rechaza uno inventado', async () => {
   const ok = new Trip({
     user: uid, title: 'X', destination: { name: 'Y' },
@@ -331,6 +371,38 @@ await check('activitySchema valida hora', async () => {
 await check('updateTripSchema rechaza body vacio', async () => {
   assert(!schemas.updateTripSchema.safeParse({}).success, 'deberia fallar');
   return 'body vacio rechazado';
+});
+
+await check('createTripSchema conserva additionalDestinations (no lo descarta)', async () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'Ruta europea', destination: { name: 'Paris' },
+    additionalDestinations: [
+      { place: { name: 'Roma' }, startDate: '2026-09-14', endDate: '2026-09-18' },
+    ],
+    startDate: '2026-09-10', endDate: '2026-09-18',
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.additionalDestinations?.length === 1, 'additionalDestinations no deberia perderse');
+  assert(r.data.additionalDestinations[0].place.name === 'Roma', 'el lugar de la parada deberia conservarse');
+  return 'parada conservada tal cual se mando';
+});
+
+await check('createTripSchema rechaza una parada fuera de las fechas del viaje', async () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: '2026-09-05', endDate: '2026-09-08' },
+    ],
+    startDate: '2026-09-10', endDate: '2026-09-18',
+  });
+  assert(!r.success, 'deberia fallar');
+  return r.error.issues[0].message;
+});
+
+await check('updateTripSchema con solo additionalDestinations no dispara "body vacio"', async () => {
+  const r = schemas.updateTripSchema.safeParse({ additionalDestinations: [] });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  return 'additionalDestinations vacio es un campo valido a actualizar';
 });
 
 await check('createExpenseSchema no fuerza moneda: el controller hereda la del viaje', async () => {

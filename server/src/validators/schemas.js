@@ -40,6 +40,20 @@ const place = z.object({
   lng: numero('Longitud inválida.').min(-180).max(180).optional(),
 });
 
+/**
+ * Parada adicional de un viaje multi-destino. El rango de fechas del lado
+ * del modelo (Trip.js, pre('validate')) es la fuente de verdad para el
+ * chequeo de "dentro de las fechas del viaje" — aqui solo se valida que la
+ * propia parada tenga fechas coherentes, para dar el error antes de tocar
+ * la base.
+ */
+const destinationStop = z
+  .object({ place, startDate: isoDate, endDate: isoDate })
+  .refine((v) => v.endDate >= v.startDate, {
+    message: 'La fecha de salida de la parada no puede ser anterior a la de llegada.',
+    path: ['endDate'],
+  });
+
 /* ------------------------------- Auth ------------------------------- */
 
 export const registerSchema = z.object({
@@ -206,6 +220,9 @@ export const createTripSchema = z
     title: z.string().trim().min(2, 'Ponle un título al viaje.').max(120),
     destination: place,
     origin: place.partial().optional(),
+    // Paradas mas alla del destino principal, para viajes de mas de una
+    // ciudad. Tope de 6: mas que eso deja de ser un viaje planeable a mano.
+    additionalDestinations: z.array(destinationStop).max(6).optional(),
     startDate: isoDate,
     endDate: isoDate,
     travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').default(1),
@@ -228,13 +245,21 @@ export const createTripSchema = z
   .refine((v) => v.endDate >= v.startDate, {
     message: 'La fecha de regreso no puede ser anterior a la de salida.',
     path: ['endDate'],
-  });
+  })
+  .refine(
+    (v) =>
+      (v.additionalDestinations || []).every(
+        (p) => p.startDate >= v.startDate && p.endDate <= v.endDate
+      ),
+    { message: 'Las fechas de cada parada deben caer dentro de las fechas del viaje.', path: ['additionalDestinations'] }
+  );
 
 export const updateTripSchema = z
   .object({
     title: z.string().trim().min(2).max(120).optional(),
     destination: place.optional(),
     origin: place.partial().optional(),
+    additionalDestinations: z.array(destinationStop).max(6).optional(),
     startDate: isoDate.optional(),
     endDate: isoDate.optional(),
     travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').optional(),
@@ -256,7 +281,17 @@ export const updateTripSchema = z
   .refine((v) => !(v.startDate && v.endDate) || v.endDate >= v.startDate, {
     message: 'La fecha de regreso no puede ser anterior a la de salida.',
     path: ['endDate'],
-  });
+  })
+  .refine(
+    // Solo se puede validar aqui cuando el propio PATCH trae las tres cosas
+    // a la vez; si solo llegan las paradas (fechas del viaje sin tocar), el
+    // chequeo real lo hace el hook pre('validate') de Trip.js contra las
+    // fechas ya guardadas.
+    (v) =>
+      !(v.startDate && v.endDate && v.additionalDestinations) ||
+      v.additionalDestinations.every((p) => p.startDate >= v.startDate && p.endDate <= v.endDate),
+    { message: 'Las fechas de cada parada deben caer dentro de las fechas del viaje.', path: ['additionalDestinations'] }
+  );
 
 export const tripListQuerySchema = z.object({
   status: opcionalEnQuery(z.enum([...TRIP_STATUSES, 'proximos', 'pasados'])),
