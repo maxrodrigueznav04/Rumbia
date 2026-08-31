@@ -40,27 +40,37 @@ export async function consumirCupoChat(user) {
   await user.save();
 }
 
-/** Historial del chat de este viaje, o vacio si nunca se le escribio. */
+/**
+ * Carga el viaje (validando que sea del usuario) si viene tripId, o null
+ * para modo general: el chat es global, no siempre esta atado a un viaje.
+ */
+async function resolveTrip(tripId, userId) {
+  if (!tripId) return null;
+  return findOwnedTrip(tripId, userId);
+}
+
+/** Historial de este chat (general o de un viaje), o vacio si nunca se le escribio. */
 export const getChat = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
-  const chat = await TripChat.findOne({ trip: trip._id });
+  const { tripId } = req.validatedQuery;
+  const trip = await resolveTrip(tripId, req.user._id);
+  const chat = await TripChat.findOne({ user: req.user._id, trip: trip?._id || null });
 
   res.json({ success: true, data: { messages: chat?.messages || [] } });
 });
 
 /** Manda un mensaje y guarda tanto la pregunta como la respuesta. */
 export const sendMessage = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
-  const { message } = req.body;
+  const { message, tripId } = req.body;
+  const trip = await resolveTrip(tripId, req.user._id);
 
   verificarCupoChat(req.user);
 
   const [chat, itinerary] = await Promise.all([
-    TripChat.findOne({ trip: trip._id }),
-    Itinerary.findOne({ trip: trip._id }),
+    TripChat.findOne({ user: req.user._id, trip: trip?._id || null }),
+    trip ? Itinerary.findOne({ trip: trip._id }) : null,
   ]);
 
-  const doc = chat || new TripChat({ trip: trip._id, user: req.user._id, messages: [] });
+  const doc = chat || new TripChat({ trip: trip?._id || null, user: req.user._id, messages: [] });
   doc.messages.push({ role: 'user', text: message });
 
   const respuesta = await sendChatMessage({ trip, itinerary, messages: doc.messages });
@@ -78,10 +88,11 @@ export const sendMessage = asyncHandler(async (req, res) => {
   res.json({ success: true, data: { messages: doc.messages } });
 });
 
-/** Borra el historial de este viaje para que el agente empiece de cero. */
+/** Borra el historial de este chat (general o de un viaje) para empezar de cero. */
 export const clearChat = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
-  await TripChat.deleteOne({ trip: trip._id });
+  const { tripId } = req.validatedQuery;
+  const trip = await resolveTrip(tripId, req.user._id);
+  await TripChat.deleteOne({ user: req.user._id, trip: trip?._id || null });
 
   res.json({ success: true, message: 'Chat reiniciado.' });
 });

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
 import { Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
+import ChatFlotante from './ChatFlotante.jsx';
 
 const enlaces = [
   { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
@@ -110,6 +111,10 @@ export default function Layout() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Un solo chat, disponible en toda la app: dentro de un viaje habla
+          de ese viaje, en cualquier otra pantalla arranca en modo general. */}
+      <ChatFlotante />
     </>
   );
 }

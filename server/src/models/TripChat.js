@@ -11,25 +11,27 @@ const chatMessageSchema = new mongoose.Schema(
 );
 
 /**
- * Chat de un agente con el asistente de IA, siempre atado a un viaje
- * concreto (le da contexto: destino, fechas, hospedajes, itinerario). Un
- * documento por viaje, igual que Itinerary. El asistente solo aconseja: no
- * hay ningun mecanismo aqui ni en chat.controller.js para que sus
- * respuestas escriban de vuelta al viaje.
+ * Chat de un agente con el asistente de IA. `trip` es opcional: con un
+ * viaje, el asistente conoce su contexto completo (destino, fechas,
+ * hospedajes, itinerario); sin el (trip: null), es una conversacion general
+ * -- util desde pantallas donde no hay ningun viaje abierto (Mis viajes,
+ * Perfil, etc). Cada usuario tiene como mucho un documento general
+ * (trip: null) y uno por cada viaje suyo, igual que Itinerary pero
+ * indexado por (user, trip) en vez de solo por trip, ya que ahora varios
+ * documentos comparten trip: null.
+ *
+ * El asistente solo aconseja: no hay ningun mecanismo aqui ni en
+ * chat.controller.js para que sus respuestas escriban de vuelta al viaje.
  */
 const tripChatSchema = new mongoose.Schema(
   {
-    trip: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Trip',
-      required: true,
-      unique: true,
-      index: true,
-    },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    trip: { type: mongoose.Schema.Types.ObjectId, ref: 'Trip', default: null },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     messages: { type: [chatMessageSchema], default: [] },
   },
   { timestamps: true }
 );
+
+tripChatSchema.index({ user: 1, trip: 1 }, { unique: true });
 
 export default mongoose.model('TripChat', tripChatSchema);

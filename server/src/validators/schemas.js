@@ -336,6 +336,13 @@ export const bookingLinksQuerySchema = z.object({
 
 export const sendChatMessageSchema = z.object({
   message: z.string().trim().min(1, 'Escribe un mensaje.').max(2000, 'Máximo 2000 caracteres.'),
+  // Sin mandarlo, el chat responde en modo general (sin datos de un viaje
+  // en particular). Ver chat.controller.js.
+  tripId: objectId.optional(),
+});
+
+export const chatQuerySchema = z.object({
+  tripId: opcionalEnQuery(objectId),
 });
 
 /* ----------------------------- Itinerary ---------------------------- */
