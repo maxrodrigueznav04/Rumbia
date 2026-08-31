@@ -18,11 +18,19 @@ export const paradaVacia = () => ({ destino: '', lugarElegido: null, startDate: 
  * espera el backend (additionalDestinations) al enviar el formulario.
  */
 export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) {
+  // Actualizador funcional a proposito: CampoDestino dispara onChange y
+  // onSeleccionar seguidos al elegir una sugerencia (uno pone el texto, el
+  // otro las coordenadas), los dos dentro del mismo evento de click. Con un
+  // `paradas.map(...)` armado contra el array capturado en el closure, la
+  // segunda llamada se le adelanta a la primera con datos viejos y pisa el
+  // cambio recien hecho. `onCambio` es el setState del padre: pasarle una
+  // funcion en vez del array ya resuelto hace que cada actualizacion parta
+  // siempre del estado mas reciente, no del que habia al renderizar.
   const actualizar = (i, cambios) => {
-    onCambio(paradas.map((p, idx) => (idx === i ? { ...p, ...cambios } : p)));
+    onCambio((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...cambios } : p)));
   };
-  const quitar = (i) => onCambio(paradas.filter((_, idx) => idx !== i));
-  const agregar = () => onCambio([...paradas, paradaVacia()]);
+  const quitar = (i) => onCambio((prev) => prev.filter((_, idx) => idx !== i));
+  const agregar = () => onCambio((prev) => [...prev, paradaVacia()]);
 
   return (
     <div className="campo">
