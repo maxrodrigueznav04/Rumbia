@@ -163,6 +163,31 @@ await check('lodging: sin noches no revienta el por-noche', async () => {
   return 'sin division por cero';
 });
 
+await check('lodging: sin destinationIndex, por defecto es 0 (destino principal)', async () => {
+  const l = viajeCon([{ totalCost: 1000, nights: 1 }]).lodging[0];
+  assert(l.destinationIndex === 0, `destinationIndex=${l.destinationIndex}`);
+  return 'retrocompatible: viajes viejos se leen como destino principal';
+});
+
+await check('lodging: destinationIndex fuera de rango NO bloquea el guardado', async () => {
+  // Igual que Itinerary.days.destinationIndex: es informativo, no bloqueante.
+  // Un viaje con 1 sola parada (additionalDestinations.length === 1) y un
+  // hospedaje con destinationIndex: 5 (huerfano, p.ej. porque se borro una
+  // parada) debe seguir pasando validacion -- nunca dejar el viaje sin poder
+  // guardarse por un dato de un hospedaje que ni siquiera esta en pantalla.
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Madrid' },
+    additionalDestinations: [
+      { place: { name: 'Roma' }, startDate: new Date('2026-09-14'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+    lodging: [{ totalCost: 1000, nights: 1, destinationIndex: 5 }],
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(!err, err?.message);
+  return 'destinationIndex huerfano (5, sin parada 5) no truena la validacion';
+});
+
 await check('Itinerary rechaza hora mal formada', async () => {
   const it = new Itinerary({
     trip: uid, user: uid,
@@ -447,6 +472,15 @@ await check('updateTripSchema con solo additionalDestinations no dispara "body v
   return 'additionalDestinations vacio es un campo valido a actualizar';
 });
 
+await check('updateTripSchema conserva destinationIndex en lodging (no lo descarta)', async () => {
+  const r = schemas.updateTripSchema.safeParse({
+    lodging: [{ type: 'hotel', totalCost: 2000, nights: 2, destinationIndex: 1 }],
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.lodging[0].destinationIndex === 1, 'destinationIndex no deberia perderse');
+  return 'destinationIndex conservado tal cual se mando';
+});
+
 await check('createExpenseSchema no fuerza moneda: el controller hereda la del viaje', async () => {
   const r = schemas.createExpenseSchema.safeParse({
     trip: '507f1f77bcf86cd799439011', description: 'Cena', amount: 250,
@@ -499,6 +533,19 @@ await check('tripListQuerySchema aplica defaults', async () => {
   return 'page=1 limit=20';
 });
 
+await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => {
+  const sinIndice = schemas.bookingLinksQuerySchema.safeParse({ section: 'hospedaje' });
+  assert(sinIndice.success && sinIndice.data.lodgingIndex === undefined, 'sin lodgingIndex, sigue siendo opcional');
+
+  const conIndice = schemas.bookingLinksQuerySchema.safeParse({ section: 'hospedaje', lodgingIndex: '1' });
+  assert(conIndice.success && conIndice.data.lodgingIndex === 1, 'coerciona el string de query a numero');
+
+  const negativo = schemas.bookingLinksQuerySchema.safeParse({ lodgingIndex: '-1' });
+  assert(!negativo.success, 'rechaza negativos');
+
+  return 'opcional, coerciona a numero, rechaza negativos';
+});
+
 console.log('\n== Servicios ==');
 
 await check('buildLinksForTrip arma las 3 secciones', async () => {
@@ -532,6 +579,72 @@ await check('buildLinksForTrip cambia con el modo de transporte', async () => {
   const links = buildLinksForTrip(trip, { section: 'transporte' });
   assert(links.transporte.some((l) => l.provider === 'Rome2Rio'), 'autobus -> Rome2Rio');
   return links.transporte.map((l) => l.provider).join(', ');
+});
+
+await check('buildLinksForTrip: hospedaje usa la ciudad de la parada real, no siempre el destino principal', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [
+      { place: { name: 'Barcelona' }, startDate: new Date('2026-09-13'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [
+      { type: 'hotel', destinationIndex: 1, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') },
+    ],
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Barcelona')), 'deberia buscar en Barcelona, no Madrid');
+  return links.hospedaje[0].url;
+});
+
+await check('buildLinksForTrip: destinationIndex huerfano (parada borrada) cae al destino principal sin tronar', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [{ type: 'hotel', destinationIndex: 3, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') }],
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'deberia caer al destino principal');
+  return links.hospedaje[0].url;
+});
+
+await check('buildLinksForTrip: lodgingIndex opt-in apunta a un hospedaje especifico', async () => {
+  const trip = new Trip({
+    user: uid, title: 'Euro trip',
+    destination: { name: 'Madrid', country: 'ES' },
+    additionalDestinations: [
+      { place: { name: 'Barcelona' }, startDate: new Date('2026-09-13'), endDate: new Date('2026-09-16') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-16'),
+    lodging: [
+      { type: 'hotel', destinationIndex: 0, checkIn: new Date('2026-09-10'), checkOut: new Date('2026-09-13') },
+      { type: 'airbnb', destinationIndex: 1, checkIn: new Date('2026-09-13'), checkOut: new Date('2026-09-16') },
+    ],
+  });
+  const sinIndice = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(sinIndice.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'sin indice, usa lodging[0] -> Madrid');
+
+  const conIndice = buildLinksForTrip(trip, { section: 'hospedaje', lodgingIndex: 1 });
+  assert(conIndice.hospedaje[0].provider === 'Airbnb', 'lodgingIndex 1 es el airbnb');
+  assert(conIndice.hospedaje[0].url.includes(encodeURIComponent('Barcelona')), 'lodgingIndex 1 -> Barcelona');
+
+  const fueraDeRango = buildLinksForTrip(trip, { section: 'hospedaje', lodgingIndex: 99 });
+  assert(fueraDeRango.hospedaje[0].url.includes(encodeURIComponent('Madrid')), 'indice invalido cae a lodging[0]');
+
+  return 'sin indice=Madrid, indice 1=Barcelona/Airbnb, indice invalido=Madrid';
+});
+
+await check('buildLinksForTrip: sin lodging usa el destino principal (comportamiento previo intacto)', async () => {
+  const trip = new Trip({
+    user: uid, title: 'X', destination: { name: 'Oaxaca' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'),
+  });
+  const links = buildLinksForTrip(trip, { section: 'hospedaje' });
+  assert(links.hospedaje[0].url.includes(encodeURIComponent('Oaxaca')), 'sin hospedajes, cae al destino principal');
+  return links.hospedaje[0].url;
 });
 
 await check('buildRouteLines: un solo destino devuelve un tramo que cubre todo el viaje', async () => {

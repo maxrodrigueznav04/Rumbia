@@ -163,6 +163,20 @@ export function nombreDestino({ destination, additionalDestinations } = {}) {
   return `${principal} + ${extra} más`;
 }
 
+/**
+ * Ciudad a la que pertenece un hospedaje (o transporte local), via su
+ * destinationIndex: 0 = destino principal, 1..N = indice en
+ * additionalDestinations. Mismo indice informativo que Itinerary.days,
+ * nunca validado contra el largo del arreglo (ver Trip.js) — si la parada ya
+ * no existe, cae de vuelta al destino principal en vez de tronar.
+ */
+export function ciudadDeHospedaje({ destination, additionalDestinations } = {}, item = {}) {
+  const principal = destination?.name || '';
+  const idx = Number(item.destinationIndex) || 0;
+  if (idx <= 0) return principal;
+  return additionalDestinations?.[idx - 1]?.place?.name || principal;
+}
+
 /** "transporte-local" -> "Transporte local" */
 export function humanizar(slug = '') {
   const texto = String(slug).replace(/-/g, ' ');

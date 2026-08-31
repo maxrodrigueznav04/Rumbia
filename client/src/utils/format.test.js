@@ -7,6 +7,7 @@ import {
   desdeInputFecha,
   humanizar,
   nombreDestino,
+  ciudadDeHospedaje,
 } from './format.js';
 
 describe('formatoMoneda', () => {
@@ -84,6 +85,33 @@ describe('nombreDestino', () => {
   it('aguanta un viaje sin datos', () => {
     expect(nombreDestino()).toBe('');
     expect(nombreDestino({})).toBe('');
+  });
+});
+
+describe('ciudadDeHospedaje', () => {
+  const viaje = {
+    destination: { name: 'Madrid' },
+    additionalDestinations: [{ place: { name: 'Barcelona' } }, { place: { name: 'Lisboa' } }],
+  };
+
+  it('sin destinationIndex (o 0) cae al destino principal', () => {
+    expect(ciudadDeHospedaje(viaje, {})).toBe('Madrid');
+    expect(ciudadDeHospedaje(viaje, { destinationIndex: 0 })).toBe('Madrid');
+  });
+
+  it('usa la parada correspondiente al indice', () => {
+    expect(ciudadDeHospedaje(viaje, { destinationIndex: 1 })).toBe('Barcelona');
+    expect(ciudadDeHospedaje(viaje, { destinationIndex: 2 })).toBe('Lisboa');
+  });
+
+  it('un indice huerfano (parada borrada) cae al destino principal sin tronar', () => {
+    expect(ciudadDeHospedaje(viaje, { destinationIndex: 5 })).toBe('Madrid');
+    expect(ciudadDeHospedaje({ destination: { name: 'Madrid' } }, { destinationIndex: 1 })).toBe('Madrid');
+  });
+
+  it('aguanta un viaje sin datos', () => {
+    expect(ciudadDeHospedaje()).toBe('');
+    expect(ciudadDeHospedaje({}, {})).toBe('');
   });
 });
 

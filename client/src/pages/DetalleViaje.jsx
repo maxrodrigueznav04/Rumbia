@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useState } from 'react';
+import { Fragment, Suspense, lazy, useCallback, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { tripsApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -32,6 +32,7 @@ import {
   tiempoRelativo,
   humanizar,
   porPersonas,
+  ciudadDeHospedaje,
   ETIQUETAS_ESTADO,
 } from '../utils/format.js';
 
@@ -108,6 +109,50 @@ function SeccionGasto({
         </p>
       )}
     </Tarjeta>
+  );
+}
+
+/**
+ * "Buscar y reservar" para un hospedaje especifico, dentro de su propia
+ * fila. Ademas del bloque general de la seccion (que sigue intacto y sigue
+ * usando lodging[0]), este pide los enlaces de ESTE hospedaje via
+ * lodgingIndex — pero solo al abrirse, para no disparar N peticiones al
+ * cargar la pantalla si hay N hospedajes.
+ */
+function EnlacesHospedaje({ tripId, indice, destino }) {
+  const [estado, setEstado] = useState({ cargando: false, enlaces: null, error: false });
+
+  const alAbrirCerrar = async (e) => {
+    if (!e.target.open || estado.enlaces || estado.cargando) return;
+    setEstado({ cargando: true, enlaces: null, error: false });
+    try {
+      const res = await tripsApi.bookingLinks(tripId, { section: 'hospedaje', lodgingIndex: indice });
+      setEstado({ cargando: false, enlaces: res.links?.hospedaje || [], error: false });
+    } catch {
+      setEstado({ cargando: false, enlaces: null, error: true });
+    }
+  };
+
+  return (
+    <details className="enlaces-desplegable" onToggle={alAbrirCerrar}>
+      <summary>
+        <span className="etiqueta">Buscar y reservar este hospedaje</span>
+        <Icono nombre="chevronAbajo" tamano={16} className="chevron" />
+      </summary>
+      {estado.cargando && (
+        <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.85rem' }}>
+          Cargando enlaces…
+        </p>
+      )}
+      {estado.error && (
+        <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.85rem' }}>
+          No se pudieron cargar los enlaces.
+        </p>
+      )}
+      {estado.enlaces && (
+        <EnlacesReserva enlaces={estado.enlaces} seccion="hospedaje" destino={destino} origen="app" />
+      )}
+    </details>
   );
 }
 
@@ -389,35 +434,47 @@ export default function DetalleViaje() {
             {viaje.lodging?.length > 0 && (
               <div className="pila-sm">
                 {viaje.lodging.map((l, i) => (
-                  <div className="linea-gasto" key={l._id || i}>
-                    <span className="crece" style={{ minWidth: 0 }}>
-                      <strong>{l.name || humanizar(l.type)}</strong>
-                      <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-                        {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'}
-                        {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} por noche` : ''}
-                        {l.isEstimate ? ' · estimado' : ''}
+                  <Fragment key={l._id || i}>
+                    <div className="linea-gasto">
+                      <span className="crece" style={{ minWidth: 0 }}>
+                        <strong>{l.name || humanizar(l.type)}</strong>
+                        {viaje.additionalDestinations?.length > 0 && (
+                          <span style={{ marginLeft: 8 }}>
+                            <Insignia color="cielo">{ciudadDeHospedaje(viaje, l)}</Insignia>
+                          </span>
+                        )}
+                        <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
+                          {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'}
+                          {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} por noche` : ''}
+                          {l.isEstimate ? ' · estimado' : ''}
+                        </span>
                       </span>
-                    </span>
-                    <span className="numero">{formatoMoneda(escalar(l.subtotal), moneda)}</span>
-                    <span className="fila" style={{ gap: 0, flexWrap: 'nowrap' }}>
-                      <Boton
-                        variante="fantasma"
-                        chico
-                        onClick={() => setModal({ tipo: 'hospedaje', indice: i })}
-                        aria-label="Editar hospedaje"
-                      >
-                        <Icono nombre="lapiz" tamano={14} />
-                      </Boton>
-                      <Boton
-                        variante="fantasma"
-                        chico
-                        onClick={() => setConfirmar({ campo: 'lodging', indice: i, nombre: l.name || humanizar(l.type) })}
-                        aria-label="Eliminar hospedaje"
-                      >
-                        <Icono nombre="cerrar" tamano={14} />
-                      </Boton>
-                    </span>
-                  </div>
+                      <span className="numero">{formatoMoneda(escalar(l.subtotal), moneda)}</span>
+                      <span className="fila" style={{ gap: 0, flexWrap: 'nowrap' }}>
+                        <Boton
+                          variante="fantasma"
+                          chico
+                          onClick={() => setModal({ tipo: 'hospedaje', indice: i })}
+                          aria-label="Editar hospedaje"
+                        >
+                          <Icono nombre="lapiz" tamano={14} />
+                        </Boton>
+                        <Boton
+                          variante="fantasma"
+                          chico
+                          onClick={() => setConfirmar({ campo: 'lodging', indice: i, nombre: l.name || humanizar(l.type) })}
+                          aria-label="Eliminar hospedaje"
+                        >
+                          <Icono nombre="cerrar" tamano={14} />
+                        </Boton>
+                      </span>
+                    </div>
+                    {/* Con 2+ hospedajes el bloque general de arriba (lodging[0])
+                        ya no basta para saber donde reservar cada uno. */}
+                    {viaje.lodging.length > 1 && (
+                      <EnlacesHospedaje tripId={id} indice={i} destino={ciudadDeHospedaje(viaje, l)} />
+                    )}
+                  </Fragment>
                 ))}
               </div>
             )}

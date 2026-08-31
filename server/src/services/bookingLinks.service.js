@@ -206,7 +206,7 @@ function localTransportLinks({ destination, startDate, endDate, type }) {
 }
 
 /** Punto de entrada unico: arma todos los links relevantes para un viaje. */
-export function buildLinksForTrip(trip, { section, type } = {}) {
+export function buildLinksForTrip(trip, { section, type, lodgingIndex } = {}) {
   const origin = trip.origin?.name || '';
   const destination = trip.destination?.name || '';
   const base = {
@@ -225,14 +225,28 @@ export function buildLinksForTrip(trip, { section, type } = {}) {
       if (mode === 'auto-propio') return carLinks(base);
       return [...flightLinks(base), ...busLinks(base)];
     },
-    hospedaje: () =>
-      lodgingLinks({
-        destination,
-        checkIn: trip.lodging?.[0]?.checkIn || trip.startDate,
-        checkOut: trip.lodging?.[0]?.checkOut || trip.endDate,
+    hospedaje: () => {
+      // lodgingIndex es opt-in: sin mandarlo (o si apunta fuera de rango) cae
+      // al comportamiento de siempre, lodging[0].
+      const item =
+        lodgingIndex != null && trip.lodging?.[lodgingIndex] ? trip.lodging[lodgingIndex] : trip.lodging?.[0];
+      // Mismo indice informativo que Itinerary.days: 0 = destino principal,
+      // 1..N = parada. Clampeado a la defensiva por si la parada referenciada
+      // ya no existe (ver razonamiento en Trip.js sobre por que no se valida
+      // el rango al guardar).
+      const idx = item
+        ? Math.min(Math.max(0, Number(item.destinationIndex) || 0), (trip.additionalDestinations || []).length)
+        : 0;
+      const ciudadHospedaje =
+        idx === 0 ? destination : trip.additionalDestinations?.[idx - 1]?.place?.name || destination;
+      return lodgingLinks({
+        destination: ciudadHospedaje,
+        checkIn: item?.checkIn || trip.startDate,
+        checkOut: item?.checkOut || trip.endDate,
         travelers: trip.travelers,
-        type: type || trip.lodging?.[0]?.type || 'hotel',
-      }),
+        type: type || item?.type || 'hotel',
+      });
+    },
     'transporte-local': () =>
       localTransportLinks({ ...base, type: type || trip.localTransport?.[0]?.type }),
   };

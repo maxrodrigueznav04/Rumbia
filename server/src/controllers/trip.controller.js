@@ -272,12 +272,12 @@ export const deleteTrip = asyncHandler(async (req, res) => {
 /** Links de salida hacia comparadores, con las fechas y el destino ya prellenados. */
 export const getBookingLinks = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.params.id, req.user._id);
-  const { section, type } = req.validatedQuery;
+  const { section, type, lodgingIndex } = req.validatedQuery;
 
   res.json({
     success: true,
     data: {
-      links: decorarSecciones(buildLinksForTrip(trip, { section, type })),
+      links: decorarSecciones(buildLinksForTrip(trip, { section, type, lodgingIndex })),
       // La linea sobre comisiones solo aparece cuando de verdad hay enlaces de
       // afiliado activos: declarar que se gana comision sin ganarla seria tan
       // falso como callarlo cuando si se gana.
