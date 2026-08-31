@@ -3,9 +3,14 @@ import ApiError from '../utils/ApiError.js';
 import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-// Un itinerario de 2 dias tarda ~20 s; uno de dos semanas se acerca al minuto.
-// 90 s da margen sin dejar la peticion colgada para siempre.
-const TIMEOUT_MS = 90000;
+// Un itinerario de 2 dias tarda ~20 s; uno de dos semanas de un solo destino
+// se acerca al minuto. Uno de varias ciudades le pide al modelo mas trabajo
+// por dia (ubicar cada actividad en la ciudad correcta segun el rango de
+// dias, no solo generar texto suelto), asi que puede tardar mas todavia.
+// 150 s da margen para el caso mas pesado (21 dias, varias ciudades) sin
+// dejar la peticion colgada para siempre; el timeout del cliente para
+// generaciones (TIMEOUT_IA_MS en client.js) es 180 s, siempre mayor a este.
+const TIMEOUT_MS = 150000;
 
 /**
  * Esquema que se le impone a Gemini via responseSchema. Con esto la respuesta
