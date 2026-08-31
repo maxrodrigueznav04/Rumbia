@@ -557,8 +557,8 @@ a:hover { text-decoration: underline; }
   line-height: 1.6;
 }
 .insignia.marca { background: var(--verde); color: #fff; }
-.insignia.verde { background: var(--verde-100); color: var(--verde-800); }
-.insignia.cielo, .insignia.marca-suave { background: var(--verde-100); color: var(--verde-800); }
+.insignia.verde { background: var(--verde-100); color: var(--exito); }
+.insignia.cielo, .insignia.marca-suave { background: var(--verde-100); color: var(--exito); }
 .insignia.ambar { background: var(--alerta-bg); color: var(--alerta); }
 .insignia.exito { background: var(--exito-bg); color: var(--exito); }
 .insignia.error { background: var(--error-bg); color: var(--error); }
@@ -889,15 +889,15 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   line-height: 1.55;
 }
 .aviso.error { background: var(--error-bg); color: #8f2b20; border-color: #f4d0cb; }
-.aviso.exito { background: var(--exito-bg); color: var(--verde-800); border-color: var(--verde-100); }
+.aviso.exito { background: var(--exito-bg); color: var(--exito); border-color: var(--verde-100); }
 .aviso.alerta { background: var(--alerta-bg); color: var(--alerta); border-color: var(--arena-600); }
-.aviso.info { background: var(--verde-50); color: var(--verde-800); border-color: var(--verde-100); }
+.aviso.info { background: var(--verde-50); color: var(--exito); border-color: var(--verde-100); }
 .aviso strong { display: block; margin-bottom: 2px; }
 
 /* ---------------------- Revisión del itinerario ---------------------- */
 
 .revision-itinerario.ok { background: var(--verde-50); border-color: var(--verde-100); }
-.revision-itinerario.ok p { color: var(--verde-800); }
+.revision-itinerario.ok p { color: var(--exito); }
 .revision-lista { margin: 0; padding: 0; list-style: none; }
 .revision-item {
   display: flex;
