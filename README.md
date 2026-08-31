@@ -519,14 +519,45 @@ Todas las respuestas siguen la misma forma:
 ## Seguridad
 
 - Contraseñas con bcrypt (12 rondas) y `select: false` en el esquema.
-- JWT firmado con secreto de entorno; el middleware `protect` verifica que el usuario siga
-  existiendo en cada petición.
+- JWT firmado con secreto de entorno (HS256 explícito) y con un piso de 32 caracteres: el servidor
+  no arranca con uno corto ni con el valor de ejemplo de `.env.example`. El middleware `protect`
+  verifica que el usuario siga existiendo en cada petición y que el token no sea anterior al último
+  cambio de contraseña.
 - Cada handler comprueba la propiedad del recurso: pedir el viaje de otra persona da 403, no 404
   con datos.
-- Helmet, CORS restringido al origen del front en producción y límite de 1 MB en el body.
-- Rate limiting en tres niveles: general, login (contra fuerza bruta) y generación con IA.
+- Helmet, CORS restringido al origen del front en producción y límite de 1 MB en el body, del lado
+  de la API. El front (Cloudflare Pages) trae su propio juego de cabeceras en
+  `client/public/_headers` — CSP, `X-Frame-Options`, `Referrer-Policy`, HSTS — porque Pages sirve
+  esos archivos directo, sin pasar por Express ni por Helmet.
+- Rate limiting en varios niveles: general, login (contra fuerza bruta, además del bloqueo por
+  cuenta tras 6 intentos), pedir/gastar el enlace de recuperación y generación con IA.
 - Ninguna API key llega al navegador: el front habla solo con la API propia, que es quien llama a
-  Gemini y a OpenWeatherMap.
+  Gemini, OpenWeatherMap y Cloudinary.
+
+### Rotar un secreto filtrado
+
+Si `JWT_SECRET`, `MONGO_URI`, o alguna API key (Gemini, OpenWeatherMap, Resend, Cloudinary, Stripe,
+Turnstile) se filtra o se sospecha comprometida:
+
+1. **Genera el reemplazo primero**, sin tocar producción todavía:
+   - `JWT_SECRET`: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
+   - El resto: desde el panel del proveedor (revocar la vieja, crear una nueva). Mongo Atlas es el
+     único caso con dos partes — cambiar la contraseña del usuario de base de datos actualiza
+     también la cadena de `MONGO_URI`.
+2. **Súbelo a las variables de entorno de Render** y redepliega. Hasta aquí no hay corte de
+   servicio: el redeploy tarda lo que tarda siempre.
+3. **Efecto sobre sesiones activas**, según qué rotaste:
+   - `JWT_SECRET`: todo JWT emitido con el secreto anterior deja de verificar de inmediato. Es el
+     efecto buscado si el secreto se filtró — expulsa a todo el mundo, sesión robada incluida — pero
+     avisa antes: cierra la sesión de cada persona conectada, no solo la de quien la robó.
+   - Las demás claves no tocan sesiones: son credenciales servidor-a-servicio, invisibles para quien
+     ya tiene un JWT válido.
+4. **Revoca la clave vieja en el panel del proveedor** una vez confirmado que el redeploy tomó la
+   nueva (que no queden ambas activas más tiempo del necesario).
+5. Para `STRIPE_WEBHOOK_SECRET` específicamente: se regenera creando un endpoint nuevo en
+   Developers → Webhooks (no hay botón de "rotar" sobre el mismo), apuntando a la misma URL, y
+   borrando el viejo después de confirmar que el nuevo firma bien (`stripe listen` o esperar el
+   primer evento real).
 
 ---
 
@@ -540,3 +571,20 @@ Todas las respuestas siguen la misma forma:
 - El cobro a agencias con Stripe ya se probó de punta a punta en modo prueba (Checkout, webhook,
   activación del plan). Falta el paso a llaves live cuando se vaya a cobrar de verdad: cuenta en
   modo live, `npm run stripe:setup` contra esas llaves, webhook nuevo en Render.
+- Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
+  tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
+  - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
+    billing; hoy depende solo de la contraseña.
+  - **Registro de acciones sensibles del admin/dueño de agencia** (eliminar miembro, regenerar
+    código, borrar agencia): no hay auditoría de quién hizo qué, más allá de lo que ya guarda Mongo
+    en `updatedAt`.
+  - **Dependabot o Renovate** en el repo: el `npm audit` de hoy da 0 vulnerabilidades, pero es una
+    foto fija — sin un bot que abra PRs solo, la próxima CVE no avisa.
+  - **JWT en cookie `httpOnly` en vez de `localStorage`**: hoy no hay ningún XSS conocido (sin
+    `dangerouslySetInnerHTML` ni `eval` en el front), pero una cookie es defensa en profundidad si
+    alguna vez se cuela uno. Cambiarlo implica sumar protección CSRF y tocar la config de CORS, así
+    que no es un cambio de una tarde.
+  - **Config del lado de los proveedores, no del código**: IP allowlist en MongoDB Atlas (nada de
+    `0.0.0.0/0`), llaves restringidas (no la secret key completa) donde Stripe y Cloudinary lo
+    permitan, y confirmar que el plan de Atlas tiene backups o point-in-time recovery — es la única
+    red real contra un `deleteMany` mal apuntado.

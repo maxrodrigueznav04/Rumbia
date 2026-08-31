@@ -16,6 +16,7 @@ import {
   Modal,
   ModalConfirmar,
 } from '../components/ui.jsx';
+import { nombreDestino } from '../utils/format.js';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
@@ -74,7 +75,7 @@ export default function Plantillas() {
           {plantillas.map((p) => (
             <Tarjeta key={p._id} titulo={p.name}>
               <p className="suave" style={{ marginTop: 0 }}>
-                <Icono nombre="pin" tamano={14} /> {p.destination?.name || 'Sin destino'}
+                <Icono nombre="pin" tamano={14} /> {nombreDestino(p) || 'Sin destino'}
                 <br />
                 {p.dayCount} {p.dayCount === 1 ? 'día' : 'días'}
                 {user?.agency && p.creadaPor && (
@@ -170,7 +171,7 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
     <Modal abierto onCerrar={onCerrar} titulo={`Usar "${plantilla.name}"`} ancho={480}>
       <form onSubmit={enviar} className="pila" noValidate>
         <p className="suave" style={{ marginTop: 0 }}>
-          Se crea un viaje nuevo a {plantilla.destination?.name} con el mismo itinerario de la
+          Se crea un viaje nuevo a {nombreDestino(plantilla)} con el mismo itinerario de la
           plantilla. Podrás editarlo después como cualquier otro viaje.
         </p>
 

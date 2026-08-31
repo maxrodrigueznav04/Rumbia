@@ -217,4 +217,33 @@ export async function getWeatherForRange({ lat, lng, startDate, endDate }) {
   };
 }
 
-export default { geocode, geocodeSugerencias, getWeatherForRange };
+/**
+ * Clima de cada parada adicional de un viaje multi-destino. Cada parada se
+ * resuelve por separado y NUNCA lanza: si una no se puede geocodificar o
+ * falla, esa parada vuelve con `error` en vez de tumbar las demas (a
+ * diferencia del destino principal en weather.controller.js, que si es
+ * estricto). `paradas` trae [{ place: {name,country,lat,lng}, startDate,
+ * endDate }], la forma de Trip.additionalDestinations.
+ */
+export async function getWeatherForStops(paradas) {
+  return Promise.all(
+    (paradas || []).map(async (parada) => {
+      const nombreParada = { name: parada.place?.name };
+      try {
+        let { lat, lng } = parada.place || {};
+        if (typeof lat !== 'number' || typeof lng !== 'number') {
+          const hit = await geocode([parada.place?.name, parada.place?.country].filter(Boolean).join(', '));
+          if (!hit) return { place: nombreParada, error: 'No se pudieron obtener las coordenadas de esta parada.' };
+          lat = hit.lat;
+          lng = hit.lng;
+        }
+        const clima = await getWeatherForRange({ lat, lng, startDate: parada.startDate, endDate: parada.endDate });
+        return { place: nombreParada, ...clima };
+      } catch {
+        return { place: nombreParada, error: 'No se pudo consultar el clima de esta parada.' };
+      }
+    })
+  );
+}
+
+export default { geocode, geocodeSugerencias, getWeatherForRange, getWeatherForStops };

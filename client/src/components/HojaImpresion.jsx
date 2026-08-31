@@ -1,4 +1,4 @@
-import { rangoFechas } from '../utils/format.js';
+import { rangoFechas, nombreDestino } from '../utils/format.js';
 
 /**
  * Membrete y pie que solo existen en la hoja impresa.
@@ -35,7 +35,7 @@ export function EncabezadoImpresion({ marca, viaje }) {
       <div className="hoja-viaje">
         <strong>{viaje.title}</strong>
         <span>
-          {viaje.destination?.name} · {rangoFechas(viaje.startDate, viaje.endDate)} ·{' '}
+          {nombreDestino(viaje)} · {rangoFechas(viaje.startDate, viaje.endDate)} ·{' '}
           {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
         </span>
       </div>

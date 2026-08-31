@@ -108,7 +108,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen user'
+      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen user'
     )
     .populate({
       path: 'user',
@@ -220,6 +220,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       viaje: {
         title: trip.title,
         destination: trip.destination,
+        additionalDestinations: trip.additionalDestinations,
         startDate: trip.startDate,
         endDate: trip.endDate,
         travelers: trip.travelers,

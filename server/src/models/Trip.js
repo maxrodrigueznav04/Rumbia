@@ -22,6 +22,21 @@ export const placeSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/**
+ * Una parada adicional del viaje, mas alla del destino principal. Cada
+ * parada trae su propio rango de fechas (subconjunto de las del viaje) para
+ * poder pedir clima e itinerario por tramo sin adivinar cuando empieza y
+ * termina cada ciudad.
+ */
+const destinationStopSchema = new mongoose.Schema(
+  {
+    place: { type: placeSchema, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 /** Un tramo del viaje: ida o vuelta. La app NO reserva: guarda datos + link externo. */
 const legSchema = new mongoose.Schema(
   {
@@ -95,6 +110,10 @@ const tripSchema = new mongoose.Schema(
       },
     },
     origin: { type: placeSchema, default: () => ({}) },
+    // Paradas mas alla del destino principal, para viajes de mas de una
+    // ciudad. Vacio por defecto: no cambia nada del comportamiento de un
+    // viaje de un solo destino. Ver destinationStopSchema arriba.
+    additionalDestinations: { type: [destinationStopSchema], default: [] },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     travelers: { type: Number, min: 1, max: 30, default: 1 },
@@ -209,6 +228,27 @@ tripSchema.pre('validate', function validateDates(next) {
   if (this.startDate && this.endDate && this.endDate < this.startDate) {
     this.invalidate('endDate', 'La fecha de regreso no puede ser anterior a la de salida.');
   }
+
+  // Cada parada tiene que caer dentro del rango del viaje completo: sin
+  // esto una parada podria quedar fuera de las fechas que el viaje dice
+  // cubrir, y el clima/prompt de esa parada pedirian un rango sin sentido.
+  if (this.startDate && this.endDate) {
+    (this.additionalDestinations || []).forEach((parada, i) => {
+      if (parada.endDate < parada.startDate) {
+        this.invalidate(
+          `additionalDestinations.${i}.endDate`,
+          'La fecha de salida de la parada no puede ser anterior a la de llegada.'
+        );
+      }
+      if (parada.startDate < this.startDate || parada.endDate > this.endDate) {
+        this.invalidate(
+          `additionalDestinations.${i}`,
+          'Las fechas de la parada deben caer dentro de las fechas del viaje.'
+        );
+      }
+    });
+  }
+
   return next();
 });
 

@@ -6,7 +6,8 @@ process.env.ADMIN_EMAIL ||= 'admin@rumbo.app';
 const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
-const { getWeatherForRange } = await import('../src/services/weather.service.js');
+const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
+const { buildRouteLines } = await import('../src/services/gemini.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
 const mongoose = (await import('mongoose')).default;
 
@@ -53,6 +54,46 @@ await check('Trip rechaza destino sin nombre', async () => {
   const err = t.validateSync();
   assert(err?.errors?.destination, 'deberia invalidar destination');
   return 'destino obligatorio';
+});
+
+await check('Trip valido con paradas adicionales pasa validacion', async () => {
+  const t = new Trip({
+    user: uid, title: 'Ruta europea',
+    destination: { name: 'Paris', country: 'FR' },
+    additionalDestinations: [
+      { place: { name: 'Roma', country: 'IT' }, startDate: new Date('2026-09-14'), endDate: new Date('2026-09-18') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(!err, err?.message);
+  return '1 parada dentro del rango del viaje, sin errores';
+});
+
+await check('Trip rechaza una parada con endDate < startDate propia', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: new Date('2026-09-16'), endDate: new Date('2026-09-14') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(err?.errors?.['additionalDestinations.0.endDate'], 'deberia invalidar la parada');
+  return err.errors['additionalDestinations.0.endDate'].message;
+});
+
+await check('Trip rechaza una parada fuera del rango del viaje', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: new Date('2026-09-05'), endDate: new Date('2026-09-08') },
+    ],
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-18'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(err?.errors?.['additionalDestinations.0'], 'deberia invalidar la parada por caer fuera del rango');
+  return 'parada anterior al inicio del viaje rechazada';
 });
 
 await check('Trip acepta el estado "aprobado" y rechaza uno inventado', async () => {
@@ -333,6 +374,38 @@ await check('updateTripSchema rechaza body vacio', async () => {
   return 'body vacio rechazado';
 });
 
+await check('createTripSchema conserva additionalDestinations (no lo descarta)', async () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'Ruta europea', destination: { name: 'Paris' },
+    additionalDestinations: [
+      { place: { name: 'Roma' }, startDate: '2026-09-14', endDate: '2026-09-18' },
+    ],
+    startDate: '2026-09-10', endDate: '2026-09-18',
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.additionalDestinations?.length === 1, 'additionalDestinations no deberia perderse');
+  assert(r.data.additionalDestinations[0].place.name === 'Roma', 'el lugar de la parada deberia conservarse');
+  return 'parada conservada tal cual se mando';
+});
+
+await check('createTripSchema rechaza una parada fuera de las fechas del viaje', async () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'X', destination: { name: 'Y' },
+    additionalDestinations: [
+      { place: { name: 'Z' }, startDate: '2026-09-05', endDate: '2026-09-08' },
+    ],
+    startDate: '2026-09-10', endDate: '2026-09-18',
+  });
+  assert(!r.success, 'deberia fallar');
+  return r.error.issues[0].message;
+});
+
+await check('updateTripSchema con solo additionalDestinations no dispara "body vacio"', async () => {
+  const r = schemas.updateTripSchema.safeParse({ additionalDestinations: [] });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  return 'additionalDestinations vacio es un campo valido a actualizar';
+});
+
 await check('createExpenseSchema no fuerza moneda: el controller hereda la del viaje', async () => {
   const r = schemas.createExpenseSchema.safeParse({
     trip: '507f1f77bcf86cd799439011', description: 'Cena', amount: 250,
@@ -420,6 +493,36 @@ await check('buildLinksForTrip cambia con el modo de transporte', async () => {
   return links.transporte.map((l) => l.provider).join(', ');
 });
 
+await check('buildRouteLines: un solo destino devuelve un tramo que cubre todo el viaje', async () => {
+  const ruta = buildRouteLines('Paris', 5, []);
+  assert(ruta.length === 1, 'un solo tramo');
+  assert(ruta[0].startDay === 1 && ruta[0].endDay === 5 && ruta[0].destinationIndex === 0, JSON.stringify(ruta));
+  return `1 tramo: Paris, dias 1-5, indice 0`;
+});
+
+await check('buildRouteLines: rellena el destino principal antes/despues/entre paradas', async () => {
+  const ruta = buildRouteLines('Paris', 10, [
+    { nombre: 'Roma', startDay: 4, endDay: 6 },
+    { nombre: 'Berlin', startDay: 8, endDay: 9 },
+  ]);
+  assert(ruta.length === 5, `5 tramos esperados, vinieron ${ruta.length}`);
+  const [t1, t2, t3, t4, t5] = ruta;
+  assert(t1.nombre === 'Paris' && t1.startDay === 1 && t1.endDay === 3 && t1.destinationIndex === 0, JSON.stringify(t1));
+  assert(t2.nombre === 'Roma' && t2.startDay === 4 && t2.endDay === 6 && t2.destinationIndex === 1, JSON.stringify(t2));
+  assert(t3.nombre === 'Paris' && t3.startDay === 7 && t3.endDay === 7 && t3.destinationIndex === 0, JSON.stringify(t3));
+  assert(t4.nombre === 'Berlin' && t4.startDay === 8 && t4.endDay === 9 && t4.destinationIndex === 2, JSON.stringify(t4));
+  assert(t5.nombre === 'Paris' && t5.startDay === 10 && t5.endDay === 10 && t5.destinationIndex === 0, JSON.stringify(t5));
+  return 'Paris(1-3) -> Roma(4-6, idx1) -> Paris(7) -> Berlin(8-9, idx2) -> Paris(10)';
+});
+
+await check('buildRouteLines: parada pegada al inicio no deja un tramo vacio de Paris', async () => {
+  const ruta = buildRouteLines('Paris', 6, [{ nombre: 'Roma', startDay: 1, endDay: 3 }]);
+  assert(ruta.length === 2, `2 tramos esperados, vinieron ${ruta.length}`);
+  assert(ruta[0].nombre === 'Roma' && ruta[0].startDay === 1, 'la parada empieza el dia 1, sin hueco antes');
+  assert(ruta[1].nombre === 'Paris' && ruta[1].startDay === 4 && ruta[1].endDay === 6, JSON.stringify(ruta[1]));
+  return 'sin tramo vacio cuando la parada arranca el dia 1';
+});
+
 console.log('\n== Clima (sin API key: solo estimacion) ==');
 
 const weather = await getWeatherForRange({
@@ -436,6 +539,26 @@ await check('estacionalidad invertida en el hemisferio sur', async () => {
   const sur = await getWeatherForRange({ lat: -45, lng: 0, startDate: new Date('2027-07-10'), endDate: new Date('2027-07-11') });
   assert(norte.days[0].tempAvg > sur.days[0].tempAvg, 'julio: norte mas calido que sur');
   return `julio -> lat45N ${norte.days[0].tempAvg}C vs lat45S ${sur.days[0].tempAvg}C`;
+});
+
+await check('getWeatherForStops resuelve clima por parada, con coordenadas', async () => {
+  const paradas = await getWeatherForStops([
+    { place: { name: 'Roma', lat: 41.9, lng: 12.5 }, startDate: new Date('2027-01-14'), endDate: new Date('2027-01-16') },
+  ]);
+  assert(paradas.length === 1 && !paradas[0].error, JSON.stringify(paradas));
+  assert(paradas[0].days.length === 3, `dias de la parada=${paradas[0].days.length}`);
+  return `1 parada, ${paradas[0].days.length} dias, sin error`;
+});
+
+await check('getWeatherForStops no tumba las demas si una parada no se puede geocodificar', async () => {
+  const paradas = await getWeatherForStops([
+    { place: { name: 'Ciudad Inventada Xyz123' }, startDate: new Date('2027-01-14'), endDate: new Date('2027-01-16') },
+    { place: { name: 'Roma', lat: 41.9, lng: 12.5 }, startDate: new Date('2027-01-17'), endDate: new Date('2027-01-18') },
+  ]);
+  assert(paradas.length === 2, 'deberian venir las 2 paradas');
+  assert(paradas[0].error, 'la primera deberia fallar (sin API key de geocodificacion no hay red)');
+  assert(!paradas[1].error && paradas[1].days, 'la segunda si trae coordenadas y no deberia fallar');
+  return 'la parada sin geocodificar trae error, la otra sigue funcionando';
 });
 
 /* ---------------------- Tipos de cambio ---------------------- */

@@ -206,6 +206,11 @@ export const duplicarViaje = asyncHandler(async (req, res) => {
           lng: original.origin.lng,
         }
       : undefined,
+    additionalDestinations: (original.additionalDestinations || []).map((p) => ({
+      place: { name: p.place?.name, address: p.place?.address, country: p.place?.country, lat: p.place?.lat, lng: p.place?.lng },
+      startDate: p.startDate,
+      endDate: p.endDate,
+    })),
     startDate: original.startDate,
     endDate: original.endDate,
     travelers: original.travelers,

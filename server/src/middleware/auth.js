@@ -4,8 +4,17 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import User from '../models/User.js';
 
+// Explicito a proposito: sin esto, jwt.verify acepta cualquier algoritmo que
+// declare el propio token (jsonwebtoken elige como verificar segun el "alg"
+// del header). Fijarlo a HS256 cierra la puerta a un cambio futuro que meta
+// una key asimetrica sin tocar aqui, que abriria confusion de algoritmos.
+const JWT_ALGORITHM = 'HS256';
+
 export function signToken(userId) {
-  return jwt.sign({ sub: String(userId) }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
+  return jwt.sign({ sub: String(userId) }, env.jwtSecret, {
+    expiresIn: env.jwtExpiresIn,
+    algorithm: JWT_ALGORITHM,
+  });
 }
 
 /** Exige un Bearer token valido y cuelga req.user. */
@@ -17,7 +26,7 @@ export const protect = asyncHandler(async (req, _res, next) => {
 
   let payload;
   try {
-    payload = jwt.verify(token, env.jwtSecret);
+    payload = jwt.verify(token, env.jwtSecret, { algorithms: [JWT_ALGORITHM] });
   } catch (err) {
     const msg = err.name === 'TokenExpiredError' ? 'Tu sesión expiró, inicia sesión de nuevo.' : 'Token inválido.';
     throw ApiError.unauthorized(msg);

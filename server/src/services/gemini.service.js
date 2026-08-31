@@ -21,6 +21,9 @@ const ITINERARY_SCHEMA = {
         type: 'OBJECT',
         properties: {
           dayNumber: { type: 'INTEGER' },
+          // Solo se pide cuando el viaje tiene mas de una ciudad (ver
+          // buildPrompt). 0 = destino principal, 1..N = parada N de la ruta.
+          destinationIndex: { type: 'INTEGER', description: '0 = destino principal; 1..N = la N-esima parada de la ruta, en el orden dado.' },
           title: { type: 'STRING', description: 'Titulo corto del dia, ej. "Centro historico y mercados".' },
           summary: { type: 'STRING' },
           activities: {
@@ -49,16 +52,53 @@ const ITINERARY_SCHEMA = {
   required: ['days'],
 };
 
+/**
+ * Arma la ruta completa dia por dia: destino principal + paradas, en orden
+ * cronologico, rellenando los huecos entre paradas (y antes/despues de
+ * todas) con el destino principal. Pura y testeable sin llamar a Gemini.
+ *
+ * `paradas` ya viene ordenada por startDay (itinerary.controller.js arma
+ * ese orden a partir de additionalDestinations). Devuelve un tramo por
+ * grupo de dias consecutivos de la misma ciudad, cada uno con
+ * `destinationIndex` (0 = principal, 1..N = la N-esima parada de la ruta).
+ */
+export function buildRouteLines(destination, totalDays, paradas) {
+  if (!paradas?.length) return [{ nombre: destination, startDay: 1, endDay: totalDays, destinationIndex: 0 }];
+
+  const tramos = [];
+  let cursor = 1;
+  paradas.forEach((p, i) => {
+    if (p.startDay > cursor) {
+      tramos.push({ nombre: destination, startDay: cursor, endDay: p.startDay - 1, destinationIndex: 0 });
+    }
+    tramos.push({ nombre: p.nombre, startDay: p.startDay, endDay: p.endDay, destinationIndex: i + 1 });
+    cursor = p.endDay + 1;
+  });
+  if (cursor <= totalDays) {
+    tramos.push({ nombre: destination, startDay: cursor, endDay: totalDays, destinationIndex: 0 });
+  }
+  return tramos;
+}
+
 function buildPrompt(ctx) {
   const interests = ctx.interests?.length ? ctx.interests.join(', ') : 'sin preferencia declarada';
   const budgetLine = ctx.budgetAmount
     ? `Presupuesto total aproximado del viaje: ${ctx.budgetAmount} ${ctx.currency} para ${ctx.travelers} viajero(s). Ajusta las sugerencias a ese rango.`
     : `Nivel de gasto preferido: ${ctx.budgetHint || 'medio'}.`;
 
-  return `Eres un planificador de viajes experto en ${ctx.destination}. Disena un itinerario dia por dia.
+  // Viaje multi-ciudad: ctx.paradas trae [{ nombre, startDay, endDay }], ya
+  // ordenadas por dia de inicio (itinerary.controller.js las arma asi desde
+  // trip.additionalDestinations).
+  const esMultiCiudad = Boolean(ctx.paradas?.length);
+  const ruta = buildRouteLines(ctx.destination, ctx.days, ctx.paradas);
+  const destinoLinea = esMultiCiudad
+    ? `Este es un viaje de varias ciudades. Ruta, en orden:\n${ruta.map((t) => `- Dias ${t.startDay}-${t.endDay}: ${t.nombre}`).join('\n')}`
+    : `Destino: ${ctx.destination}`;
+
+  return `Eres un planificador de viajes experto${esMultiCiudad ? '' : ` en ${ctx.destination}`}. Disena un itinerario dia por dia.
 
 DATOS DEL VIAJE
-- Destino: ${ctx.destination}
+- ${destinoLinea}
 - Fechas: del ${ctx.startDate} al ${ctx.endDate} (${ctx.days} dias)
 - Viajeros: ${ctx.travelers}
 - Intereses: ${interests}
@@ -72,11 +112,15 @@ REGLAS
 3. Un dia con ritmo "relajado" lleva 3 actividades; "intenso" lleva 5.
 4. Agrupa geograficamente: las actividades de un mismo dia deben quedar cerca entre si para no perder tiempo en traslados.
 5. Incluye al menos una comida local recomendada por dia (categoria "comida") con un lugar concreto, no generico.
-6. Usa lugares reales y existentes de ${ctx.destination}. Incluye lat/lng aproximados de cada lugar.
+6. Usa lugares reales y existentes de ${esMultiCiudad ? 'la ciudad que le toca a cada dia segun la ruta de arriba' : ctx.destination}. Incluye lat/lng aproximados de cada lugar.
 7. estimatedCost es el costo POR PERSONA en ${ctx.currency}. Usa 0 si la actividad es gratuita.
 8. El dia 1 debe considerar que el viajero llega ese dia (no lo satures por la manana).
 9. El ultimo dia debe ser ligero, considerando la salida.
-10. Escribe todo en espanol, en tono cercano y practico. Evita relleno generico tipo "explora la ciudad".`;
+10. Escribe todo en espanol, en tono cercano y practico. Evita relleno generico tipo "explora la ciudad".${
+    esMultiCiudad
+      ? `\n11. Respeta estrictamente la ruta: cada dia usa SOLO lugares de la ciudad que le corresponde segun el rango de dias de arriba, nunca lugares de otra ciudad de la ruta.\n12. En cada dia, incluye destinationIndex con el valor de la ruta de arriba: 0 para los dias de "${ctx.destination}", o el numero de la parada (1 para la primera, 2 para la segunda, etc.) para los dias de esa parada.`
+      : ''
+  }`;
 }
 
 /**
@@ -106,11 +150,14 @@ function normalizeTime(valor) {
 }
 
 /** Normaliza la respuesta cruda de Gemini al shape del modelo Itinerary. */
-function normalizeDays(raw, expectedDays) {
+function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
   const days = Array.isArray(raw?.days) ? raw.days : [];
 
   return days.slice(0, expectedDays).map((day, dayIdx) => ({
     dayNumber: Number(day.dayNumber) || dayIdx + 1,
+    // Salvaguarda ante alucinaciones del modelo: nunca un indice fuera del
+    // rango de paradas reales del viaje.
+    destinationIndex: Math.min(Math.max(0, Number(day.destinationIndex) || 0), maxDestinationIndex),
     title: String(day.title || `Día ${dayIdx + 1}`).slice(0, 160),
     summary: String(day.summary || '').slice(0, 600),
     activities: (Array.isArray(day.activities) ? day.activities : []).map((act, actIdx) => {
@@ -243,7 +290,7 @@ export async function generateItinerary(ctx) {
       throw ApiError.serviceUnavailable('Gemini devolvió un JSON malformado.');
     }
 
-    const normalized = normalizeDays(parsed, ctx.days);
+    const normalized = normalizeDays(parsed, ctx.days, ctx.paradas?.length || 0);
     if (!normalized.length) {
       throw ApiError.serviceUnavailable('Gemini no generó ningún día de itinerario.');
     }

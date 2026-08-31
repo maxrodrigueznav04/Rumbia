@@ -101,13 +101,16 @@ function ControlArrastre({ activo, esTactil }) {
 const ES_TACTIL =
   typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
-export default function MapaDestino({ destino, pines = [], alto }) {
+export default function MapaDestino({ destino, destinosExtra = [], pines = [], alto }) {
   const [interactivo, setInteractivo] = useState(!ES_TACTIL);
 
   const tieneDestino = Number.isFinite(destino?.lat) && Number.isFinite(destino?.lng);
+  // Paradas de un viaje multi-destino: se marcan igual que el destino
+  // principal (mismo icono oscuro), no como actividades del itinerario.
+  const paradasValidas = destinosExtra.filter((p) => Number.isFinite(p?.lat) && Number.isFinite(p?.lng));
   const validos = pines.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
 
-  if (!tieneDestino && !validos.length) {
+  if (!tieneDestino && !paradasValidas.length && !validos.length) {
     return (
       <div className="mapa" style={{ display: 'grid', placeItems: 'center', ...(alto && { height: alto }) }}>
         <div className="centrado" style={{ padding: 20 }}>
@@ -122,8 +125,13 @@ export default function MapaDestino({ destino, pines = [], alto }) {
     );
   }
 
-  const centro = tieneDestino ? [destino.lat, destino.lng] : [validos[0].lat, validos[0].lng];
-  const todos = tieneDestino ? [{ ...destino, esDestino: true }, ...validos] : validos;
+  const primerPunto = tieneDestino ? destino : paradasValidas[0] || validos[0];
+  const centro = [primerPunto.lat, primerPunto.lng];
+  const todos = [
+    ...(tieneDestino ? [{ ...destino, esDestino: true }] : []),
+    ...paradasValidas.map((p) => ({ ...p, esDestino: true })),
+    ...validos,
+  ];
 
   return (
     <div className="mapa" style={alto ? { height: alto } : undefined}>

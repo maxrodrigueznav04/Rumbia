@@ -1,0 +1,14 @@
+# Cloudflare Pages lee este archivo solo y agrega estas cabeceras a toda
+# respuesta del sitio estatico. Helmet ya cubre la API (server/src/app.js);
+# esto es lo mismo para el front, que Pages sirve directo sin pasar por
+# Express.
+#
+# Si VITE_API_URL cambia de dominio, hay que actualizar connect-src abajo:
+# es la unica pieza de esta politica que depende de donde vive la API.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://rumbo-api.onrender.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests

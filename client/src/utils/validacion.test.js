@@ -35,6 +35,28 @@ describe('reglas.nombre', () => {
   });
 });
 
+describe('reglas.paradaEnRango', () => {
+  const viaje = ['2026-09-10', '2026-09-18'];
+
+  it('acepta una parada dentro del rango del viaje', () => {
+    expect(reglas.paradaEnRango('2026-09-12', '2026-09-14', ...viaje)).toBeNull();
+  });
+
+  it('rechaza una parada que termina antes de empezar', () => {
+    expect(reglas.paradaEnRango('2026-09-14', '2026-09-12', ...viaje)).toBeTruthy();
+  });
+
+  it('rechaza una parada que se sale del rango del viaje', () => {
+    expect(reglas.paradaEnRango('2026-09-05', '2026-09-14', ...viaje)).toBeTruthy();
+    expect(reglas.paradaEnRango('2026-09-12', '2026-09-20', ...viaje)).toBeTruthy();
+  });
+
+  it('no valida nada mientras algun dato este incompleto', () => {
+    expect(reglas.paradaEnRango('', '', ...viaje)).toBeNull();
+    expect(reglas.paradaEnRango('2026-09-12', '2026-09-14', '', '')).toBeNull();
+  });
+});
+
 describe('fuerzaPassword', () => {
   it('sube de nivel conforme la contrasena mejora', () => {
     const debil = fuerzaPassword('12345678');

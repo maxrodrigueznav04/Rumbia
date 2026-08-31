@@ -39,6 +39,12 @@ const activitySchema = new mongoose.Schema({
 const daySchema = new mongoose.Schema({
   dayNumber: { type: Number, required: true, min: 1 },
   date: { type: Date },
+  // A que parada del viaje pertenece este dia: 0 = destino principal
+  // (trip.destination), 1..N = indice en trip.additionalDestinations.
+  // Puramente informativo: no bloquea moveActivity/reorderActivities, y
+  // todo itinerario existente sin el campo se lee como 0 (destino unico),
+  // sin migracion.
+  destinationIndex: { type: Number, min: 0, default: 0 },
   title: { type: String, trim: true, maxlength: 160, default: '' },
   summary: { type: String, trim: true, maxlength: 600, default: '' },
   activities: { type: [activitySchema], default: [] },
@@ -67,6 +73,10 @@ const itinerarySchema = new mongoose.Schema(
     // Snapshot del contexto usado: sirve para depurar y para mostrar "generado con estos datos".
     promptContext: {
       destination: String,
+      // Ruta usada para pedirle a Gemini un viaje multi-ciudad (ver
+      // gemini.service.js buildRouteLines). Vacio en un viaje de un solo
+      // destino.
+      paradas: [{ _id: false, nombre: String, startDay: Number, endDay: Number }],
       days: Number,
       travelers: Number,
       interests: [String],

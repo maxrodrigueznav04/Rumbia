@@ -5,10 +5,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import TarjetaAgencia from '../components/TarjetaAgencia.jsx';
 import { Boton, Campo, Tarjeta, Aviso, Modal, CampoPassword } from '../components/ui.jsx';
 
-const ESTILOS = [
-  'aventura', 'cultura', 'relax', 'gastronomia',
-  'naturaleza', 'vida-nocturna', 'compras', 'familia',
-];
 const RITMOS = [
   { valor: 'relajado', texto: 'Relajado (3 actividades al día)' },
   { valor: 'moderado', texto: 'Moderado (4 actividades al día)' },
@@ -50,20 +46,10 @@ export default function Perfil() {
     budgetLevel: user?.preferences?.budgetLevel || 'medio',
     perfilUso: user?.preferences?.perfilUso || 'agencia',
   });
-  const [estilos, setEstilos] = useState(user?.preferences?.travelStyles || []);
   const [estado, setEstado] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
   const cambiar = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-
-  const alternar = (valor) =>
-    setEstilos((prev) =>
-      prev.includes(valor)
-        ? prev.filter((v) => v !== valor)
-        : prev.length < 5
-          ? [...prev, valor]
-          : prev
-    );
 
   const guardar = async (e) => {
     e.preventDefault();
@@ -73,7 +59,6 @@ export default function Perfil() {
       const data = await authApi.updateProfile({
         name: form.name,
         preferences: {
-          travelStyles: estilos,
           homeCity: form.homeCity,
           currency: form.currency,
           pace: form.pace,
@@ -151,27 +136,6 @@ export default function Perfil() {
                 ))}
               </select>
             </Campo>
-          </div>
-
-          <div className="campo">
-            <label>Estilos de viaje (hasta 5)</label>
-            <div className="fila" style={{ gap: 6 }}>
-              {ESTILOS.map((valor) => {
-                const activo = estilos.includes(valor);
-                return (
-                  <button
-                    key={valor}
-                    type="button"
-                    onClick={() => alternar(valor)}
-                    aria-pressed={activo}
-                    className={`insignia ${activo ? 'marca' : ''}`}
-                    style={{ cursor: 'pointer', padding: '7px 12px', fontFamily: 'inherit' }}
-                  >
-                    {valor.replace('-', ' ')}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           <Campo label="Ritmo de viaje">

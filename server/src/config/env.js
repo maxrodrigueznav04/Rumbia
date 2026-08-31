@@ -11,6 +11,20 @@ if (missing.length) {
   process.exit(1);
 }
 
+// Un JWT_SECRET corto o adivinable firma la sesion de todo el mundo. 32
+// caracteres son los 256 bits minimos razonables para HMAC-SHA256. El valor
+// de ejemplo de .env.example se rechaza aparte, por nombre: es texto publico
+// en este mismo repo, asi que su longitud no lo vuelve seguro si alguien lo
+// deja puesto sin cambiar.
+const JWT_SECRET_DE_EJEMPLO = 'cambia_esto_por_una_cadena_larga_y_aleatoria';
+if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET === JWT_SECRET_DE_EJEMPLO) {
+  console.error('\n[config] JWT_SECRET es invalido: falta, es muy corto, o es el valor de ejemplo del repo.');
+  console.error(
+    "[config] Genera uno con: node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\"\n"
+  );
+  process.exit(1);
+}
+
 export const env = {
   port: Number(process.env.PORT || 4000),
   nodeEnv: process.env.NODE_ENV || 'development',

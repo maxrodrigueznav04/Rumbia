@@ -35,11 +35,29 @@ const plantillaActivitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+/**
+ * Parada adicional de la plantilla: igual idea que Trip.additionalDestinations,
+ * pero con dias relativos (startDayNumber/endDayNumber) en vez de fechas —
+ * una plantilla no tiene calendario propio. templates.controller.js los
+ * traduce a fechas absolutas al aplicar la plantilla a un viaje.
+ */
+const plantillaDestinationStopSchema = new mongoose.Schema(
+  {
+    place: { type: placeSchema, required: true },
+    startDayNumber: { type: Number, required: true, min: 1 },
+    endDayNumber: { type: Number, required: true, min: 1 },
+  },
+  { _id: false }
+);
+
 const plantillaDaySchema = new mongoose.Schema(
   {
     // Numero de dia relativo (1, 2, 3...), no una fecha: la fecha real la
     // pone el viaje al que se aplique la plantilla.
     dayNumber: { type: Number, required: true, min: 1 },
+    // 0 = destino principal, 1..N = indice en additionalDestinations. Ver
+    // el mismo campo en Itinerary.daySchema.
+    destinationIndex: { type: Number, min: 0, default: 0 },
     title: { type: String, trim: true, maxlength: 160, default: '' },
     summary: { type: String, trim: true, maxlength: 600, default: '' },
     activities: { type: [plantillaActivitySchema], default: [] },
@@ -58,6 +76,7 @@ const itineraryTemplateSchema = new mongoose.Schema(
     agency: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', default: null, index: true },
     name: { type: String, required: true, trim: true, maxlength: 120 },
     destination: { type: placeSchema, required: true },
+    additionalDestinations: { type: [plantillaDestinationStopSchema], default: [] },
     days: { type: [plantillaDaySchema], default: [] },
   },
   { timestamps: true }

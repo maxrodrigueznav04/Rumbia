@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
 import CampoDestino from '../components/CampoDestino.jsx';
+import CampoParadas, { paradasAPayload } from '../components/CampoParadas.jsx';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
@@ -54,6 +55,7 @@ export default function NuevoViaje() {
   // Coordenadas de la sugerencia elegida, si eligió una: asi no hay que
   // volver a geocodificar al guardar, y el mapa/clima arrancan exactos.
   const [lugarElegido, setLugarElegido] = useState(null);
+  const [paradas, setParadas] = useState([]);
 
   const cambiar = (e) => {
     if (e.target.name === 'destino') setLugarElegido(null);
@@ -91,6 +93,7 @@ export default function NuevoViaje() {
       const viaje = await tripsApi.create({
         title: form.title.trim() || `Viaje a ${nombreDestino}`,
         destination: { name: nombreDestino, ...coords },
+        additionalDestinations: paradasAPayload(paradas),
         origin: form.origen.trim() ? { name: form.origen.trim() } : undefined,
         startDate: form.startDate,
         endDate: form.endDate,
@@ -166,6 +169,13 @@ export default function NuevoViaje() {
             }
             errorInicio={errorDe('startDate')}
             errorFin={errorDe('endDate')}
+          />
+
+          <CampoParadas
+            paradas={paradas}
+            onCambio={setParadas}
+            tripStart={form.startDate}
+            tripEnd={form.endDate}
           />
 
           <Campo

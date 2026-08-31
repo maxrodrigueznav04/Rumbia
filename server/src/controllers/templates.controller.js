@@ -15,7 +15,7 @@ function filtroVisible(user) {
 /** GET /api/templates — vista ligera, sin el detalle de cada actividad. */
 export const listar = asyncHandler(async (req, res) => {
   const plantillas = await ItineraryTemplate.find(filtroVisible(req.user))
-    .select('name destination days.dayNumber user createdAt')
+    .select('name destination additionalDestinations days.dayNumber user createdAt')
     .populate({ path: 'user', select: 'name' })
     .sort({ createdAt: -1 })
     .lean();
@@ -24,6 +24,7 @@ export const listar = asyncHandler(async (req, res) => {
     _id: p._id,
     name: p.name,
     destination: p.destination,
+    additionalDestinations: p.additionalDestinations || [],
     dayCount: p.days?.length || 0,
     creadaPorId: p.user?._id,
     creadaPor: p.user?.name || '',
@@ -70,6 +71,13 @@ export const aplicar = asyncHandler(async (req, res) => {
     user: req.user._id,
     title,
     destination: plantilla.destination,
+    // La plantilla guarda dias relativos (startDayNumber/endDayNumber); aqui
+    // se traducen a fechas absolutas con la fecha de salida del viaje nuevo.
+    additionalDestinations: (plantilla.additionalDestinations || []).map((p) => ({
+      place: p.place,
+      startDate: addDays(startDate, p.startDayNumber - 1),
+      endDate: addDays(startDate, p.endDayNumber - 1),
+    })),
     startDate,
     endDate,
     travelers,
@@ -82,6 +90,7 @@ export const aplicar = asyncHandler(async (req, res) => {
 
   const days = plantilla.days.map((d) => ({
     dayNumber: d.dayNumber,
+    destinationIndex: d.destinationIndex,
     date: addDays(trip.startDate, d.dayNumber - 1),
     title: d.title,
     summary: d.summary,
@@ -101,7 +110,15 @@ export const aplicar = asyncHandler(async (req, res) => {
     trip: trip._id,
     user: req.user._id,
     generatedBy: 'manual',
-    promptContext: { destination: plantilla.destination?.name, days: days.length },
+    promptContext: {
+      destination: plantilla.destination?.name,
+      paradas: (plantilla.additionalDestinations || []).map((p) => ({
+        nombre: p.place?.name,
+        startDay: p.startDayNumber,
+        endDay: p.endDayNumber,
+      })),
+      days: days.length,
+    },
     days,
   });
 
