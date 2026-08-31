@@ -13,7 +13,6 @@ import FormViaje from '../components/formularios/FormViaje.jsx';
 import FormTransporte from '../components/formularios/FormTransporte.jsx';
 import FormHospedaje from '../components/formularios/FormHospedaje.jsx';
 import FormTransporteLocal from '../components/formularios/FormTransporteLocal.jsx';
-import ChatAsistente from '../components/ChatAsistente.jsx';
 import {
   Boton,
   Tarjeta,
@@ -170,9 +169,6 @@ export default function DetalleViaje() {
 
   // Qué modal está abierto: { tipo, tramo?, indice? }
   const [modal, setModal] = useState(null);
-  // Aparte del resto de modales: el chat se puede querer dejar abierto
-  // mientras se consulta o edita otra cosa de la pantalla.
-  const [chatAbierto, setChatAbierto] = useState(false);
   const [confirmar, setConfirmar] = useState(null);
   const [duplicando, setDuplicando] = useState(false);
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
@@ -311,9 +307,6 @@ export default function DetalleViaje() {
           </Link>
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
             <Icono nombre="lapiz" tamano={15} /> Editar
-          </Boton>
-          <Boton variante="secundario" chico onClick={() => setChatAbierto(true)}>
-            <Icono nombre="chispa" tamano={15} /> Chat
           </Boton>
           {esAgencia && (
             <Boton variante="secundario" chico onClick={duplicarViaje} cargando={duplicando}>
@@ -667,8 +660,6 @@ export default function DetalleViaje() {
           onGuardado={refrescar}
         />
       )}
-
-      <ChatAsistente abierto={chatAbierto} onCerrar={() => setChatAbierto(false)} tripId={id} />
 
       <ModalConfirmar
         abierto={confirmar === 'viaje'}

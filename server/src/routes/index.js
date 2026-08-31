@@ -7,6 +7,7 @@ import expenseRoutes from './expense.routes.js';
 import weatherRoutes from './weather.routes.js';
 import agencyRoutes from './agency.routes.js';
 import templateRoutes from './templates.routes.js';
+import chatRoutes from './chat.routes.js';
 import env from '../config/env.js';
 
 const router = Router();
@@ -33,5 +34,6 @@ router.use('/expenses', expenseRoutes);
 router.use('/weather', weatherRoutes);
 router.use('/agency', agencyRoutes);
 router.use('/templates', templateRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;

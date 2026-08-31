@@ -6,7 +6,6 @@ import { protect } from '../middleware/auth.js';
 import { soloLecturaSiCongelada } from '../middleware/billing.js';
 import validate from '../middleware/validate.js';
 import itineraryRoutes from './itinerary.routes.js';
-import chatRoutes from './chat.routes.js';
 import {
   createTripSchema,
   updateTripSchema,
@@ -36,7 +35,5 @@ router.get('/:id/weather', getTripWeather);
 
 // /api/trips/:id/itinerary/...
 router.use('/:id/itinerary', itineraryRoutes);
-// /api/trips/:id/chat
-router.use('/:id/chat', chatRoutes);
 
 export default router;

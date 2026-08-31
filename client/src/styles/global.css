@@ -1464,6 +1464,45 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   box-shadow: 0 0 0 3px var(--verde-100);
 }
 
+.chat-panel select {
+  padding: 8px 10px;
+  min-width: 0;
+  max-width: 60%;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--texto);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio-sm);
+}
+
+/* Boton flotante: visible en toda la app (montado en Layout), sube por
+   encima de la tabbar movil sin taparla. */
+.chat-flotante-boton {
+  position: fixed;
+  right: var(--e5);
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: var(--z-nav);
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--verde-900);
+  color: #fff;
+  box-shadow: var(--sombra-lg);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.chat-flotante-boton:hover { transform: scale(1.06); }
+.chat-flotante-boton:active { transform: scale(0.96); }
+@media (min-width: 760px) {
+  /* Sin tabbar en desktop: puede bajar hasta la esquina. */
+  .chat-flotante-boton { bottom: var(--e5); }
+}
+
 .chat-ejemplos { display: flex; flex-wrap: wrap; gap: 8px; }
 .chat-ejemplos button {
   text-align: left;

@@ -568,17 +568,35 @@ await check('tripListQuerySchema aplica defaults', async () => {
   return 'page=1 limit=20';
 });
 
-await check('sendChatMessageSchema exige texto no vacio, tope 2000 caracteres', async () => {
+await check('sendChatMessageSchema exige texto no vacio, tope 2000 caracteres, tripId opcional', async () => {
   const vacio = schemas.sendChatMessageSchema.safeParse({ message: '  ' });
   assert(!vacio.success, 'mensaje solo con espacios se rechaza (trim + min(1))');
 
-  const valido = schemas.sendChatMessageSchema.safeParse({ message: 'hola' });
-  assert(valido.success && valido.data.message === 'hola', 'mensaje valido pasa');
+  const sinTrip = schemas.sendChatMessageSchema.safeParse({ message: 'hola' });
+  assert(sinTrip.success && sinTrip.data.tripId === undefined, 'sin tripId, modo general');
+
+  const conTrip = schemas.sendChatMessageSchema.safeParse({
+    message: 'hola', tripId: '507f1f77bcf86cd799439011',
+  });
+  assert(conTrip.success && conTrip.data.tripId === '507f1f77bcf86cd799439011', 'tripId valido se conserva');
+
+  const tripInvalido = schemas.sendChatMessageSchema.safeParse({ message: 'hola', tripId: 'no-es-un-id' });
+  assert(!tripInvalido.success, 'tripId con formato invalido se rechaza');
 
   const largo = schemas.sendChatMessageSchema.safeParse({ message: 'a'.repeat(2001) });
   assert(!largo.success, 'mas de 2000 caracteres se rechaza');
 
-  return 'vacio rechazado, valido conservado, tope de 2000 respetado';
+  return 'vacio rechazado, valido conservado, tope de 2000 respetado, tripId opcional y validado';
+});
+
+await check('chatQuerySchema: tripId opcional para modo general', async () => {
+  const sinTrip = schemas.chatQuerySchema.safeParse({});
+  assert(sinTrip.success && sinTrip.data.tripId === undefined, 'sin tripId es valido (chat general)');
+
+  const conTrip = schemas.chatQuerySchema.safeParse({ tripId: '507f1f77bcf86cd799439011' });
+  assert(conTrip.success && conTrip.data.tripId === '507f1f77bcf86cd799439011', 'tripId valido se conserva');
+
+  return 'chat general (sin tripId) y chat de un viaje (con tripId) ambos validos';
 });
 
 await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => {
@@ -717,6 +735,12 @@ await check('buildTripContext incluye destino, presupuesto y la ciudad real de c
   assert(contexto.includes('Hotel Centro en Madrid'), 'primer hospedaje con su ciudad real');
   assert(contexto.includes('Depa Born en Barcelona'), 'segundo hospedaje con su ciudad real, no la principal');
   return contexto.split('\n').length + ' lineas de contexto';
+});
+
+await check('buildTripContext sin viaje (modo general) no truena', async () => {
+  const contexto = buildTripContext(null, null);
+  assert(typeof contexto === 'string' && contexto.length > 0, 'devuelve texto, no lanza');
+  return contexto;
 });
 
 await check('buildTripContext no truena sin hospedaje, sin paradas ni sin itinerario', async () => {

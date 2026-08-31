@@ -132,11 +132,13 @@ export const itineraryApi = {
   guardarComoPlantilla: (tripId, payload) => api.post(`/trips/${tripId}/itinerary/plantilla`, payload),
 };
 
+// Chat global (/api/chat, no anidado bajo un viaje): tripId es opcional. Sin
+// el, es una conversacion general; con el, el asistente conoce ese viaje.
 export const chatApi = {
-  get: (tripId, opts) => api.get(`/trips/${tripId}/chat`, opts),
+  get: (tripId, opts) => api.get(`/chat${qs({ tripId })}`, opts),
   // Timeout propio: llama a Gemini igual que generar itinerario.
-  send: (tripId, payload) => api.post(`/trips/${tripId}/chat`, payload, { timeout: TIMEOUT_IA_MS }),
-  clear: (tripId) => api.delete(`/trips/${tripId}/chat`),
+  send: (payload) => api.post('/chat', payload, { timeout: TIMEOUT_IA_MS }),
+  clear: (tripId) => api.delete(`/chat${qs({ tripId })}`),
 };
 
 export const templatesApi = {
