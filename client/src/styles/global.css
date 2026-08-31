@@ -60,6 +60,10 @@
   --bg: var(--arena-100);
   --surface: var(--arena-0);
   --surface-alt: var(--arena-300);
+  /* El header flota semitransparente con blur sobre el contenido: no puede
+     ser --surface a secas (opaco), asi que lleva su propia variable en vez
+     de un blanco fijo -- ese fijo se quedaba blanco en modo oscuro. */
+  --nav-bg: rgba(255, 255, 255, 0.92);
   --border: var(--arena-500);
   --border-fuerte: var(--arena-600);
   --linea: var(--arena-500);
@@ -176,6 +180,8 @@
     --error: #F2A08F;
     --error-bg: #3A241F;
 
+    --nav-bg: rgba(30, 39, 35, 0.92);
+
     --sombra-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
     --sombra: 0 4px 14px rgba(0, 0, 0, 0.28);
     --sombra-lg: 0 8px 24px rgba(0, 0, 0, 0.36);
@@ -216,6 +222,8 @@
   --alerta-bg: #362B14;
   --error: #F2A08F;
   --error-bg: #3A241F;
+
+  --nav-bg: rgba(30, 39, 35, 0.92);
 
   --sombra-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
   --sombra: 0 4px 14px rgba(0, 0, 0, 0.28);
@@ -359,7 +367,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: var(--z-nav);
   height: var(--nav-alto);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--linea-suave);
 }
@@ -1490,7 +1498,10 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: var(--verde-900);
+  /* verde (no verde-900): en modo oscuro verde-900 es casi negro y el boton
+     se perdia contra el fondo. verde es el mismo tono que ya usan "Nuevo
+     viaje" y el filtro activo, brillante y probado en los dos temas. */
+  background: var(--verde);
   color: #fff;
   box-shadow: var(--sombra-lg);
   cursor: pointer;
