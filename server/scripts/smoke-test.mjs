@@ -220,7 +220,7 @@ await check('esAdmin reconoce solo al correo de ADMIN_EMAIL', async () => {
 await check('User nace sin uso de IA registrado este mes', async () => {
   const u = new User({ name: 'Ana', email: 'a@b.com', password: 'secreto123' });
   assert(u.usoIA.mes === '' && u.usoIA.generaciones === 0, 'sin mes ni generaciones todavia');
-  return 'mes vacio, 0 generaciones -> revisarCupoPersonal lo inicializa al generar';
+  return 'mes vacio, 0 generaciones -> consumirCupoPersonal lo inicializa tras generar con exito';
 });
 
 await check('Agency nace pendiente, sin agentes extra', async () => {
@@ -308,6 +308,47 @@ await check('las actividades sin hora se van al final, sin perder su orden relat
   const orden = day.activities.map((a) => a.title).join(',');
   assert(orden === 'Comida,Checkout,Souvenirs', orden);
   return orden;
+});
+
+console.log('\n== Cupo mensual de IA (uso personal) ==');
+
+const { verificarCupoPersonal } = await import('../src/controllers/itinerary.controller.js');
+const mesActual = new Date().toISOString().slice(0, 7);
+
+await check('verificarCupoPersonal no lanza con cupo disponible', async () => {
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    usoIA: { mes: mesActual, generaciones: 3 },
+  });
+  verificarCupoPersonal(u); // no deberia lanzar
+  return '3 de 5 usadas, sigue pasando';
+});
+
+await check('verificarCupoPersonal lanza al llegar al limite', async () => {
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    usoIA: { mes: mesActual, generaciones: 5 },
+  });
+  let err;
+  try { verificarCupoPersonal(u); } catch (e) { err = e; }
+  assert(err, 'deberia lanzar al llegar a 5');
+  return err.message;
+});
+
+await check('verificarCupoPersonal NO consume cupo por si sola (a diferencia de la version vieja)', async () => {
+  // Este es el bug real que motivo separar verificar de consumir: antes,
+  // cada intento fallido a Gemini (503, timeout) ya habia gastado un cupo
+  // porque revisarCupoPersonal() incrementaba y guardaba ANTES de llamar a
+  // Gemini. Ahora verificar es de solo lectura -- llamarla muchas veces
+  // seguidas (como reintentar una generacion que sigue fallando) no debe
+  // mover el contador ni un poco.
+  const u = new User({
+    name: 'Ana', email: 'a@b.com', password: 'secreto123',
+    usoIA: { mes: mesActual, generaciones: 4 },
+  });
+  for (let i = 0; i < 10; i += 1) verificarCupoPersonal(u);
+  assert(u.usoIA.generaciones === 4, `no deberia moverse de 4, quedo en ${u.usoIA.generaciones}`);
+  return 'diez llamadas seguidas, el contador se queda en 4 (consumirCupoPersonal es quien lo mueve, tras exito real)';
 });
 
 console.log('\n== Validadores (Zod) ==');
