@@ -1,7 +1,7 @@
 // Verifica modelos, validadores y servicios sin necesitar MongoDB.
-process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbo';
+process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
-process.env.ADMIN_EMAIL ||= 'admin@rumbo.app';
+process.env.ADMIN_EMAIL ||= 'admin@rumbia.app';
 
 const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
@@ -250,7 +250,7 @@ await check('User rechaza mas de 5 estilos', async () => {
 });
 
 await check('esAdmin reconoce solo al correo de ADMIN_EMAIL', async () => {
-  assert(esAdmin({ email: 'admin@rumbo.app' }) === true, 'deberia reconocer al admin');
+  assert(esAdmin({ email: 'admin@rumbia.app' }) === true, 'deberia reconocer al admin');
   assert(esAdmin({ email: 'otro@correo.com' }) === false, 'nadie mas deberia pasar');
   assert(esAdmin(null) === false, 'sin usuario no truena, da false');
   return 'admin reconocido, cualquier otro correo rechazado, null seguro';

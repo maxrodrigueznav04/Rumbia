@@ -7,31 +7,31 @@ import { RESPONSABLE, CONTACTO_PRIVACIDAD } from '../config/legal.js';
  *
  * Lo importante aquí no es cubrirse: es dejar claras dos cosas que la app hace
  * y que pueden causar un problema real —que la IA se equivoca, y que reservar
- * ocurre fuera de Rumbo—, para que nadie llegue al aeropuerto creyendo que
+ * ocurre fuera de Rumbia—, para que nadie llegue al aeropuerto creyendo que
  * tenía un vuelo comprado.
  */
 export default function Terminos() {
   return (
     <PaginaLegal
       titulo="Términos y condiciones"
-      entrada="Qué puedes esperar de Rumbo, qué no, y bajo qué reglas se usa. Está escrito para que se entienda a la primera."
+      entrada="Qué puedes esperar de Rumbia, qué no, y bajo qué reglas se usa. Está escrito para que se entienda a la primera."
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
-          <li>Rumbo organiza y estima. No vende, no reserva y no cobra nada.</li>
+          <li>Rumbia organiza y estima. No vende, no reserva y no cobra nada.</li>
           <li>La IA se equivoca: verifica horarios, precios y disponibilidad antes de contar con ellos.</li>
           <li>Es gratis. Si algún día deja de serlo, se avisa antes y nunca de forma retroactiva.</li>
         </ul>
       </Tarjeta>
 
-      <h2>1. Qué es Rumbo</h2>
+      <h2>1. Qué es Rumbia</h2>
       <p>
-        Rumbo es una herramienta para planear viajes: guarda la información de tu viaje, te ayuda a
+        Rumbia es una herramienta para planear viajes: guarda la información de tu viaje, te ayuda a
         armar un itinerario con inteligencia artificial, estima costos y te lleva a los sitios de
         los proveedores para que reserves ahí.
       </p>
       <p>
-        <strong>Rumbo no es una agencia de viajes.</strong> No vende vuelos, hospedaje ni
+        <strong>Rumbia no es una agencia de viajes.</strong> No vende vuelos, hospedaje ni
         actividades; no procesa pagos; no emite boletos ni confirmaciones; y no es parte de ningún
         contrato entre tú y el proveedor con el que reserves. Al usar la aplicación aceptas estos
         términos.
@@ -54,10 +54,10 @@ export default function Terminos() {
         estimación por temporada, y la aplicación lo indica en pantalla.
       </p>
 
-      <h2>3. Reservar ocurre fuera de Rumbo</h2>
+      <h2>3. Reservar ocurre fuera de Rumbia</h2>
       <p>
         Los enlaces de búsqueda te llevan al sitio del proveedor con tus datos ya prellenados. A
-        partir de ese clic <strong>sales de Rumbo</strong>: el precio, la disponibilidad, las
+        partir de ese clic <strong>sales de Rumbia</strong>: el precio, la disponibilidad, las
         condiciones de cancelación y el contrato son del proveedor, y con él tienes que resolver
         cualquier problema con tu reserva.
       </p>
@@ -77,7 +77,7 @@ export default function Terminos() {
       </ul>
 
       <h2>5. Uso aceptable</h2>
-      <p>Al usar Rumbo te comprometes a no:</p>
+      <p>Al usar Rumbia te comprometes a no:</p>
       <ul>
         <li>Automatizar el uso del generador de itinerarios ni intentar saltarte los límites de uso.</li>
         <li>Revender, redistribuir o presentar como propio el contenido que genera la aplicación con fines comerciales.</li>
@@ -91,7 +91,7 @@ export default function Terminos() {
 
       <h2>6. Disponibilidad y cambios</h2>
       <p>
-        Rumbo se ofrece <strong>tal cual está</strong> y de forma gratuita. No se garantiza que esté
+        Rumbia se ofrece <strong>tal cual está</strong> y de forma gratuita. No se garantiza que esté
         siempre disponible, ni libre de errores, ni que los servicios de terceros de los que depende
         —el modelo de IA, el proveedor del clima, los mapas— funcionen en todo momento.
       </p>
@@ -119,14 +119,14 @@ export default function Terminos() {
 
       <h2>8. Propiedad</h2>
       <p>
-        El nombre, el diseño y el código de Rumbo pertenecen a su autor. El contenido de tus viajes
+        El nombre, el diseño y el código de Rumbia pertenecen a su autor. El contenido de tus viajes
         te pertenece a ti; al usarlo en la aplicación solo nos autorizas a procesarlo para prestarte
         el servicio.
       </p>
 
       <h2>9. Terminación</h2>
       <p>
-        Puedes dejar de usar Rumbo cuando quieras y eliminar tu cuenta desde <em>Perfil</em>.
+        Puedes dejar de usar Rumbia cuando quieras y eliminar tu cuenta desde <em>Perfil</em>.
         Podemos suspender una cuenta que incumpla estos términos, especialmente si pone en riesgo el
         servicio para los demás.
       </p>

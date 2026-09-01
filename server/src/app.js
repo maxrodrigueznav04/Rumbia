@@ -55,7 +55,7 @@ app.use(morgan(env.isProd ? 'combined' : 'dev'));
 app.use('/api', apiLimiter, routes);
 
 app.get('/', (_req, res) => {
-  res.json({ name: 'Rumbo API', version: '1.0.0', docs: '/api/health' });
+  res.json({ name: 'Rumbia API', version: '1.0.0', docs: '/api/health' });
 });
 
 app.use(notFound);

@@ -38,7 +38,7 @@ export default function Recuperar() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </div>
           <h1 style={{ fontSize: '1.35rem' }}>Recupera tu cuenta</h1>
           <p>Te mandamos un enlace para elegir una contraseña nueva.</p>

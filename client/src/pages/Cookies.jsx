@@ -5,7 +5,7 @@ import { CONTACTO_PRIVACIDAD } from '../config/legal.js';
 /**
  * Aviso de cookies y rastreo de terceros.
  *
- * Rumbo no coloca cookies propias: la sesión vive en localStorage. Lo que sí
+ * Rumbia no coloca cookies propias: la sesión vive en localStorage. Lo que sí
  * hay es rastreo de terceros en cuanto sales por un enlace de reserva, y eso es
  * lo que este documento tiene que dejar claro.
  */
@@ -13,17 +13,17 @@ export default function Cookies() {
   return (
     <PaginaLegal
       titulo="Cookies y rastreo"
-      entrada="Resumen corto: Rumbo no te pone cookies. Pero los sitios de reserva a los que te mandamos sí usan las suyas, y eso conviene que lo sepas antes de dar clic."
+      entrada="Resumen corto: Rumbia no te pone cookies. Pero los sitios de reserva a los que te mandamos sí usan las suyas, y eso conviene que lo sepas antes de dar clic."
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
-          <li>Rumbo no instala cookies propias ni herramientas de analítica.</li>
+          <li>Rumbia no instala cookies propias ni herramientas de analítica.</li>
           <li>Tu sesión se guarda en el almacenamiento local de tu navegador, no en una cookie.</li>
           <li>Al salir por un enlace de reserva entras a las reglas del proveedor, no a las nuestras.</li>
         </ul>
       </Tarjeta>
 
-      <h2>1. Rumbo no usa cookies propias</h2>
+      <h2>1. Rumbia no usa cookies propias</h2>
       <p>
         No colocamos cookies en tu navegador. Tampoco usamos Google Analytics, píxeles de redes
         sociales ni ninguna herramienta de publicidad. Por eso no verás en esta aplicación un banner
@@ -43,7 +43,7 @@ export default function Cookies() {
       </p>
       <ul>
         <li>
-          <code>rumbo_token</code> — el token de sesión que demuestra que ya iniciaste sesión, para
+          <code>rumbia_token</code> — el token de sesión que demuestra que ya iniciaste sesión, para
           que no tengas que escribir tu contraseña en cada pantalla.
         </li>
       </ul>
@@ -60,12 +60,12 @@ export default function Cookies() {
 
       <h2>3. Los enlaces de reserva sí llevan a sitios que rastrean</h2>
       <p>
-        Rumbo no vende vuelos ni hospedaje. Lo que hace es armar el enlace de búsqueda ya lleno con
+        Rumbia no vende vuelos ni hospedaje. Lo que hace es armar el enlace de búsqueda ya lleno con
         los datos de tu viaje y mandarte al sitio del proveedor —Skyscanner, Booking.com, Airbnb,
         Kayak, Rome2Rio, Busbud, Hostelworld, DiscoverCars, Uber, DiDi, Moovit y similares.
       </p>
       <p>
-        <strong>Al hacer clic en uno de esos enlaces sales de Rumbo y entras a un sitio de terceros,
+        <strong>Al hacer clic en uno de esos enlaces sales de Rumbia y entras a un sitio de terceros,
         con sus propias reglas de privacidad y sus propias cookies.</strong> Esos sitios pueden
         colocar cookies de sesión, de preferencias, de análisis y de publicidad en tu navegador. Eso
         ocurre fuera de nuestro control y no tenemos forma de verlo, desactivarlo ni consultarlo.
@@ -77,10 +77,10 @@ export default function Cookies() {
 
       <h2>4. Programas de afiliados</h2>
       <p>
-        Rumbo participa o podrá participar en programas de afiliados, entre ellos{' '}
+        Rumbia participa o podrá participar en programas de afiliados, entre ellos{' '}
         <strong>CJ Affiliate</strong> (Commission Junction, operado por Epsilon International UK
         Ltd). En la práctica esto significa que algunos de los enlaces de reserva llevarán un
-        identificador que indica que la visita vino de Rumbo.
+        identificador que indica que la visita vino de Rumbia.
       </p>
       <p>Cuando das clic en uno de esos enlaces:</p>
       <ul>
@@ -91,7 +91,7 @@ export default function Cookies() {
       <p>
         Las cookies que coloque la red de afiliados o el proveedor las controlas desde tu navegador,
         igual que las de cualquier otro sitio: puedes bloquear cookies de terceros o borrarlas
-        cuando quieras. Bloquearlas no afecta el funcionamiento de Rumbo.
+        cuando quieras. Bloquearlas no afecta el funcionamiento de Rumbia.
       </p>
 
       <h2>5. Preguntas</h2>

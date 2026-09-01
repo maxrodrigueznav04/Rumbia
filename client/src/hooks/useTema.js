@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const CLAVE = 'rumbo-tema';
+const CLAVE = 'rumbia-tema';
 export const TEMAS = ['sistema', 'claro', 'oscuro'];
 
 const leerGuardado = () => {

@@ -11,7 +11,7 @@
 // ese problema.
 (function () {
   try {
-    var t = localStorage.getItem('rumbo-tema');
+    var t = localStorage.getItem('rumbia-tema');
     if (t === 'claro' || t === 'oscuro') {
       document.documentElement.setAttribute('data-theme', t);
     }

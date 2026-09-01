@@ -48,8 +48,8 @@ export const env = {
     apiKey: process.env.RESEND_API_KEY || '',
     // Sin dominio verificado, Resend solo acepta su remitente de pruebas y
     // ademas solo entrega al correo con el que se creo la cuenta. Con dominio
-    // propio esto pasa a ser algo como "Rumbo <hola@turumbo.com>".
-    from: process.env.MAIL_FROM || 'Rumbo <onboarding@resend.dev>',
+    // propio esto pasa a ser algo como "Rumbia <hola@rumbiamx.com>".
+    from: process.env.MAIL_FROM || 'Rumbia <onboarding@resend.dev>',
     enabled: Boolean(process.env.RESEND_API_KEY),
   },
   turnstile: {

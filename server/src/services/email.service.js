@@ -80,7 +80,7 @@ export function correoRecuperacion({ nombre, enlace, minutos }) {
 
   const html = `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
-  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbo</div>
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
   <h1 style="font-size:19px;margin:0 0 12px">${saludo}, ¿olvidaste tu contraseña?</h1>
   <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
     Pulsa el botón para elegir una nueva. El enlace sirve una sola vez y caduca en ${minutos} minutos.
@@ -108,8 +108,8 @@ export function correoRecuperacion({ nombre, enlace, minutos }) {
     '',
     'Si no pediste esto, ignora el correo: tu contraseña sigue igual.',
     '',
-    'Rumbo',
+    'Rumbia',
   ].join('\n');
 
-  return { asunto: 'Recupera tu contraseña de Rumbo', html, texto };
+  return { asunto: 'Recupera tu contraseña de Rumbia', html, texto };
 }

@@ -615,7 +615,7 @@ export default function DetalleViaje() {
       </div>
 
       <p className="tenue centrado" style={{ fontSize: '0.78rem', marginTop: 8 }}>
-        Rumbo no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
+        Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
         completas la reserva; aquí solo guardas los datos y los costos.
       </p>
 

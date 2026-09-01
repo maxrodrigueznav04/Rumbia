@@ -65,7 +65,7 @@ export const cambiarAgentes = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Agentes extra actualizados.', data: { agency: agencia } });
 });
 
-/** Portal de Stripe: cambiar tarjeta, cancelar, ver facturas. Nada de eso vive en Rumbo. */
+/** Portal de Stripe: cambiar tarjeta, cancelar, ver facturas. Nada de eso vive en Rumbia. */
 export const abrirPortal = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
   const url = await stripeService.crearSesionPortal({ agencia });
@@ -77,7 +77,7 @@ export const abrirPortal = asyncHandler(async (req, res) => {
  * porque la verificacion de firma necesita los bytes exactos que Stripe mando.
  *
  * Nunca confia en el `agencyId` del cliente: siempre lo lee de la metadata que
- * Rumbo mismo puso al crear la sesion de Checkout o la suscripcion, del lado
+ * Rumbia mismo puso al crear la sesion de Checkout o la suscripcion, del lado
  * del servidor.
  */
 export const webhook = asyncHandler(async (req, res) => {
@@ -129,7 +129,7 @@ export const webhook = asyncHandler(async (req, res) => {
     }
 
     default:
-      break; // El resto de los eventos no cambia nada del lado de Rumbo.
+      break; // El resto de los eventos no cambia nada del lado de Rumbia.
   }
 
   res.json({ received: true });

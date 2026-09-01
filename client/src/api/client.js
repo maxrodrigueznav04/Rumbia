@@ -6,7 +6,7 @@
  */
 
 export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const TOKEN_KEY = 'rumbo_token';
+const TOKEN_KEY = 'rumbia_token';
 
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
@@ -15,7 +15,7 @@ export const tokenStore = {
 };
 
 /** Evento que escucha AuthContext para cerrar sesion si el token caduca. */
-export const SESION_EXPIRADA = 'rumbo:sesion-expirada';
+export const SESION_EXPIRADA = 'rumbia:sesion-expirada';
 
 /**
  * Eventos para avisar que el servidor está tardando.
@@ -24,8 +24,8 @@ export const SESION_EXPIRADA = 'rumbo:sesion-expirada';
  * tráfico y la primera petición tarda ~30-50 s en despertarlo. Sin avisar,
  * el usuario solo ve un spinner eterno y asume que la app está rota.
  */
-export const SERVIDOR_LENTO = 'rumbo:servidor-lento';
-export const SERVIDOR_LISTO = 'rumbo:servidor-listo';
+export const SERVIDOR_LENTO = 'rumbia:servidor-lento';
+export const SERVIDOR_LISTO = 'rumbia:servidor-listo';
 
 const MS_ANTES_DE_AVISAR = 4000;
 // Suficiente para cubrir el arranque en frío de Render sin colgarse para siempre.

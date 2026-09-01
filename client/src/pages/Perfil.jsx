@@ -89,7 +89,7 @@ export default function Perfil() {
           {estado && <Aviso tipo={estado.tipo}>{estado.mensaje}</Aviso>}
 
           <div className="campo">
-            <label>¿Cómo usas Rumbo?</label>
+            <label>¿Cómo usas Rumbia?</label>
             <div className="selector-perfil-uso">
               <button
                 type="button"

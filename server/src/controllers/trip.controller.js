@@ -316,8 +316,8 @@ export const getBookingLinks = asyncHandler(async (req, res) => {
       // afiliado activos: declarar que se gana comision sin ganarla seria tan
       // falso como callarlo cuando si se gana.
       disclaimer: hayAfiliados()
-        ? 'Rumbo no procesa reservas ni pagos: estos enlaces te llevan al sitio del proveedor. Algunos son enlaces de afiliado, asi que si reservas podemos ganar una comision, sin ningun costo extra para ti.'
-        : 'Rumbo no procesa reservas ni pagos. Estos enlaces te llevan al sitio del proveedor, donde completas la reserva.',
+        ? 'Rumbia no procesa reservas ni pagos: estos enlaces te llevan al sitio del proveedor. Algunos son enlaces de afiliado, asi que si reservas podemos ganar una comision, sin ningun costo extra para ti.'
+        : 'Rumbia no procesa reservas ni pagos. Estos enlaces te llevan al sitio del proveedor, donde completas la reserva.',
       conAfiliados: hayAfiliados(),
     },
   });

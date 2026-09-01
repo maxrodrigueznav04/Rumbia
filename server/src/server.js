@@ -5,7 +5,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 await connectDB();
 
 const server = app.listen(env.port, () => {
-  console.log(`[server] Rumbo API escuchando en http://localhost:${env.port} (${env.nodeEnv})`);
+  console.log(`[server] Rumbia API escuchando en http://localhost:${env.port} (${env.nodeEnv})`);
   if (!env.gemini.enabled) console.warn('[server] GEMINI_API_KEY ausente: la generacion con IA queda deshabilitada.');
   if (!env.openWeather.enabled) console.warn('[server] OPENWEATHER_API_KEY ausente: el clima usara solo estimaciones.');
 });

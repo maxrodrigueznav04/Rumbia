@@ -172,7 +172,7 @@ export default function ChatFlotante() {
               <div className="pila-sm">
                 <p className="tenue" style={{ margin: 0 }}>
                   Puedo ayudarte a planear rutas, comparar fechas de vuelo, resolver dudas del viaje o
-                  de cómo usar Rumbo.
+                  de cómo usar Rumbia.
                 </p>
                 <div className="chat-ejemplos">
                   {EJEMPLOS.map((ejemplo) => (

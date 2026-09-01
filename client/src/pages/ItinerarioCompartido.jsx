@@ -49,7 +49,7 @@ export default function ItinerarioCompartido() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </Link>
           <Link to="/" className="boton secundario chico">
             Arma el tuyo
@@ -191,7 +191,7 @@ export default function ItinerarioCompartido() {
 
                 <Tarjeta titulo="Buscar y reservar" className="no-imprimir">
                   <p className="suave">
-                    Rumbo no reserva ni cobra: estos enlaces llevan al sitio del proveedor con la
+                    Rumbia no reserva ni cobra: estos enlaces llevan al sitio del proveedor con la
                     búsqueda ya prellenada.
                   </p>
                   {Object.entries(data.links || {}).map(([seccion, enlaces]) => (
@@ -214,7 +214,7 @@ export default function ItinerarioCompartido() {
                   <h3>¿Quieres uno así para tu viaje?</h3>
                   <p className="suave">Ármalo con IA en un minuto, sin crear cuenta.</p>
                   <Link to="/" className="boton">
-                    Probar Rumbo
+                    Probar Rumbia
                   </Link>
                 </Tarjeta>
               </div>
@@ -228,7 +228,7 @@ export default function ItinerarioCompartido() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbo no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
+            Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces legales">
             <Link to="/privacidad">Privacidad</Link>

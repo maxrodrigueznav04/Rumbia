@@ -45,7 +45,7 @@ export default function Restablecer() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </div>
           <h1 style={{ fontSize: '1.35rem' }}>Elige una contraseña nueva</h1>
           <p>Al guardarla entras directo, y se cierran las demás sesiones.</p>

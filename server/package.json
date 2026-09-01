@@ -1,7 +1,7 @@
 {
-  "name": "rumbo-server",
+  "name": "rumbia-server",
   "version": "1.0.0",
-  "description": "API del Planeador de Viajes con IA (Rumbo)",
+  "description": "API del Planeador de Viajes con IA (Rumbia)",
   "type": "module",
   "main": "src/server.js",
   "engines": {

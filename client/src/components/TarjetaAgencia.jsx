@@ -102,7 +102,7 @@ function VistaSinAgencia({ user, actualizarUsuario }) {
       <Tarjeta titulo="Marca en el PDF">
         <p className="suave" style={{ marginTop: 0 }}>
           Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando
-          descargas el PDF. Déjalo vacío y sale la marca de Rumbo.
+          descargas el PDF. Déjalo vacío y sale la marca de Rumbia.
         </p>
 
         {estado && (
@@ -562,7 +562,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
       ) : (
         <>
           <p className="suave" style={{ marginTop: 0 }}>
-            Mientras seas la única persona en la agencia, Rumbo es gratis. En cuanto quieras que se te
+            Mientras seas la única persona en la agencia, Rumbia es gratis. En cuanto quieras que se te
             una un agente, activa un plan.
           </p>
           <form onSubmit={irACheckout} className="pila-sm">
