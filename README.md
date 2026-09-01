@@ -11,7 +11,7 @@ control de presupuesto.
 > Es una decisión de diseño consciente: reservar de verdad exige acuerdos comerciales con
 > aerolíneas y hoteles que un proyecto individual no puede tener.
 
-**Demo en vivo:** <https://rumbo.maxrodrigueznav04.workers.dev> — cuenta de prueba `demo@rumbo.app` / `demo1234`
+**Demo en vivo:** <https://rumbo-app.maxrodrigueznav04.workers.dev> — cuenta de prueba `demo@rumbo.app` / `demo1234`
 
 > El backend corre en el plan gratuito de Render, que duerme el servicio tras 15 minutos sin uso.
 > La primera petición puede tardar cerca de un minuto; la app lo avisa mientras despierta.
