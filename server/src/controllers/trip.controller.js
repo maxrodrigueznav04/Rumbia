@@ -49,6 +49,16 @@ async function sincronizarItinerario(trip) {
 }
 
 /**
+ * Escapa los caracteres especiales de regex antes de meter texto de un
+ * usuario en un new RegExp(). Sin esto, un patron tipo "(a+)+$" en el buscador
+ * de viajes puede colgar el hilo de Node entero (ReDoS) -- y esto corre en
+ * cada busqueda de cualquier cuenta con sesion, no solo en un endpoint de admin.
+ */
+export function escaparRegex(texto) {
+  return texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Carga un viaje verificando que pertenezca al usuario autenticado.
  * Centraliza la comprobacion de propiedad para no repetirla en cada handler.
  */
@@ -69,11 +79,8 @@ export const listTrips = asyncHandler(async (req, res) => {
   else if (status) filter.status = status;
 
   if (q) {
-    filter.$or = [
-      { title: new RegExp(q, 'i') },
-      { 'destination.name': new RegExp(q, 'i') },
-      { 'cliente.nombre': new RegExp(q, 'i') },
-    ];
+    const re = new RegExp(escaparRegex(q), 'i');
+    filter.$or = [{ title: re }, { 'destination.name': re }, { 'cliente.nombre': re }];
   }
 
   const [trips, total] = await Promise.all([
@@ -137,7 +144,7 @@ export const updateTrip = asyncHandler(async (req, res) => {
   // budget tambien se fusiona: un PATCH con solo { amount } no debe dejar el
   // viaje sin moneda, que es lo que pasa al asignar el subdocumento entero.
   if (budget) {
-    trip.budget = { ...trip.budget?.toObject?.(), ...trip.budget, ...budget };
+    trip.budget = { ...trip.budget?.toObject?.(), ...budget };
   }
 
   if (origin) {

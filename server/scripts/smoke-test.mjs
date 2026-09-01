@@ -10,6 +10,7 @@ const { getWeatherForRange, getWeatherForStops } = await import('../src/services
 const { buildRouteLines } = await import('../src/services/gemini.service.js');
 const { buildTripContext } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
+const { escaparRegex } = await import('../src/controllers/trip.controller.js');
 const mongoose = (await import('mongoose')).default;
 
 let pass = 0, fail = 0;
@@ -610,6 +611,36 @@ await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => 
   assert(!negativo.success, 'rechaza negativos');
 
   return 'opcional, coerciona a numero, rechaza negativos';
+});
+
+console.log('\n== Seguridad ==');
+
+await check('escaparRegex neutraliza un patron tipo ReDoS antes de armar el regex', async () => {
+  // (a+)+$ es el ejemplo clasico de backtracking catastrofico. Si se
+  // escapa bien, new RegExp() lo trata como texto literal (no como grupo
+  // repetido) y evaluarlo contra una cadena que provocaria el cuelgue debe
+  // ser instantaneo.
+  const patronMalicioso = '(a+)+$';
+  const inicio = Date.now();
+  const re = new RegExp(escaparRegex(patronMalicioso), 'i');
+  const sinMatch = re.test('a'.repeat(40) + '!'); // la entrada que cuelga el regex sin escapar
+  const tardanza = Date.now() - inicio;
+  assert(!sinMatch, 'como texto literal, "(a+)+$" no aparece dentro de puras "a"');
+  assert(tardanza < 100, `deberia ser instantaneo, tardo ${tardanza}ms`);
+  return `neutralizado, ${tardanza}ms`;
+});
+
+await check('escaparRegex no rompe una busqueda normal', async () => {
+  const re = new RegExp(escaparRegex('roma'), 'i');
+  assert(re.test('Viaje a Roma'), 'la busqueda case-insensitive de siempre sigue funcionando');
+  return 'busqueda normal intacta';
+});
+
+await check('escaparRegex trata un punto literal como punto, no "cualquier caracter"', async () => {
+  const re = new RegExp(escaparRegex('a.c'), 'i');
+  assert(!re.test('abc'), 'sin escapar, "." haria match con cualquier caracter (abc si haria match)');
+  assert(re.test('a.c'), 'el punto literal si debe encontrarse a si mismo');
+  return 'metacaracteres literales, no interpretados';
 });
 
 console.log('\n== Servicios ==');
