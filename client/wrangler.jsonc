@@ -1,8 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // Nombre del proyecto en Cloudflare. Debe coincidir con "Project name" en el
-  // formulario de creacion (rumbo).
-  "name": "rumbo",
+  // Nombre del proyecto en Cloudflare. Cambiar esto y correr "npm run deploy"
+  // crea un Worker NUEVO en ese nombre -- no renombra el que ya existe. El
+  // viejo ("rumbo") se queda huerfano en el dashboard hasta que se borre a
+  // mano ahi mismo.
+  "name": "rumbo-app",
   "compatibility_date": "2026-08-28",
 
   // Sin Worker script: esto es solo el build estatico de Vite (dist/) servido
