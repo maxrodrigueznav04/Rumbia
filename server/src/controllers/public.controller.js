@@ -260,8 +260,10 @@ export const registrarClick = asyncHandler(async (req, res) => {
   const { provider, section, destination, esAfiliado, origen } = req.body;
   try {
     await ClickSalida.create({ provider, section, destination, esAfiliado, origen });
-  } catch {
-    /* una metrica perdida no es motivo para devolver un error */
+  } catch (err) {
+    // Una metrica perdida no es motivo para devolver un error al usuario,
+    // pero si la DB esta caida o el modelo cambio, vale la pena verlo en logs.
+    console.warn(`[clicks] no se pudo registrar el clic: ${err.message}`);
   }
   res.status(204).end();
 });
