@@ -87,7 +87,7 @@ export default function Inicio() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </span>
           <div className="fila" style={{ gap: 8 }}>
             <Link to="/entrar" className="boton secundario chico">
@@ -205,7 +205,7 @@ export default function Inicio() {
 
             <Tarjeta titulo="Buscar y reservar">
               <p className="suave">
-                Rumbo no reserva ni cobra: estos enlaces te llevan al sitio del proveedor con tu
+                Rumbia no reserva ni cobra: estos enlaces te llevan al sitio del proveedor con tu
                 búsqueda ya prellenada.
               </p>
               {Object.entries(resultado.links).map(([seccion, enlaces]) => (
@@ -249,7 +249,7 @@ export default function Inicio() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbo no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
+            Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces legales">
             <Link to="/privacidad">Privacidad</Link>

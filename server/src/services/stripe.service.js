@@ -89,7 +89,7 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
   }
 }
 
-/** Enlace al Customer Portal de Stripe: ahi cambian tarjeta, cancelan o ven facturas, sin que Rumbo construya nada de eso. */
+/** Enlace al Customer Portal de Stripe: ahi cambian tarjeta, cancelan o ven facturas, sin que Rumbia construya nada de eso. */
 export async function crearSesionPortal({ agencia }) {
   const s = requerirStripe();
   if (!agencia.billing?.stripeCustomerId) {

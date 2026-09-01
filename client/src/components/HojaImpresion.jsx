@@ -8,7 +8,7 @@ import { rangoFechas, nombreDestino } from '../utils/format.js';
  * contrario, porque la navegacion y los botones desaparecen y el papel se
  * quedaria sin decir de quien es el documento ni a que viaje pertenece.
  *
- * Si el usuario no llenó su marca en el perfil se imprime la de Rumbo, que es
+ * Si el usuario no llenó su marca en el perfil se imprime la de Rumbia, que es
  * lo correcto para alguien que viaja por su cuenta.
  */
 export function EncabezadoImpresion({ marca, viaje }) {
@@ -27,7 +27,7 @@ export function EncabezadoImpresion({ marca, viaje }) {
           </span>
         )}
         <div>
-          <strong>{nombre || 'Rumbo'}</strong>
+          <strong>{nombre || 'Rumbia'}</strong>
           {marca?.contact && <span className="hoja-contacto">{marca.contact}</span>}
         </div>
       </div>
@@ -57,7 +57,7 @@ export function PieImpresion({ marca }) {
         Los costos son estimaciones para orientar el presupuesto, no precios en firme, y pueden
         cambiar según la temporada y la disponibilidad.
       </p>
-      <p>{nombre ? `${nombre} · Itinerario preparado con Rumbo.` : 'Itinerario preparado con Rumbo.'}</p>
+      <p>{nombre ? `${nombre} · Itinerario preparado con Rumbia.` : 'Itinerario preparado con Rumbia.'}</p>
     </footer>
   );
 }

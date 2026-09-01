@@ -50,7 +50,7 @@ export async function subirLogo({ buffer, mimeType, userId }) {
 
   const timestamp = Math.floor(Date.now() / 1000);
   const paramsFirmados = {
-    folder: 'rumbo/logos',
+    folder: 'rumbia/logos',
     overwrite: 'true',
     public_id: String(userId),
     timestamp,

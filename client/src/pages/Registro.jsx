@@ -42,7 +42,7 @@ export default function Registro() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </div>
           <h1 style={{ fontSize: '1.35rem' }}>
             {perfilUso === 'agencia' ? 'Arma propuestas para tus clientes' : 'Planea tu próximo viaje'}
@@ -72,7 +72,7 @@ export default function Registro() {
           {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
           <div className="campo">
-            <label>¿Cómo vas a usar Rumbo?</label>
+            <label>¿Cómo vas a usar Rumbia?</label>
             <div className="selector-perfil-uso">
               <button
                 type="button"

@@ -60,7 +60,7 @@ try {
   await ev(`(async () => {
     const r = await fetch('${API}/auth/login', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ email:'demo@rumbo.app', password:'demo1234' }) });
-    localStorage.setItem('rumbo_token', (await r.json()).data.token);
+    localStorage.setItem('rumbia_token', (await r.json()).data.token);
   })()`, true);
 
   await cmd('Page.navigate', { url: `${BASE}/viajes/${VIAJE}/itinerario` }, sessionId);

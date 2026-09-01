@@ -51,7 +51,7 @@ const TARJETA = `
                 place-items:center;color:#1F6F5C;font-family:'Sora Variable',sans-serif;
                 font-weight:700;font-size:28px;">R</div>
     <span style="font-family:'Sora Variable',sans-serif;font-weight:700;font-size:34px;
-                 letter-spacing:-0.01em;">Rumbo</span>
+                 letter-spacing:-0.01em;">Rumbia</span>
   </div>
 
   <div style="position:relative;">

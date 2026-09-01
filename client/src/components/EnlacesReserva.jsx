@@ -41,7 +41,7 @@ export default function EnlacesReserva({ enlaces = [], compacto, seccion, destin
             </span>
           </span>
           {l.esAfiliado && (
-            <span className="insignia" title="Si reservas aquí, Rumbo puede ganar una comisión">
+            <span className="insignia" title="Si reservas aquí, Rumbia puede ganar una comisión">
               Afiliado
             </span>
           )}

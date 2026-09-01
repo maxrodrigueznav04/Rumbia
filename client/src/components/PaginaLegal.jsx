@@ -21,7 +21,7 @@ export default function PaginaLegal({ titulo, entrada, children }) {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </Link>
           <Link to={autenticado ? '/viajes' : '/entrar'} className="volver">
             {autenticado ? 'Volver a mis viajes' : 'Ir a entrar'}

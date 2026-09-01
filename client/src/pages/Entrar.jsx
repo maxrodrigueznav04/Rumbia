@@ -36,7 +36,7 @@ export default function Entrar() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </div>
           <h1 style={{ fontSize: '1.35rem' }}>Bienvenido de vuelta</h1>
           <p>Tus viajes te están esperando.</p>

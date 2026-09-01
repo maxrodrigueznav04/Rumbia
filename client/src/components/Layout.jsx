@@ -51,7 +51,7 @@ export default function Layout() {
             <span className="marca-punto" aria-hidden="true">
               R
             </span>
-            Rumbo
+            Rumbia
           </Link>
 
           <nav className="nav-links" aria-label="Navegacion principal">
@@ -86,7 +86,7 @@ export default function Layout() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbo no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
+            Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
             completas la reserva.
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces legales">

@@ -24,9 +24,9 @@ const MONEDA = 'usd';
 // (~25 meses de mensualidad). El agente extra sigue la misma proporcion que
 // el plan base en cada cadencia: $10/mes, $100/año, $250 de por vida.
 const PRECIOS = [
-  { plan: 'mensual', nombre: 'Rumbo Agencia — Mensual', base: 2000, agente: 1000, recurring: { interval: 'month' } },
-  { plan: 'anual', nombre: 'Rumbo Agencia — Anual', base: 20000, agente: 10000, recurring: { interval: 'year' } },
-  { plan: 'vitalicio', nombre: 'Rumbo Agencia — De por vida', base: 50000, agente: 25000, recurring: null },
+  { plan: 'mensual', nombre: 'Rumbia Agencia — Mensual', base: 2000, agente: 1000, recurring: { interval: 'month' } },
+  { plan: 'anual', nombre: 'Rumbia Agencia — Anual', base: 20000, agente: 10000, recurring: { interval: 'year' } },
+  { plan: 'vitalicio', nombre: 'Rumbia Agencia — De por vida', base: 50000, agente: 25000, recurring: null },
 ];
 
 async function buscarOCrearPrice({ lookupKey, nombre, montoCentavos, recurring }) {

@@ -1,4 +1,4 @@
-# Rumbo — Planeador de viajes con IA
+# Rumbia — Planeador de viajes con IA
 
 [![CI](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml/badge.svg)](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml)
 
@@ -6,7 +6,7 @@ Aplicación web full-stack para planear un viaje completo en un solo lugar: tran
 vuelta, hospedaje, transporte en el destino, itinerario día por día generado con IA, mapa, clima y
 control de presupuesto.
 
-> **Rumbo no reserva ni cobra nada.** Centraliza la información y estima costos; para reservar te
+> **Rumbia no reserva ni cobra nada.** Centraliza la información y estima costos; para reservar te
 > manda al sitio del proveedor (Skyscanner, Booking, Airbnb…) con la búsqueda ya prellenada.
 > Es una decisión de diseño consciente: reservar de verdad exige acuerdos comerciales con
 > aerolíneas y hoteles que un proyecto individual no puede tener.
@@ -101,7 +101,7 @@ Todo el stack corre en tiers gratuitos.
   imprime en la consola del servidor.
 - **Itinerario en PDF, con marca propia.** El botón *Descargar PDF* imprime el plan día por día
   sin la interfaz de la app. Si en el perfil se llena la marca (nombre, logo y contacto), el
-  membrete sale con ella en vez de con la de Rumbo, que es lo que necesita quien arma itinerarios
+  membrete sale con ella en vez de con la de Rumbia, que es lo que necesita quien arma itinerarios
   para terceros. Se resuelve con `@media print` y el diálogo del navegador: sin navegador headless
   en el servidor y con el texto seleccionable de verdad. El logo se sube directo desde el perfil
   (PNG, JPEG o WebP, hasta 2 MB) y se aloja en Cloudinary con una subida firmada desde el servidor
@@ -289,13 +289,13 @@ Render despliega desde un repositorio, así que este paso va primero (Cloudflare
 se despliega directo desde tu máquina). El repo ya está inicializado y con el commit inicial hecho:
 
 ```bash
-gh repo create rumbo --public --source=. --push
+gh repo create rumbia --public --source=. --push
 ```
 
 Si prefieres hacerlo desde la web: crea el repositorio vacío en GitHub y luego
 
 ```bash
-git remote add origin https://github.com/TU-USUARIO/rumbo.git && git push -u origin main
+git remote add origin https://github.com/TU-USUARIO/rumbia.git && git push -u origin main
 ```
 
 Antes de subir, confirma que `.env` no viaja (debería devolver error, que es lo correcto):
@@ -311,7 +311,7 @@ Render pueda conectarse, y usa un usuario dedicado a este proyecto. Guarda la
 cadena de conexión con el nombre de la base incluido:
 
 ```
-mongodb+srv://usuario:password@cluster.xxxxx.mongodb.net/rumbo?retryWrites=true&w=majority
+mongodb+srv://usuario:password@cluster.xxxxx.mongodb.net/rumbia?retryWrites=true&w=majority
 ```
 
 Si la contraseña lleva `@`, `/`, `:` o `#`, cámbiala: rompen la URL y el error
@@ -328,15 +328,15 @@ start `npm start`, health check `/api/health`.
 
 `CLIENT_URL` todavía no la sabes: pon cualquier valor y corrígela en el paso 4.
 Cuando termine, copia la URL del servicio (algo como
-`https://rumbo-api.onrender.com`) y comprueba que responde:
+`https://rumbia-api.onrender.com`) y comprueba que responde:
 
 ```bash
-curl https://rumbo-api.onrender.com/api/health
+curl https://rumbia-api.onrender.com/api/health
 ```
 
 Si vas a cobrar a agencias: corre `npm run stripe:setup` (local, contra tu cuenta de Stripe)
 para conseguir los seis `STRIPE_PRICE_*`, y crea el webhook en el dashboard de Stripe apuntando
-a `https://rumbo-api.onrender.com/api/billing/webhook` con los eventos `checkout.session.completed`,
+a `https://rumbia-api.onrender.com/api/billing/webhook` con los eventos `checkout.session.completed`,
 `customer.subscription.updated` y `customer.subscription.deleted` — de ahí sale `STRIPE_WEBHOOK_SECRET`.
 Sin esto la app funciona igual, solo que nadie puede pagarte.
 
@@ -346,7 +346,7 @@ A diferencia de Render, esto no se conecta a GitHub: el build se hace en tu máq
 `wrangler deploy` sube el resultado directo a Cloudflare.
 
 1. Copia `client/.env.example` a `client/.env` y pon
-   `VITE_API_URL=https://rumbo-api.onrender.com/api` (con `/api` al final, sin barra después).
+   `VITE_API_URL=https://rumbia-api.onrender.com/api` (con `/api` al final, sin barra después).
    Vite lo incrusta en el build, así que tiene que existir *antes* de compilar — no hay ningún
    dashboard donde configurarlo después.
 2. Desde `client/`:
@@ -369,7 +369,7 @@ el deploy con "Infinite loop detected".
 ### 4. Cerrar el círculo
 
 Vuelve a Render y pon `CLIENT_URL` con la URL que te dio Cloudflare
-(`https://rumbo.tu-subdominio.workers.dev`, **sin barra final** — aunque el servidor la
+(`https://rumbia.tu-subdominio.workers.dev`, **sin barra final** — aunque el servidor la
 normaliza, es más claro sin ella). Redespliega. Sin este paso el navegador
 bloquea las peticiones por CORS y la app se ve vacía.
 

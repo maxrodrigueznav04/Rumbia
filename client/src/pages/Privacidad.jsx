@@ -14,12 +14,12 @@ export default function Privacidad() {
   return (
     <PaginaLegal
       titulo="Política de privacidad"
-      entrada="Rumbo guarda la información de tus viajes para poder planearlos contigo. Esta página explica qué datos se guardan, con quién se comparten y cómo puedes pedir que se borren. Está escrita para que se entienda, no para cubrirnos las espaldas."
+      entrada="Rumbia guarda la información de tus viajes para poder planearlos contigo. Esta página explica qué datos se guardan, con quién se comparten y cómo puedes pedir que se borren. Está escrita para que se entienda, no para cubrirnos las espaldas."
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
           <li>Tus datos se usan para prestarte el servicio. No se venden ni se usan para publicidad.</li>
-          <li>Rumbo no cobra ni procesa reservas: cuando reservas, sales a otro sitio.</li>
+          <li>Rumbia no cobra ni procesa reservas: cuando reservas, sales a otro sitio.</li>
           <li>Puedes pedir acceso, corrección o borrado de tus datos escribiendo a{' '}
             <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
           </li>
@@ -33,7 +33,7 @@ export default function Privacidad() {
         escribir a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
       </p>
       <p>
-        Rumbo es un planeador de viajes: centraliza la información de tu viaje y te ayuda a armar un
+        Rumbia es un planeador de viajes: centraliza la información de tu viaje y te ayuda a armar un
         itinerario. <strong>No vende vuelos ni hospedaje, no procesa pagos y no cobra comisiones al
         usuario.</strong>
       </p>
@@ -91,7 +91,7 @@ export default function Privacidad() {
 
       <h3>Datos técnicos</h3>
       <p>
-        Rumbo no usa Google Analytics ni ninguna herramienta de analítica de terceros: la medición
+        Rumbia no usa Google Analytics ni ninguna herramienta de analítica de terceros: la medición
         anterior es propia y vive en nuestra base de datos. Los servicios
         donde está alojada la aplicación (Render y Vercel) registran de forma automática datos
         técnicos propios de cualquier servidor web —como la dirección IP, el navegador y la fecha y
@@ -113,7 +113,7 @@ export default function Privacidad() {
 
       <h2>4. Con quién se comparten</h2>
       <p>
-        Rumbo se apoya en servicios de terceros para funcionar. Esto es exactamente qué recibe cada
+        Rumbia se apoya en servicios de terceros para funcionar. Esto es exactamente qué recibe cada
         uno:
       </p>
 
@@ -144,7 +144,7 @@ export default function Privacidad() {
 
       <h3>Enlaces de reserva y programas de afiliados</h3>
       <p>
-        Rumbo arma enlaces de búsqueda hacia proveedores como Skyscanner, Google Flights, Kayak,
+        Rumbia arma enlaces de búsqueda hacia proveedores como Skyscanner, Google Flights, Kayak,
         Rome2Rio, Busbud, Booking.com, Airbnb, Hostelworld, DiscoverCars, Uber, DiDi y Moovit. Esos
         enlaces llevan en su dirección únicamente los <strong>datos del viaje: origen, destino,
         fechas y número de viajeros</strong>.
@@ -154,7 +154,7 @@ export default function Privacidad() {
         direcciones.</strong>
       </p>
       <p>
-        Rumbo participa o podrá participar en programas de afiliados —entre ellos CJ Affiliate
+        Rumbia participa o podrá participar en programas de afiliados —entre ellos CJ Affiliate
         (Commission Junction, operado por Epsilon International UK Ltd)— lo que significa que
         algunos de esos enlaces llevarán un identificador de afiliado. Si haces una reserva después
         de dar clic, el proveedor puede pagarnos una comisión, <strong>sin ningún costo adicional
@@ -231,7 +231,7 @@ export default function Privacidad() {
 
       <h2>8. Menores de edad</h2>
       <p>
-        Rumbo no está dirigido a menores de 18 años y no recabamos datos de forma consciente de
+        Rumbia no está dirigido a menores de 18 años y no recabamos datos de forma consciente de
         ellos. Si detectamos una cuenta de un menor, la eliminaremos. Si eres madre, padre o tutor y
         crees que un menor a tu cargo creó una cuenta, escríbenos a{' '}
         <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong> y la borraremos.
