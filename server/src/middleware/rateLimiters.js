@@ -103,3 +103,18 @@ export const chatLimiter = rateLimit({
     `Límite de mensajes al chat alcanzado (${env.aiChatRateLimitPerHour} por hora). Intenta más tarde.`
   ),
 });
+
+/**
+ * Unirse a una agencia con un codigo de invitacion: es adivinar un secreto
+ * compartido, mismo espiritu que forgotPasswordLimiter/resetPasswordLimiter.
+ * Por IP (sin keyGenerator propio) y no por usuario -- crear una cuenta
+ * nueva es gratis, asi que limitar solo por usuario no frenaria a alguien
+ * dispuesto a registrar varias para multiplicar los intentos.
+ */
+export const joinAgencyLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Demasiados intentos de unirte a una agencia. Espera una hora e intenta de nuevo.'),
+});

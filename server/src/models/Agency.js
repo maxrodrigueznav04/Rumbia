@@ -11,7 +11,10 @@ import crypto from 'node:crypto';
  * listas que se puedan desincronizar.
  */
 
-const generarCodigo = () => crypto.randomBytes(4).toString('hex');
+// 16 bytes = 32 caracteres hex: con 4 (la version anterior) el espacio
+// completo de codigos era de ~4.3 mil millones, adivinable en un tiempo
+// realista contra un endpoint sin limite propio. A este tamano no lo es.
+const generarCodigo = () => crypto.randomBytes(16).toString('hex');
 
 export const PLANES_AGENCIA = ['mensual', 'anual', 'vitalicio'];
 

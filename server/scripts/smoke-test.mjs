@@ -10,7 +10,7 @@ const { getWeatherForRange, getWeatherForStops } = await import('../src/services
 const { buildRouteLines } = await import('../src/services/gemini.service.js');
 const { buildTripContext } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
-const { escaparRegex } = await import('../src/controllers/trip.controller.js');
+const { escaparRegex, CAMPOS_EDITABLES_DIRECTO } = await import('../src/controllers/trip.controller.js');
 const mongoose = (await import('mongoose')).default;
 
 let pass = 0, fail = 0;
@@ -190,6 +190,18 @@ await check('lodging: destinationIndex fuera de rango NO bloquea el guardado', a
   return 'destinationIndex huerfano (5, sin parada 5) no truena la validacion';
 });
 
+await check('Trip: existe un indice para el filtro "proximos"/"pasados" (user + endDate)', async () => {
+  // schema.indexes() no necesita conexion real a Mongo: solo lee las
+  // definiciones declaradas. listTrips filtra por endDate en esos dos
+  // estados; sin este indice esa consulta hace collection scan.
+  const indices = Trip.schema.indexes().map(([campos]) => JSON.stringify(campos));
+  assert(
+    indices.includes(JSON.stringify({ user: 1, endDate: 1 })),
+    `indices declarados: ${indices.join(', ')}`
+  );
+  return 'indice {user:1, endDate:1} declarado';
+});
+
 await check('Itinerary rechaza hora mal formada', async () => {
   const it = new Itinerary({
     trip: uid, user: uid,
@@ -268,6 +280,15 @@ await check('Agency rechaza un plan que no existe', async () => {
   const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
   assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
   return 'enum aplicado';
+});
+
+await check('Agency: inviteCode nace con 16 bytes de entropia (32 caracteres hex)', async () => {
+  const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid });
+  assert(/^[0-9a-f]{32}$/.test(a.inviteCode), `inviteCode=${a.inviteCode}`);
+  const anterior = a.inviteCode;
+  const nuevo = a.regenerarCodigo();
+  assert(/^[0-9a-f]{32}$/.test(nuevo) && nuevo !== anterior, 'regenerar tambien produce 32 hex distintos');
+  return `${a.inviteCode.length} caracteres`;
 });
 
 await check('ItineraryTemplate valida y cuenta actividades sin fechas', async () => {
@@ -614,6 +635,23 @@ await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => 
 });
 
 console.log('\n== Seguridad ==');
+
+await check('updateTrip: el allowlist de campos editables nunca incluye datos internos', async () => {
+  const peligrosos = ['user', 'grupoPropuesta', '_id', 'id', '__v'];
+  for (const campo of peligrosos) {
+    assert(!CAMPOS_EDITABLES_DIRECTO.includes(campo), `"${campo}" no deberia ser editable via PATCH`);
+  }
+  // Y que si trae los campos reales que si se pueden editar directo (los que
+  // no llevan merge especial en updateTrip: budget/origin/margen/cliente/
+  // transport si lo llevan, y no deben estar aqui).
+  for (const campo of ['title', 'status', 'lodging', 'additionalDestinations']) {
+    assert(CAMPOS_EDITABLES_DIRECTO.includes(campo), `"${campo}" deberia poder editarse via PATCH`);
+  }
+  for (const campo of ['budget', 'origin', 'margen', 'cliente', 'transport']) {
+    assert(!CAMPOS_EDITABLES_DIRECTO.includes(campo), `"${campo}" se fusiona aparte, no deberia estar en el allowlist directo`);
+  }
+  return `${CAMPOS_EDITABLES_DIRECTO.length} campos editables directos, sin datos internos`;
+});
 
 await check('escaparRegex neutraliza un patron tipo ReDoS antes de armar el regex', async () => {
   // (a+)+$ es el ejemplo clasico de backtracking catastrofico. Si se

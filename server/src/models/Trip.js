@@ -190,6 +190,10 @@ const tripSchema = new mongoose.Schema(
 );
 
 tripSchema.index({ user: 1, startDate: -1 });
+// listTrips filtra por endDate en los filtros "proximos"/"pasados"
+// (status=proximos -> endDate >= hoy, pasados -> endDate < hoy); sin este
+// indice esa consulta hace collection scan una vez que hay muchos viajes.
+tripSchema.index({ user: 1, endDate: 1 });
 
 tripSchema.virtual('durationDays').get(function durationDays() {
   if (!this.startDate || !this.endDate) return 0;

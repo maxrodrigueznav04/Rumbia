@@ -130,6 +130,31 @@ export const createTrip = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, message: 'Viaje creado.', data: { trip } });
 });
 
+// Todo lo de updateTripSchema que NO se fusiona a mano mas abajo (budget,
+// origin, margen, cliente, transport tienen su propio merge superficial por
+// seccion). Hoy Zod ya descarta cualquier campo no declarado en el schema
+// (updateTripSchema no es .passthrough()), asi que esto no cambia el
+// comportamiento actual -- es una segunda barrera explicita: si algun dia se
+// agrega un campo sensible (user, grupoPropuesta) al schema de validacion sin
+// pensar en updateTrip, este allowlist sigue sin dejarlo pasar.
+export const CAMPOS_EDITABLES_DIRECTO = [
+  'title',
+  'destination',
+  'additionalDestinations',
+  'startDate',
+  'endDate',
+  'travelers',
+  'status',
+  'coverImage',
+  'notes',
+  'lodging',
+  'localTransport',
+  'ocultarDesglose',
+  'interests',
+  'pace',
+  'budgetLevel',
+];
+
 export const updateTrip = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.params.id, req.user._id);
 
@@ -139,7 +164,9 @@ export const updateTrip = asyncHandler(async (req, res) => {
   // sin borrar transport.inbound. origin, margen y cliente necesitan el mismo
   // trato: un PATCH con un solo subcampo no debe borrar los demas.
   const { transport, budget, origin, margen, cliente, ...rest } = req.body;
-  Object.assign(trip, rest);
+  for (const campo of CAMPOS_EDITABLES_DIRECTO) {
+    if (rest[campo] !== undefined) trip[campo] = rest[campo];
+  }
 
   // budget tambien se fusiona: un PATCH con solo { amount } no debe dejar el
   // viaje sin moneda, que es lo que pasa al asignar el subdocumento entero.
