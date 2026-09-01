@@ -562,8 +562,8 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
       ) : (
         <>
           <p className="suave" style={{ marginTop: 0 }}>
-            Mientras seas la única persona en la agencia, Rumbia es gratis. En cuanto quieras que se te
-            una un agente, activa un plan.
+            Crear la agencia fue gratis, pero para crear o editar viajes con ella necesitas un plan
+            activo desde ahora, aunque seas tú solo.
           </p>
           <form onSubmit={irACheckout} className="pila-sm">
             <div className="campos-2">
