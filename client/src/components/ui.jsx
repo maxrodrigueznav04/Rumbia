@@ -124,6 +124,8 @@ export function CampoPassword({ label, error, ayuda, medidor, name = 'password',
 export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
   const cajaRef = useRef(null);
   const focoPrevio = useRef(null);
+  const onCerrarRef = useRef(onCerrar);
+  onCerrarRef.current = onCerrar;
   const tituloId = useId();
 
   useEffect(() => {
@@ -134,11 +136,11 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
     document.body.style.overflow = 'hidden';
 
     const alTeclear = (e) => {
-      if (e.key === 'Escape') onCerrar();
+      if (e.key === 'Escape') onCerrarRef.current?.();
     };
     document.addEventListener('keydown', alTeclear);
 
-    // Foco al primer control del diálogo, no al fondo.
+    // Foco al primer control del diálogo solo al abrir, no al re-renderizar.
     const primero = cajaRef.current?.querySelector(
       'input, select, textarea, button:not([data-cerrar])'
     );
@@ -149,7 +151,7 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
       document.body.style.overflow = overflowPrevio;
       focoPrevio.current?.focus?.();
     };
-  }, [abierto, onCerrar]);
+  }, [abierto]);
 
   if (!abierto) return null;
 

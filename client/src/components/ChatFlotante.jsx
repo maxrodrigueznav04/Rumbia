@@ -35,6 +35,7 @@ export default function ChatFlotante() {
   const [error, setError] = useState(null);
   const [reiniciando, setReiniciando] = useState(false);
   const finRef = useRef(null);
+  const inputRef = useRef(null);
 
   const abrir = () => {
     // Cada vez que se abre desde el boton flotante, arranca en el contexto
@@ -42,8 +43,20 @@ export default function ChatFlotante() {
     // cualquier otra pantalla arranca en modo general. El selector de abajo
     // deja cambiarlo en cualquier momento.
     setTripId(tripIdDesdeRuta(location.pathname));
+    setError(null);
     setAbierto(true);
   };
+
+  const cerrar = () => {
+    setError(null);
+    setAbierto(false);
+  };
+
+  useEffect(() => {
+    if (abierto) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [abierto]);
 
   useEffect(() => {
     if (!abierto) return undefined;
@@ -147,7 +160,7 @@ export default function ChatFlotante() {
         </button>
       )}
 
-      <Modal abierto={abierto} onCerrar={() => setAbierto(false)} titulo="Chat con el asistente" ancho={640}>
+      <Modal abierto={abierto} onCerrar={cerrar} titulo="Chat con el asistente" ancho={640}>
         <div className="chat-panel">
           <div className="fila-entre" style={{ marginBottom: 10, gap: 8 }}>
             <select value={tripId || ''} onChange={cambiarViaje} aria-label="¿De qué viaje quieres hablar?">
@@ -208,6 +221,7 @@ export default function ChatFlotante() {
 
           <form className="chat-form" onSubmit={enviar}>
             <textarea
+              ref={inputRef}
               placeholder="Escribe tu pregunta..."
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
@@ -224,11 +238,6 @@ export default function ChatFlotante() {
             </Boton>
           </form>
         </div>
-
-        <p className="tenue" style={{ margin: '10px 0 0', fontSize: '0.78rem' }}>
-          Las respuestas son generadas por IA y pueden no ser exactas, sobre todo en precios y
-          disponibilidad — confírmalo en un comparador real.
-        </p>
       </Modal>
     </>
   );
