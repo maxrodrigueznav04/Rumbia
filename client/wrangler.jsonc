@@ -16,12 +16,16 @@
     "not_found_handling": "single-page-application"
   },
 
-  // www.rumbiamx.com como Custom Domain. El apex (rumbiamx.com) ya se
-  // configuro a mano desde el dashboard y no se toca aqui para no arriesgar
-  // esa configuracion que ya funciona -- este archivo solo agrega el www,
-  // que fallaba en el dashboard con un bug ("No zones match") ajeno a este
-  // repo. "custom_domain: true" es lo que le dice a Cloudflare que maneje el
-  // DNS solo (a diferencia de una Route normal, que necesita el registro ya
-  // creado a mano).
-  "routes": [{ "pattern": "www.rumbiamx.com", "custom_domain": true }]
+  // Custom Domains del Worker. IMPORTANTE: wrangler trata este arreglo como
+  // la lista COMPLETA de dominios personalizados -- no es aditivo. La
+  // primera vez que se agrego www.rumbiamx.com aqui, dejar fuera a
+  // rumbiamx.com (que se habia configurado a mano desde el dashboard,
+  // pensando que asi quedaba "intacto") hizo que el deploy lo quitara del
+  // Worker sin avisar claramente -- rumbiamx.com dejo de resolver (NXDOMAIN)
+  // hasta que se agrego aqui tambien. Los dos tienen que estar siempre
+  // listados juntos.
+  "routes": [
+    { "pattern": "rumbiamx.com", "custom_domain": true },
+    { "pattern": "www.rumbiamx.com", "custom_domain": true }
+  ]
 }
