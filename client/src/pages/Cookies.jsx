@@ -46,11 +46,15 @@ export default function Cookies() {
           <code>rumbia_token</code> — el token de sesión que demuestra que ya iniciaste sesión, para
           que no tengas que escribir tu contraseña en cada pantalla.
         </li>
+        <li>
+          <code>rumbia-tema</code> — si elegiste modo claro u oscuro a mano (en vez de seguir el de tu
+          sistema), para recordarlo en tu próxima visita. No dice nada de ti, solo la preferencia.
+        </li>
       </ul>
       <p>
-        A diferencia de una cookie, este dato <strong>no se envía solo</strong> con cada petición ni
-        puede ser leído por otros sitios: solo lo usa esta aplicación, y únicamente para hablar con
-        su propia API.
+        A diferencia de una cookie, estos datos <strong>no se envían solos</strong> con cada petición
+        ni pueden ser leídos por otros sitios: solo los usa esta aplicación, y el token únicamente
+        para hablar con su propia API.
       </p>
       <p>
         <strong>Cómo eliminarlo:</strong> al cerrar sesión desde el menú, se borra al instante.

@@ -191,6 +191,7 @@ Llena `server/.env`:
 | `GEMINI_MODEL` | no | `gemini-3.6-flash` por defecto. |
 | `OPENWEATHER_API_KEY` | no* | [OpenWeatherMap](https://openweathermap.org/api). Sin ella el clima cae a estimación por temporada. |
 | `AI_RATE_LIMIT_PER_HOUR` | no | Generaciones con IA por usuario por hora (10 por defecto). |
+| `AI_CHAT_RATE_LIMIT_PER_HOUR` | no | Mensajes al chat de IA por usuario por hora (30 por defecto — más alto que el de arriba porque una conversación manda muchos mensajes cortos, no una generación pesada). |
 | `ADMIN_EMAIL` | no | Correo con reporte de clics y sin topes de uso (generaciones ilimitadas, sin candado de facturación). Sin definirla, nadie tiene ninguno de los dos. |
 | `RESEND_API_KEY` | no* | [Resend](https://resend.com/api-keys). Sin ella no sale el correo de recuperación; en desarrollo el enlace se imprime en la consola. |
 | `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
