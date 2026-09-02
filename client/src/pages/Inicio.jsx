@@ -89,7 +89,10 @@ export default function Inicio() {
             </span>
             Rumbia
           </span>
-          <div className="fila" style={{ gap: 8 }}>
+          <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
+            <Link to="/acerca" className="boton fantasma chico">
+              Acerca de
+            </Link>
             <Link to="/entrar" className="boton secundario chico">
               Entrar
             </Link>
@@ -251,7 +254,8 @@ export default function Inicio() {
           <p className="tenue">
             Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces legales">
+          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
+            <Link to="/acerca">Acerca de</Link>
             <Link to="/privacidad">Privacidad</Link>
             <Link to="/cookies">Cookies y rastreo</Link>
             <Link to="/terminos">Términos</Link>

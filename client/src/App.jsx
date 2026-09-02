@@ -19,6 +19,7 @@ import Privacidad from './pages/Privacidad.jsx';
 import Terminos from './pages/Terminos.jsx';
 import ItinerarioCompartido from './pages/ItinerarioCompartido.jsx';
 import Cookies from './pages/Cookies.jsx';
+import Acerca from './pages/Acerca.jsx';
 import { Vacio } from './components/ui.jsx';
 
 function NoEncontrado() {
@@ -106,6 +107,10 @@ export default function App() {
 
             {/* Itinerario compartido: se abre con el token, sin sesion. */}
             <Route path="/i/:token" element={<ItinerarioCompartido />} />
+
+            {/* Acerca de: explicacion de producto para viajeros y agencias */}
+            <Route path="/acerca" element={<Acerca />} />
+            <Route path="/acerca-de" element={<Navigate to="/acerca" replace />} />
 
             {/* La portada es publica: quien llega sin cuenta tiene que poder
                 ver que hace la app y probarla antes de registrarse. */}

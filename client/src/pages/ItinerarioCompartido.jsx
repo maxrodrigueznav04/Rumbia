@@ -230,7 +230,8 @@ export default function ItinerarioCompartido() {
           <p className="tenue">
             Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces legales">
+          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
+            <Link to="/acerca">Acerca de</Link>
             <Link to="/privacidad">Privacidad</Link>
             <Link to="/cookies">Cookies y rastreo</Link>
             <Link to="/terminos">Términos</Link>

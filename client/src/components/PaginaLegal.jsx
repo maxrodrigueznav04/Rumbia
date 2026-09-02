@@ -46,7 +46,8 @@ export default function PaginaLegal({ titulo, entrada, children }) {
 
         <div className="prosa">{children}</div>
 
-        <nav className="legal-pie" aria-label="Otros documentos">
+        <nav className="legal-pie" aria-label="Enlaces del sitio">
+          <NavLink to="/acerca">Acerca de</NavLink>
           <NavLink to="/privacidad">Política de privacidad</NavLink>
           <NavLink to="/cookies">Cookies y rastreo</NavLink>
           <NavLink to="/terminos">Términos y condiciones</NavLink>
