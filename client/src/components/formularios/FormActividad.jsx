@@ -93,7 +93,7 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
             <select {...form.props('category')}>
               {CATEGORIAS.map((c) => (
                 <option key={c} value={c}>
-                  {ICONOS_CATEGORIA[c]} {c.replace('-', ' ')}
+                  {ICONOS_CATEGORIA[c]} {c.replace(/-/g, ' ')}
                 </option>
               ))}
             </select>

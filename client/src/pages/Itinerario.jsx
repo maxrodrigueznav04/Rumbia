@@ -533,11 +533,12 @@ export default function Itinerario() {
                 <Boton
                   variante="secundario"
                   onClick={async () => {
+                    setErrorGen(null);
                     try {
                       await itineraryApi.createBlank(id);
                       itinReq.recargar();
                     } catch (err) {
-                      window.alert(err.message);
+                      setErrorGen(err);
                     }
                   }}
                 >
@@ -702,7 +703,7 @@ export default function Itinerario() {
                     <span className="numero">{formatoMoneda(itinerario.totalEstimatedCost, moneda)}</span>
                   </div>
                   <div className="linea-gasto">
-                    <span className="suave">Transporte, hospedaje y transporte local</span>
+                    <span className="suave">Ida y vuelta, hospedaje y transporte local</span>
                     <span className="numero">
                       {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
                     </span>

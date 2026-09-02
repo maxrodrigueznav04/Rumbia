@@ -171,6 +171,7 @@ export default function DetalleViaje() {
   const [modal, setModal] = useState(null);
   const [confirmar, setConfirmar] = useState(null);
   const [duplicando, setDuplicando] = useState(false);
+  const [errorDuplicar, setErrorDuplicar] = useState(null);
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
   const [personas, setPersonas] = useState(null);
   // Resultado de sincronizar el itinerario cuando cambian las fechas del viaje.
@@ -231,11 +232,12 @@ export default function DetalleViaje() {
       variante — "Opcion Economica" vs "Premium" del mismo prospecto. */
   const duplicarViaje = async () => {
     setDuplicando(true);
+    setErrorDuplicar(null);
     try {
       const res = await tripsApi.duplicar(id);
       navigate(`/viajes/${res.trip._id}`);
     } catch (err) {
-      window.alert(err.message);
+      setErrorDuplicar(err.message || 'No se pudo duplicar el viaje.');
     } finally {
       setDuplicando(false);
     }
@@ -318,6 +320,8 @@ export default function DetalleViaje() {
           </Boton>
         </div>
       </header>
+
+      {errorDuplicar && <Aviso tipo="error">{errorDuplicar}</Aviso>}
 
       {avisoItinerario && (
         <Aviso tipo={avisoItinerario.diasSobrantes > 0 ? 'alerta' : 'info'} titulo="Itinerario ajustado">
