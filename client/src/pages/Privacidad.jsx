@@ -154,12 +154,12 @@ export default function Privacidad() {
         direcciones.</strong>
       </p>
       <p>
-        Rumbia participa o podrá participar en programas de afiliados —entre ellos CJ Affiliate
-        (Commission Junction, operado por Epsilon International UK Ltd)— lo que significa que
-        algunos de esos enlaces llevarán un identificador de afiliado. Si haces una reserva después
-        de dar clic, el proveedor puede pagarnos una comisión, <strong>sin ningún costo adicional
-        para ti</strong>. Ese identificador señala de qué sitio venías, no quién eres. El detalle de
-        qué ocurre al hacer clic está en el{' '}
+        Rumbia podrá participar en programas de afiliados, lo que significa que algunos de esos
+        enlaces podrían llevar un identificador de afiliado. Si haces una reserva después de dar
+        clic, el proveedor puede pagarnos una comisión, <strong>sin ningún costo adicional para
+        ti</strong>. Ese identificador señala de qué sitio venías, no quién eres. Cuando un enlace
+        sí lleve ese identificador, se marca como tal en pantalla; el detalle de qué ocurre al
+        hacer clic está en el{' '}
         <a href="/cookies">aviso de cookies y rastreo</a>.
       </p>
 
