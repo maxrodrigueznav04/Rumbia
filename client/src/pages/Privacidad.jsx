@@ -93,7 +93,7 @@ export default function Privacidad() {
       <p>
         Rumbia no usa Google Analytics ni ninguna herramienta de analítica de terceros: la medición
         anterior es propia y vive en nuestra base de datos. Los servicios
-        donde está alojada la aplicación (Render y Vercel) registran de forma automática datos
+        donde está alojada la aplicación (Render y Cloudflare) registran de forma automática datos
         técnicos propios de cualquier servidor web —como la dirección IP, el navegador y la fecha y
         hora de cada petición— para poder operar y detectar abusos. Ese registro lo hacen ellos bajo
         sus propias políticas.
@@ -135,11 +135,11 @@ export default function Privacidad() {
         No recibe nada que te identifique.
       </p>
 
-      <h3>MongoDB Atlas, Render y Vercel — infraestructura</h3>
+      <h3>MongoDB Atlas, Render y Cloudflare — infraestructura</h3>
       <p>
         La base de datos está alojada en MongoDB Atlas; la API corre en Render y la interfaz en
-        Vercel. Almacenan y procesan la información por cuenta nuestra para que la aplicación
-        funcione.
+        Cloudflare Workers. Almacenan y procesan la información por cuenta nuestra para que la
+        aplicación funcione.
       </p>
 
       <h3>Enlaces de reserva y programas de afiliados</h3>
