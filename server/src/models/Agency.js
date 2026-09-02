@@ -16,11 +16,19 @@ import crypto from 'node:crypto';
 // realista contra un endpoint sin limite propio. A este tamano no lo es.
 const generarCodigo = () => crypto.randomBytes(16).toString('hex');
 
-export const PLANES_AGENCIA = ['mensual', 'anual', 'vitalicio'];
+export const PLANES_AGENCIA = [
+  'inicio_mensual',
+  'inicio_anual',
+  'agencia_mensual',
+  'agencia_anual',
+  'pro_mensual',
+  'pro_anual',
+  'mensual',
+  'anual',
+  'vitalicio',
+];
 
-// Agentes que trae el plan base, antes de comprar asientos extra. Vive aqui y
-// no en env porque es una regla de negocio del modelo, no configuracion de
-// despliegue: la cambia quien fija precios, no quien despliega.
+// Agentes que trae el plan base de inicio antes de comprar asientos extra.
 export const AGENTES_INCLUIDOS = 3;
 
 /**
@@ -68,6 +76,10 @@ agencySchema.methods.regenerarCodigo = function regenerarCodigo() {
 };
 
 agencySchema.virtual('capacidadAgentes').get(function capacidadAgentes() {
+  const plan = this.billing?.plan;
+  if (plan?.startsWith('pro')) return 15 + (this.billing?.extraAgentes || 0);
+  if (plan?.startsWith('agencia')) return 8 + (this.billing?.extraAgentes || 0);
+  if (plan?.startsWith('inicio')) return 3 + (this.billing?.extraAgentes || 0);
   return AGENTES_INCLUIDOS + (this.billing?.extraAgentes || 0);
 });
 

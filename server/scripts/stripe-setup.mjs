@@ -20,13 +20,17 @@ if (!KEY) {
 const stripe = new Stripe(KEY);
 const MONEDA = 'usd';
 
-// $20/mes, $200/año (~17% menos que 12 meses corridos), $500 de por vida
-// (~25 meses de mensualidad). El agente extra sigue la misma proporcion que
-// el plan base en cada cadencia: $10/mes, $100/año, $250 de por vida.
+// Planes oficiales:
+// - Inicio / Solo: $9.99/mes, $104.99/año (1 a 3 agentes)
+// - Agencia: $23.99/mes, $249.99/año (4 a 8 agentes)
+// - Agencia Pro: $39.99/mes, $419.99/año (hasta 15 agentes, +$4/mes por agente 16+)
 const PRECIOS = [
-  { plan: 'mensual', nombre: 'Rumbia Agencia — Mensual', base: 2000, agente: 1000, recurring: { interval: 'month' } },
-  { plan: 'anual', nombre: 'Rumbia Agencia — Anual', base: 20000, agente: 10000, recurring: { interval: 'year' } },
-  { plan: 'vitalicio', nombre: 'Rumbia Agencia — De por vida', base: 50000, agente: 25000, recurring: null },
+  { plan: 'inicio_mensual', nombre: 'Rumbia — Inicio Mensual', base: 999, agente: null, recurring: { interval: 'month' } },
+  { plan: 'inicio_anual', nombre: 'Rumbia — Inicio Anual', base: 10499, agente: null, recurring: { interval: 'year' } },
+  { plan: 'agencia_mensual', nombre: 'Rumbia — Agencia Mensual', base: 2399, agente: null, recurring: { interval: 'month' } },
+  { plan: 'agencia_anual', nombre: 'Rumbia — Agencia Anual', base: 24999, agente: null, recurring: { interval: 'year' } },
+  { plan: 'pro_mensual', nombre: 'Rumbia — Agencia Pro Mensual', base: 3999, agente: 400, recurring: { interval: 'month' } },
+  { plan: 'pro_anual', nombre: 'Rumbia — Agencia Pro Anual', base: 41999, agente: 4200, recurring: { interval: 'year' } },
 ];
 
 async function buscarOCrearPrice({ lookupKey, nombre, montoCentavos, recurring }) {
@@ -54,19 +58,21 @@ const lineasEnv = [];
 for (const { plan, nombre, base, agente, recurring } of PRECIOS) {
   const precioBase = await buscarOCrearPrice({
     lookupKey: `agencia_${plan}_base`,
-    nombre: `${nombre} (base, hasta 3 agentes)`,
+    nombre,
     montoCentavos: base,
     recurring,
   });
-  const precioAgente = await buscarOCrearPrice({
-    lookupKey: `agencia_${plan}_agente`,
-    nombre: `${nombre} (agente extra)`,
-    montoCentavos: agente,
-    recurring,
-  });
-
   lineasEnv.push(`STRIPE_PRICE_${plan.toUpperCase()}_BASE=${precioBase.id}`);
-  lineasEnv.push(`STRIPE_PRICE_${plan.toUpperCase()}_AGENTE=${precioAgente.id}`);
+
+  if (agente) {
+    const precioAgente = await buscarOCrearPrice({
+      lookupKey: `agencia_${plan}_agente`,
+      nombre: `${nombre} (agente extra)`,
+      montoCentavos: agente,
+      recurring,
+    });
+    lineasEnv.push(`STRIPE_PRICE_${plan.toUpperCase()}_AGENTE=${precioAgente.id}`);
+  }
 }
 
 console.log('\nPega esto en server/.env (y en las variables de entorno de Render):\n');

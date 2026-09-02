@@ -76,6 +76,14 @@ export const env = {
     // Un Price de Stripe por casilla: base de cada plan + el costo de un
     // agente extra en ese mismo plan. Los crea `npm run stripe:setup`.
     precios: {
+      inicioMensualBase: process.env.STRIPE_PRICE_INICIO_MENSUAL_BASE || '',
+      inicioAnualBase: process.env.STRIPE_PRICE_INICIO_ANUAL_BASE || '',
+      agenciaMensualBase: process.env.STRIPE_PRICE_AGENCIA_MENSUAL_BASE || process.env.STRIPE_PRICE_MENSUAL_BASE || '',
+      agenciaAnualBase: process.env.STRIPE_PRICE_AGENCIA_ANUAL_BASE || process.env.STRIPE_PRICE_ANUAL_BASE || '',
+      proMensualBase: process.env.STRIPE_PRICE_PRO_MENSUAL_BASE || '',
+      proMensualAgente: process.env.STRIPE_PRICE_PRO_MENSUAL_AGENTE || '',
+      proAnualBase: process.env.STRIPE_PRICE_PRO_ANUAL_BASE || '',
+      proAnualAgente: process.env.STRIPE_PRICE_PRO_ANUAL_AGENTE || '',
       mensualBase: process.env.STRIPE_PRICE_MENSUAL_BASE || '',
       mensualAgente: process.env.STRIPE_PRICE_MENSUAL_AGENTE || '',
       anualBase: process.env.STRIPE_PRICE_ANUAL_BASE || '',

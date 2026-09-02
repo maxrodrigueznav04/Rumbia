@@ -29,15 +29,21 @@ function requerirStripe() {
  * los otros dos son suscripciones que Stripe renueva solo.
  */
 const PLANES = {
-  mensual: { base: () => env.stripe.precios.mensualBase, agente: () => env.stripe.precios.mensualAgente, modo: 'subscription' },
-  anual: { base: () => env.stripe.precios.anualBase, agente: () => env.stripe.precios.anualAgente, modo: 'subscription' },
-  vitalicio: { base: () => env.stripe.precios.vitalicioBase, agente: () => env.stripe.precios.vitalicioAgente, modo: 'payment' },
+  inicio_mensual: { base: () => env.stripe.precios.inicioMensualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
+  inicio_anual: { base: () => env.stripe.precios.inicioAnualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
+  agencia_mensual: { base: () => env.stripe.precios.agenciaMensualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
+  agencia_anual: { base: () => env.stripe.precios.agenciaAnualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
+  pro_mensual: { base: () => env.stripe.precios.proMensualBase, agente: () => env.stripe.precios.proMensualAgente, permiteExtra: true, modo: 'subscription' },
+  pro_anual: { base: () => env.stripe.precios.proAnualBase, agente: () => env.stripe.precios.proAnualAgente, permiteExtra: true, modo: 'subscription' },
+  mensual: { base: () => env.stripe.precios.mensualBase, agente: () => env.stripe.precios.mensualAgente, permiteExtra: true, modo: 'subscription' },
+  anual: { base: () => env.stripe.precios.anualBase, agente: () => env.stripe.precios.anualAgente, permiteExtra: true, modo: 'subscription' },
+  vitalicio: { base: () => env.stripe.precios.vitalicioBase, agente: () => env.stripe.precios.vitalicioAgente, permiteExtra: true, modo: 'payment' },
 };
 
 function configDePlan(plan) {
   const cfg = PLANES[plan];
   if (!cfg) throw ApiError.badRequest(`Plan "${plan}" no existe.`);
-  if (!cfg.base() || !cfg.agente()) {
+  if (!cfg.base() || (cfg.permiteExtra && !cfg.agente())) {
     throw ApiError.serviceUnavailable(
       `El plan "${plan}" no tiene sus Price de Stripe configurados. Corre "npm run stripe:setup" en server/ y copia las variables al .env.`
     );

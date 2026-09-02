@@ -11,9 +11,15 @@ import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, Error
  * distintas.
  */
 const PLANES = {
-  mensual: { etiqueta: 'Mensual', base: '$20 USD/mes', agente: '+$10 USD/mes por agente extra' },
-  anual: { etiqueta: 'Anual', base: '$200 USD/año', agente: '+$100 USD/año por agente extra' },
-  vitalicio: { etiqueta: 'De por vida', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
+  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', base: '$9.99 USD/mes', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos' },
+  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', base: '$104.99 USD/año', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)' },
+  agencia_mensual: { etiqueta: 'Agencia (Mensual)', base: '$23.99 USD/mes', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos' },
+  agencia_anual: { etiqueta: 'Agencia (Anual)', base: '$249.99 USD/año', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)' },
+  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', base: '$39.99 USD/mes', agentesBase: 15, agente: '+$4 USD/mes por agente extra (16+)', permiteExtra: true },
+  pro_anual: { etiqueta: 'Agencia Pro (Anual)', base: '$419.99 USD/año', agentesBase: 15, agente: '+$42 USD/año por agente extra (16+)', permiteExtra: true },
+  mensual: { etiqueta: 'Mensual (Legacy)', base: '$20 USD/mes', agente: '+$10 USD/mes por agente extra', permiteExtra: true },
+  anual: { etiqueta: 'Anual (Legacy)', base: '$200 USD/año', agente: '+$100 USD/año por agente extra', permiteExtra: true },
+  vitalicio: { etiqueta: 'De por vida (Legacy)', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
 };
 
 /**
@@ -458,6 +464,14 @@ function AjusteAgentesExtra({ agencia, recargar }) {
     }
   };
 
+  if (billing.plan && !PLANES[billing.plan]?.permiteExtra) {
+    return (
+      <p className="tenue" style={{ marginTop: 8, fontSize: '0.85rem' }}>
+        ℹ️ {PLANES[billing.plan]?.ayuda}. Para ampliar agentes o cambiar de plan, usa &quot;Administrar plan&quot;.
+      </p>
+    );
+  }
+
   return (
     <form onSubmit={guardar} className="pila-sm" style={{ marginTop: 12 }}>
       <div className="fila" style={{ gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -492,10 +506,10 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   const billing = agencia.billing || {};
   const yaTuvoPlan = Boolean(billing.stripeCustomerId);
 
-  const [plan, setPlan] = useState(billing.plan || 'mensual');
-  // El 3 espeja AGENTES_INCLUIDOS en server/src/models/Agency.js: es solo el
-  // valor inicial del formulario, la capacidad real la calcula el backend.
-  const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - 3));
+  const [plan, setPlan] = useState(billing.plan || 'agencia_mensual');
+  // La capacidad base del plan seleccionado (3 para inicio, 8 para agencia, 15 para pro)
+  const agentesBase = PLANES[plan]?.agentesBase || 3;
+  const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - agentesBase));
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -504,7 +518,10 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
     setError(null);
     setCargando(true);
     try {
-      const data = await billingApi.checkout({ plan, extraAgentes: Number(extraAgentes) || 0 });
+      const data = await billingApi.checkout({
+        plan,
+        extraAgentes: PLANES[plan]?.permiteExtra ? Number(extraAgentes) || 0 : 0,
+      });
       window.location.href = data.url;
     } catch (err) {
       setError(err.message);
@@ -541,7 +558,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
       {billing.status === 'activa' && (
         <>
           <p className="suave" style={{ marginTop: 0 }}>
-            Plan {PLANES[billing.plan]?.etiqueta.toLowerCase() || billing.plan}, {agencia.capacidadAgentes} agente(s)
+            Plan {PLANES[billing.plan]?.etiqueta || billing.plan}, {agencia.capacidadAgentes} agente(s)
             de cupo ({totalAgentes} en uso)
             {billing.periodoHasta && ` · se renueva el ${new Date(billing.periodoHasta).toLocaleDateString('es-MX')}`}.
           </p>
@@ -566,29 +583,37 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             activo desde ahora, aunque seas tú solo.
           </p>
           <form onSubmit={irACheckout} className="pila-sm">
-            <div className="campos-2">
+            <div className={PLANES[plan]?.permiteExtra ? 'campos-2' : ''}>
               <Campo label="Plan">
                 <select value={plan} onChange={(e) => setPlan(e.target.value)}>
-                  {Object.entries(PLANES).map(([valor, p]) => (
-                    <option key={valor} value={valor}>
-                      {p.etiqueta} — {p.base}
-                    </option>
-                  ))}
+                  {Object.entries(PLANES)
+                    .filter(([valor]) => !['mensual', 'anual', 'vitalicio'].includes(valor))
+                    .map(([valor, p]) => (
+                      <option key={valor} value={valor}>
+                        {p.etiqueta} — {p.base}
+                      </option>
+                    ))}
                 </select>
               </Campo>
-              <Campo
-                label="Agentes extra"
-                type="number"
-                min="0"
-                step="1"
-                value={extraAgentes}
-                onChange={(e) => setExtraAgentes(e.target.value)}
-                ayuda={PLANES[plan]?.agente}
-              />
+              {PLANES[plan]?.permiteExtra ? (
+                <Campo
+                  label="Agentes extra (16+)"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={extraAgentes}
+                  onChange={(e) => setExtraAgentes(e.target.value)}
+                  ayuda={PLANES[plan]?.agente}
+                />
+              ) : (
+                <p className="tenue" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>
+                  ℹ️ {PLANES[plan]?.ayuda}
+                </p>
+              )}
             </div>
-            <div>
+            <div style={{ marginTop: 8 }}>
               <Boton type="submit" cargando={cargando}>
-                Suscribirme
+                Suscribirme con Stripe
               </Boton>
             </div>
           </form>

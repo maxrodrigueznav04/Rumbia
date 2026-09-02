@@ -138,7 +138,17 @@ export const joinAgencySchema = z.object({
 });
 
 export const checkoutAgencySchema = z.object({
-  plan: z.enum(['mensual', 'anual', 'vitalicio']),
+  plan: z.enum([
+    'inicio_mensual',
+    'inicio_anual',
+    'agencia_mensual',
+    'agencia_anual',
+    'pro_mensual',
+    'pro_anual',
+    'mensual',
+    'anual',
+    'vitalicio',
+  ]),
   extraAgentes: z.coerce.number().int().min(0).max(500).default(0),
 });
 
