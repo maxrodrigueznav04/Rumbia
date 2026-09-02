@@ -230,7 +230,7 @@ export default function NuevoViaje() {
                     className={`insignia ${activo ? 'marca' : ''}`}
                     style={{ cursor: 'pointer', padding: '7px 12px', fontFamily: 'inherit' }}
                   >
-                    {valor.replace('-', ' ')}
+                    {valor.replace(/-/g, ' ')}
                   </button>
                 );
               })}

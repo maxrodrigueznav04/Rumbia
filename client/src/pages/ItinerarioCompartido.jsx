@@ -52,7 +52,7 @@ export default function ItinerarioCompartido() {
             Rumbia
           </Link>
           <Link to="/" className="boton secundario chico">
-            Arma el tuyo
+            Planear mi viaje
           </Link>
         </div>
       </header>
@@ -138,7 +138,7 @@ export default function ItinerarioCompartido() {
                           </span>
                         </div>
                         <div className="linea-gasto">
-                          <span className="suave">Transporte, hospedaje y transporte local</span>
+                          <span className="suave">Ida y vuelta, hospedaje y transporte local</span>
                           <span className="numero">
                             {formatoMoneda(
                               porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),

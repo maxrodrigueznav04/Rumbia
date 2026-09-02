@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LimiteDeError from './components/LimiteDeError.jsx';
 import AvisoServidor from './components/AvisoServidor.jsx';
 import Layout from './components/Layout.jsx';
@@ -22,14 +22,17 @@ import Cookies from './pages/Cookies.jsx';
 import { Vacio } from './components/ui.jsx';
 
 function NoEncontrado() {
+  // Alcanzable con o sin sesion (no vive bajo RutaProtegida): mandar a
+  // quien no tiene sesion por /viajes solo lo rebota a /entrar de vuelta.
+  const { autenticado } = useAuth();
   return (
     <div className="pagina contenedor">
       <Vacio
         icono="🧭"
         titulo="Esta ruta no existe"
         accion={
-          <Link to="/viajes" className="boton">
-            Ir a mis viajes
+          <Link to={autenticado ? '/viajes' : '/'} className="boton">
+            {autenticado ? 'Ir a mis viajes' : 'Ir al inicio'}
           </Link>
         }
       >
