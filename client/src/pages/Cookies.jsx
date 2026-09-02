@@ -81,10 +81,9 @@ export default function Cookies() {
 
       <h2>4. Programas de afiliados</h2>
       <p>
-        Rumbia participa o podrá participar en programas de afiliados, entre ellos{' '}
-        <strong>CJ Affiliate</strong> (Commission Junction, operado por Epsilon International UK
-        Ltd). En la práctica esto significa que algunos de los enlaces de reserva llevarán un
-        identificador que indica que la visita vino de Rumbia.
+        Rumbia podrá participar en programas de afiliados. En la práctica esto significa que
+        algunos de los enlaces de reserva podrían llevar un identificador que indica que la
+        visita vino de Rumbia. Cuando eso pase, el enlace se marca como "Afiliado" en pantalla.
       </p>
       <p>Cuando das clic en uno de esos enlaces:</p>
       <ul>
