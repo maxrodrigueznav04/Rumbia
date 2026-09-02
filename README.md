@@ -1,6 +1,6 @@
 # Rumbia — Planeador de viajes con IA
 
-[![CI](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml/badge.svg)](https://github.com/maxrodrigueznav04/Rumbo/actions/workflows/ci.yml)
+[![CI](https://github.com/maxrodrigueznav04/rumbia/actions/workflows/ci.yml/badge.svg)](https://github.com/maxrodrigueznav04/rumbia/actions/workflows/ci.yml)
 
 Aplicación web full-stack para planear un viaje completo en un solo lugar: transporte de ida y
 vuelta, hospedaje, transporte en el destino, itinerario día por día generado con IA, mapa, clima y
