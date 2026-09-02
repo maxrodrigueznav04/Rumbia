@@ -22,6 +22,53 @@ const PLANES = {
   vitalicio: { etiqueta: 'De por vida (Legacy)', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
 };
 
+export const TIERS_SELECCION = [
+  {
+    id: 'inicio',
+    nombre: 'Inicio / Solo',
+    capacidad: '1 a 3 agentes incluidos',
+    precioMensual: '$9.99 USD',
+    precioAnual: '$104.99 USD',
+    puntos: [
+      'De 1 a 3 agentes incluidos',
+      '25 itinerarios con IA al mes',
+      'Viajes manuales y PDFs ilimitados',
+      'Datos de contacto del asesor',
+    ],
+  },
+  {
+    id: 'agencia',
+    nombre: 'Agencia',
+    destacado: true,
+    capacidad: '4 a 8 agentes incluidos',
+    precioMensual: '$23.99 USD',
+    precioAnual: '$249.99 USD',
+    puntos: [
+      'De 4 a 8 agentes incluidos',
+      '150 itinerarios con IA al mes',
+      'Logo y membrete oficial en PDF',
+      'Margen de ganancia automático',
+      'Ocultar desglose de precios',
+      'Reporte de productividad por agente',
+    ],
+  },
+  {
+    id: 'pro',
+    nombre: 'Agencia Pro',
+    capacidad: 'Hasta 15 agentes incluidos',
+    precioMensual: '$39.99 USD',
+    precioAnual: '$419.99 USD',
+    permiteExtra: true,
+    puntos: [
+      'Hasta 15 agentes incluidos',
+      '500 itinerarios con IA al mes',
+      'Marca blanca (sin pie de Rumbia)',
+      'Soporte prioritario por WhatsApp',
+      'Chat de IA ilimitado',
+    ],
+  },
+];
+
 /**
  * La marca del PDF, en sus tres estados posibles: sin agencia (marca propia,
  * como siempre), miembro de una agencia (marca de la agencia, de solo
@@ -506,10 +553,23 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   const billing = agencia.billing || {};
   const yaTuvoPlan = Boolean(billing.stripeCustomerId);
 
-  const [plan, setPlan] = useState(billing.plan || 'agencia_mensual');
-  // La capacidad base del plan seleccionado (3 para inicio, 8 para agencia, 15 para pro)
-  const agentesBase = PLANES[plan]?.agentesBase || 3;
-  const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - agentesBase));
+  // Frecuencia: 'mensual' | 'anual'
+  const [frecuencia, setFrecuencia] = useState(
+    billing.plan?.endsWith('anual') ? 'anual' : 'mensual'
+  );
+  // Tier seleccionado: 'inicio' | 'agencia' | 'pro'
+  const [tier, setTier] = useState(() => {
+    if (billing.plan?.startsWith('inicio')) return 'inicio';
+    if (billing.plan?.startsWith('pro')) return 'pro';
+    return 'agencia';
+  });
+
+  const planClave = `${tier}_${frecuencia}`;
+  const tierSeleccionado = TIERS_SELECCION.find((t) => t.id === tier) || TIERS_SELECCION[1];
+  const precioActual = frecuencia === 'mensual' ? tierSeleccionado.precioMensual : tierSeleccionado.precioAnual;
+  const periodoTexto = frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)';
+
+  const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - 15));
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -519,8 +579,8 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
     setCargando(true);
     try {
       const data = await billingApi.checkout({
-        plan,
-        extraAgentes: PLANES[plan]?.permiteExtra ? Number(extraAgentes) || 0 : 0,
+        plan: planClave,
+        extraAgentes: tier === 'pro' ? Number(extraAgentes) || 0 : 0,
       });
       window.location.href = data.url;
     } catch (err) {
@@ -578,42 +638,152 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
         </Boton>
       ) : (
         <>
-          <p className="suave" style={{ marginTop: 0 }}>
-            Crear la agencia fue gratis, pero para crear o editar viajes con ella necesitas un plan
-            activo desde ahora, aunque seas tú solo.
+          <p className="suave" style={{ marginTop: 0, marginBottom: 16 }}>
+            Elige el plan que mejor se adapte al tamaño de tu equipo para activar tus propuestas,
+            itinerarios con IA y cotizaciones oficiales:
           </p>
-          <form onSubmit={irACheckout} className="pila-sm">
-            <div className={PLANES[plan]?.permiteExtra ? 'campos-2' : ''}>
-              <Campo label="Plan">
-                <select value={plan} onChange={(e) => setPlan(e.target.value)}>
-                  {Object.entries(PLANES)
-                    .filter(([valor]) => !['mensual', 'anual', 'vitalicio'].includes(valor))
-                    .map(([valor, p]) => (
-                      <option key={valor} value={valor}>
-                        {p.etiqueta} — {p.base}
-                      </option>
-                    ))}
-                </select>
-              </Campo>
-              {PLANES[plan]?.permiteExtra ? (
+
+          <form onSubmit={irACheckout} className="pila" style={{ gap: 16 }}>
+            {/* Selector de frecuencia */}
+            <div
+              className="fila"
+              style={{
+                background: 'var(--bg-suave, rgba(0,0,0,0.05))',
+                padding: '4px',
+                borderRadius: 'var(--radio)',
+                display: 'inline-flex',
+                alignSelf: 'flex-start',
+                gap: 4,
+              }}
+            >
+              <button
+                type="button"
+                className={`boton chico ${frecuencia === 'mensual' ? '' : 'fantasma'}`}
+                onClick={() => setFrecuencia('mensual')}
+              >
+                Pago Mensual
+              </button>
+              <button
+                type="button"
+                className={`boton chico ${frecuencia === 'anual' ? '' : 'fantasma'}`}
+                onClick={() => setFrecuencia('anual')}
+              >
+                Pago Anual <Insignia color="verde" style={{ marginLeft: 6 }}>Ahorra 1.5 meses</Insignia>
+              </button>
+            </div>
+
+            {/* 3 Tarjetas visuales de selección de plan */}
+            <div className="rejilla rejilla-3" style={{ gap: 12 }}>
+              {TIERS_SELECCION.map((t) => {
+                const activo = tier === t.id;
+                const precio = frecuencia === 'mensual' ? t.precioMensual : t.precioAnual;
+                const periodo = frecuencia === 'mensual' ? '/mes' : '/año';
+
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => setTier(t.id)}
+                    style={{
+                      border: activo ? '2px solid var(--marca)' : '1.5px solid var(--border)',
+                      borderRadius: 'var(--radio)',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      background: activo ? 'var(--marca-tenue, rgba(31,111,92,0.04))' : 'var(--bg-tarjeta, #fff)',
+                      boxShadow: activo ? '0 2px 10px rgba(31,111,92,0.12)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div>
+                      <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 6 }}>
+                        <div className="fila" style={{ gap: 6, alignItems: 'center' }}>
+                          <input
+                            type="radio"
+                            name="tier_agencia"
+                            checked={activo}
+                            onChange={() => setTier(t.id)}
+                            style={{ margin: 0, cursor: 'pointer' }}
+                          />
+                          <strong style={{ fontSize: '0.98rem' }}>{t.nombre}</strong>
+                        </div>
+                        {t.destacado && <Insignia color="marca" style={{ fontSize: '0.7rem' }}>Popular</Insignia>}
+                      </div>
+
+                      <div style={{ margin: '8px 0 10px' }}>
+                        <span className="numero" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--marca)' }}>
+                          {precio}
+                        </span>
+                        <span className="tenue" style={{ fontSize: '0.78rem', marginLeft: 4 }}>
+                          {periodo}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: 'var(--texto)',
+                          marginBottom: 10,
+                          padding: '3px 8px',
+                          borderRadius: 'var(--radio-xs)',
+                          background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                        }}
+                      >
+                        👥 {t.capacidad}
+                      </div>
+
+                      <ul style={{ margin: 0, paddingLeft: 16, fontSize: '0.8rem', color: 'var(--texto-suave)', lineHeight: 1.4 }}>
+                        {t.puntos.map((pt, idx) => (
+                          <li key={idx} style={{ marginBottom: 3 }}>{pt}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Agentes extra solo para Pro si tiene más de 15 */}
+            {tier === 'pro' && (
+              <div style={{ maxWidth: 420, marginTop: 2 }}>
                 <Campo
-                  label="Agentes extra (16+)"
+                  label="¿Tienes más de 15 agentes? Agentes adicionales (16+)"
                   type="number"
                   min="0"
                   step="1"
                   value={extraAgentes}
                   onChange={(e) => setExtraAgentes(e.target.value)}
-                  ayuda={PLANES[plan]?.agente}
+                  ayuda={frecuencia === 'mensual' ? '+$4 USD/mes por cada agente extra' : '+$42 USD/año por cada agente extra'}
                 />
-              ) : (
-                <p className="tenue" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>
-                  ℹ️ {PLANES[plan]?.ayuda}
-                </p>
-              )}
-            </div>
-            <div style={{ marginTop: 8 }}>
+              </div>
+            )}
+
+            {/* Resumen de compra y botón de acción */}
+            <div
+              className="fila-entre"
+              style={{
+                marginTop: 6,
+                padding: '14px 18px',
+                background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                borderRadius: 'var(--radio)',
+                border: '1.5px solid var(--border)',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.95rem' }}>
+                  Plan {tierSeleccionado.nombre} ({frecuencia === 'mensual' ? 'Mensual' : 'Anual'})
+                </strong>
+                <span className="tenue" style={{ fontSize: '0.82rem' }}>
+                  Total a pagar: <strong style={{ color: 'var(--marca)' }}>{precioActual} {periodoTexto}</strong> · {tierSeleccionado.capacidad}
+                </span>
+              </div>
               <Boton type="submit" cargando={cargando}>
-                Suscribirme con Stripe
+                Continuar al pago seguro con Stripe →
               </Boton>
             </div>
           </form>
