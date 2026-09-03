@@ -27,6 +27,8 @@ export const TIERS_SELECCION = [
     id: 'inicio',
     nombre: 'Inicio / Solo',
     capacidad: '1 a 3 agentes incluidos',
+    montoMensual: '$9.99',
+    montoAnual: '$104.99',
     precioMensual: '$9.99 USD',
     precioAnual: '$104.99 USD',
     puntos: [
@@ -41,6 +43,8 @@ export const TIERS_SELECCION = [
     nombre: 'Agencia',
     destacado: true,
     capacidad: '4 a 8 agentes incluidos',
+    montoMensual: '$23.99',
+    montoAnual: '$249.99',
     precioMensual: '$23.99 USD',
     precioAnual: '$249.99 USD',
     puntos: [
@@ -56,6 +60,8 @@ export const TIERS_SELECCION = [
     id: 'pro',
     nombre: 'Agencia Pro',
     capacidad: 'Hasta 15 agentes incluidos',
+    montoMensual: '$39.99',
+    montoAnual: '$419.99',
     precioMensual: '$39.99 USD',
     precioAnual: '$419.99 USD',
     permiteExtra: true,
@@ -64,7 +70,7 @@ export const TIERS_SELECCION = [
       '500 itinerarios inteligentes al mes',
       'Marca blanca (sin pie de Rumbia)',
       'Soporte prioritario por WhatsApp',
-      'Asistente de viaje en chat ilimitado',
+      'Asistente virtual de viaje ilimitado',
     ],
   },
 ];
@@ -705,7 +711,8 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             <div
               className="fila"
               style={{
-                background: 'var(--bg-suave, rgba(0,0,0,0.05))',
+                background: 'var(--surface-alt)',
+                border: '1px solid var(--border)',
                 padding: '4px',
                 borderRadius: 'var(--radio)',
                 display: 'inline-flex',
@@ -715,14 +722,14 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             >
               <button
                 type="button"
-                className={`boton chico ${frecuencia === 'mensual' ? '' : 'fantasma'}`}
+                className={`boton chico ${frecuencia === 'mensual' ? '' : 'secundario'}`}
                 onClick={() => setFrecuencia('mensual')}
               >
                 Pago Mensual
               </button>
               <button
                 type="button"
-                className={`boton chico ${frecuencia === 'anual' ? '' : 'fantasma'}`}
+                className={`boton chico ${frecuencia === 'anual' ? '' : 'secundario'}`}
                 onClick={() => setFrecuencia('anual')}
               >
                 Pago Anual <Insignia color="verde" style={{ marginLeft: 6 }}>Ahorra 1.5 meses</Insignia>
@@ -730,10 +737,10 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             </div>
 
             {/* 3 Tarjetas visuales de selección de plan */}
-            <div className="rejilla rejilla-3" style={{ gap: 12 }}>
+            <div className="rejilla rejilla-3" style={{ gap: 14 }}>
               {TIERS_SELECCION.map((t) => {
                 const activo = tier === t.id;
-                const precio = frecuencia === 'mensual' ? t.precioMensual : t.precioAnual;
+                const monto = frecuencia === 'mensual' ? t.montoMensual : t.montoAnual;
                 const periodo = frecuencia === 'mensual' ? '/mes' : '/año';
 
                 return (
@@ -741,59 +748,65 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                     key={t.id}
                     onClick={() => setTier(t.id)}
                     style={{
-                      border: activo ? '2px solid var(--marca)' : '1.5px solid var(--border)',
+                      border: activo ? '2px solid var(--verde)' : '1px solid var(--border)',
                       borderRadius: 'var(--radio)',
-                      padding: '16px',
+                      padding: '18px 16px',
                       cursor: 'pointer',
-                      background: activo ? 'var(--marca-tenue, rgba(31,111,92,0.04))' : 'var(--bg-tarjeta, #fff)',
-                      boxShadow: activo ? '0 2px 10px rgba(31,111,92,0.12)' : 'none',
+                      background: activo ? 'var(--surface-alt)' : 'var(--surface)',
+                      boxShadow: activo ? '0 0 0 1px var(--verde), 0 4px 14px rgba(0,0,0,0.12)' : 'none',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       transition: 'all 0.15s ease',
+                      position: 'relative',
                     }}
                   >
                     <div>
-                      <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 6 }}>
-                        <div className="fila" style={{ gap: 6, alignItems: 'center' }}>
+                      <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 8 }}>
+                        <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
                           <input
                             type="radio"
                             name="tier_agencia"
                             checked={activo}
                             onChange={() => setTier(t.id)}
-                            style={{ margin: 0, cursor: 'pointer' }}
+                            style={{ margin: 0, cursor: 'pointer', accentColor: 'var(--verde)' }}
                           />
-                          <strong style={{ fontSize: '0.98rem' }}>{t.nombre}</strong>
+                          <strong style={{ fontSize: '1.02rem', color: 'var(--texto)' }}>{t.nombre}</strong>
                         </div>
-                        {t.destacado && <Insignia color="marca" style={{ fontSize: '0.7rem' }}>Popular</Insignia>}
+                        {t.destacado && <Insignia color="verde" style={{ fontSize: '0.72rem', fontWeight: 700 }}>Popular</Insignia>}
                       </div>
 
-                      <div style={{ margin: '8px 0 10px' }}>
-                        <span className="numero" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--marca)' }}>
-                          {precio}
+                      <div style={{ margin: '8px 0 10px', display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                        <span className="numero" style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--marca)' }}>
+                          {monto}
                         </span>
-                        <span className="tenue" style={{ fontSize: '0.78rem', marginLeft: 4 }}>
-                          {periodo}
+                        <span className="suave" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                          USD {periodo}
                         </span>
                       </div>
 
                       <div
                         style={{
-                          fontSize: '0.8rem',
+                          fontSize: '0.78rem',
                           fontWeight: 600,
                           color: 'var(--texto)',
-                          marginBottom: 10,
-                          padding: '3px 8px',
+                          marginBottom: 12,
+                          padding: '4px 8px',
                           borderRadius: 'var(--radio-xs)',
-                          background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                          background: 'var(--surface-alt)',
+                          border: '1px solid var(--border)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          width: 'fit-content',
                         }}
                       >
                         👥 {t.capacidad}
                       </div>
 
-                      <ul style={{ margin: 0, paddingLeft: 16, fontSize: '0.8rem', color: 'var(--texto-suave)', lineHeight: 1.4 }}>
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: 'var(--texto-suave)', lineHeight: 1.45 }}>
                         {t.puntos.map((pt, idx) => (
-                          <li key={idx} style={{ marginBottom: 3 }}>{pt}</li>
+                          <li key={idx} style={{ marginBottom: 4 }}>{pt}</li>
                         ))}
                       </ul>
                     </div>
@@ -823,16 +836,16 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
               style={{
                 marginTop: 6,
                 padding: '14px 18px',
-                background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                background: 'var(--surface-alt)',
                 borderRadius: 'var(--radio)',
-                border: '1.5px solid var(--border)',
+                border: '1px solid var(--border)',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: 12,
               }}
             >
               <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem' }}>
+                <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--texto)' }}>
                   Plan {tierSeleccionado.nombre} ({frecuencia === 'mensual' ? 'Mensual' : 'Anual'})
                 </strong>
                 <span className="tenue" style={{ fontSize: '0.82rem' }}>
