@@ -1,0 +1,40 @@
+version: 2
+
+# Abre un PR solo cuando de verdad hay una actualizacion de seguridad o de
+# version, en vez de tener que acordarse de correr "npm audit" a mano de vez
+# en cuando -- ver "Pendientes conocidos" en el README, este era el ultimo
+# punto que faltaba de esa lista.
+#
+# Cada PR que abre pasa por el mismo CI que cualquier otro (server/client),
+# asi que una actualizacion que rompe algo se ve antes de fusionarla, no
+# despues.
+updates:
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Los parches y minors casi nunca rompen nada y son demasiados como
+      # para revisar uno por uno; un major si puede cambiar comportamiento,
+      # asi que se queda fuera del grupo y llega en su propio PR.
+      no-mayores:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      no-mayores:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

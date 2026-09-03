@@ -1,4 +1,4 @@
-import { ClickSalida } from '../models/index.js';
+import { ClickSalida, AuditLog } from '../models/index.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -62,4 +62,25 @@ export const reporteClicks = asyncHandler(async (req, res) => {
       porDestino: limpiar(porDestino),
     },
   });
+});
+
+/**
+ * Registro de auditoria de TODAS las agencias, no solo la propia -- a
+ * diferencia de GET /api/agency/auditoria (que un dueno usa para la suya).
+ * Sirve ademas para revisar el evento "agencia.eliminada": una vez borrada
+ * la agencia, su dueno ya no tiene forma de pedir su propio registro, pero
+ * el evento sigue vivo aqui hasta que cumple su año de retencion.
+ */
+export const reporteAuditoria = asyncHandler(async (req, res) => {
+  if (!env.adminEmail || req.user.email !== env.adminEmail) {
+    throw ApiError.forbidden('Este reporte no esta disponible para tu cuenta.');
+  }
+
+  const eventos = await AuditLog.find({})
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .populate('agency', 'agencyName')
+    .lean();
+
+  res.json({ success: true, data: { eventos } });
 });
