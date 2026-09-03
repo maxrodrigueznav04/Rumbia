@@ -1,5 +1,4 @@
 import { Agency, User } from '../models/index.js';
-import { AGENTES_INCLUIDOS } from '../models/Agency.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import stripeService from '../services/stripe.service.js';
@@ -46,7 +45,10 @@ export const cambiarAgentes = asyncHandler(async (req, res) => {
   }
 
   const miembrosActuales = await User.countDocuments({ agency: agencia._id });
-  const nuevaCapacidad = AGENTES_INCLUIDOS + extraAgentes;
+  // capacidadAgentes (virtual de Agency.js) ya conoce el tope base de cada
+  // plan (Inicio 3, Agencia 8, Pro 15): se le resta el extraAgentes actual y
+  // se le suma el propuesto, en vez de repetir esos numeros aqui a mano.
+  const nuevaCapacidad = agencia.capacidadAgentes - (agencia.billing.extraAgentes || 0) + extraAgentes;
   if (nuevaCapacidad < miembrosActuales) {
     throw ApiError.conflict(
       `Ya tienes ${miembrosActuales} agente(s) en la agencia; no puedes bajar el cupo por debajo de eso. Saca agentes primero.`

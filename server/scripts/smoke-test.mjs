@@ -276,6 +276,23 @@ await check('Agency: agentes extra suman a la capacidad', async () => {
   return '3 incluidos + 5 extra = 8';
 });
 
+await check('Agency: capacidadAgentes respeta el tope base de cada tier (Inicio/Agencia/Pro)', async () => {
+  // Bug real corregido: billing.controller.js usaba AGENTES_INCLUIDOS (fijo
+  // en 3) para validar el cupo al ajustar agentes extra, en vez de leer
+  // capacidadAgentes -- bloqueaba a cualquier agencia Agencia/Pro con mas
+  // de 3 miembros, aunque su plan tuviera cupo real de sobra.
+  const inicio = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'inicio_mensual' } });
+  assert(inicio.capacidadAgentes === 3, `inicio=${inicio.capacidadAgentes}`);
+
+  const agencia = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'agencia_mensual' } });
+  assert(agencia.capacidadAgentes === 8, `agencia=${agencia.capacidadAgentes}`);
+
+  const pro = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'pro_mensual', extraAgentes: 4 } });
+  assert(pro.capacidadAgentes === 19, `pro=${pro.capacidadAgentes}`);
+
+  return 'inicio=3, agencia=8, pro=15(+extra)';
+});
+
 await check('Agency rechaza un plan que no existe', async () => {
   const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
   assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
