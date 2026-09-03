@@ -1,10 +1,12 @@
-# Rumbia — Planeador de viajes con IA
+# Rumbia — Planeador de viajes y cotizador para agencias
 
 [![CI](https://github.com/maxrodrigueznav04/rumbia/actions/workflows/ci.yml/badge.svg)](https://github.com/maxrodrigueznav04/rumbia/actions/workflows/ci.yml)
 
 Aplicación web full-stack para planear un viaje completo en un solo lugar: transporte de ida y
-vuelta, hospedaje, transporte en el destino, itinerario día por día generado con IA, mapa, clima y
-control de presupuesto.
+vuelta, hospedaje, transporte en el destino, itinerario día por día con asistencia inteligente,
+mapa, clima y control de presupuesto. Para agencias y agentes de viaje, además cotiza con margen
+y membrete propio, y trae un chat con el asistente para resolver dudas de planeación sin que el
+cliente final lo vea.
 
 > **Rumbia no reserva ni cobra nada.** Centraliza la información y estima costos; para reservar te
 > manda al sitio del proveedor (Skyscanner, Booking, Airbnb…) con la búsqueda ya prellenada.
@@ -53,6 +55,7 @@ regenerar; el mapa ubica las actividades que traen coordenadas.
 | IA | Google Gemini (salida JSON estructurada vía `responseSchema`) |
 | Mapas | Leaflet + OpenStreetMap (sin API key) |
 | Clima | OpenWeatherMap (5 días) + estimación climatológica propia para fechas lejanas |
+| Divisas | Frankfurter (tasas del Banco Central Europeo, sin API key) |
 | Validación | Zod en el borde de la API |
 | Cobros | Stripe (Checkout + Customer Portal + webhooks) |
 
@@ -113,12 +116,24 @@ Todo el stack corre en tiers gratuitos.
   su marca personal queda guardada pero inerte: la de la agencia es la que se imprime.
 - **Cobro a agencias, con Stripe.** Crear una agencia es gratis (es solo la marca: nombre, logo,
   contacto), pero usarla —crear o editar viajes— requiere un plan activo desde el primer agente,
-  aunque el dueño esté solo. Tres planes (mensual, anual, de por vida) con 3 agentes incluidos y
-  costo extra por asiento adicional; `npm run stripe:setup` en `server` crea los Products/Prices
-  en Stripe y devuelve las variables listas para pegar en `.env`. Si el plan se vence o se cancela,
-  la agencia no pierde nada: se congela en modo de solo lectura (se puede ver todo, no crear ni
-  editar) hasta activarlo o reactivarlo. Sin `STRIPE_SECRET_KEY` el resto de la app sigue
-  funcionando igual, simplemente no hay forma de cobrar.
+  aunque el dueño esté solo. Tres tiers según el tamaño del equipo — **Inicio** (1 a 3 agentes),
+  **Agencia** (4 a 8) y **Agencia Pro** (hasta 15, con agentes extra pagados a partir de ahí) —,
+  cada uno con precio mensual o anual (`Agency.js`, `capacidadAgentes`); se conservan además tres
+  planes legacy (mensual/anual/de por vida) para quien ya estaba suscrito antes de los tiers
+  nuevos. `npm run stripe:setup` en `server` crea los Products/Prices en Stripe y devuelve las
+  variables listas para pegar en `.env`. Si el plan se vence o se cancela, la agencia no pierde
+  nada: se congela en modo de solo lectura (se puede ver todo, no crear ni editar) hasta activarlo
+  o reactivarlo. Sin `STRIPE_SECRET_KEY` el resto de la app sigue funcionando igual, simplemente no
+  hay forma de cobrar.
+- **Chat con el asistente, para el agente.** Widget flotante disponible en toda la app (no en la
+  portada, que no requiere sesión). Puede hablar en general o, si hay un viaje abierto, con su
+  contexto completo (destino, fechas, hospedajes, itinerario); solo aconseja, nunca escribe de
+  vuelta al viaje — si el agente pide un cambio, el chat le dice qué pantalla o campo tocar. El
+  cliente final nunca lo ve. Cupo mensual propio (`AI_CHAT_RATE_LIMIT_PER_HOUR` por hora, más alto
+  que el de generar itinerarios porque una conversación manda muchos mensajes cortos) e historial
+  persistente por viaje o en modo general (`TripChat`).
+- **Página "Acerca de" (`/acerca`).** Explica el producto a viajeros y agencias por separado, con
+  un simulador interactivo de cotización y comparativa de los tres tiers de precio.
 - **Estado "aprobado por el cliente".** Un valor más en el estado del viaje, entre "planeado" y
   "en curso", para que un agente distinga una propuesta que ya armó de una que el cliente ya
   confirmó.
@@ -159,7 +174,9 @@ Todo el stack corre en tiers gratuitos.
 - **Mapa y clima.** Leaflet con un pin por actividad; clima real a 5 días y estimación por
   temporada para fechas más lejanas, siempre etiquetado como tal.
 - **Presupuesto.** Gráfica de dona con el desglose por categoría, total por viajero y por día, y
-  comparación contra el presupuesto que definiste.
+  comparación contra el presupuesto que definiste. Si mezclas monedas, convierte con tasas reales
+  (Frankfurter, sin API key) y, si el servicio no responde, avisa qué quedó sin sumar en vez de
+  inventar un total.
 
 ---
 
@@ -197,7 +214,7 @@ Llena `server/.env`:
 | `MAIL_FROM` | no | Remitente. Con una cuenta nueva de Resend, y hasta verificar un dominio, hay que dejar `onboarding@resend.dev`: solo entrega al correo con el que se creó la cuenta. |
 | `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | no* | [Cloudinary](https://cloudinary.com), plan gratis (25 GB/mes). Los tres valores están juntos en el Dashboard. Sin ellos el botón de subir logo responde con un aviso claro; el campo de URL manual sigue funcionando igual. |
 | `STRIPE_SECRET_KEY` `STRIPE_WEBHOOK_SECRET` | no* | Cobro a agencias. La primera sale de la [consola de Stripe](https://dashboard.stripe.com/apikeys); la segunda, de crear el endpoint del webhook ahí mismo. Sin ellas `/agency/billing` responde con un aviso claro; el resto de la app no se entera. |
-| `STRIPE_PRICE_*` (6 variables) | no* | Los Price de cada plan y su agente extra. Los crea `npm run stripe:setup` en `server`, que imprime las seis líneas listas para pegar aquí. |
+| `STRIPE_PRICE_*` | no* | El Price de cada tier (Inicio, Agencia, Agencia Pro, mensual y anual) y el de agente extra donde aplica. Los crea `npm run stripe:setup` en `server`, que imprime todas las líneas listas para pegar aquí. |
 
 Para generar el secreto:
 
@@ -336,7 +353,7 @@ curl https://rumbia-api.onrender.com/api/health
 ```
 
 Si vas a cobrar a agencias: corre `npm run stripe:setup` (local, contra tu cuenta de Stripe)
-para conseguir los seis `STRIPE_PRICE_*`, y crea el webhook en el dashboard de Stripe apuntando
+para conseguir los `STRIPE_PRICE_*` de cada tier, y crea el webhook en el dashboard de Stripe apuntando
 a `https://rumbia-api.onrender.com/api/billing/webhook` con los eventos `checkout.session.completed`,
 `customer.subscription.updated` y `customer.subscription.deleted` — de ahí sale `STRIPE_WEBHOOK_SECRET`.
 Sin esto la app funciona igual, solo que nadie puede pagarte.
@@ -396,22 +413,27 @@ planeador-viajes-ia/
 ├── server/
 │   ├── src/
 │   │   ├── config/        env.js (valida variables al arrancar), db.js
-│   │   ├── models/        User, Trip, Itinerary, Expense
+│   │   ├── models/        User, Trip, Itinerary, Expense, ClickSalida, Agency,
+│   │   │                  ItineraryTemplate, TripChat
 │   │   ├── validators/    esquemas de Zod por endpoint
-│   │   ├── middleware/    auth (JWT), validate, errorHandler, rateLimiters
-│   │   ├── services/      gemini, weather, bookingLinks
+│   │   ├── middleware/    auth (JWT), validate, errorHandler, rateLimiters, billing, subirLogo, turnstile
+│   │   ├── services/      gemini, chat, weather, exchange, bookingLinks, affiliates,
+│   │   │                  email (Resend), logo (Cloudinary), stripe, turnstile
 │   │   ├── controllers/   lógica de cada recurso
-│   │   ├── routes/        auth, trips, itinerary (anidado), expenses, weather
+│   │   ├── routes/        auth, trip (+ itinerary anidado), expense, weather, agency
+│   │   │                  (+ billing anidado), templates, chat, public, stats
 │   │   ├── app.js         middleware y montaje de rutas
 │   │   └── server.js      arranque y apagado ordenado
-│   └── scripts/           seed.js, smoke-test.mjs
+│   └── scripts/           seed.js, smoke-test.mjs, stripe-setup.mjs, prueba-*.mjs
 └── client/
     └── src/
         ├── api/           cliente fetch + un módulo por recurso
         ├── context/       AuthContext
-        ├── components/    kit de UI, layout, mapa, gráfica, clima
-        ├── pages/         Entrar, Registro, Dashboard, NuevoViaje, DetalleViaje, Itinerario, Perfil
-        ├── hooks/         useFetch (carga, error, cancelación)
+        ├── components/    kit de UI, layout, chat flotante, mapa, gráfica, clima
+        ├── pages/         Inicio, Acerca, Entrar, Registro, Recuperar, Restablecer, Dashboard,
+        │                  NuevoViaje, DetalleViaje, Itinerario, ItinerarioCompartido, Perfil,
+        │                  Plantillas, Privacidad, Cookies, Terminos
+        ├── hooks/         useFetch (carga, error, cancelación), useTema
         └── styles/        global.css con los tokens de diseño
 ```
 
@@ -431,6 +453,22 @@ Guarda el `promptContext` con el que se generó, para poder auditar el resultado
 
 **Expense** — gastos sueltos (comida, entradas, compras) ligados a un viaje. Se mantienen separados
 de los costos capturados en el Trip para que el resumen no los cuente dos veces.
+
+**Agency** — la marca que comparten varios agentes sin compartir cuenta ni contraseña: nombre,
+logo, contacto y un `inviteCode` de 32 caracteres hex para que se unan desde fuera de la app. El
+subdocumento `billing` guarda el plan, el estado de pago (`pendiente` / `activa` / `congelada`) y
+los agentes extra comprados; el virtual `capacidadAgentes` calcula el tope real según el tier.
+
+**TripChat** — historial de la conversación de un agente con el asistente. `trip` es opcional
+(`null` = conversación general); índice único por `(user, trip)`, ya que ahora varios documentos
+de un mismo usuario pueden compartir `trip: null`.
+
+**ItineraryTemplate** — copia de un itinerario ya armado, sin fechas de calendario (días
+relativos), para aplicarla a un cliente nuevo sin volver a capturar nada a mano. Vive separada de
+`Itinerary` a propósito, para no tener que hacer `trip` opcional ahí.
+
+**ClickSalida** — un clic en un enlace de salida hacia un proveedor. Deliberadamente anónimo: solo
+proveedor, sección, destino y fecha, nunca usuario ni IP. Se borra solo a los 180 días.
 
 ### Decisiones que vale la pena explicar
 
@@ -485,15 +523,21 @@ Todas las rutas privadas esperan `Authorization: Bearer <token>`.
 | `POST` | `/api/auth/register` | Crea cuenta y devuelve token. |
 | `POST` | `/api/auth/login` | Inicia sesión. |
 | `GET` `PATCH` | `/api/auth/me` | Perfil y preferencias. |
+| `POST` | `/api/auth/me/logo` | Sube el logo de marca personal (Cloudinary). |
 | `PATCH` | `/api/auth/me/password` | Cambia la contraseña. |
+| `DELETE` | `/api/auth/me` | Elimina la cuenta y todo lo asociado. |
+| `POST` | `/api/auth/forgot-password` · `/api/auth/reset-password` | Recuperación de contraseña por correo. |
 | `GET` `POST` | `/api/trips` | Lista (filtra por estado y texto) y crea. |
 | `GET` `PATCH` `DELETE` | `/api/trips/:id` | Detalle, edición y borrado en cascada. |
+| `POST` | `/api/trips/:id/duplicar` | Copia un viaje completo (útil para variantes de una misma propuesta). |
 | `GET` | `/api/trips/:id/summary` | Desglose de presupuesto y datos para la gráfica. |
 | `GET` | `/api/trips/:id/booking-links` | Enlaces de salida prellenados. |
 | `GET` | `/api/trips/:id/weather` | Clima para las fechas del viaje. |
 | `GET` | `/api/trips/:id/expenses` | Gastos del viaje con desglose por categoría. |
 | `GET` `POST` `DELETE` | `/api/trips/:id/itinerary` | Consulta, crea vacío o elimina. |
 | `POST` | `/api/trips/:id/itinerary/generate` | Genera con Gemini (limitado por usuario/hora). |
+| `POST` `DELETE` | `/api/trips/:id/itinerary/share` | Activa o revoca el enlace público del itinerario. |
+| `POST` | `/api/trips/:id/itinerary/plantilla` | Guarda el itinerario como plantilla reutilizable. |
 | `PATCH` | `/api/trips/:id/itinerary/days/:dayId` | Edita título y resumen del día. |
 | `DELETE` | `/api/trips/:id/itinerary/days/:dayId` | Elimina un día y renumera los siguientes. |
 | `PATCH` | `/api/trips/:id/itinerary/days/:dayId/reorder` | Reordena las actividades del día. |
@@ -502,7 +546,25 @@ Todas las rutas privadas esperan `Authorization: Bearer <token>`.
 | `PATCH` | `…/activities/:activityId/move` | Mueve la actividad a otro día. |
 | `GET` `POST` | `/api/expenses` | Lista y crea gastos. |
 | `PATCH` `DELETE` | `/api/expenses/:id` | Edita y elimina. |
-| `GET` | `/api/weather` · `/api/weather/geocode` | Clima por coordenadas y búsqueda de lugares. |
+| `GET` | `/api/weather` · `/api/weather/geocode` · `/api/weather/geocode/sugerencias` | Clima por coordenadas y búsqueda de lugares. |
+| `GET` `POST` `PATCH` | `/api/agency` | Ver, crear y editar la agencia (marca, logo, contacto). |
+| `POST` | `/api/agency/logo` | Sube el logo de la agencia (Cloudinary). |
+| `POST` | `/api/agency/unirse` · `/api/agency/salir` | Unirse con un código de invitación o salir. |
+| `POST` | `/api/agency/codigo` | Regenera el código de invitación. |
+| `DELETE` | `/api/agency/miembros/:userId` | Saca a un agente de la agencia (solo el dueño). |
+| `GET` | `/api/agency/reporte` | Viajes armados por cada agente en el mes (solo el dueño). |
+| `GET` | `/api/agency/billing` | Estado de pago y capacidad de agentes de la agencia. |
+| `POST` | `/api/agency/billing/checkout` | Sesión de Stripe Checkout para activar o cambiar de plan. |
+| `POST` | `/api/agency/billing/portal` | Enlace al Customer Portal de Stripe. |
+| `PATCH` | `/api/agency/billing/agentes` | Sube o baja los agentes extra de una suscripción activa. |
+| `POST` | `/api/billing/webhook` | Webhook de Stripe (firma verificada, body crudo — montado aparte del resto de `/agency/billing`, antes del parser de JSON). |
+| `GET` `POST` `DELETE` | `/api/chat` | Historial, envío de mensaje y borrado del chat (general o por `tripId`). |
+| `GET` `DELETE` | `/api/templates` `/api/templates/:id` | Lista y elimina plantillas. |
+| `POST` | `/api/templates/:id/aplicar` | Crea un viaje nuevo a partir de una plantilla. |
+| `POST` | `/api/public/itinerary` | Genera un itinerario sin cuenta (portada), limitado por IP. |
+| `GET` | `/api/public/itinerary/:token` | Ve un itinerario compartido por enlace, sin sesión. |
+| `POST` | `/api/public/click` | Registra un clic de salida (con o sin sesión). |
+| `GET` | `/api/stats/clicks` | Reporte de clics por proveedor (solo `ADMIN_EMAIL`). |
 
 Todas las respuestas siguen la misma forma:
 
@@ -527,8 +589,8 @@ Todas las respuestas siguen la misma forma:
 - Cada handler comprueba la propiedad del recurso: pedir el viaje de otra persona da 403, no 404
   con datos.
 - Helmet, CORS restringido al origen del front en producción y límite de 1 MB en el body, del lado
-  de la API. El front (Cloudflare Pages) trae su propio juego de cabeceras en
-  `client/public/_headers` — CSP, `X-Frame-Options`, `Referrer-Policy`, HSTS — porque Pages sirve
+  de la API. El front (Cloudflare Workers) trae su propio juego de cabeceras en
+  `client/public/_headers` — CSP, `X-Frame-Options`, `Referrer-Policy`, HSTS — porque Workers sirve
   esos archivos directo, sin pasar por Express ni por Helmet.
 - Rate limiting en varios niveles: general, login (contra fuerza bruta, además del bloqueo por
   cuenta tras 6 intentos), pedir/gastar el enlace de recuperación y generación con IA.
