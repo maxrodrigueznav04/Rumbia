@@ -64,7 +64,7 @@ export default function ChatFlotante() {
     setCargando(true);
     setError(null);
     chatApi
-      .get(tripId)
+      .get(tripId || undefined)
       .then((data) => {
         if (!cancelado) setMensajes(data.messages || []);
       })
@@ -94,6 +94,7 @@ export default function ChatFlotante() {
   }, [mensajes, enviando]);
 
   const cambiarViaje = (e) => {
+    setError(null);
     setTripId(e.target.value || null);
   };
 
@@ -116,7 +117,7 @@ export default function ChatFlotante() {
       // itinerarios): se revisa el historial real antes de darlo por fallido.
       if (err.status === 0) {
         try {
-          const datos = await chatApi.get(tripId);
+          const datos = await chatApi.get(tripId || undefined);
           const ultimo = datos.messages?.[datos.messages.length - 1];
           if (ultimo?.role === 'model') {
             setMensajes(datos.messages);
@@ -137,7 +138,7 @@ export default function ChatFlotante() {
   const reiniciar = async () => {
     setReiniciando(true);
     try {
-      await chatApi.clear(tripId);
+      await chatApi.clear(tripId || undefined);
       setMensajes([]);
       setError(null);
     } catch (err) {
@@ -189,7 +190,15 @@ export default function ChatFlotante() {
                 </p>
                 <div className="chat-ejemplos">
                   {EJEMPLOS.map((ejemplo) => (
-                    <button key={ejemplo} type="button" onClick={() => setTexto(ejemplo)}>
+                    <button
+                      key={ejemplo}
+                      type="button"
+                      onClick={() => {
+                        setTexto(ejemplo);
+                        if (error) setError(null);
+                        inputRef.current?.focus();
+                      }}
+                    >
                       {ejemplo}
                     </button>
                   ))}
@@ -214,7 +223,7 @@ export default function ChatFlotante() {
           </div>
 
           {error && (
-            <Aviso tipo="error" titulo="No se pudo enviar">
+            <Aviso tipo="error" titulo={enviando ? 'No se pudo enviar' : 'Aviso'}>
               {error.message}
             </Aviso>
           )}
@@ -224,7 +233,10 @@ export default function ChatFlotante() {
               ref={inputRef}
               placeholder="Escribe tu pregunta..."
               value={texto}
-              onChange={(e) => setTexto(e.target.value)}
+              onChange={(e) => {
+                setTexto(e.target.value);
+                if (error) setError(null);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

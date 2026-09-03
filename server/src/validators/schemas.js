@@ -13,10 +13,11 @@ import { ORIGENES_CLICK } from '../models/ClickSalida.js';
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
 
 /**
- * En un query string, "?status=" significa "sin filtro", no "valor vacio".
- * Sin esto un parametro vacio revienta contra los enums con un 400 confuso.
+ * En un query string, "?status=" o "?tripId=null" significa "sin filtro", no "valor invalido".
+ * Sin esto un parametro vacio o 'null' revienta contra los esquemas con un 400 'Datos invalidos'.
  */
-const opcionalEnQuery = (schema) => z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
+const opcionalEnQuery = (schema) =>
+  z.preprocess((v) => (v === '' || v === 'null' || v === 'undefined' ? undefined : v), schema.optional());
 const isoDate = z.coerce.date({ errorMap: () => ({ message: 'Fecha inválida.' }) });
 const currency = z.string().length(3, 'Usa el código de 3 letras, ej. MXN.').toUpperCase();
 

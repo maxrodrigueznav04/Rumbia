@@ -615,10 +615,19 @@ await check('chatQuerySchema: tripId opcional para modo general', async () => {
   const sinTrip = schemas.chatQuerySchema.safeParse({});
   assert(sinTrip.success && sinTrip.data.tripId === undefined, 'sin tripId es valido (chat general)');
 
+  const tripNullStr = schemas.chatQuerySchema.safeParse({ tripId: 'null' });
+  assert(tripNullStr.success && tripNullStr.data.tripId === undefined, "tripId 'null' no truena y pasa a undefined");
+
+  const tripUndefStr = schemas.chatQuerySchema.safeParse({ tripId: 'undefined' });
+  assert(tripUndefStr.success && tripUndefStr.data.tripId === undefined, "tripId 'undefined' no truena y pasa a undefined");
+
+  const tripVacio = schemas.chatQuerySchema.safeParse({ tripId: '' });
+  assert(tripVacio.success && tripVacio.data.tripId === undefined, 'tripId vacio no truena y pasa a undefined');
+
   const conTrip = schemas.chatQuerySchema.safeParse({ tripId: '507f1f77bcf86cd799439011' });
   assert(conTrip.success && conTrip.data.tripId === '507f1f77bcf86cd799439011', 'tripId valido se conserva');
 
-  return 'chat general (sin tripId) y chat de un viaje (con tripId) ambos validos';
+  return 'chat general (sin tripId, con null, con undefined o vacio) y con tripId validos';
 });
 
 await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => {

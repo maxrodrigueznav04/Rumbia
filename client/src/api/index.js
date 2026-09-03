@@ -46,7 +46,9 @@ export const billingApi = {
 };
 
 const qs = (params) => {
-  const limpio = Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== '');
+  const limpio = Object.entries(params || {}).filter(
+    ([, v]) => v !== undefined && v !== null && v !== '' && v !== 'null' && v !== 'undefined'
+  );
   return limpio.length ? `?${new URLSearchParams(limpio)}` : '';
 };
 
