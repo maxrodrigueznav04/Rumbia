@@ -18,6 +18,7 @@ router.post(
 );
 
 router.get('/itinerary/:token', ctrl.verItinerarioCompartido);
+router.post('/itinerary/:token/aceptar', ctrl.aceptarPropuesta);
 
 // Sin sesion: los clics de un invitado o de un enlace compartido cuentan igual.
 router.post('/click', validate(clickSalidaSchema), ctrl.registrarClick);

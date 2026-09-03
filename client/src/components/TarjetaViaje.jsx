@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Insignia } from './ui.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import {
   formatoMoneda,
   rangoFechas,
   tiempoRelativo,
   ETIQUETAS_ESTADO,
+  ETIQUETAS_ESTADO_PROPUESTA,
   nombreDestino,
 } from '../utils/format.js';
 
@@ -17,7 +19,12 @@ import {
  * vistazo qué tanto del presupuesto ya está comprometido.
  */
 export default function TarjetaViaje({ viaje }) {
+  const { user } = useAuth();
+  // El embudo de ventas (estadoPropuesta) solo le importa a quien cotiza
+  // para clientes; un viajero planeando lo suyo no tiene "propuesta" que enviar.
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
   const estado = ETIQUETAS_ESTADO[viaje.status] || ETIQUETAS_ESTADO.borrador;
+  const estadoPropuesta = ETIQUETAS_ESTADO_PROPUESTA[viaje.estadoPropuesta] || ETIQUETAS_ESTADO_PROPUESTA.borrador;
   const esFuturo = new Date(viaje.startDate) > new Date();
   const moneda = viaje.budget?.currency || 'MXN';
 
@@ -32,7 +39,10 @@ export default function TarjetaViaje({ viaje }) {
 
       <div className="viaje-cuerpo">
         <div className="fila-entre" style={{ marginBottom: 'var(--e3)' }}>
-          <Insignia color={estado.color}>{estado.texto}</Insignia>
+          <span className="fila" style={{ gap: 6, flexWrap: 'wrap' }}>
+            <Insignia color={estado.color}>{estado.texto}</Insignia>
+            {esAgencia && <Insignia color={estadoPropuesta.color}>{estadoPropuesta.texto}</Insignia>}
+          </span>
           {esFuturo && <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>}
         </div>
 

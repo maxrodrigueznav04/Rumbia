@@ -15,6 +15,17 @@ const FILTROS = [
   { valor: '', texto: 'Todos' },
 ];
 
+// Embudo de ventas: en que va la propuesta con el cliente, no en que va el
+// viaje en si (eso lo filtra FILTROS de arriba). Solo tiene sentido para
+// quien cotiza para clientes.
+const FILTROS_PROPUESTA = [
+  { valor: '', texto: 'Cualquier propuesta' },
+  { valor: 'enviada', texto: 'Enviadas' },
+  { valor: 'aceptada', texto: 'Aceptadas' },
+  { valor: 'pagada', texto: 'Pagadas' },
+  { valor: 'cancelada', texto: 'Canceladas' },
+];
+
 function EsqueletoTarjetas() {
   return (
     <div className="rejilla rejilla-2 rejilla-3">
@@ -32,7 +43,9 @@ function EsqueletoTarjetas() {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const esAgencia = user?.preferences?.perfilUso !== 'personal';
   const [filtro, setFiltro] = useState('proximos');
+  const [filtroPropuesta, setFiltroPropuesta] = useState('');
   const [busqueda, setBusqueda] = useState('');
 
   // Sin debounce se dispararía una petición por cada tecla.
@@ -45,15 +58,20 @@ export default function Dashboard() {
   // el nuevo filtro solo tiene una, la vista quedaría vacía sin explicación.
   useEffect(() => {
     setPagina(1);
-  }, [filtro, consulta]);
+  }, [filtro, filtroPropuesta, consulta]);
 
   const { data, cargando, error, recargar } = useFetch(
     ({ signal }) =>
       tripsApi.list(
-        { status: filtro || undefined, q: consulta || undefined, page: pagina },
+        {
+          status: filtro || undefined,
+          estadoPropuesta: filtroPropuesta || undefined,
+          q: consulta || undefined,
+          page: pagina,
+        },
         { signal }
       ),
-    [filtro, consulta, pagina]
+    [filtro, filtroPropuesta, consulta, pagina]
   );
 
   const viajes = data?.trips || [];
@@ -67,7 +85,6 @@ export default function Dashboard() {
   };
   const nombre = user?.name?.split(' ')[0] || 'viajero';
   const buscando = consulta.length > 0;
-  const esAgencia = user?.preferences?.perfilUso !== 'personal';
 
   const subtitulo = () => {
     if (cargando) return 'Cargando tus viajes...';
@@ -107,8 +124,8 @@ export default function Dashboard() {
         </Link>
       </header>
 
-      <div className="fila-entre" style={{ gap: 10 }}>
-        <div className="fila" style={{ gap: 6 }} role="tablist" aria-label="Filtrar viajes">
+      <div className="fila-entre" style={{ gap: 10, flexWrap: 'wrap' }}>
+        <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }} role="tablist" aria-label="Filtrar viajes">
           {FILTROS.map((f) => (
             <button
               key={f.valor || 'todos'}
@@ -120,6 +137,22 @@ export default function Dashboard() {
               {f.texto}
             </button>
           ))}
+
+          {/* Embudo de ventas: solo le importa a quien cotiza para clientes. */}
+          {esAgencia && (
+            <select
+              value={filtroPropuesta}
+              onChange={(e) => setFiltroPropuesta(e.target.value)}
+              aria-label="Filtrar por estado de la propuesta"
+              style={{ marginLeft: 4 }}
+            >
+              {FILTROS_PROPUESTA.map((f) => (
+                <option key={f.valor || 'cualquiera'} value={f.valor}>
+                  {f.texto}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="buscador">

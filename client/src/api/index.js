@@ -110,6 +110,7 @@ export const publicApi = {
   generarItinerario: (payload) =>
     api.post('/public/itinerary', payload, { auth: false, timeout: TIMEOUT_IA_MS }),
   verCompartido: (token, opts) => api.get(`/public/itinerary/${token}`, { ...opts, auth: false }),
+  aceptarPropuesta: (token) => api.post(`/public/itinerary/${token}/aceptar`, undefined, { auth: false }),
 };
 
 export const itineraryApi = {

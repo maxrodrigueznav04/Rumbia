@@ -34,6 +34,7 @@ import {
   porPersonas,
   ciudadDeHospedaje,
   ETIQUETAS_ESTADO,
+  ETIQUETAS_ESTADO_PROPUESTA,
 } from '../utils/format.js';
 
 // Leaflet pesa: se carga solo cuando esta pantalla se abre.
@@ -176,6 +177,7 @@ export default function DetalleViaje() {
   const [personas, setPersonas] = useState(null);
   // Resultado de sincronizar el itinerario cuando cambian las fechas del viaje.
   const [avisoItinerario, setAvisoItinerario] = useState(null);
+  const [guardandoPropuesta, setGuardandoPropuesta] = useState(false);
 
   // Tras guardar hay que refrescar el viaje y el resumen: los costos cambian juntos.
   const refrescar = useCallback(() => {
@@ -228,6 +230,20 @@ export default function DetalleViaje() {
     navigate('/viajes', { replace: true });
   };
 
+  /** El agente marca a mano "pagada"/"cancelada", o revierte un cambio. Los
+      pasos "enviada"/"aceptada" normalmente los mueve solo el flujo del
+      enlace publico (compartir/aceptarPropuesta), pero este select siempre
+      queda editable por si hace falta corregirlo. */
+  const cambiarEstadoPropuesta = async (e) => {
+    setGuardandoPropuesta(true);
+    try {
+      await tripsApi.update(id, { estadoPropuesta: e.target.value });
+      refrescar();
+    } finally {
+      setGuardandoPropuesta(false);
+    }
+  };
+
   /** Copia el viaje completo (logistica, margen, itinerario) para armar una
       variante — "Opcion Economica" vs "Premium" del mismo prospecto. */
   const duplicarViaje = async () => {
@@ -278,8 +294,26 @@ export default function DetalleViaje() {
 
       <header className="tarjeta tarjeta-encabezado fila-entre">
         <div>
-          <div className="fila" style={{ gap: 8, marginBottom: 6 }}>
+          <div className="fila" style={{ gap: 8, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <Insignia color={estado.color}>{estado.texto}</Insignia>
+            {esAgencia && (
+              <label className="tenue fila" style={{ gap: 6, fontSize: '0.85rem', alignItems: 'center' }}>
+                Propuesta:
+                <select
+                  value={viaje.estadoPropuesta || 'borrador'}
+                  onChange={cambiarEstadoPropuesta}
+                  disabled={guardandoPropuesta}
+                  aria-label="Estado de la propuesta"
+                  style={{ padding: '3px 6px', fontSize: '0.85rem' }}
+                >
+                  {Object.entries(ETIQUETAS_ESTADO_PROPUESTA).map(([valor, info]) => (
+                    <option key={valor} value={valor}>
+                      {info.texto}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>
           </div>
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
