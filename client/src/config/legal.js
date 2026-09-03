@@ -5,14 +5,14 @@
  * dos páginas y arriesgarse a dejar una desactualizada.
  */
 export const RESPONSABLE = 'Maximiliano Rodríguez Navarro';
-export const CONTACTO_PRIVACIDAD = 'maxrodrigueznav04@gmail.com';
+export const CONTACTO_PRIVACIDAD = 'contacto@rumbiamx.com';
 
 /**
  * Fecha que se muestra en el encabezado. La política dice que se actualiza
  * cuando cambia el tratamiento de los datos, así que hay que moverla cuando se
  * edite el contenido, no cuando se toque el estilo.
  */
-export const ULTIMA_ACTUALIZACION = '2 de septiembre de 2026';
+export const ULTIMA_ACTUALIZACION = '3 de septiembre de 2026';
 
 /**
  * Detecta los marcadores sin sustituir para avisar en pantalla. Cubre tanto el
