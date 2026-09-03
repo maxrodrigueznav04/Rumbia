@@ -212,7 +212,7 @@ export default function ItinerarioCompartido() {
 
                 <Tarjeta className="centrado no-imprimir">
                   <h3>¿Quieres uno así para tu viaje?</h3>
-                  <p className="suave">Ármalo con IA en un minuto, sin crear cuenta.</p>
+                  <p className="suave">Ármalo en un minuto, sin crear cuenta.</p>
                   <Link to="/" className="boton">
                     Probar Rumbia
                   </Link>

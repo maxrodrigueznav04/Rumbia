@@ -31,7 +31,7 @@ export const TIERS_SELECCION = [
     precioAnual: '$104.99 USD',
     puntos: [
       'De 1 a 3 agentes incluidos',
-      '25 itinerarios con IA al mes',
+      '25 itinerarios inteligentes al mes',
       'Viajes manuales y PDFs ilimitados',
       'Datos de contacto del asesor',
     ],
@@ -45,7 +45,7 @@ export const TIERS_SELECCION = [
     precioAnual: '$249.99 USD',
     puntos: [
       'De 4 a 8 agentes incluidos',
-      '150 itinerarios con IA al mes',
+      '150 itinerarios inteligentes al mes',
       'Logo y membrete oficial en PDF',
       'Margen de ganancia automático',
       'Ocultar desglose de precios',
@@ -61,10 +61,10 @@ export const TIERS_SELECCION = [
     permiteExtra: true,
     puntos: [
       'Hasta 15 agentes incluidos',
-      '500 itinerarios con IA al mes',
+      '500 itinerarios inteligentes al mes',
       'Marca blanca (sin pie de Rumbia)',
       'Soporte prioritario por WhatsApp',
-      'Chat de IA ilimitado',
+      'Asistente de viaje en chat ilimitado',
     ],
   },
 ];
@@ -640,7 +640,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
         <>
           <p className="suave" style={{ marginTop: 0, marginBottom: 16 }}>
             Elige el plan que mejor se adapte al tamaño de tu equipo para activar tus propuestas,
-            itinerarios con IA y cotizaciones oficiales:
+            itinerarios inteligentes y cotizaciones oficiales:
           </p>
 
           <form onSubmit={irACheckout} className="pila" style={{ gap: 16 }}>

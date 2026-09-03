@@ -107,7 +107,7 @@ export default function Inicio() {
         <div className="contenedor">
           <h1>Planea tu viaje completo en un solo lugar</h1>
           <p>
-            Transporte, hospedaje, presupuesto e itinerario día por día generado con IA. Pruébalo
+            Transporte, hospedaje, presupuesto e itinerario día por día con asistencia inteligente. Pruébalo
             aquí abajo: no necesitas cuenta.
           </p>
         </div>
@@ -236,7 +236,7 @@ export default function Inicio() {
 
         <section className="inicio-puntos">
           {[
-            ['chispa', 'Itinerario con IA', 'Día por día, con horarios, categorías y costo estimado por actividad.'],
+            ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
             ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
             ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
           ].map(([icono, titulo, texto]) => (

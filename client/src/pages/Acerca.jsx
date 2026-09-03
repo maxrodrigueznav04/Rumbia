@@ -167,10 +167,10 @@ export default function Acerca() {
                   </div>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: 'var(--texto-suave)' }}>
                     <li>
-                      <strong>5 itinerarios generados con IA por mes</strong> (recarga cada día 1).
+                      <strong>5 itinerarios inteligentes por mes</strong> (recarga cada día 1).
                     </li>
                     <li>
-                      <strong>60 mensajes con el chatbot de IA por mes</strong>.
+                      <strong>60 consultas al asistente virtual por mes</strong>.
                     </li>
                     <li>
                       <em>Viajes guardados, notas, gastos y cálculos manuales sin ningún límite.</em>
@@ -237,7 +237,7 @@ export default function Acerca() {
                         Planes Inicio, Agencia y Pro
                       </strong>
                       <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                        De 1 a 15 agentes · Hasta 500 itinerarios con IA · Ahorro anual
+                        De 1 a 15 agentes · Hasta 500 itinerarios inteligentes · Ahorro anual
                       </span>
                     </div>
                     <a
@@ -505,8 +505,8 @@ export default function Acerca() {
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>25 itinerarios con IA</strong> al mes</li>
-                    <li>60 mensajes al chat de IA por mes</li>
+                    <li><strong>25 itinerarios inteligentes</strong> al mes</li>
+                    <li>60 consultas al asistente virtual por mes</li>
                     <li>Viajes y gastos manuales ilimitados</li>
                     <li>Cálculos automáticos de vuelos y hoteles</li>
                     <li>Conversión de divisas y pronóstico del clima</li>
@@ -566,8 +566,8 @@ export default function Acerca() {
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>150 itinerarios con IA</strong> al mes</li>
-                    <li><strong>Chat de IA ilimitado</strong></li>
+                    <li><strong>150 itinerarios inteligentes</strong> al mes</li>
+                    <li><strong>Asistente virtual de chat ilimitado</strong></li>
                     <li><strong>Logo y membrete oficial</strong> de la agencia en PDF</li>
                     <li><strong>Margen comercial automático</strong> (% o monto fijo)</li>
                     <li><strong>Ocultar desglose de precios</strong> (precio cerrado al cliente)</li>
@@ -625,11 +625,11 @@ export default function Acerca() {
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>500 itinerarios con IA</strong> al mes</li>
+                    <li><strong>500 itinerarios inteligentes</strong> al mes</li>
                     <li><strong>Todo lo del plan Agencia</strong></li>
                     <li><strong>Marca Blanca:</strong> Sin mención de Rumbia en el pie de página de los PDFs</li>
                     <li><strong>Soporte prioritario</strong> directo vía WhatsApp</li>
-                    <li>Chat de IA ilimitado</li>
+                    <li>Asistente virtual de chat ilimitado</li>
                     <li>Reportes avanzados de ventas y cotizaciones</li>
                   </ul>
                 </div>
@@ -711,10 +711,10 @@ export default function Acerca() {
                   <Icono nombre="chispa" tamano={24} className="icono-seccion" />
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.35rem' }}>
-                      Inteligencia Artificial y Organización Total
+                      Asistencia Inteligente y Organización Total
                     </h3>
                     <p className="suave" style={{ margin: '3px 0 0', fontSize: '0.92rem' }}>
-                      Tecnología de Google Gemini integrada en cada paso de tu viaje.
+                      Tecnología inteligente y algoritmos avanzados para optimizar cada paso de tu viaje.
                     </p>
                   </div>
                 </div>

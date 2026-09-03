@@ -559,12 +559,12 @@ export default function DetalleViaje() {
                 </Insignia>
                 <Insignia>{itinerario.activityCount} actividades</Insignia>
                 <Insignia color={itinerario.generatedBy === 'ia' ? 'cielo' : ''}>
-                  {itinerario.generatedBy === 'ia' ? <><Icono nombre="chispa" tamano={14} /> Generado con IA</> : 'Armado a mano'}
+                  {itinerario.generatedBy === 'ia' ? <><Icono nombre="chispa" tamano={14} /> Asistido con IA</> : 'Armado a mano'}
                 </Insignia>
               </div>
             ) : (
               <Vacio icono={<Icono nombre="chispa" tamano={28} />} titulo="Sin itinerario todavía">
-                Deja que la IA te proponga un plan día por día según tus intereses, o ármalo tú
+                Genera un plan día por día según tus fechas e intereses, o ármalo paso a paso tú
                 mismo.
               </Vacio>
             )}

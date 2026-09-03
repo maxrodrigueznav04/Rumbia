@@ -60,12 +60,12 @@ const TARJETA = `
       Planea viajes completos en minutos
     </h1>
     <p style="margin:0;font-size:26px;line-height:1.4;opacity:0.95;max-width:38ch;">
-      Itinerarios día por día con IA · Para viajeros y agencias de viaje. Cotizaciones en PDF con tu logo y margen.
+      Itinerarios día por día · Para viajeros y agencias de viaje. Cotizaciones en PDF con tu logo y margen comercial.
     </p>
   </div>
 
   <div style="display:flex;gap:12px;position:relative;flex-wrap:wrap;">
-    ${['Itinerario con IA', 'Para agencias y viajeros', 'PDF con tu marca', 'Sin comisiones']
+    ${['Itinerarios inteligentes', 'Cotizaciones con tu logo', 'Sin comisiones', 'Control de presupuesto']
       .map(
         (t) => `<span style="border:1.5px solid rgba(251,246,236,0.55);border-radius:999px;
                  padding:10px 20px;font-size:20px;font-weight:600;background:rgba(0,0,0,0.12);">${t}</span>`
