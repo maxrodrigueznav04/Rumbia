@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /viajes
+Disallow: /perfil
+Disallow: /plantillas
+Disallow: /i/
+Disallow: /restablecer/
+
+Sitemap: https://rumbiamx.com/sitemap.xml

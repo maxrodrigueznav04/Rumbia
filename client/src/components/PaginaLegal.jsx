@@ -1,6 +1,7 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Aviso } from './ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { ULTIMA_ACTUALIZACION, FALTAN_DATOS } from '../config/legal.js';
 
 /**
@@ -12,6 +13,8 @@ import { ULTIMA_ACTUALIZACION, FALTAN_DATOS } from '../config/legal.js';
  */
 export default function PaginaLegal({ titulo, entrada, children }) {
   const { autenticado } = useAuth();
+  const { pathname } = useLocation();
+  useMetaPagina({ titulo, descripcion: entrada, ruta: pathname });
 
   return (
     <div className="legal">

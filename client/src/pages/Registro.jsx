@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
+import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, CampoPassword, Aviso } from '../components/ui.jsx';
 import Captcha from '../components/Captcha.jsx';
@@ -13,6 +14,12 @@ import Captcha from '../components/Captcha.jsx';
 const CAPTCHA_ACTIVO = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 
 export default function Registro() {
+  useMetaPagina({
+    titulo: 'Crea tu cuenta',
+    descripcion: 'Regístrate gratis en Rumbia y empieza a planear viajes con itinerarios, cotizaciones y presupuesto en un solo lugar.',
+    ruta: '/registro',
+  });
+
   // Render duerme el plan gratuito: se despierta mientras el usuario escribe,
   // asi el login no carga con los ~50 s del arranque en frio.
   useEffect(() => {

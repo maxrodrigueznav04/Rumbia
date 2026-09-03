@@ -3,10 +3,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
+import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, CampoPassword, Aviso } from '../components/ui.jsx';
 
 export default function Entrar() {
+  useMetaPagina({
+    titulo: 'Inicia sesión',
+    descripcion: 'Entra a tu cuenta de Rumbia para seguir planeando tus viajes.',
+    ruta: '/entrar',
+  });
+
   // Render duerme el plan gratuito: se despierta mientras el usuario escribe,
   // asi el login no carga con los ~50 s del arranque en frio.
   useEffect(() => {

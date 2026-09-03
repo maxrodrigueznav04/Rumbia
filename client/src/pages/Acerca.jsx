@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
+import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia } from '../components/ui.jsx';
 
@@ -28,6 +29,12 @@ function ToggleTema() {
 
 export default function Acerca() {
   const { autenticado } = useAuth();
+  useMetaPagina({
+    titulo: 'Acerca de',
+    descripcion:
+      'Qué es Rumbia, cómo ayuda a viajeros y agencias a planear viajes completos, y cuánto cuesta.',
+    ruta: '/acerca',
+  });
 
   // Estado para el simulador interactivo de propuesta
   const [modoDesglose, setModoDesglose] = useState('total'); // 'total' | 'desglose'
