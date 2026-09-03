@@ -21,7 +21,8 @@
     "clicks": "node scripts/clicks.mjs",
     "auditoria": "node scripts/auditoria.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs",
-    "gemini:modelos": "node scripts/gemini-modelos.mjs"
+    "gemini:modelos": "node scripts/gemini-modelos.mjs",
+    "otorgar-plan": "node scripts/otorgar-plan.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
