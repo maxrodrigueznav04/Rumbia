@@ -3,6 +3,30 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
+import { useJsonLd } from '../hooks/useJsonLd.js';
+
+// Fuera del componente para que sea la misma referencia en cada render: si
+// viviera adentro, cada vez que se toca el toggle mensual/anual el hook de
+// abajo la tomaria como "datos nuevos" y reescribiria el <script> sin
+// necesidad. Precios mensuales (los que se ven por default al entrar), no
+// los de los tres planes en las dos frecuencias -- Google solo quiere UNA
+// oferta representativa por producto, no las seis combinaciones.
+const DATOS_ESTRUCTURADOS_PRECIOS = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Rumbia',
+  url: 'https://rumbiamx.com/acerca',
+  applicationCategory: 'TravelApplication',
+  operatingSystem: 'Web',
+  description:
+    'Cotizador y planeador de viajes para agencias: itinerarios con asistencia inteligente, cotizaciones en PDF con margen y logo propio, presupuesto y gastos.',
+  offers: [
+    { '@type': 'Offer', name: 'Uso personal', price: '0', priceCurrency: 'MXN' },
+    { '@type': 'Offer', name: 'Inicio / Solo (mensual)', price: '190', priceCurrency: 'MXN' },
+    { '@type': 'Offer', name: 'Agencia (mensual)', price: '450', priceCurrency: 'MXN' },
+    { '@type': 'Offer', name: 'Agencia Pro (mensual)', price: '750', priceCurrency: 'MXN' },
+  ],
+};
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia } from '../components/ui.jsx';
 
@@ -35,6 +59,7 @@ export default function Acerca() {
       'Qué es Rumbia, cómo ayuda a viajeros y agencias a planear viajes completos, y cuánto cuesta.',
     ruta: '/acerca',
   });
+  useJsonLd('jsonld-precios-acerca', DATOS_ESTRUCTURADOS_PRECIOS);
 
   // Estado para el simulador interactivo de propuesta
   const [modoDesglose, setModoDesglose] = useState('total'); // 'total' | 'desglose'

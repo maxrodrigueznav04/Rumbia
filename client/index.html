@@ -51,6 +51,25 @@
       content="Planea viajes completos en minutos: itinerarios día por día con asistencia inteligente, cotizaciones oficiales en PDF con tu logo y margen, rutas, vuelos y hospedajes."
     />
     <meta name="twitter:image" content="https://rumbiamx.com/og.jpg" />
+
+    <!--
+      Datos estructurados (schema.org): le dan a Google una version explicita
+      de "quien es Rumbia" en vez de que lo adivine del texto de la pagina.
+      Solo lo esencial y verificable aqui (nombre, url, descripcion) porque
+      esto vive en TODAS las paginas por igual -- nada especifico de una sola
+      pagina (como precios) deberia ir aqui; eso vive junto al contenido que
+      lo muestra de verdad (ver Acerca.jsx).
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Rumbia",
+        "url": "https://rumbiamx.com/",
+        "logo": "https://rumbiamx.com/og.jpg",
+        "description": "Planeador de viajes y cotizador para agencias: itinerarios con asistencia inteligente, cotizaciones en PDF y presupuesto en un solo lugar."
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
