@@ -1,6 +1,7 @@
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import { isoDay } from '../utils/dates.js';
+import { obtenerCadenaModelos } from './gemini.service.js';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 // Es texto libre, no un itinerario completo en JSON: una respuesta tarda
@@ -139,93 +140,128 @@ export async function sendChatMessage({ trip, itinerary, messages }) {
     );
   }
 
-  const url = `${API_BASE}/${env.gemini.model}:generateContent`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const systemInstructionText = buildSystemInstruction(trip, itinerary);
+  const contents = messages.slice(-TURNOS_DE_CONTEXTO).map((m) => ({
+    role: m.role,
+    parts: [{ text: m.text }],
+  }));
 
-  try {
-    const contents = messages.slice(-TURNOS_DE_CONTEXTO).map((m) => ({
-      role: m.role,
-      parts: [{ text: m.text }],
-    }));
+  const modelos = obtenerCadenaModelos(env.gemini.model);
+  let ultimoError = null;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': env.gemini.apiKey,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: buildSystemInstruction(trip, itinerary) }] },
-        contents,
-        generationConfig: { temperature: 0.7 },
-      }),
-      signal: controller.signal,
-    });
+  for (let i = 0; i < modelos.length; i += 1) {
+    const modelo = modelos[i];
+    const esUltimo = i === modelos.length - 1;
+    const url = `${API_BASE}/${modelo}:generateContent`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      if (res.status === 429) {
-        throw ApiError.serviceUnavailable(
-          'La cuota de la API de Gemini se agotó por ahora. Intenta en unos minutos.'
-        );
-      }
-      if (res.status === 400 || res.status === 403) {
-        let motivo = '';
-        try {
-          motivo = JSON.parse(body)?.error?.message || '';
-        } catch {
-          motivo = body;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': env.gemini.apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstructionText }] },
+          contents,
+          generationConfig: { temperature: 0.7 },
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+
+        // 400 y 403 corresponden a problemas con la API key en sí
+        if (res.status === 400 || res.status === 403) {
+          let motivo = '';
+          try {
+            motivo = JSON.parse(body)?.error?.message || '';
+          } catch {
+            motivo = body;
+          }
+          throw ApiError.serviceUnavailable(
+            'La API key de Gemini es inválida o no tiene permisos. Revisa GEMINI_API_KEY donde esté desplegado el servidor.',
+            motivo.slice(0, 300) || undefined
+          );
         }
-        throw ApiError.serviceUnavailable(
-          'La API key de Gemini es inválida o no tiene permisos. Revisa GEMINI_API_KEY donde esté desplegado el servidor.',
-          motivo.slice(0, 300) || undefined
+
+        // 429, 503, 500, 502, 504 y 404: conmutar al modelo de respaldo
+        const esRecuperable = [429, 503, 500, 502, 504, 404].includes(res.status);
+        if (esRecuperable && !esUltimo) {
+          console.warn(
+            `[chat] Modelo "${modelo}" respondió ${res.status}. Conmutando a fallback "${modelos[i + 1]}"...`
+          );
+          await new Promise((r) => setTimeout(r, 600));
+          continue;
+        }
+
+        if (res.status === 429) {
+          throw ApiError.serviceUnavailable(
+            'La cuota de la API de Gemini se agotó por ahora. Intenta en unos minutos.'
+          );
+        }
+        if (res.status === 503) {
+          throw ApiError.serviceUnavailable(
+            'El asistente está saturado en este momento. Vuelve a intentar en un minuto.'
+          );
+        }
+        if (res.status === 404) {
+          throw ApiError.serviceUnavailable(
+            `El modelo "${modelo}" no está disponible para esta API key. Cambia GEMINI_MODEL en el .env del servidor.`,
+            body.slice(0, 300)
+          );
+        }
+        throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
+      }
+
+      const data = await res.json();
+      const uso = data?.usageMetadata;
+      if (uso) {
+        console.log(
+          `[chat] ${modelo} | entrada ${uso.promptTokenCount ?? 0}` +
+            ` | salida ${uso.candidatesTokenCount ?? 0} | total ${uso.totalTokenCount ?? 0}`
         );
       }
-      if (res.status === 404) {
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        const reason = data?.candidates?.[0]?.finishReason;
         throw ApiError.serviceUnavailable(
-          `El modelo "${env.gemini.model}" no está disponible para esta API key. Cambia GEMINI_MODEL en el .env del servidor.`,
-          body.slice(0, 300)
+          reason === 'SAFETY'
+            ? 'El asistente bloqueó la respuesta por filtros de contenido. Prueba reformular la pregunta.'
+            : 'El asistente devolvió una respuesta vacía.'
         );
       }
-      if (res.status === 503) {
-        throw ApiError.serviceUnavailable(
-          'El asistente está saturado en este momento. Vuelve a intentar en un minuto.'
+
+      return { text: text.trim(), model: modelo, uso: uso || null };
+    } catch (err) {
+      clearTimeout(timer);
+      ultimoError = err;
+      const esTimeout = err.name === 'AbortError';
+      const esSaturado = err instanceof ApiError && (err.status === 503 || err.status === 429);
+
+      if ((esTimeout || esSaturado) && !esUltimo) {
+        console.warn(
+          `[chat] Modelo "${modelo}" falló (${err.message}). Conmutando a fallback "${modelos[i + 1]}"...`
         );
+        await new Promise((r) => setTimeout(r, 600));
+        continue;
       }
-      throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
-    }
 
-    const data = await res.json();
-
-    const uso = data?.usageMetadata;
-    if (uso) {
-      console.log(
-        `[chat] ${env.gemini.model} | entrada ${uso.promptTokenCount ?? 0}` +
-          ` | salida ${uso.candidatesTokenCount ?? 0} | total ${uso.totalTokenCount ?? 0}`
-      );
+      if (err.name === 'AbortError') {
+        throw ApiError.serviceUnavailable('El asistente tardó demasiado en responder. Intenta de nuevo.');
+      }
+      if (err instanceof ApiError) throw err;
+      throw ApiError.serviceUnavailable(`No se pudo contactar al asistente: ${err.message}`);
     }
-
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      const reason = data?.candidates?.[0]?.finishReason;
-      throw ApiError.serviceUnavailable(
-        reason === 'SAFETY'
-          ? 'El asistente bloqueó la respuesta por filtros de contenido. Prueba reformular la pregunta.'
-          : 'El asistente devolvió una respuesta vacía.'
-      );
-    }
-
-    return { text: text.trim(), model: env.gemini.model, uso: uso || null };
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      throw ApiError.serviceUnavailable('El asistente tardó demasiado en responder. Intenta de nuevo.');
-    }
-    if (err instanceof ApiError) throw err;
-    throw ApiError.serviceUnavailable(`No se pudo contactar al asistente: ${err.message}`);
-  } finally {
-    clearTimeout(timer);
   }
+
+  if (ultimoError) throw ultimoError;
 }
 
 export default { sendChatMessage, buildTripContext };

@@ -13,7 +13,7 @@ import { join } from 'node:path';
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BASE = 'http://localhost:5173';
 const SALIDA = process.argv[2] || 'og.png';
-const ESCALA = 2; // 2400x1260: se ve nitido en pantallas densas
+const ESCALA = 1; // 1200x630 nativo: peso ligero (<250 KB) para WhatsApp y redes
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const perfilDir = join(tmpdir(), `rumbo-og-${process.pid}`);
@@ -55,20 +55,20 @@ const TARJETA = `
   </div>
 
   <div style="position:relative;">
-    <h1 style="font-family:'Sora Variable',sans-serif;font-weight:700;font-size:68px;color:#FBF6EC;
-               line-height:1.08;letter-spacing:-0.03em;margin:0 0 20px;max-width:15ch;">
-      Planea tu viaje completo en un solo lugar
+    <h1 style="font-family:'Sora Variable',sans-serif;font-weight:700;font-size:62px;color:#FBF6EC;
+               line-height:1.1;letter-spacing:-0.03em;margin:0 0 16px;max-width:18ch;">
+      Planea viajes completos en minutos
     </h1>
-    <p style="margin:0;font-size:27px;line-height:1.45;opacity:0.94;max-width:34ch;">
-      Transporte, hospedaje e itinerario día por día generado con IA.
+    <p style="margin:0;font-size:26px;line-height:1.4;opacity:0.95;max-width:38ch;">
+      Itinerarios día por día con IA · Para viajeros y agencias de viaje. Cotizaciones en PDF con tu logo y margen.
     </p>
   </div>
 
-  <div style="display:flex;gap:12px;position:relative;">
-    ${['Itinerario con IA', 'Mapa y clima', 'Control de presupuesto']
+  <div style="display:flex;gap:12px;position:relative;flex-wrap:wrap;">
+    ${['Itinerario con IA', 'Para agencias y viajeros', 'PDF con tu marca', 'Sin comisiones']
       .map(
         (t) => `<span style="border:1.5px solid rgba(251,246,236,0.55);border-radius:999px;
-                 padding:11px 22px;font-size:21px;font-weight:600;">${t}</span>`
+                 padding:10px 20px;font-size:20px;font-weight:600;background:rgba(0,0,0,0.12);">${t}</span>`
       )
       .join('')}
   </div>
@@ -117,10 +117,16 @@ try {
   })()`);
   console.log('tipografia del titulo:', usadas);
 
-  const shot = await cmd('Page.captureScreenshot', { format: 'png' }, sessionId);
-  writeFileSync(SALIDA, Buffer.from(shot.data, 'base64'));
-  const kb = Math.round(Buffer.from(shot.data, 'base64').length / 1024);
-  console.log(`imagen: ${SALIDA} ${1200 * ESCALA}x${630 * ESCALA} (${kb} KB)`);
+  const shotPng = await cmd('Page.captureScreenshot', { format: 'png' }, sessionId);
+  writeFileSync(SALIDA, Buffer.from(shotPng.data, 'base64'));
+  const kbPng = Math.round(Buffer.from(shotPng.data, 'base64').length / 1024);
+  console.log(`imagen PNG: ${SALIDA} 1200x630 (${kbPng} KB)`);
+
+  const salidaJpg = SALIDA.replace(/\.png$/, '.jpg');
+  const shotJpg = await cmd('Page.captureScreenshot', { format: 'jpeg', quality: 88 }, sessionId);
+  writeFileSync(salidaJpg, Buffer.from(shotJpg.data, 'base64'));
+  const kbJpg = Math.round(Buffer.from(shotJpg.data, 'base64').length / 1024);
+  console.log(`imagen JPG: ${salidaJpg} 1200x630 (${kbJpg} KB)`);
 } finally {
   ws?.close();
   chrome.kill();

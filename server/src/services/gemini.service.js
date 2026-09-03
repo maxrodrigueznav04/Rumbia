@@ -190,10 +190,27 @@ function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
   }));
 }
 
+export const MODELOS_FALLBACK = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash',
+];
+
+export function obtenerCadenaModelos(modeloPrincipal) {
+  const principal = modeloPrincipal || 'gemini-2.5-flash';
+  const lista = [principal];
+  for (const m of MODELOS_FALLBACK) {
+    if (!lista.includes(m)) lista.push(m);
+  }
+  return lista;
+}
+
 /**
- * Llama a Gemini y devuelve { days, summary, model }.
- * Lanza ApiError 503 si la API falla: el cliente muestra el fallback y el
- * usuario siempre puede armar el itinerario a mano.
+ * Llama a Gemini y devuelve { days, summary, model, uso }.
+ * Si el modelo principal está saturado (503), sin cuota (429) o tarda demasiado,
+ * conmuta automáticamente a los modelos de respaldo (gemini-2.0-flash, etc.)
+ * para que el usuario nunca sufra caídas ni demoras.
  */
 export async function generateItinerary(ctx) {
   if (!env.gemini.enabled) {
@@ -202,119 +219,143 @@ export async function generateItinerary(ctx) {
     );
   }
 
-  const url = `${API_BASE}/${env.gemini.model}:generateContent`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const promptText = buildPrompt(ctx);
+  const modelos = obtenerCadenaModelos(env.gemini.model);
+  let ultimoError = null;
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': env.gemini.apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: buildPrompt(ctx) }] }],
-        generationConfig: {
-          temperature: 0.9,
-          responseMimeType: 'application/json',
-          responseSchema: ITINERARY_SCHEMA,
-        },
-      }),
-      signal: controller.signal,
-    });
+  for (let i = 0; i < modelos.length; i += 1) {
+    const modelo = modelos[i];
+    const esUltimo = i === modelos.length - 1;
+    const url = `${API_BASE}/${modelo}:generateContent`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      if (res.status === 429) {
-        throw ApiError.serviceUnavailable(
-          'La cuota de la API de Gemini se agotó por ahora. Intenta en unos minutos.'
-        );
-      }
-      if (res.status === 400 || res.status === 403) {
-        // Google usa el mismo par de códigos para "la key no existe", "la key
-        // está restringida por IP/referrer" y "falta habilitar la API", y el
-        // mensaje suelto no deja distinguirlos. Se adjunta el suyo: sin esto
-        // hay que adivinar cuál de los tres es, sobre todo cuando la key del
-        // servidor desplegado no es la misma que la del .env local.
-        let motivo = '';
-        try {
-          motivo = JSON.parse(body)?.error?.message || '';
-        } catch {
-          motivo = body;
-        }
-        throw ApiError.serviceUnavailable(
-          'La API key de Gemini es inválida o no tiene permisos. Revisa GEMINI_API_KEY donde esté desplegado el servidor.',
-          motivo.slice(0, 300) || undefined
-        );
-      }
-      if (res.status === 404) {
-        // Google retira modelos viejos para keys nuevas y el 404 no lo deja claro.
-        throw ApiError.serviceUnavailable(
-          `El modelo "${env.gemini.model}" no está disponible para esta API key. Cambia GEMINI_MODEL en el .env del servidor.`,
-          body.slice(0, 300)
-        );
-      }
-      if (res.status === 503) {
-        throw ApiError.serviceUnavailable(
-          'El modelo de Gemini está saturado en este momento. Vuelve a intentar en un minuto.'
-        );
-      }
-      throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
-    }
-
-    const data = await res.json();
-
-    // Google no cobra el nivel gratuito, pero para saber si el negocio cierra
-    // hay que conocer el costo por generacion ANTES de tener trafico. Este es
-    // el unico punto donde existe el dato por itinerario: la consola de AI
-    // Studio agrega por dia y ahi ya no se puede separar una generacion suelta.
-    const uso = data?.usageMetadata;
-    if (uso) {
-      console.log(
-        `[gemini] ${env.gemini.model} | ${ctx.days} dias | entrada ${uso.promptTokenCount ?? 0}` +
-          ` | salida ${uso.candidatesTokenCount ?? 0} | total ${uso.totalTokenCount ?? 0}`
-      );
-    }
-
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) {
-      const reason = data?.candidates?.[0]?.finishReason;
-      throw ApiError.serviceUnavailable(
-        reason === 'SAFETY'
-          ? 'Gemini bloqueó la respuesta por filtros de contenido. Prueba con otras notas.'
-          : 'Gemini devolvió una respuesta vacía.'
-      );
-    }
-
-    let parsed;
     try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw ApiError.serviceUnavailable('Gemini devolvió un JSON malformado.');
-    }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': env.gemini.apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: promptText }] }],
+          generationConfig: {
+            temperature: 0.9,
+            responseMimeType: 'application/json',
+            responseSchema: ITINERARY_SCHEMA,
+          },
+        }),
+        signal: controller.signal,
+      });
 
-    const normalized = normalizeDays(parsed, ctx.days, ctx.paradas?.length || 0);
-    if (!normalized.length) {
-      throw ApiError.serviceUnavailable('Gemini no generó ningún día de itinerario.');
-    }
+      clearTimeout(timer);
 
-    return {
-      days: normalized,
-      summary: parsed.summary || '',
-      model: env.gemini.model,
-      uso: uso || null,
-    };
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      throw ApiError.serviceUnavailable('Gemini tardó demasiado en responder. Intenta de nuevo.');
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+
+        // 400 y 403 son problemas de la API key en sí (no del modelo): no tiene caso reintentar.
+        if (res.status === 400 || res.status === 403) {
+          let motivo = '';
+          try {
+            motivo = JSON.parse(body)?.error?.message || '';
+          } catch {
+            motivo = body;
+          }
+          throw ApiError.serviceUnavailable(
+            'La API key de Gemini es inválida o no tiene permisos. Revisa GEMINI_API_KEY donde esté desplegado el servidor.',
+            motivo.slice(0, 300) || undefined
+          );
+        }
+
+        // 429, 503, 500, 502, 504 y 404 (modelo retirado o no disponible): salta a respaldo.
+        const esRecuperable = [429, 503, 500, 502, 504, 404].includes(res.status);
+        if (esRecuperable && !esUltimo) {
+          console.warn(
+            `[gemini] Modelo "${modelo}" respondió ${res.status}. Conmutando a fallback "${modelos[i + 1]}"...`
+          );
+          await new Promise((r) => setTimeout(r, 600));
+          continue;
+        }
+
+        if (res.status === 429) {
+          throw ApiError.serviceUnavailable(
+            'La cuota de la API de Gemini se agotó por ahora. Intenta en unos minutos.'
+          );
+        }
+        if (res.status === 503) {
+          throw ApiError.serviceUnavailable(
+            'El modelo de Gemini está saturado en este momento. Vuelve a intentar en un minuto.'
+          );
+        }
+        if (res.status === 404) {
+          throw ApiError.serviceUnavailable(
+            `El modelo "${modelo}" no está disponible para esta API key. Cambia GEMINI_MODEL en el .env del servidor.`,
+            body.slice(0, 300)
+          );
+        }
+        throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
+      }
+
+      const data = await res.json();
+      const uso = data?.usageMetadata;
+      if (uso) {
+        console.log(
+          `[gemini] ${modelo} | ${ctx.days} dias | entrada ${uso.promptTokenCount ?? 0}` +
+            ` | salida ${uso.candidatesTokenCount ?? 0} | total ${uso.totalTokenCount ?? 0}`
+        );
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        const reason = data?.candidates?.[0]?.finishReason;
+        throw ApiError.serviceUnavailable(
+          reason === 'SAFETY'
+            ? 'Gemini bloqueó la respuesta por filtros de contenido. Prueba con otras notas.'
+            : 'Gemini devolvió una respuesta vacía.'
+        );
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw ApiError.serviceUnavailable('Gemini devolvió un JSON malformado.');
+      }
+
+      const normalized = normalizeDays(parsed, ctx.days, ctx.paradas?.length || 0);
+      if (!normalized.length) {
+        throw ApiError.serviceUnavailable('Gemini no generó ningún día de itinerario.');
+      }
+
+      return {
+        days: normalized,
+        summary: parsed.summary || '',
+        model: modelo,
+        uso: uso || null,
+      };
+    } catch (err) {
+      clearTimeout(timer);
+      ultimoError = err;
+      const esTimeout = err.name === 'AbortError';
+      const esSaturado = err instanceof ApiError && (err.status === 503 || err.status === 429);
+
+      if ((esTimeout || esSaturado) && !esUltimo) {
+        console.warn(
+          `[gemini] Modelo "${modelo}" falló (${err.message}). Conmutando a fallback "${modelos[i + 1]}"...`
+        );
+        await new Promise((r) => setTimeout(r, 600));
+        continue;
+      }
+
+      if (err.name === 'AbortError') {
+        throw ApiError.serviceUnavailable('Gemini tardó demasiado en responder. Intenta de nuevo.');
+      }
+      if (err instanceof ApiError) throw err;
+      throw ApiError.serviceUnavailable(`No se pudo contactar a Gemini: ${err.message}`);
     }
-    if (err instanceof ApiError) throw err;
-    throw ApiError.serviceUnavailable(`No se pudo contactar a Gemini: ${err.message}`);
-  } finally {
-    clearTimeout(timer);
   }
+
+  if (ultimoError) throw ultimoError;
 }
 
-export default { generateItinerary };
+export default { generateItinerary, MODELOS_FALLBACK, obtenerCadenaModelos };
