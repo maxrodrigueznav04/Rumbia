@@ -195,7 +195,7 @@ export default function Acerca() {
                       <Icono nombre="maleta" tamano={22} className="icono-seccion" />
                       <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Para Agencias</h3>
                     </div>
-                    <Insignia color="marca">Desde $9.99 USD/mes</Insignia>
+                    <Insignia color="marca">Desde $190 MXN/mes</Insignia>
                   </div>
 
                   <p className="suave" style={{ fontSize: '0.94rem', margin: '0 0 16px' }}>
@@ -485,10 +485,10 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$9.99 USD' : '$104.99 USD'}
+                      {frecuencia === 'mensual' ? '$190 MXN' : '$1,950 MXN'}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes (~$199 MXN)' : 'al año (~$2,100 MXN · 10.5 meses)'}
+                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
                     </span>
                   </div>
 
@@ -546,10 +546,10 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$23.99 USD' : '$249.99 USD'}
+                      {frecuencia === 'mensual' ? '$450 MXN' : '$4,650 MXN'}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes (~$479 MXN)' : 'al año (~$5,000 MXN · 10.5 meses)'}
+                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
                     </span>
                   </div>
 
@@ -602,10 +602,10 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$39.99 USD' : '$419.99 USD'}
+                      {frecuencia === 'mensual' ? '$750 MXN' : '$7,800 MXN'}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes (~$799 MXN)' : 'al año (~$8,400 MXN · 10.5 meses)'}
+                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
                     </span>
                   </div>
 
@@ -620,7 +620,7 @@ export default function Acerca() {
                   >
                     <strong>Hasta 15 agentes incluidos</strong>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.75rem' }}>
-                      +$4 USD/mes por agente extra (16+)
+                      +$75 MXN/mes por agente extra (16+)
                     </span>
                   </div>
 
