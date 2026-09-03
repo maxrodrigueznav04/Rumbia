@@ -18,40 +18,43 @@ export default function Terminos() {
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
-          <li>Rumbia organiza y estima. No vende, no reserva y no cobra nada.</li>
-          <li>La IA se equivoca: verifica horarios, precios y disponibilidad antes de contar con ellos.</li>
-          <li>Es gratis. Si algún día deja de serlo, se avisa antes y nunca de forma retroactiva.</li>
+          <li>Rumbia organiza y estima. No vende, no reserva boletos y no cobra comisiones a los viajeros.</li>
+          <li>Las sugerencias y estimaciones son orientativas: verifica siempre horarios, precios y disponibilidad.</li>
+          <li>Uso personal gratuito, con planes de suscripción profesionales para agencias de viaje.</li>
         </ul>
       </Tarjeta>
 
       <h2>1. Qué es Rumbia</h2>
       <p>
-        Rumbia es una herramienta para planear viajes: guarda la información de tu viaje, te ayuda a
-        armar un itinerario con inteligencia artificial, estima costos y te lleva a los sitios de
-        los proveedores para que reserves ahí.
+        Rumbia es una plataforma tecnológica para planear viajes: guarda la información de tus rutas,
+        ofrece asistencia inteligente para estructurar itinerarios día por día, estima costos y te
+        conecta con proveedores oficiales de transporte y alojamiento.
       </p>
       <p>
-        <strong>Rumbia no es una agencia de viajes.</strong> No vende vuelos, hospedaje ni
-        actividades; no procesa pagos; no emite boletos ni confirmaciones; y no es parte de ningún
-        contrato entre tú y el proveedor con el que reserves. Al usar la aplicación aceptas estos
-        términos.
+        <strong>Rumbia no es una agencia de viajes operadora ni intermediaria turística directa.</strong> No vende vuelos,
+        hospedaje ni actividades directamente; no procesa pagos de reservaciones ni emite boletos. Los
+        enlaces de reserva te llevan al sitio del proveedor con tu búsqueda prellenada.
+      </p>
+      <p>
+        Para agencias de viaje y asesores independientes, Rumbia ofrece herramientas avanzadas de cotización,
+        membretes oficiales y exportación de propuestas en PDF bajo suscripción mensual o anual.
       </p>
       <p>El servicio lo ofrece {RESPONSABLE}.</p>
 
-      <h2>2. Lo que genera la IA es una sugerencia, no un dato verificado</h2>
+      <h2>2. Las sugerencias y estimaciones son orientativas</h2>
       <p>
-        Los itinerarios los genera un modelo de lenguaje. Eso significa que puede{' '}
-        <strong>equivocarse en horarios, precios, días de cierre, ubicaciones y disponibilidad</strong>,
-        e incluso sugerir lugares que ya cerraron o que no existen.
+        Los itinerarios y notas del asistente se elaboran mediante modelos inteligentes de lenguaje.
+        Dado que las tarifas, horarios, días de apertura y políticas de viaje cambian de forma constante,
+        la información generada puede contener variaciones respecto a la realidad.
       </p>
       <p>
-        <strong>Verifica siempre con la fuente oficial</strong> antes de tomar una decisión que
-        dependa de esa información: comprar un boleto, reservar una mesa o presentarte en un museo.
-        Los costos que ves son estimaciones para ayudarte a presupuestar, no cotizaciones.
+        <strong>Verifica siempre con la fuente oficial o el proveedor correspondiente</strong> antes de
+        realizar pagos o tomar decisiones de viaje. Los costos mostrados son referencias estimadas para
+        ayudarte a presupuestar.
       </p>
       <p>
         Lo mismo aplica al clima: cuando tu viaje está a más de cinco días, lo que se muestra es una
-        estimación por temporada, y la aplicación lo indica en pantalla.
+        estimación estacional histórica, y la aplicación lo indica en pantalla.
       </p>
 
       <h2>3. Reservar ocurre fuera de Rumbia</h2>
@@ -76,29 +79,38 @@ export default function Terminos() {
         <li>Puedes eliminar tu cuenta cuando quieras desde <em>Perfil</em>. Al hacerlo se borran también todos tus viajes, itinerarios y gastos, sin posibilidad de recuperarlos.</li>
       </ul>
 
-      <h2>5. Uso aceptable</h2>
-      <p>Al usar Rumbia te comprometes a no:</p>
+      <h2>5. Uso aceptable y licencia para agencias</h2>
+      <p>Al usar Rumbia te comprometes a:</p>
       <ul>
-        <li>Automatizar el uso del generador de itinerarios ni intentar saltarte los límites de uso.</li>
-        <li>Revender, redistribuir o presentar como propio el contenido que genera la aplicación con fines comerciales.</li>
-        <li>Intentar acceder a datos de otras personas, ni a partes del sistema para las que no tienes permiso.</li>
-        <li>Usar el servicio para algo ilegal, o capturar contenido que infrinja derechos de terceros.</li>
+        <li>Hacer un uso responsable de las herramientas sin automatizar peticiones abusivas ni intentar vulnerar los límites de uso.</li>
+        <li>No intentar acceder a datos de otras personas ni a partes del sistema para las que no tienes autorización.</li>
+        <li>No revender ni redistribuir el software o código de Rumbia.</li>
       </ul>
       <p>
-        Hay límites de uso por hora en la generación con IA. Existen para proteger el servicio y
-        repartirlo entre todos, y pueden ajustarse sin previo aviso.
+        <strong>Licencia comercial para agencias:</strong> Las agencias y agentes de viaje con una suscripción activa
+        tienen licencia comercial expresa para utilizar Rumbia como cotizador profesional, personalizar propuestas
+        con su membrete y marca comercial, y entregar itinerarios en PDF a sus clientes finales.
+      </p>
+      <p>
+        Existen cuotas y límites mensuales de uso según el plan contratado o el nivel personal gratuito.
+        Estos límites protegen la estabilidad del servicio y se recargan el primer día de cada mes.
       </p>
 
-      <h2>6. Disponibilidad y cambios</h2>
+      <h2>6. Planes, facturación y cancelaciones</h2>
       <p>
-        Rumbia se ofrece <strong>tal cual está</strong> y de forma gratuita. No se garantiza que esté
-        siempre disponible, ni libre de errores, ni que los servicios de terceros de los que depende
-        —el modelo de IA, el proveedor del clima, los mapas— funcionen en todo momento.
+        <strong>Plan personal:</strong> El uso personal de Rumbia para planear tus propios viajes es gratuito,
+        con cuotas mensuales recargables para el uso del asistente inteligente, sin límite en viajes manuales ni notas.
       </p>
       <p>
-        Se pueden cambiar, suspender o retirar funciones. Si en el futuro alguna parte del servicio
-        pasa a ser de paga, se avisará con antelación y no se aplicará de forma retroactiva a lo que
-        ya guardaste.
+        <strong>Suscripciones de agencia:</strong> Los planes para agencias (Inicio, Agencia y Agencia Pro) se
+        facturan en dólares estadounidenses (USD) de forma periódica (mensual o anual) mediante <strong>Stripe</strong>.
+        Puedes cancelar tu suscripción o cambiar de plan en cualquier momento desde el panel de facturación; el servicio
+        permanecerá activo hasta el final del ciclo ya pagado y no se realizarán cargos posteriores.
+      </p>
+      <p>
+        Rumbia se ofrece con los mejores estándares de calidad y disponibilidad, apoyándose en infraestructura
+        de clase mundial (Cloudflare, Render y MongoDB Atlas). No nos hacemos responsables de interrupciones temporales
+        en servicios de terceros (como mapas o clima).
       </p>
       <p>
         Te recomendamos conservar por tu cuenta la información importante de tu viaje: claves de

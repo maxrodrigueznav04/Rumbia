@@ -18,11 +18,9 @@ export default function Privacidad() {
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
-          <li>Tus datos se usan para prestarte el servicio. No se venden ni se usan para publicidad.</li>
-          <li>Rumbia no cobra ni procesa reservas: cuando reservas, sales a otro sitio.</li>
-          <li>Puedes pedir acceso, corrección o borrado de tus datos escribiendo a{' '}
-            <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
-          </li>
+          <li>Tus datos se usan para darte el servicio. No se venden ni se usan para publicidad.</li>
+          <li>Rumbia no cobra comisiones por tus reservas; al reservar sales a los proveedores oficiales.</li>
+          <li>Los cobros de suscripción para agencias se procesan de forma cifrada mediante Stripe (PCI Nivel 1).</li>
         </ul>
       </Tarjeta>
 
@@ -33,9 +31,9 @@ export default function Privacidad() {
         escribir a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
       </p>
       <p>
-        Rumbia es un planeador de viajes: centraliza la información de tu viaje y te ayuda a armar un
-        itinerario. <strong>No vende vuelos ni hospedaje, no procesa pagos y no cobra comisiones al
-        usuario.</strong>
+        Rumbia es una plataforma de planeación y cotización de viajes: centraliza la información de tus rutas y
+        propuestas. <strong>No vende vuelos ni hospedaje directamente, no procesa pagos de reservas y no cobra
+        comisiones de viaje al usuario. Las suscripciones de agencia se gestionan de forma segura a través de Stripe.</strong>
       </p>
 
       <h2>2. Qué datos recabamos</h2>
@@ -102,7 +100,7 @@ export default function Privacidad() {
       <h2>3. Para qué usamos tus datos</h2>
       <p>
         Para prestarte el servicio que pediste al registrarte, y para nada más. En concreto: mantener
-        tu sesión abierta, guardar y mostrarte tus viajes, generar itinerarios con IA a partir de lo
+        tu sesión abierta, guardar y mostrarte tus viajes, generar itinerarios con asistencia inteligente a partir de lo
         que capturaste, calcular tu presupuesto, mostrarte el clima estimado del destino y armar los
         enlaces de búsqueda hacia los proveedores.
       </p>
@@ -133,6 +131,13 @@ export default function Privacidad() {
       <p>
         Recibe el <strong>nombre del destino o sus coordenadas</strong> para devolver el pronóstico.
         No recibe nada que te identifique.
+      </p>
+
+      <h3>Stripe — cobro y suscripciones de agencias</h3>
+      <p>
+        Para las cuentas de agencia con planes de pago, los cobros se gestionan de forma cifrada mediante
+        <strong>Stripe (certificación PCI Nivel 1)</strong>. Rumbia nunca almacena ni tiene acceso a números completos de
+        tarjetas bancarias ni códigos de seguridad (CVC).
       </p>
 
       <h3>MongoDB Atlas, Render y Cloudflare — infraestructura</h3>
