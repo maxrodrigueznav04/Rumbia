@@ -600,7 +600,8 @@ export default function Acerca() {
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
                     <li><strong>150 itinerarios inteligentes</strong> al mes</li>
                     <li><strong>Asistente virtual de chat ilimitado</strong></li>
-                    <li><strong>Logo y membrete oficial</strong> de la agencia en PDF</li>
+                    <li><strong>Logo, membrete y color de acento propio</strong> en el PDF</li>
+                    <li><strong>Marca blanca</strong> (sin pie de Rumbia)</li>
                     <li><strong>Margen comercial automático</strong> (% o monto fijo)</li>
                     <li><strong>Ocultar desglose de precios</strong> (precio cerrado al cliente)</li>
                     <li><strong>Reporte mensual de productividad</strong> por agente</li>
@@ -658,8 +659,7 @@ export default function Acerca() {
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
                     <li><strong>500 itinerarios inteligentes</strong> al mes</li>
-                    <li><strong>Todo lo del plan Agencia</strong></li>
-                    <li><strong>Marca Blanca:</strong> Sin mención de Rumbia en el pie de página de los PDFs</li>
+                    <li><strong>Todo lo del plan Agencia</strong> (marca blanca y color propio incluidos)</li>
                     <li><strong>Soporte prioritario</strong> directo vía WhatsApp</li>
                     <li>Asistente virtual de chat ilimitado</li>
                     <li>Reportes avanzados de ventas y cotizaciones</li>

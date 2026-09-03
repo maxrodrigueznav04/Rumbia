@@ -1,6 +1,18 @@
 import { rangoFechas, nombreDestino } from '../utils/format.js';
 
 /**
+ * Variable CSS que pone el color de acento propio de la agencia (solo en
+ * plan Agencia/Pro y solo si lo eligieron) para que todo el PDF -- insignia,
+ * marcadores de dia, actividades, no solo el encabezado -- la use via
+ * var(--marca) (ver global.css). Se pasa como estilo inline en el elemento
+ * que envuelve encabezado, cuerpo y pie; sin marcaBlanca o sin color
+ * elegido, no define nada y todo cae al verde de Rumbia de siempre.
+ */
+export function estiloAcento(marca) {
+  return marca?.marcaBlanca && marca?.colorAcento ? { '--marca-agencia': marca.colorAcento } : undefined;
+}
+
+/**
  * Membrete y pie que solo existen en la hoja impresa.
  *
  * En pantalla van ocultos (`.hoja-cabecera` / `.hoja-pie` en global.css): la
@@ -43,6 +55,10 @@ export function EncabezadoImpresion({ marca, viaje }) {
 
 export function PieImpresion({ marca }) {
   const nombre = marca?.agencyName?.trim();
+  // Beneficio de los planes Agencia y Agencia Pro (ver Agency.js): el pie
+  // deja de mencionar a Rumbia. Uso personal y el plan Inicio se quedan con
+  // el credito, igual que antes.
+  const marcaBlanca = Boolean(marca?.marcaBlanca);
 
   return (
     <footer className="hoja-pie">
@@ -50,7 +66,13 @@ export function PieImpresion({ marca }) {
         Los costos son estimaciones para orientar el presupuesto, no precios en firme, y pueden
         cambiar según la temporada y la disponibilidad.
       </p>
-      <p>{nombre ? `${nombre} · Propuesta preparada con Rumbia.` : 'Itinerario preparado con Rumbia.'}</p>
+      <p>
+        {marcaBlanca
+          ? `${nombre} · Propuesta de viaje.`
+          : nombre
+            ? `${nombre} · Propuesta preparada con Rumbia.`
+            : 'Itinerario preparado con Rumbia.'}
+      </p>
     </footer>
   );
 }

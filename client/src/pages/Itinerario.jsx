@@ -20,7 +20,7 @@ import Icono from '../components/Icono.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import RevisionItinerario from '../components/RevisionItinerario.jsx';
-import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
+import { EncabezadoImpresion, PieImpresion, estiloAcento } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { revisarItinerario } from '../utils/revisionItinerario.js';
 import {
@@ -423,7 +423,7 @@ export default function Itinerario() {
   }
 
   return (
-    <div className="pila">
+    <div className="pila" style={estiloAcento(marca)}>
       {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}
       {itinerario && <EncabezadoImpresion marca={marca} viaje={viaje} />}
 

@@ -294,6 +294,32 @@ await check('Agency: capacidadAgentes respeta el tope base de cada tier (Inicio/
   return 'inicio=3, agencia=8, pro=15(+extra)';
 });
 
+await check('Agency: marcaBlanca solo en planes Agencia y Pro, no Inicio ni sin plan', async () => {
+  const sinPlan = new Agency({ agencyName: 'X', owner: uid });
+  assert(sinPlan.marcaBlanca === false, 'trial/sin plan no califica');
+
+  const inicio = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'inicio_mensual' } });
+  assert(inicio.marcaBlanca === false, 'Inicio no califica');
+
+  const agencia = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'agencia_anual' } });
+  assert(agencia.marcaBlanca === true, 'Agencia si califica');
+
+  const pro = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'pro_mensual' } });
+  assert(pro.marcaBlanca === true, 'Pro si califica');
+
+  return 'sin plan/Inicio -> false, Agencia/Pro -> true';
+});
+
+await check('Agency valida el formato del color de acento', async () => {
+  const valido = new Agency({ agencyName: 'X', owner: uid, colorAcento: '#1F6F5C' });
+  assert(!valido.validateSync(), 'un hex de 6 digitos es valido');
+
+  const invalido = new Agency({ agencyName: 'X', owner: uid, colorAcento: 'verde' });
+  assert(invalido.validateSync()?.errors.colorAcento, 'un color que no es hex debe fallar');
+
+  return 'hex valido pasa, texto libre se rechaza';
+});
+
 await check('Agency rechaza un plan que no existe', async () => {
   const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
   assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
