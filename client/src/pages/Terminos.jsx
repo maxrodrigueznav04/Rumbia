@@ -108,9 +108,10 @@ export default function Terminos() {
         permanecerá activo hasta el final del ciclo ya pagado y no se realizarán cargos posteriores.
       </p>
       <p>
-        Rumbia se ofrece con los mejores estándares de calidad y disponibilidad, apoyándose en infraestructura
-        de clase mundial (Cloudflare, Render y MongoDB Atlas). No nos hacemos responsables de interrupciones temporales
-        en servicios de terceros (como mapas o clima).
+        Hacemos lo posible por mantener Rumbia funcionando sin contratiempos, apoyados en proveedores serios
+        (Cloudflare, Render y MongoDB Atlas), pero como cualquier aplicación en internet no podemos garantizar
+        que esté disponible el 100% del tiempo ni completamente libre de errores. Tampoco respondemos por
+        interrupciones de servicios de terceros de los que dependemos, como el clima o los mapas.
       </p>
       <p>
         Te recomendamos conservar por tu cuenta la información importante de tu viaje: claves de
