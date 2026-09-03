@@ -140,6 +140,11 @@ Todo el stack corre en tiers gratuitos.
 - **Reporte del dueño.** `GET /api/agency/reporte` cuenta cuántos viajes armó cada agente en el mes
   en curso (dueño incluido), ordenado de más a menos activo. Solo lo ve el dueño, mismo criterio
   que la lista de miembros.
+- **Auditoría de acciones sensibles.** Sacar a un agente, regenerar el código de invitación, que
+  una agencia se elimine (al salir el dueño sin nadie más), o que la cuenta admin se una saltándose
+  el plan o el cupo — quedan registrados con quién, cuándo y el detalle (`AuditLog`). El dueño ve
+  el registro de su propia agencia (`GET /api/agency/auditoria`); `ADMIN_EMAIL` ve el de todas
+  (`GET /api/stats/auditoria`, o `npm run auditoria` en `server`). Se conserva un año.
 - **Uso personal, siempre gratis, con un tope razonable.** Sin agencia de por medio (incluye la
   marca personal del PDF, que no requiere crear ninguna agencia), generar itinerarios con IA es
   gratis hasta 5 veces al mes por cuenta — de sobra para viajes propios o de familia, bajo para
@@ -414,7 +419,7 @@ planeador-viajes-ia/
 │   ├── src/
 │   │   ├── config/        env.js (valida variables al arrancar), db.js
 │   │   ├── models/        User, Trip, Itinerary, Expense, ClickSalida, Agency,
-│   │   │                  ItineraryTemplate, TripChat
+│   │   │                  ItineraryTemplate, TripChat, AuditLog
 │   │   ├── validators/    esquemas de Zod por endpoint
 │   │   ├── middleware/    auth (JWT), validate, errorHandler, rateLimiters, billing, subirLogo, turnstile
 │   │   ├── services/      gemini, chat, weather, exchange, bookingLinks, affiliates,
@@ -469,6 +474,12 @@ relativos), para aplicarla a un cliente nuevo sin volver a capturar nada a mano.
 
 **ClickSalida** — un clic en un enlace de salida hacia un proveedor. Deliberadamente anónimo: solo
 proveedor, sección, destino y fecha, nunca usuario ni IP. Se borra solo a los 180 días.
+
+**AuditLog** — quién hizo qué en las pocas acciones de agencia que son sensibles (sacar a un
+agente, regenerar el código, que la agencia se elimine, admin uniéndose sin plan/cupo). `agency`
+es opcional a propósito: el evento `agencia.eliminada` se registra justo antes de borrar el
+documento al que apunta, así que no puede exigir una referencia que está a punto de dejar de
+existir. Se conserva un año.
 
 ### Decisiones que vale la pena explicar
 
@@ -553,6 +564,7 @@ Todas las rutas privadas esperan `Authorization: Bearer <token>`.
 | `POST` | `/api/agency/codigo` | Regenera el código de invitación. |
 | `DELETE` | `/api/agency/miembros/:userId` | Saca a un agente de la agencia (solo el dueño). |
 | `GET` | `/api/agency/reporte` | Viajes armados por cada agente en el mes (solo el dueño). |
+| `GET` | `/api/agency/auditoria` | Últimas acciones sensibles de la agencia (solo el dueño). |
 | `GET` | `/api/agency/billing` | Estado de pago y capacidad de agentes de la agencia. |
 | `POST` | `/api/agency/billing/checkout` | Sesión de Stripe Checkout para activar o cambiar de plan. |
 | `POST` | `/api/agency/billing/portal` | Enlace al Customer Portal de Stripe. |
@@ -565,6 +577,7 @@ Todas las rutas privadas esperan `Authorization: Bearer <token>`.
 | `GET` | `/api/public/itinerary/:token` | Ve un itinerario compartido por enlace, sin sesión. |
 | `POST` | `/api/public/click` | Registra un clic de salida (con o sin sesión). |
 | `GET` | `/api/stats/clicks` | Reporte de clics por proveedor (solo `ADMIN_EMAIL`). |
+| `GET` | `/api/stats/auditoria` | Acciones sensibles de todas las agencias (solo `ADMIN_EMAIL`). |
 
 Todas las respuestas siguen la misma forma:
 
@@ -631,18 +644,13 @@ Turnstile) se filtra o se sospecha comprometida:
   sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
   recuperación funcionan igual que si no existiera. Dar de alta la cuenta en Cloudflare causó
   crasheos, así que por ahora no se va a activar.
-- El cobro a agencias con Stripe ya se probó de punta a punta en modo prueba (Checkout, webhook,
-  activación del plan). Falta el paso a llaves live cuando se vaya a cobrar de verdad: cuenta en
-  modo live, `npm run stripe:setup` contra esas llaves, webhook nuevo en Render.
+- El cobro a agencias con Stripe ya corre en modo live (Checkout, webhook, Prices en MXN). Muchas
+  tarjetas mexicanas rechazan cargos en divisa extranjera aunque se les muestre convertida — por
+  eso los Price de producción están en MXN nativo, no en USD (ver `stripe-setup.mjs`).
 - Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
     billing; hoy depende solo de la contraseña.
-  - **Registro de acciones sensibles del admin/dueño de agencia** (eliminar miembro, regenerar
-    código, borrar agencia): no hay auditoría de quién hizo qué, más allá de lo que ya guarda Mongo
-    en `updatedAt`.
-  - **Dependabot o Renovate** en el repo: el `npm audit` de hoy da 0 vulnerabilidades, pero es una
-    foto fija — sin un bot que abra PRs solo, la próxima CVE no avisa.
   - **JWT en cookie `httpOnly` en vez de `localStorage`**: hoy no hay ningún XSS conocido (sin
     `dangerouslySetInnerHTML` ni `eval` en el front), pero una cookie es defensa en profundidad si
     alguna vez se cuela uno. Cambiarlo implica sumar protección CSRF y tocar la config de CORS, así

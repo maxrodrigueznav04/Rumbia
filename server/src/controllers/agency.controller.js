@@ -1,4 +1,4 @@
-import { Agency, User, Trip } from '../models/index.js';
+import { Agency, User, Trip, AuditLog } from '../models/index.js';
 import { subirLogo as subirLogoCloudinary } from '../services/logo.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -126,7 +126,9 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
   // de agencia). En cuanto alguien más se une, ya es el producto de pago: no
   // se deja sumar gente a una agencia sin un plan activo. La cuenta admin
   // (ADMIN_EMAIL) no tiene tope de cupo ni necesita plan activo para unirse.
-  if (agencia.billing?.status !== 'activa' && !esAdmin(req.user)) {
+  const esAdminUser = esAdmin(req.user);
+  const sinPlanActivo = agencia.billing?.status !== 'activa';
+  if (sinPlanActivo && !esAdminUser) {
     throw ApiError.forbidden(
       'Esta agencia todavía no tiene un plan activo. Pídele al dueño que lo active antes de unirte.'
     );
@@ -134,7 +136,8 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   const cupo = agencia.capacidadAgentes;
   const miembrosActuales = await User.countDocuments({ agency: agencia._id });
-  if (miembrosActuales >= cupo && !esAdmin(req.user)) {
+  const sinCupo = miembrosActuales >= cupo;
+  if (sinCupo && !esAdminUser) {
     throw ApiError.conflict(
       `Esta agencia ya llegó a su límite de ${cupo} agente(s). El dueño puede sumar más asientos desde su plan.`
     );
@@ -142,6 +145,21 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   req.user.agency = agencia._id;
   await req.user.save();
+
+  // Solo se registra cuando el bypass de admin de verdad importó: si la
+  // agencia ya tenia plan y cupo de sobra, unirse como admin es igual que
+  // unirse como cualquiera, y no hay nada que auditar.
+  if (esAdminUser && (sinPlanActivo || sinCupo)) {
+    const motivo = [sinPlanActivo && 'sin plan activo', sinCupo && `superando el cupo de ${cupo}`]
+      .filter(Boolean)
+      .join(' y ');
+    await AuditLog.registrar({
+      agency: agencia._id,
+      actor: req.user,
+      accion: 'agencia.union_admin',
+      detalle: `Se unió a "${agencia.agencyName}" ${motivo}.`,
+    });
+  }
 
   res.json({
     success: true,
@@ -176,6 +194,14 @@ export const salirAgencia = asyncHandler(async (req, res) => {
         'Eres el dueño y todavía hay otros agentes en la agencia. Sácalos primero, o pídeles que salgan ellos mismos.'
       );
     }
+    // Antes de borrar: el registro necesita agencyName/agencia._id mientras
+    // el documento todavia existe.
+    await AuditLog.registrar({
+      agency: agencia._id,
+      actor: req.user,
+      accion: 'agencia.eliminada',
+      detalle: `"${agencia.agencyName}" se eliminó al salir el dueño sin más agentes.`,
+    });
     await Agency.deleteOne({ _id: agencia._id });
   }
 
@@ -203,6 +229,13 @@ export const eliminarMiembro = asyncHandler(async (req, res) => {
   miembro.agency = null;
   await miembro.save();
 
+  await AuditLog.registrar({
+    agency: agencia._id,
+    actor: req.user,
+    accion: 'agencia.miembro_eliminado',
+    detalle: `Eliminó a ${miembro.name} (${miembro.email}) de la agencia.`,
+  });
+
   res.json({ success: true, message: 'Agente eliminado de la agencia.' });
 });
 
@@ -212,7 +245,29 @@ export const regenerarCodigo = asyncHandler(async (req, res) => {
   agencia.regenerarCodigo();
   await agencia.save();
 
+  await AuditLog.registrar({
+    agency: agencia._id,
+    actor: req.user,
+    accion: 'agencia.codigo_regenerado',
+  });
+
   res.json({ success: true, message: 'Código regenerado.', data: { agency: agencia } });
+});
+
+/**
+ * Últimas acciones sensibles de la agencia (sacar agente, regenerar código).
+ * Solo el dueno, mismo criterio que el reporte de productividad: es
+ * informacion sobre el equipo, no algo que un agente cualquiera necesite ver.
+ */
+export const obtenerAuditoria = asyncHandler(async (req, res) => {
+  const agencia = await agenciaComoDueno(req);
+
+  const eventos = await AuditLog.find({ agency: agencia._id })
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean();
+
+  res.json({ success: true, data: { eventos } });
 });
 
 /**

@@ -3,7 +3,7 @@ process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
 process.env.ADMIN_EMAIL ||= 'admin@rumbia.app';
 
-const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate } = await import('../src/models/index.js');
+const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
@@ -298,6 +298,24 @@ await check('Agency rechaza un plan que no existe', async () => {
   const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
   assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
   return 'enum aplicado';
+});
+
+await check('AuditLog exige actor y una accion del enum', async () => {
+  const sinActor = new AuditLog({ accion: 'agencia.codigo_regenerado' });
+  assert(sinActor.validateSync()?.errors?.actor, 'deberia exigir actor');
+
+  const accionInventada = new AuditLog({ actor: uid, accion: 'agencia.hackeada' });
+  assert(accionInventada.validateSync()?.errors?.accion, 'deberia invalidar una accion fuera del enum');
+
+  const valido = new AuditLog({ actor: uid, accion: 'agencia.miembro_eliminado' });
+  assert(!valido.validateSync(), 'con actor y accion valida no deberia fallar');
+  return 'actor y accion obligatorios, enum aplicado';
+});
+
+await check('AuditLog: agency es opcional (agencia.eliminada se registra antes de borrar el doc)', async () => {
+  const a = new AuditLog({ actor: uid, accion: 'agencia.eliminada' });
+  assert(!a.validateSync(), 'sin agency no deberia fallar la validacion');
+  return 'agency puede quedar vacio sin romper la validacion';
 });
 
 await check('Agency: inviteCode nace con 16 bytes de entropia (32 caracteres hex)', async () => {
