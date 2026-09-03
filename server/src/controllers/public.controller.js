@@ -113,7 +113,10 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     .populate({
       path: 'user',
       select: 'branding agency',
-      populate: { path: 'agency', select: 'agencyName logoUrl contact' },
+      // billing.plan va incluido solo para que el virtual marcaBlanca se
+      // pueda calcular abajo -- el resto de billing (Stripe, fechas) nunca
+      // sale de aqui.
+      populate: { path: 'agency', select: 'agencyName logoUrl contact colorAcento billing.plan' },
     });
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
 
@@ -126,6 +129,9 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     agencyName: fuenteMarca?.agencyName || '',
     logoUrl: fuenteMarca?.logoUrl || '',
     contact: fuenteMarca?.contact || '',
+    colorAcento: fuenteMarca?.colorAcento || '',
+    // Solo la agencia trae este virtual; branding personal nunca lo tiene.
+    marcaBlanca: Boolean(trip.user?.agency?.marcaBlanca),
   };
 
   /**

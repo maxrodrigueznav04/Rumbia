@@ -4,8 +4,14 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { esAdmin } from '../utils/esAdmin.js';
 
-/** Selecciona solo lo que un agente cualquiera (no el dueno) puede ver de su agencia. */
-const AGENCIA_PUBLICA = 'agencyName logoUrl contact owner createdAt';
+/**
+ * Selecciona solo lo que un agente cualquiera (no el dueno) puede ver de su
+ * agencia. "billing.plan" (no el resto de billing) va incluido a proposito:
+ * es lo unico que necesita el virtual marcaBlanca para calcularse bien aqui
+ * -- sin el, cualquier agente que no sea el dueno veria el pie de Rumbia en
+ * su PDF aunque la agencia si tenga el plan que lo quita.
+ */
+const AGENCIA_PUBLICA = 'agencyName logoUrl contact colorAcento owner createdAt billing.plan';
 
 /**
  * Recorta el documento de Agency a lo que puede ver un miembro que no es el
@@ -19,6 +25,8 @@ function vistaAgenciaMiembro(agencia) {
     agencyName: agencia.agencyName,
     logoUrl: agencia.logoUrl,
     contact: agencia.contact,
+    colorAcento: agencia.colorAcento,
+    marcaBlanca: agencia.marcaBlanca,
     owner: agencia.owner,
     billing: {
       status: agencia.billing?.status,
@@ -85,13 +93,17 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
   });
 });
 
-/** Solo el dueno edita nombre y contacto. */
+/** Solo el dueno edita nombre, contacto y color de acento. */
 export const actualizarAgencia = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
-  const { agencyName, contact, logoUrl } = req.body;
+  const { agencyName, contact, logoUrl, colorAcento } = req.body;
   if (agencyName !== undefined) agencia.agencyName = agencyName;
   if (contact !== undefined) agencia.contact = contact;
   if (logoUrl !== undefined) agencia.logoUrl = logoUrl;
+  // No se valida marcaBlanca aqui a proposito: guardar el color en un plan
+  // que no califica no hace nada malo, simplemente no se usa en ningun lado
+  // (ver HojaImpresion.jsx) hasta que la agencia suba de plan.
+  if (colorAcento !== undefined) agencia.colorAcento = colorAcento;
   await agencia.save();
 
   res.json({ success: true, message: 'Agencia actualizada.', data: { agency: agencia } });

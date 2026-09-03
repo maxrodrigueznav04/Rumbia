@@ -131,6 +131,13 @@ export const updateAgencySchema = z
     // Solo para poder quitar el logo (PATCH { logoUrl: '' }); subirlo de verdad
     // pasa por /agency/logo, que es quien de verdad habla con Cloudinary.
     logoUrl: z.literal('').optional(),
+    // '' quita el color y vuelve al verde de Rumbia por defecto.
+    colorAcento: z
+      .union([
+        z.literal(''),
+        z.string().trim().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, 'Color inválido, usa formato hexadecimal como #1F6F5C.'),
+      ])
+      .optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
 

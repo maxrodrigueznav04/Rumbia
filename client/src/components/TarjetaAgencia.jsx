@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { agencyApi, authApi, billingApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import Icono from './Icono.jsx';
@@ -896,8 +897,17 @@ function ReporteAgencia() {
   );
 }
 
+// Verde de marca de Rumbia (--verde en global.css): punto de partida del
+// selector de color cuando la agencia todavia no eligio uno propio. input
+// type="color" no acepta un valor vacio, necesita un hex de 7 caracteres si o si.
+const COLOR_RUMBIA = '#1F6F5C';
+
 function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
-  const [form, setForm] = useState({ agencyName: agencia.agencyName, contact: agencia.contact || '' });
+  const [form, setForm] = useState({
+    agencyName: agencia.agencyName,
+    contact: agencia.contact || '',
+    colorAcento: agencia.colorAcento || '',
+  });
   const [logoUrl, setLogoUrl] = useState(agencia.logoUrl || '');
   const [estado, setEstado] = useState(null);
   const [guardando, setGuardando] = useState(false);
@@ -1068,6 +1078,42 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
           </div>
 
           <Campo label="Contacto que aparece bajo el logo" name="contact" value={form.contact} onChange={cambiar} />
+
+          {agencia.marcaBlanca ? (
+            <div className="campo">
+              <label htmlFor="colorAcento">Color de acento del PDF</label>
+              <div className="fila" style={{ gap: 10, alignItems: 'center' }}>
+                <input
+                  id="colorAcento"
+                  type="color"
+                  name="colorAcento"
+                  value={form.colorAcento || COLOR_RUMBIA}
+                  onChange={cambiar}
+                  style={{ width: 44, height: 36, padding: 2, cursor: 'pointer' }}
+                />
+                <span className="tenue">{form.colorAcento || 'Verde de Rumbia (predeterminado)'}</span>
+                {form.colorAcento && (
+                  <Boton
+                    type="button"
+                    variante="fantasma"
+                    chico
+                    onClick={() => setForm((f) => ({ ...f, colorAcento: '' }))}
+                  >
+                    Restablecer
+                  </Boton>
+                )}
+              </div>
+              <span className="campo-ayuda">
+                Se usa en la insignia, los marcadores de día y las actividades del PDF. Con tu plan,
+                además, el pie ya no menciona a Rumbia — el documento sale con tu marca, punto.
+              </span>
+            </div>
+          ) : (
+            <Aviso tipo="info" titulo="Personalización completa disponible en Agencia y Agencia Pro">
+              Elige tu propio color de acento para el PDF y quita la mención a Rumbia del pie —{' '}
+              <Link to="/acerca">compara los planes</Link>.
+            </Aviso>
+          )}
 
           <div>
             <Boton type="submit" cargando={guardando}>

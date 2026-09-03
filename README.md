@@ -109,6 +109,10 @@ Todo el stack corre en tiers gratuitos.
   en el servidor y con el texto seleccionable de verdad. El logo se sube directo desde el perfil
   (PNG, JPEG o WebP, hasta 2 MB) y se aloja en Cloudinary con una subida firmada desde el servidor
   —la clave secreta nunca llega al navegador—, o se puede pegar la URL de uno ya publicado.
+  Los planes Agencia y Agencia Pro suman **marca blanca de verdad**: el pie deja de mencionar a
+  Rumbia, y se puede elegir un color de acento propio que reemplaza el verde de Rumbia en toda la
+  hoja (insignia, marcadores de día, actividades) — una sola variable CSS (`--marca`) hace que todo
+  el documento lo respete, sin tocar reja por reja.
 - **Agencias.** Varios agentes, cada uno con su propia cuenta y sus propios viajes, pueden
   compartir la misma marca en el PDF sin compartir contraseña. Quien crea la agencia administra
   el nombre, el logo y el contacto, y comparte un código de invitación fuera de la app (whatsapp,
@@ -468,9 +472,11 @@ Guarda el `promptContext` con el que se generó, para poder auditar el resultado
 de los costos capturados en el Trip para que el resumen no los cuente dos veces.
 
 **Agency** — la marca que comparten varios agentes sin compartir cuenta ni contraseña: nombre,
-logo, contacto y un `inviteCode` de 32 caracteres hex para que se unan desde fuera de la app. El
-subdocumento `billing` guarda el plan, el estado de pago (`pendiente` / `activa` / `congelada`) y
-los agentes extra comprados; el virtual `capacidadAgentes` calcula el tope real según el tier.
+logo, contacto, un `colorAcento` opcional (hex) para el PDF, y un `inviteCode` de 32 caracteres hex
+para que se unan desde fuera de la app. El subdocumento `billing` guarda el plan, el estado de pago
+(`trial` / `pendiente` / `activa` / `congelada`) y los agentes extra comprados; el virtual
+`capacidadAgentes` calcula el tope real según el tier, y `marcaBlanca` dice si el plan (Agencia o
+Pro) ya no debe mostrar el pie ni el verde de Rumbia en el PDF.
 
 **TripChat** — historial de la conversación de un agente con el asistente. `trip` es opcional
 (`null` = conversación general); índice único por `(user, trip)`, ya que ahora varios documentos

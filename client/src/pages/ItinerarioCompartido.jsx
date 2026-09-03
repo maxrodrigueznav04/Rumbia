@@ -5,7 +5,7 @@ import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
-import { EncabezadoImpresion, PieImpresion } from '../components/HojaImpresion.jsx';
+import { EncabezadoImpresion, PieImpresion, estiloAcento } from '../components/HojaImpresion.jsx';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
 import {
@@ -71,7 +71,7 @@ export default function ItinerarioCompartido() {
         )}
 
         {data && (
-          <div className="pila">
+          <div className="pila" style={estiloAcento(data.marca)}>
             {/* Solo se ve al imprimir; en pantalla lo oculta global.css. Es la
                 marca de quien compartio el enlace, no de quien lo abre. */}
             <EncabezadoImpresion marca={data.marca} viaje={data.viaje} />
