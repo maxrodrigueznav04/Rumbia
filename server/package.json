@@ -20,7 +20,8 @@
     "test:baja": "node scripts/prueba-baja.mjs",
     "clicks": "node scripts/clicks.mjs",
     "auditoria": "node scripts/auditoria.mjs",
-    "stripe:setup": "node scripts/stripe-setup.mjs"
+    "stripe:setup": "node scripts/stripe-setup.mjs",
+    "gemini:modelos": "node scripts/gemini-modelos.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
