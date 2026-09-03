@@ -249,6 +249,11 @@ export default function ChatFlotante() {
               Enviar
             </Boton>
           </form>
+
+          <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.75rem' }}>
+            Respuestas orientativas, sobre todo en precios y disponibilidad — confírmalo en una
+            fuente real antes de comprometerte con el cliente.
+          </p>
         </div>
       </Modal>
     </>
