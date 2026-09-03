@@ -18,12 +18,10 @@ export function EncabezadoImpresion({ marca, viaje }) {
     <header className="hoja-cabecera">
       <div className="hoja-marca">
         {marca?.logoUrl ? (
-          /* alt vacio a proposito: el nombre va escrito al lado, y un alt con
-             el mismo texto lo haria sonar dos veces en un lector de pantalla. */
           <img src={marca.logoUrl} alt="" className="hoja-logo" />
         ) : (
-          <span className="marca-punto" aria-hidden="true">
-            R
+          <span className="hoja-marca-badge" aria-hidden="true">
+            {(nombre || 'R').charAt(0).toUpperCase()}
           </span>
         )}
         <div>
@@ -48,16 +46,11 @@ export function PieImpresion({ marca }) {
 
   return (
     <footer className="hoja-pie">
-      {/*
-        La misma advertencia que se ve en pantalla tiene que viajar en el PDF:
-        el documento se reenvia por correo y sale del contexto de la app, y sin
-        esta linea los costos estimados se leen como precios cerrados.
-      */}
       <p>
         Los costos son estimaciones para orientar el presupuesto, no precios en firme, y pueden
         cambiar según la temporada y la disponibilidad.
       </p>
-      <p>{nombre ? `${nombre} · Itinerario preparado con Rumbia.` : 'Itinerario preparado con Rumbia.'}</p>
+      <p>{nombre ? `${nombre} · Propuesta preparada con Rumbia.` : 'Itinerario preparado con Rumbia.'}</p>
     </footer>
   );
 }

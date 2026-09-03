@@ -17,7 +17,7 @@ export default function SelectorPersonas({ personas, maximo, onCambio }) {
   if (!maximo || maximo <= 1) return null;
 
   return (
-    <div className="selector-personas">
+    <div className="selector-personas no-imprimir">
       <span className="etiqueta">Ver precios para</span>
       <div className="fila" style={{ gap: 8 }}>
         <Boton

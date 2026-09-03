@@ -728,8 +728,8 @@ export default function Itinerario() {
                 <span className="numero">{formatoMoneda(precioBasePorPersona * paraCuantos, moneda)}</span>
               </div>
               <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-                Actividades sugeridas por la IA, más lo que ya capturaste en transporte y hospedaje. Son
-                estimaciones, no precios en firme.
+                Actividades sugeridas, más lo estimado en transporte y hospedaje. Son
+                estimaciones orientativas de presupuesto.
               </p>
             </Tarjeta>
           </div>
