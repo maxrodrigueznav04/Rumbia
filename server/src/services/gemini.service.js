@@ -190,12 +190,13 @@ function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
   }));
 }
 
-export const MODELOS_FALLBACK = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-1.5-flash',
-];
+// "gemini-2.0-flash" y "gemini-1.5-flash" vivian aqui y Google ya los retiro
+// (dejaron de existir para generateContent) -- confirmado con
+// scripts/gemini-modelos.mjs, que lista los modelos reales de la API key en
+// uso. "gemini-flash-latest" es el alias que Google mantiene apuntando al
+// flash vigente: se agrega como ultimo respaldo justo para que esta lista no
+// vuelva a quedar obsoleta sola con el tiempo.
+export const MODELOS_FALLBACK = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
 
 export function obtenerCadenaModelos(modeloPrincipal) {
   const principal = modeloPrincipal || 'gemini-2.5-flash';
