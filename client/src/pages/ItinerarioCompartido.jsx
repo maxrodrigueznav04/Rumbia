@@ -1,11 +1,11 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { publicApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
-import { EncabezadoImpresion, PieImpresion, estiloAcento } from '../components/HojaImpresion.jsx';
+import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
 import {
@@ -41,6 +41,12 @@ export default function ItinerarioCompartido() {
     : 1;
   const ocultarCosto = Boolean(data?.viaje?.ocultarDesglose);
 
+  // Descarga la tipografia elegida por quien comparte el enlace, solo si
+  // hace falta (no es la de Rumbia).
+  useEffect(() => {
+    cargarFuentePdf(data?.marca);
+  }, [data?.marca?.marcaBlanca, data?.marca?.fuentePdf]);
+
   return (
     <div className="inicio">
       <header className="inicio-nav no-imprimir">
@@ -71,7 +77,7 @@ export default function ItinerarioCompartido() {
         )}
 
         {data && (
-          <div className="pila" style={estiloAcento(data.marca)}>
+          <div className="pila" style={estiloPersonalizado(data.marca)}>
             {/* Solo se ve al imprimir; en pantalla lo oculta global.css. Es la
                 marca de quien compartio el enlace, no de quien lo abre. */}
             <EncabezadoImpresion marca={data.marca} viaje={data.viaje} />

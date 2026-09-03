@@ -9,6 +9,7 @@ import {
 import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
 import { EXPENSE_CATEGORIES } from '../models/Expense.js';
 import { ORIGENES_CLICK } from '../models/ClickSalida.js';
+import { FUENTES_PDF, DENSIDADES_PDF } from '../models/Agency.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
 
@@ -138,6 +139,8 @@ export const updateAgencySchema = z
         z.string().trim().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, 'Color inválido, usa formato hexadecimal como #1F6F5C.'),
       ])
       .optional(),
+    fuentePdf: z.enum(FUENTES_PDF).optional(),
+    densidadPdf: z.enum(DENSIDADES_PDF).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
 

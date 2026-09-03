@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { agencyApi, authApi, billingApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import Icono from './Icono.jsx';
+import { FUENTES_PDF, DENSIDADES_PDF } from '../utils/fuentesPdf.js';
 import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, ErrorCarga } from './ui.jsx';
 
 /**
@@ -907,6 +908,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
     agencyName: agencia.agencyName,
     contact: agencia.contact || '',
     colorAcento: agencia.colorAcento || '',
+    fuentePdf: agencia.fuentePdf || '',
+    densidadPdf: agencia.densidadPdf || 'normal',
   });
   const [logoUrl, setLogoUrl] = useState(agencia.logoUrl || '');
   const [estado, setEstado] = useState(null);
@@ -1108,6 +1111,30 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
                 además, el pie ya no menciona a Rumbia — el documento sale con tu marca, punto.
               </span>
             </div>
+          ) : null}
+
+          {agencia.marcaBlanca ? (
+            <Campo label="Tipografía del PDF" name="fuentePdf">
+              <select name="fuentePdf" value={form.fuentePdf} onChange={cambiar}>
+                {FUENTES_PDF.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.etiqueta}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+          ) : null}
+
+          {agencia.marcaBlanca ? (
+            <Campo label="Tamaño de texto del PDF" name="densidadPdf">
+              <select name="densidadPdf" value={form.densidadPdf} onChange={cambiar}>
+                {DENSIDADES_PDF.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.etiqueta}
+                  </option>
+                ))}
+              </select>
+            </Campo>
           ) : (
             <Aviso tipo="info" titulo="Personalización completa disponible en Agencia y Agencia Pro">
               Elige tu propio color de acento para el PDF y quita la mención a Rumbia del pie —{' '}

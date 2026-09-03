@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { tripsApi, itineraryApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
@@ -20,7 +20,7 @@ import Icono from '../components/Icono.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import RevisionItinerario from '../components/RevisionItinerario.jsx';
-import { EncabezadoImpresion, PieImpresion, estiloAcento } from '../components/HojaImpresion.jsx';
+import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { revisarItinerario } from '../utils/revisionItinerario.js';
 import {
@@ -115,6 +115,11 @@ export default function Itinerario() {
   // marca gana sobre la personal (mismo criterio que el enlace compartido).
   const { user } = useAuth();
   const marca = user?.agency ?? user?.branding;
+
+  // Descarga la tipografia elegida solo si hace falta (no es la de Rumbia).
+  useEffect(() => {
+    cargarFuentePdf(marca);
+  }, [marca?.marcaBlanca, marca?.fuentePdf]);
 
   const viajeReq = useFetch(({ signal }) => tripsApi.get(id, { signal }), [id]);
   const itinReq = useFetch(({ signal }) => itineraryApi.get(id, { signal }), [id]);
@@ -423,7 +428,7 @@ export default function Itinerario() {
   }
 
   return (
-    <div className="pila" style={estiloAcento(marca)}>
+    <div className="pila" style={estiloPersonalizado(marca)}>
       {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}
       {itinerario && <EncabezadoImpresion marca={marca} viaje={viaje} />}
 

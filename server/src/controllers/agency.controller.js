@@ -11,7 +11,7 @@ import { esAdmin } from '../utils/esAdmin.js';
  * -- sin el, cualquier agente que no sea el dueno veria el pie de Rumbia en
  * su PDF aunque la agencia si tenga el plan que lo quita.
  */
-const AGENCIA_PUBLICA = 'agencyName logoUrl contact colorAcento owner createdAt billing.plan';
+const AGENCIA_PUBLICA = 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf owner createdAt billing.plan';
 
 /**
  * Recorta el documento de Agency a lo que puede ver un miembro que no es el
@@ -26,6 +26,8 @@ function vistaAgenciaMiembro(agencia) {
     logoUrl: agencia.logoUrl,
     contact: agencia.contact,
     colorAcento: agencia.colorAcento,
+    fuentePdf: agencia.fuentePdf,
+    densidadPdf: agencia.densidadPdf,
     marcaBlanca: agencia.marcaBlanca,
     owner: agencia.owner,
     billing: {
@@ -93,17 +95,19 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
   });
 });
 
-/** Solo el dueno edita nombre, contacto y color de acento. */
+/** Solo el dueno edita nombre, contacto y personalizacion del PDF. */
 export const actualizarAgencia = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
-  const { agencyName, contact, logoUrl, colorAcento } = req.body;
+  const { agencyName, contact, logoUrl, colorAcento, fuentePdf, densidadPdf } = req.body;
   if (agencyName !== undefined) agencia.agencyName = agencyName;
   if (contact !== undefined) agencia.contact = contact;
   if (logoUrl !== undefined) agencia.logoUrl = logoUrl;
-  // No se valida marcaBlanca aqui a proposito: guardar el color en un plan
-  // que no califica no hace nada malo, simplemente no se usa en ningun lado
-  // (ver HojaImpresion.jsx) hasta que la agencia suba de plan.
+  // No se valida marcaBlanca aqui a proposito: guardar estos campos en un
+  // plan que no califica no hace nada malo, simplemente no se usan en
+  // ningun lado (ver HojaImpresion.jsx) hasta que la agencia suba de plan.
   if (colorAcento !== undefined) agencia.colorAcento = colorAcento;
+  if (fuentePdf !== undefined) agencia.fuentePdf = fuentePdf;
+  if (densidadPdf !== undefined) agencia.densidadPdf = densidadPdf;
   await agencia.save();
 
   res.json({ success: true, message: 'Agencia actualizada.', data: { agency: agencia } });
