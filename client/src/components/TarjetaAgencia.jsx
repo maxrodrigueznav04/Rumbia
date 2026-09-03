@@ -11,12 +11,12 @@ import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, Error
  * distintas.
  */
 const PLANES = {
-  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', base: '$9.99 USD/mes', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos' },
-  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', base: '$104.99 USD/año', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)' },
-  agencia_mensual: { etiqueta: 'Agencia (Mensual)', base: '$23.99 USD/mes', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos' },
-  agencia_anual: { etiqueta: 'Agencia (Anual)', base: '$249.99 USD/año', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)' },
-  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', base: '$39.99 USD/mes', agentesBase: 15, agente: '+$4 USD/mes por agente extra (16+)', permiteExtra: true },
-  pro_anual: { etiqueta: 'Agencia Pro (Anual)', base: '$419.99 USD/año', agentesBase: 15, agente: '+$42 USD/año por agente extra (16+)', permiteExtra: true },
+  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', base: '$190 MXN/mes', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos' },
+  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', base: '$1,950 MXN/año', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)' },
+  agencia_mensual: { etiqueta: 'Agencia (Mensual)', base: '$450 MXN/mes', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos' },
+  agencia_anual: { etiqueta: 'Agencia (Anual)', base: '$4,650 MXN/año', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)' },
+  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', base: '$750 MXN/mes', agentesBase: 15, agente: '+$75 MXN/mes por agente extra (16+)', permiteExtra: true },
+  pro_anual: { etiqueta: 'Agencia Pro (Anual)', base: '$7,800 MXN/año', agentesBase: 15, agente: '+$780 MXN/año por agente extra (16+)', permiteExtra: true },
   mensual: { etiqueta: 'Mensual (Legacy)', base: '$20 USD/mes', agente: '+$10 USD/mes por agente extra', permiteExtra: true },
   anual: { etiqueta: 'Anual (Legacy)', base: '$200 USD/año', agente: '+$100 USD/año por agente extra', permiteExtra: true },
   vitalicio: { etiqueta: 'De por vida (Legacy)', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
@@ -27,10 +27,10 @@ export const TIERS_SELECCION = [
     id: 'inicio',
     nombre: 'Inicio / Solo',
     capacidad: '1 a 3 agentes incluidos',
-    montoMensual: '$9.99',
-    montoAnual: '$104.99',
-    precioMensual: '$9.99 USD',
-    precioAnual: '$104.99 USD',
+    montoMensual: '$190',
+    montoAnual: '$1,950',
+    precioMensual: '$190 MXN',
+    precioAnual: '$1,950 MXN',
     puntos: [
       'De 1 a 3 agentes incluidos',
       '25 itinerarios inteligentes al mes',
@@ -43,10 +43,10 @@ export const TIERS_SELECCION = [
     nombre: 'Agencia',
     destacado: true,
     capacidad: '4 a 8 agentes incluidos',
-    montoMensual: '$23.99',
-    montoAnual: '$249.99',
-    precioMensual: '$23.99 USD',
-    precioAnual: '$249.99 USD',
+    montoMensual: '$450',
+    montoAnual: '$4,650',
+    precioMensual: '$450 MXN',
+    precioAnual: '$4,650 MXN',
     puntos: [
       'De 4 a 8 agentes incluidos',
       '150 itinerarios inteligentes al mes',
@@ -60,10 +60,10 @@ export const TIERS_SELECCION = [
     id: 'pro',
     nombre: 'Agencia Pro',
     capacidad: 'Hasta 15 agentes incluidos',
-    montoMensual: '$39.99',
-    montoAnual: '$419.99',
-    precioMensual: '$39.99 USD',
-    precioAnual: '$419.99 USD',
+    montoMensual: '$750',
+    montoAnual: '$7,800',
+    precioMensual: '$750 MXN',
+    precioAnual: '$7,800 MXN',
     permiteExtra: true,
     puntos: [
       'Hasta 15 agentes incluidos',
@@ -781,7 +781,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                           {monto}
                         </span>
                         <span className="suave" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                          USD {periodo}
+                          MXN {periodo}
                         </span>
                       </div>
 
@@ -825,7 +825,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                   step="1"
                   value={extraAgentes}
                   onChange={(e) => setExtraAgentes(e.target.value)}
-                  ayuda={frecuencia === 'mensual' ? '+$4 USD/mes por cada agente extra' : '+$42 USD/año por cada agente extra'}
+                  ayuda={frecuencia === 'mensual' ? '+$75 MXN/mes por cada agente extra' : '+$780 MXN/año por cada agente extra'}
                 />
               </div>
             )}

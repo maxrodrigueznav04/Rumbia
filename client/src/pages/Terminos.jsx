@@ -103,7 +103,7 @@ export default function Terminos() {
       </p>
       <p>
         <strong>Suscripciones de agencia:</strong> Los planes para agencias (Inicio, Agencia y Agencia Pro) se
-        facturan en dólares estadounidenses (USD) de forma periódica (mensual o anual) mediante <strong>Stripe</strong>.
+        facturan en pesos mexicanos (MXN) de forma periódica (mensual o anual) mediante <strong>Stripe</strong>.
         Puedes cancelar tu suscripción o cambiar de plan en cualquier momento desde el panel de facturación; el servicio
         permanecerá activo hasta el final del ciclo ya pagado y no se realizarán cargos posteriores.
       </p>
