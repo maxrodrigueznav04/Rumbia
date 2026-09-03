@@ -1,17 +1,26 @@
 /**
  * Cliente HTTP minimo sobre fetch.
- * - Adjunta el JWT automaticamente.
+ * - La sesion vive en una cookie httpOnly que pone el servidor: el navegador
+ *   la manda solo (credentials:'include'), este archivo nunca la toca ni
+ *   podria -- httpOnly la esconde incluso de este mismo codigo.
  * - Normaliza los errores del backend en un objeto Error con .status y .details.
- * - Si el token expira (401) limpia la sesion y avisa para redirigir al login.
+ * - Si la cookie ya vencio (401) avisa para redirigir al login.
  */
 
 export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const TOKEN_KEY = 'rumbia_token';
 
-export const tokenStore = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (token) => localStorage.setItem(TOKEN_KEY, token),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+// La cookie de sesion es invisible para JS a proposito (httpOnly), asi que
+// no hay forma de preguntarle al navegador "¿tengo sesion?" antes de mandar
+// una peticion. Esta bandera NO es un secreto -- no sirve para autenticar
+// nada, solo recuerda si ESTE navegador inicio sesion alguna vez, para poder
+// distinguir "nunca entraste" de "tu sesion vencio" al abrir la app o al
+// toparse con un 401. Si alguien la manipulara a mano no ganaria nada: sin
+// la cookie de verdad, el servidor sigue rechazando todo.
+const FLAG_SESION = 'rumbia_tuvo_sesion';
+export const sesionFlag = {
+  marcar: () => localStorage.setItem(FLAG_SESION, '1'),
+  tuvoSesion: () => localStorage.getItem(FLAG_SESION) === '1',
+  limpiar: () => localStorage.removeItem(FLAG_SESION),
 };
 
 /** Evento que escucha AuthContext para cerrar sesion si el token caduca. */
@@ -51,15 +60,12 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, signal, auth = true, timeout = TIMEOUT_MS } = {}) {
+async function request(path, { method = 'GET', body, signal, timeout = TIMEOUT_MS } = {}) {
   const headers = {};
   // FormData (subir un archivo) trae su propio Content-Type con el boundary
   // multipart; si se fija aqui a mano, el navegador no puede completarlo y la
   // peticion llega sin poder separar los campos.
   if (body !== undefined && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
-
-  const token = tokenStore.get();
-  if (auth && token) headers.Authorization = `Bearer ${token}`;
 
   // Timeout propio, combinado con el signal que traiga quien llama (para cancelar
   // al desmontar el componente).
@@ -86,6 +92,11 @@ async function request(path, { method = 'GET', body, signal, auth = true, timeou
     res = await fetch(`${BASE_URL}${path}`, {
       method,
       headers,
+      // Cliente y API viven en subdominios distintos del mismo sitio
+      // (rumbiamx.com / api.rumbiamx.com): sin esto el navegador no manda ni
+      // guarda la cookie de sesion en una peticion "cross-origin" como esta,
+      // aunque sea del mismo sitio.
+      credentials: 'include',
       body: body === undefined || body instanceof FormData ? body : JSON.stringify(body),
       signal: controlador.signal,
     });
@@ -116,8 +127,12 @@ async function request(path, { method = 'GET', body, signal, auth = true, timeou
   }
 
   if (!res.ok) {
-    if (res.status === 401 && token) {
-      tokenStore.clear();
+    // Solo avisa "tu sesion vencio" si este navegador de verdad tuvo una: sin
+    // eso, la llamada de arranque a /auth/me de un visitante que nunca se
+    // registro (que tambien da 401, porque nunca hubo cookie) mostraria el
+    // mismo aviso por error.
+    if (res.status === 401 && sesionFlag.tuvoSesion()) {
+      sesionFlag.limpiar();
       window.dispatchEvent(new CustomEvent(SESION_EXPIRADA));
     }
     throw new ApiError(data?.message || `Error ${res.status}.`, res.status, data?.details);

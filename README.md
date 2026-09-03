@@ -368,8 +368,16 @@ Sin esto la app funciona igual, solo que nadie puede pagarte.
 A diferencia de Render, esto no se conecta a GitHub: el build se hace en tu máquina y
 `wrangler deploy` sube el resultado directo a Cloudflare.
 
+**Antes de seguir, pon la API en un subdominio propio** (ej. `api.tudominio.com`), no en el
+`.onrender.com` crudo: la sesión vive en una cookie `httpOnly` (ver Seguridad), y una cookie que
+viene de un dominio distinto al del front es "de tercero" para el navegador — Safari y Firefox la
+bloquean por default, así que el login se rompería para buena parte de tus usuarios. En Render:
+Settings → Custom Domains → agrega el subdominio, y sigue el registro CNAME que te muestre en el
+DNS de tu dominio (con proxy/nube **desactivado** si usas Cloudflare, para que Render pueda emitir
+su propio certificado sin interferencia).
+
 1. Copia `client/.env.example` a `client/.env` y pon
-   `VITE_API_URL=https://rumbia-api.onrender.com/api` (con `/api` al final, sin barra después).
+   `VITE_API_URL=https://api.tudominio.com/api` (con `/api` al final, sin barra después).
    Vite lo incrusta en el build, así que tiene que existir *antes* de compilar — no hay ningún
    dashboard donde configurarlo después.
 2. Desde `client/`:
@@ -526,13 +534,18 @@ se muestra después de que el usuario salió del campo, no mientras teclea la pr
 
 ## API
 
-Todas las rutas privadas esperan `Authorization: Bearer <token>`.
+Las rutas privadas se autentican con una cookie `httpOnly` (`rumbia_token`) que
+pone el propio servidor al iniciar sesión — el cliente nunca la lee ni la
+maneja a mano, solo manda `credentials: 'include'`. Por compatibilidad
+temporal con clientes ya desplegados, `protect` también acepta
+`Authorization: Bearer <token>` como respaldo.
 
 | Método | Ruta | Qué hace |
 |---|---|---|
 | `GET` | `/api/health` | Estado del servicio y qué integraciones están configuradas. |
-| `POST` | `/api/auth/register` | Crea cuenta y devuelve token. |
+| `POST` | `/api/auth/register` | Crea cuenta e inicia sesión (deja la cookie puesta). |
 | `POST` | `/api/auth/login` | Inicia sesión. |
+| `POST` | `/api/auth/logout` | Cierra sesión: borra la cookie del lado del servidor. |
 | `GET` `PATCH` | `/api/auth/me` | Perfil y preferencias. |
 | `POST` | `/api/auth/me/logo` | Sube el logo de marca personal (Cloudinary). |
 | `PATCH` | `/api/auth/me/password` | Cambia la contraseña. |
@@ -599,6 +612,12 @@ Todas las respuestas siguen la misma forma:
   no arranca con uno corto ni con el valor de ejemplo de `.env.example`. El middleware `protect`
   verifica que el usuario siga existiendo en cada petición y que el token no sea anterior al último
   cambio de contraseña.
+- El token vive en una cookie `httpOnly` (invisible para JavaScript, incluido un script inyectado
+  por XSS) en vez de `localStorage`. `api.rumbiamx.com` es un subdominio propio a propósito: sin
+  eso la cookie sería "de tercero" para el navegador (dominio distinto al del front) y Safari/
+  Firefox la bloquearían por default. Con `SameSite=Lax` alcanza como protección CSRF — no hace
+  falta un esquema de tokens aparte — porque cliente y API, al compartir dominio raíz, se
+  consideran el mismo sitio.
 - Cada handler comprueba la propiedad del recurso: pedir el viaje de otra persona da 403, no 404
   con datos.
 - Helmet, CORS restringido al origen del front en producción y límite de 1 MB en el body, del lado
@@ -651,10 +670,6 @@ Turnstile) se filtra o se sospecha comprometida:
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
     billing; hoy depende solo de la contraseña.
-  - **JWT en cookie `httpOnly` en vez de `localStorage`**: hoy no hay ningún XSS conocido (sin
-    `dangerouslySetInnerHTML` ni `eval` en el front), pero una cookie es defensa en profundidad si
-    alguna vez se cuela uno. Cambiarlo implica sumar protección CSRF y tocar la config de CORS, así
-    que no es un cambio de una tarde.
   - **Config del lado de los proveedores, no del código**: IP allowlist en MongoDB Atlas (nada de
     `0.0.0.0/0`), llaves restringidas (no la secret key completa) donde Stripe y Cloudinary lo
     permitan, y confirmar que el plan de Atlas tiene backups o point-in-time recovery — es la única

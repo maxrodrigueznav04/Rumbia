@@ -5,29 +5,39 @@ import { CONTACTO_PRIVACIDAD } from '../config/legal.js';
 /**
  * Aviso de cookies y rastreo de terceros.
  *
- * Rumbia no coloca cookies propias: la sesión vive en localStorage. Lo que sí
- * hay es rastreo de terceros en cuanto sales por un enlace de reserva, y eso es
- * lo que este documento tiene que dejar claro.
+ * Rumbia SI coloca una cookie propia: la de sesion (tecnica, estrictamente
+ * necesaria, httpOnly -- nada de analitica ni publicidad). El resto sigue
+ * igual: no hay rastreo propio, pero los sitios de reserva a los que sales
+ * si usan las suyas.
  */
 export default function Cookies() {
   return (
     <PaginaLegal
       titulo="Cookies y rastreo"
-      entrada="Resumen corto: Rumbia no te pone cookies. Pero los sitios de reserva a los que te mandamos sí usan las suyas, y eso conviene que lo sepas antes de dar clic."
+      entrada="Resumen corto: Rumbia usa una sola cookie propia, técnica y necesaria para mantener tu sesión iniciada — nada de rastreo ni publicidad. Pero los sitios de reserva a los que te mandamos sí usan las suyas, y eso conviene que lo sepas antes de dar clic."
     >
       <Tarjeta titulo="Lo esencial, en tres líneas">
         <ul>
-          <li>Rumbia no instala cookies propias ni herramientas de analítica.</li>
-          <li>Tu sesión se guarda en el almacenamiento local de tu navegador, no en una cookie.</li>
+          <li>La única cookie que instalamos es la de tu sesión — ninguna de analítica ni publicidad.</li>
+          <li>Es técnica y necesaria: por eso no hace falta pedirte consentimiento para ella.</li>
           <li>Al salir por un enlace de reserva entras a las reglas del proveedor, no a las nuestras.</li>
         </ul>
       </Tarjeta>
 
-      <h2>1. Rumbia no usa cookies propias</h2>
+      <h2>1. La única cookie que instalamos: la de tu sesión</h2>
       <p>
-        No colocamos cookies en tu navegador. Tampoco usamos Google Analytics, píxeles de redes
-        sociales ni ninguna herramienta de publicidad. Por eso no verás en esta aplicación un banner
-        de consentimiento de cookies: no hay nada que consentir.
+        Rumbia coloca una sola cookie propia, <code>rumbia_token</code>, para mantener tu sesión
+        iniciada sin que tengas que escribir tu contraseña en cada pantalla. Es una cookie{' '}
+        <strong>técnica y estrictamente necesaria</strong>: no rastrea tu actividad, no identifica
+        tus visitas a otros sitios y no se usa para publicidad. Además es <code>httpOnly</code>, lo
+        que significa que ni siquiera el propio código de esta aplicación puede leer su contenido —
+        solo la usa el navegador, en automático, para hablar con nuestro servidor.
+      </p>
+      <p>
+        Por ser de ese tipo (esencial para que el servicio funcione), la mayoría de las leyes de
+        privacidad no exige pedir tu consentimiento para ella — por eso no verás en esta aplicación
+        un banner de cookies. Tampoco usamos Google Analytics, píxeles de redes sociales ni ninguna
+        herramienta de publicidad.
       </p>
       <p>
         Sí contamos los clics en los enlaces de reserva, con una medición propia y{' '}
@@ -36,15 +46,17 @@ export default function Cookies() {
         <a href="/privacidad">política de privacidad</a>.
       </p>
 
-      <h2>2. Qué guardamos en tu navegador y por qué</h2>
+      <h2>2. Qué más guardamos en tu navegador y por qué</h2>
       <p>
-        Para mantener tu sesión abierta guardamos un dato en el{' '}
+        Aparte de la cookie de sesión, guardamos dos datos sueltos en el{' '}
         <strong>almacenamiento local</strong> (<code>localStorage</code>) de tu navegador:
       </p>
       <ul>
         <li>
-          <code>rumbia_token</code> — el token de sesión que demuestra que ya iniciaste sesión, para
-          que no tengas que escribir tu contraseña en cada pantalla.
+          <code>rumbia_tuvo_sesion</code> — no es un dato sensible ni sirve para identificarte: solo
+          recuerda que este navegador inició sesión alguna vez, para poder avisarte &quot;tu sesión
+          expiró&quot; en vez de mandarte al login sin explicación. Por sí solo no permite entrar a
+          ningún lado.
         </li>
         <li>
           <code>rumbia-tema</code> — si elegiste modo claro u oscuro a mano (en vez de seguir el de tu
@@ -52,14 +64,15 @@ export default function Cookies() {
         </li>
       </ul>
       <p>
-        A diferencia de una cookie, estos datos <strong>no se envían solos</strong> con cada petición
-        ni pueden ser leídos por otros sitios: solo los usa esta aplicación, y el token únicamente
-        para hablar con su propia API.
+        A diferencia de la cookie de sesión, estos datos <strong>no se envían solos</strong> con cada
+        petición ni pueden ser leídos por otros sitios: solo los usa esta aplicación, en tu propio
+        navegador.
       </p>
       <p>
-        <strong>Cómo eliminarlo:</strong> al cerrar sesión desde el menú, se borra al instante.
-        También puedes borrarlo desde tu navegador, en las opciones de &quot;borrar datos del
-        sitio&quot;. Si lo haces, simplemente tendrás que volver a iniciar sesión.
+        <strong>Cómo eliminarlos:</strong> al cerrar sesión desde el menú, se borran al instante (y
+        la cookie de sesión se cancela también del lado del servidor). También puedes borrarlos
+        desde tu navegador, en las opciones de &quot;borrar datos del sitio&quot;. Si lo haces,
+        simplemente tendrás que volver a iniciar sesión.
       </p>
 
       <h2>3. Los enlaces de reserva sí llevan a sitios que rastrean</h2>

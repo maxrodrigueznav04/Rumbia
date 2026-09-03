@@ -23,6 +23,10 @@ const router = Router();
 
 router.post('/register', authLimiter, validate(registerSchema), verificarCaptcha, ctrl.register);
 router.post('/login', authLimiter, validate(loginSchema), ctrl.login);
+// Sin protect ni limite: limpiar una cookie no es una accion sensible, y
+// exigir sesion valida para cerrarla dejaria a alguien con un token vencido
+// sin forma de limpiar la cookie del navegador.
+router.post('/logout', ctrl.logout);
 
 // Recuperacion de contrasena. Sin sesion por definicion: quien la usa es
 // justamente quien no puede entrar. Lleva captcha porque cada intento manda
