@@ -3,12 +3,14 @@ import api, { TIMEOUT_IA_MS, BASE_URL } from './client.js';
 /** Un lugar por endpoint del backend: los componentes no arman URLs a mano. */
 
 export const authApi = {
-  register: (payload) => api.post('/auth/register', payload, { auth: false }),
-  login: (payload) => api.post('/auth/login', payload, { auth: false }),
+  register: (payload) => api.post('/auth/register', payload),
+  login: (payload) => api.post('/auth/login', payload),
   me: (opts) => api.get('/auth/me', opts),
-  // Las dos van sin token: quien las usa es justamente quien no puede entrar.
-  forgotPassword: (payload) => api.post('/auth/forgot-password', payload, { auth: false }),
-  resetPassword: (payload) => api.post('/auth/reset-password', payload, { auth: false }),
+  // Cierra sesion del lado del servidor (borra la cookie httpOnly): a
+  // diferencia de localStorage, el cliente no puede limpiarla el solo.
+  logout: () => api.post('/auth/logout'),
+  forgotPassword: (payload) => api.post('/auth/forgot-password', payload),
+  resetPassword: (payload) => api.post('/auth/reset-password', payload),
   updateProfile: (payload) => api.patch('/auth/me', payload),
   uploadLogo: (archivo) => {
     const form = new FormData();

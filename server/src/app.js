@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
@@ -43,6 +44,10 @@ app.use(
     credentials: true,
   })
 );
+
+// El JWT ahora vive en una cookie httpOnly (ver middleware/auth.js): sin
+// esto req.cookies no existe y protect() jamas la encontraria.
+app.use(cookieParser());
 
 // Antes de express.json(): Stripe firma el body crudo, byte por byte, y
 // verificar la firma contra un JSON ya re-serializado nunca coincide.

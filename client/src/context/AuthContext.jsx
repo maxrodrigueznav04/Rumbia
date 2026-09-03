@@ -1,25 +1,33 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi } from '../api/index.js';
-import { tokenStore, SESION_EXPIRADA } from '../api/client.js';
+import { sesionFlag, SESION_EXPIRADA } from '../api/client.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  // "cargando" cubre el arranque: hay token en localStorage pero aun no sabemos si es valido.
-  const [cargando, setCargando] = useState(Boolean(tokenStore.get()));
+  // "cargando" cubre el arranque: la cookie de sesion es httpOnly, invisible
+  // para JS, asi que no hay forma de saber si existe sin preguntarle al
+  // servidor -- sesionFlag es la unica pista que SI puede leer este codigo
+  // ("¿este navegador inicio sesion antes?"), y evita ese viaje al servidor
+  // (con el arranque en frio de Render de por medio) para un visitante que
+  // nunca se registro.
+  const [cargando, setCargando] = useState(sesionFlag.tuvoSesion());
   // Distingue "cerraste sesion tu" de "se te vencio el token", para el aviso del login.
   const [sesionExpirada, setSesionExpirada] = useState(false);
 
   const logout = useCallback(() => {
-    tokenStore.clear();
+    sesionFlag.limpiar();
     setUser(null);
     setSesionExpirada(false);
+    // Best-effort: borra la cookie en el servidor. Si falla (sin red, lo que
+    // sea), la cookie vence sola en 7 dias y el estado local ya quedo limpio.
+    authApi.logout().catch(() => {});
   }, []);
 
   // Rehidratar la sesion al abrir la app.
   useEffect(() => {
-    if (!tokenStore.get()) {
+    if (!sesionFlag.tuvoSesion()) {
       setCargando(false);
       return undefined;
     }
@@ -30,8 +38,8 @@ export function AuthProvider({ children }) {
       .then((data) => setUser(data.user))
       .catch((err) => {
         if (err.name === 'AbortError') return;
-        // Token vencido o invalido: se limpia y se avisa en la pantalla de login.
-        tokenStore.clear();
+        // Cookie vencida o invalida: se limpia la bandera y se avisa en la pantalla de login.
+        sesionFlag.limpiar();
         setUser(null);
         setSesionExpirada(true);
       })
@@ -58,7 +66,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credenciales) => {
     const data = await authApi.login(credenciales);
-    tokenStore.set(data.token);
+    sesionFlag.marcar();
     setUser(data.user);
     setSesionExpirada(false);
     return data.user;
@@ -66,18 +74,19 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (payload) => {
     const data = await authApi.register(payload);
-    tokenStore.set(data.token);
+    sesionFlag.marcar();
     setUser(data.user);
     setSesionExpirada(false);
     return data.user;
   }, []);
 
-  // Mismo patron que login y register: el backend ya devuelve token y usuario,
-  // asi que se entra directo. Mandar a la persona al login a reescribir la
-  // contrasena que acaba de elegir seria pedirsela dos veces seguidas.
+  // Mismo patron que login y register: el backend ya deja la cookie puesta y
+  // devuelve el usuario, asi que se entra directo. Mandar a la persona al
+  // login a reescribir la contrasena que acaba de elegir seria pedirsela dos
+  // veces seguidas.
   const restablecer = useCallback(async (payload) => {
     const data = await authApi.resetPassword(payload);
-    tokenStore.set(data.token);
+    sesionFlag.marcar();
     setUser(data.user);
     setSesionExpirada(false);
     return data.user;

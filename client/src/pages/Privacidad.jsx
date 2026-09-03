@@ -225,10 +225,10 @@ export default function Privacidad() {
         <li>Cada petición comprueba que el viaje que pides sea tuyo antes de devolverlo.</li>
       </ul>
       <p>
-        Con la misma honestidad: el token de sesión se guarda en el <code>localStorage</code> de tu
-        navegador. Es una decisión común en aplicaciones como esta, pero implica que quien tenga
-        acceso físico a tu dispositivo desbloqueado podría leerlo. Cierra sesión si usas una
-        computadora compartida.
+        El token de sesión se guarda en una cookie <code>httpOnly</code>: ni el propio código de esta
+        aplicación puede leer su contenido, solo el navegador la usa para hablar con nuestro
+        servidor. Aun así, quien tenga acceso físico a tu dispositivo desbloqueado podría usar la
+        sesión que dejaste abierta. Cierra sesión si usas una computadora compartida.
       </p>
       <p>
         Ningún sistema es completamente infalible, y no podemos garantizar una seguridad absoluta.

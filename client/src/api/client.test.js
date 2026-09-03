@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import api, { tokenStore, ApiError, SESION_EXPIRADA, TIMEOUT_IA_MS } from './client.js';
+import api, { sesionFlag, ApiError, SESION_EXPIRADA, TIMEOUT_IA_MS } from './client.js';
 
 const respuesta = (body, { status = 200 } = {}) => ({
   status,
@@ -8,7 +8,7 @@ const respuesta = (body, { status = 200 } = {}) => ({
 });
 
 beforeEach(() => {
-  tokenStore.clear();
+  sesionFlag.limpiar();
 });
 
 describe('cliente HTTP', () => {
@@ -17,24 +17,13 @@ describe('cliente HTTP', () => {
     await expect(api.get('/trips')).resolves.toEqual({ trips: [1, 2] });
   });
 
-  it('adjunta el token cuando hay sesion', async () => {
-    tokenStore.set('abc123');
+  it('manda credentials:include para que el navegador adjunte la cookie de sesion', async () => {
     const fetchMock = vi.fn().mockResolvedValue(respuesta({ data: {} }));
     vi.stubGlobal('fetch', fetchMock);
 
     await api.get('/trips');
 
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer abc123');
-  });
-
-  it('no lo adjunta cuando la llamada es publica', async () => {
-    tokenStore.set('abc123');
-    const fetchMock = vi.fn().mockResolvedValue(respuesta({ data: {} }));
-    vi.stubGlobal('fetch', fetchMock);
-
-    await api.post('/auth/login', { email: 'a@b.com' }, { auth: false });
-
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(fetchMock.mock.calls[0][1].credentials).toBe('include');
   });
 
   it('convierte el error del backend en ApiError con status y details', async () => {
@@ -52,25 +41,25 @@ describe('cliente HTTP', () => {
     expect(err.details).toHaveLength(1);
   });
 
-  it('con 401 y token guardado limpia la sesion y avisa', async () => {
-    tokenStore.set('vencido');
+  it('con 401 y bandera de sesion previa avisa que vencio', async () => {
+    sesionFlag.marcar();
     const oyente = vi.fn();
     window.addEventListener(SESION_EXPIRADA, oyente);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respuesta({ message: 'No autenticado.' }, { status: 401 })));
 
     await api.get('/auth/me').catch(() => {});
 
-    expect(tokenStore.get()).toBeNull();
+    expect(sesionFlag.tuvoSesion()).toBe(false);
     expect(oyente).toHaveBeenCalled();
     window.removeEventListener(SESION_EXPIRADA, oyente);
   });
 
-  it('no dispara el aviso de sesion vencida si no habia token', async () => {
+  it('no dispara el aviso de sesion vencida si nunca hubo sesion', async () => {
     const oyente = vi.fn();
     window.addEventListener(SESION_EXPIRADA, oyente);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respuesta({ message: 'No autenticado.' }, { status: 401 })));
 
-    await api.post('/auth/login', {}, { auth: false }).catch(() => {});
+    await api.get('/auth/me').catch(() => {});
 
     expect(oyente).not.toHaveBeenCalled();
     window.removeEventListener(SESION_EXPIRADA, oyente);
@@ -90,7 +79,6 @@ describe('cliente HTTP', () => {
   });
 
   it('el DELETE puede llevar cuerpo: la baja de cuenta manda la contrasena', async () => {
-    tokenStore.set('abc');
     const fetchMock = vi.fn().mockResolvedValue(respuesta({ data: {} }));
     vi.stubGlobal('fetch', fetchMock);
 

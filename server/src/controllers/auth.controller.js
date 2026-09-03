@@ -8,7 +8,7 @@ import Agency from '../models/Agency.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
-import { signToken } from '../middleware/auth.js';
+import { setAuthCookie, clearAuthCookie } from '../middleware/auth.js';
 import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
 import { subirLogo } from '../services/logo.service.js';
 import { usuarioConAgencia } from './agency.controller.js';
@@ -55,7 +55,11 @@ export const register = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Cuenta creada.',
-    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
+    // "token" se mantiene en la respuesta solo por compatibilidad temporal
+    // con el cliente anterior (que lo guardaba a mano): quitarlo en un PR
+    // aparte una vez que nadie siga corriendo esa version. La cookie ya
+    // quedo puesta por setAuthCookie, que es lo que usa el cliente actual.
+    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
   });
 });
 
@@ -100,12 +104,22 @@ export const login = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Sesión iniciada.',
-    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
+    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
   });
 });
 
 export const me = asyncHandler(async (req, res) => {
   res.json({ success: true, data: { user: await usuarioConAgencia(req.user) } });
+});
+
+/**
+ * Cierra sesion del lado del servidor: borra la cookie httpOnly. Sin
+ * protect() a proposito -- limpiar una cookie que ya no existe o que ya
+ * vencio no es un error, es lo mismo que pedia el usuario.
+ */
+export const logout = asyncHandler(async (_req, res) => {
+  clearAuthCookie(res);
+  res.json({ success: true, message: 'Sesión cerrada.' });
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
@@ -207,7 +221,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Contraseña actualizada.',
-    data: { user: await usuarioConAgencia(user), token: signToken(user._id) },
+    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
   });
 });
 
@@ -246,7 +260,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword; // el hook pre-save la hashea
   await user.save();
 
-  res.json({ success: true, message: 'Contraseña actualizada.', data: { token: signToken(user._id) } });
+  res.json({ success: true, message: 'Contraseña actualizada.', data: { token: setAuthCookie(res, user._id) } });
 });
 
 /**
