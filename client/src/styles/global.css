@@ -1999,6 +1999,11 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     --marca: var(--marca-agencia, #135f49) !important;
     --marca-600: #0f4c3a !important;
     --marca-100: #e8f4f0 !important;
+    /* --fuente-agencia y --escala-pdf: mismo patron que --marca-agencia
+       arriba -- HojaImpresion.jsx los pone inline solo en plan Agencia/Pro.
+       Sin ellos, cae exactamente en la tipografia y el tamano de siempre. */
+    --fuente: var(--fuente-agencia, 'Manrope Variable', ui-sans-serif, system-ui, sans-serif) !important;
+    --fuente-titulo: var(--fuente-agencia, 'Sora Variable', 'Manrope Variable', ui-sans-serif, sans-serif) !important;
     --arena-0: #ffffff !important;
     --arena-50: #f8fafc !important;
     --arena-100: #f1f5f9 !important;
@@ -2011,7 +2016,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     --alerta-bg: #fef3c7 !important;
     background: #ffffff !important;
     color: #1e293b !important;
-    font-size: 10pt !important;
+    font-size: calc(10pt * var(--escala-pdf, 1)) !important;
   }
 
   *,
@@ -2075,7 +2080,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .hoja-marca strong {
     font-family: var(--fuente-titulo) !important;
-    font-size: 13pt !important;
+    font-size: calc(13pt * var(--escala-pdf, 1)) !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     display: block !important;
@@ -2096,11 +2101,11 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     color: #ffffff !important;
     font-family: var(--fuente-titulo) !important;
     font-weight: 800 !important;
-    font-size: 14pt !important;
+    font-size: calc(14pt * var(--escala-pdf, 1)) !important;
   }
   .hoja-contacto {
     display: block !important;
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--escala-pdf, 1)) !important;
     color: #64748b !important;
     margin-top: 2px !important;
   }
@@ -2111,14 +2116,14 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .hoja-viaje strong {
     display: block !important;
     font-family: var(--fuente-titulo) !important;
-    font-size: 13pt !important;
+    font-size: calc(13pt * var(--escala-pdf, 1)) !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     line-height: 1.2 !important;
   }
   .hoja-viaje span {
     display: block !important;
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--escala-pdf, 1)) !important;
     color: #64748b !important;
     margin-top: 3px !important;
   }
@@ -2139,7 +2144,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .tarjeta h3 {
     color: #0f172a !important;
     font-family: var(--fuente-titulo) !important;
-    font-size: 11pt !important;
+    font-size: calc(11pt * var(--escala-pdf, 1)) !important;
     font-weight: 700 !important;
     margin: 0 0 8px !important;
     border-bottom: 1px solid #f1f5f9 !important;
@@ -2153,7 +2158,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     align-items: flex-start !important;
     padding: 6px 0 !important;
     border-bottom: 1px solid #f8fafc !important;
-    font-size: 9pt !important;
+    font-size: calc(9pt * var(--escala-pdf, 1)) !important;
   }
   .linea-gasto:last-child {
     border-bottom: none !important;
@@ -2198,7 +2203,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .dia-num {
     color: var(--marca) !important;
-    font-size: 8pt !important;
+    font-size: calc(8pt * var(--escala-pdf, 1)) !important;
     font-weight: 800 !important;
     letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
@@ -2207,7 +2212,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .dia-encabezado h4 {
     color: #0f172a !important;
     font-family: var(--fuente-titulo) !important;
-    font-size: 11pt !important;
+    font-size: calc(11pt * var(--escala-pdf, 1)) !important;
     font-weight: 700 !important;
     margin: 2px 0 2px !important;
   }
@@ -2215,7 +2220,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .dia-encabezado .suave,
   .dia-encabezado .tenue {
     color: #475569 !important;
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--escala-pdf, 1)) !important;
     margin: 0 !important;
     line-height: 1.35 !important;
   }
@@ -2239,7 +2244,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .actividad-hora {
     color: var(--marca) !important;
     font-weight: 700 !important;
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--escala-pdf, 1)) !important;
     min-width: 44px !important;
     padding-top: 1px !important;
   }
@@ -2250,13 +2255,13 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .actividad-cuerpo h4 {
     color: #0f172a !important;
     font-family: var(--fuente-titulo) !important;
-    font-size: 9.5pt !important;
+    font-size: calc(9.5pt * var(--escala-pdf, 1)) !important;
     font-weight: 700 !important;
     margin: 0 0 2px !important;
   }
   .actividad-cuerpo p {
     color: #475569 !important;
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--escala-pdf, 1)) !important;
     line-height: 1.35 !important;
     margin: 0 0 5px !important;
   }
@@ -2267,7 +2272,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     color: #334155 !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 4px !important;
-    font-size: 7.5pt !important;
+    font-size: calc(7.5pt * var(--escala-pdf, 1)) !important;
     font-weight: 600 !important;
     padding: 1px 6px !important;
   }
@@ -2295,7 +2300,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .numero.grande {
     font-family: var(--fuente-titulo) !important;
-    font-size: 16pt !important;
+    font-size: calc(16pt * var(--escala-pdf, 1)) !important;
     font-weight: 800 !important;
     color: #14532d !important;
   }
@@ -2306,7 +2311,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     margin-top: 24px !important;
     padding-top: 10px !important;
     border-top: 1px solid #cbd5e1 !important;
-    font-size: 8pt !important;
+    font-size: calc(8pt * var(--escala-pdf, 1)) !important;
     color: #64748b !important;
     text-align: center !important;
     break-inside: avoid !important;

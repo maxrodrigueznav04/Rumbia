@@ -31,6 +31,26 @@ export const PLANES_AGENCIA = [
 // Agentes que trae el plan base de inicio antes de comprar asientos extra.
 export const AGENTES_INCLUIDOS = 3;
 
+// Opciones de tipografia del PDF (beneficio Agencia/Pro, igual que
+// colorAcento). '' = la tipografia de Rumbia de siempre (Sora/Manrope). El
+// nombre real de cada fuente y como cargarla vive en el cliente
+// (client/src/utils/fuentesPdf.js) -- aqui solo se valida que el id exista.
+export const FUENTES_PDF = [
+  '',
+  'editorial',
+  'clasica',
+  'corporativa',
+  'redondeada',
+  'tradicional',
+  'neutra',
+  'robusta',
+];
+
+// Escala de tamano de todo el documento (compacto/normal/grande). Un solo
+// numero mueve TODOS los font-size del PDF via calc(), no hay que tocar
+// regla por regla (ver --escala-pdf en global.css).
+export const DENSIDADES_PDF = ['compacto', 'normal', 'grande'];
+
 /**
  * Estado de pago de la agencia.
  *
@@ -80,6 +100,10 @@ const agencySchema = new mongoose.Schema(
       default: '',
       match: [/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, 'El color debe ser un codigo hexadecimal, ej. #1F6F5C.'],
     },
+    // Mismo criterio que colorAcento: se guarda en cualquier plan, solo se
+    // usa si marcaBlanca es true.
+    fuentePdf: { type: String, enum: FUENTES_PDF, default: '' },
+    densidadPdf: { type: String, enum: DENSIDADES_PDF, default: 'normal' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     // Se comparte fuera de la app (whatsapp, correo) para que un agente se una
     // sin que el dueno tenga que invitarlo uno por uno desde un panel.

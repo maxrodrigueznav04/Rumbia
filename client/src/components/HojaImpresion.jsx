@@ -1,15 +1,38 @@
 import { rangoFechas, nombreDestino } from '../utils/format.js';
+import { obtenerFuente, obtenerDensidad } from '../utils/fuentesPdf.js';
 
 /**
- * Variable CSS que pone el color de acento propio de la agencia (solo en
- * plan Agencia/Pro y solo si lo eligieron) para que todo el PDF -- insignia,
- * marcadores de dia, actividades, no solo el encabezado -- la use via
- * var(--marca) (ver global.css). Se pasa como estilo inline en el elemento
- * que envuelve encabezado, cuerpo y pie; sin marcaBlanca o sin color
- * elegido, no define nada y todo cae al verde de Rumbia de siempre.
+ * Variables CSS que ponen la personalizacion de la agencia (color, tipografia
+ * y densidad de texto -- solo en plan Agencia/Pro) para que todo el PDF las
+ * use via var(--marca)/var(--fuente*)/var(--escala-pdf) (ver global.css). Se
+ * pasa como estilo inline en el elemento que envuelve encabezado, cuerpo y
+ * pie; sin marcaBlanca o sin elegir nada, no define nada y todo cae en el
+ * verde/tipografia/tamano de Rumbia de siempre.
  */
-export function estiloAcento(marca) {
-  return marca?.marcaBlanca && marca?.colorAcento ? { '--marca-agencia': marca.colorAcento } : undefined;
+export function estiloPersonalizado(marca) {
+  if (!marca?.marcaBlanca) return undefined;
+
+  const estilo = {};
+  if (marca.colorAcento) estilo['--marca-agencia'] = marca.colorAcento;
+
+  const fuente = obtenerFuente(marca.fuentePdf);
+  if (fuente.pila) estilo['--fuente-agencia'] = fuente.pila;
+
+  const densidad = obtenerDensidad(marca.densidadPdf);
+  if (densidad.escala !== 1) estilo['--escala-pdf'] = densidad.escala;
+
+  return Object.keys(estilo).length ? estilo : undefined;
+}
+
+/**
+ * Descarga el archivo de la tipografia elegida (si no es la de Rumbia, que
+ * ya viene en el bundle principal). Llamar desde un useEffect en la pagina
+ * que imprime -- es un side effect (carga de red), no algo que resolver en
+ * cada render.
+ */
+export function cargarFuentePdf(marca) {
+  if (!marca?.marcaBlanca) return;
+  obtenerFuente(marca.fuentePdf).cargar?.();
 }
 
 /**

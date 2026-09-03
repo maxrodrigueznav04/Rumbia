@@ -320,6 +320,21 @@ await check('Agency valida el formato del color de acento', async () => {
   return 'hex valido pasa, texto libre se rechaza';
 });
 
+await check('Agency valida fuentePdf y densidadPdf contra su catalogo', async () => {
+  const validas = new Agency({ agencyName: 'X', owner: uid, fuentePdf: 'editorial', densidadPdf: 'grande' });
+  assert(!validas.validateSync(), 'ids del catalogo son validos');
+  assert(validas.densidadPdf === 'grande', 'guarda el valor elegido');
+
+  const sinElegir = new Agency({ agencyName: 'X', owner: uid });
+  assert(sinElegir.fuentePdf === '', 'fuentePdf vacio (Rumbia) por defecto');
+  assert(sinElegir.densidadPdf === 'normal', 'densidadPdf normal por defecto');
+
+  const invalida = new Agency({ agencyName: 'X', owner: uid, fuentePdf: 'comic-sans' });
+  assert(invalida.validateSync()?.errors.fuentePdf, 'un id fuera del catalogo debe fallar');
+
+  return 'defaults correctos, catalogo aplicado como enum';
+});
+
 await check('Agency rechaza un plan que no existe', async () => {
   const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'trimestral' } });
   assert(a.validateSync()?.errors['billing.plan'], 'deberia invalidar el plan');
