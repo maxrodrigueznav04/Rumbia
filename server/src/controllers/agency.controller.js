@@ -20,7 +20,10 @@ function vistaAgenciaMiembro(agencia) {
     logoUrl: agencia.logoUrl,
     contact: agencia.contact,
     owner: agencia.owner,
-    billing: { status: agencia.billing?.status },
+    billing: {
+      status: agencia.billing?.status,
+      trialHasta: agencia.billing?.trialHasta,
+    },
   };
 }
 

@@ -262,12 +262,13 @@ await check('User nace sin uso de IA registrado este mes', async () => {
   return 'mes vacio, 0 generaciones -> consumirCupoPersonal lo inicializa tras generar con exito';
 });
 
-await check('Agency nace pendiente, sin agentes extra', async () => {
+await check('Agency nace en periodo de prueba (trial), sin agentes extra', async () => {
   const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid });
   assert(!a.validateSync(), 'no deberia fallar');
-  assert(a.billing.status === 'pendiente', `status=${a.billing.status}`);
+  assert(a.billing.status === 'trial', `status=${a.billing.status}`);
+  assert(a.billing.trialHasta instanceof Date, 'debe tener fecha de fin de trial');
   assert(a.capacidadAgentes === 3, `capacidad=${a.capacidadAgentes}`);
-  return 'pendiente, cupo 3';
+  return 'trial 7 días, cupo 3';
 });
 
 await check('Agency: agentes extra suman a la capacidad', async () => {

@@ -18,11 +18,29 @@ import { esAdmin } from '../utils/esAdmin.js';
 export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
   if (!req.user.agency || req.method === 'GET' || esAdmin(req.user)) return next();
 
-  const agencia = await Agency.findById(req.user.agency).select('billing');
-  if (!agencia || agencia.billing?.status === 'activa') return next();
+  const agencia = await Agency.findById(req.user.agency).select('billing createdAt');
+  if (!agencia) return next();
 
+  // 1. Suscripción activa en Stripe
+  if (agencia.billing?.status === 'activa') return next();
+
+  // 2. Periodo de prueba gratuito (trial) de 7 días vigente
+  const ahora = new Date();
+  const finTrial =
+    agencia.billing?.trialHasta ||
+    (agencia.billing?.status === 'trial'
+      ? new Date(new Date(agencia.createdAt).getTime() + 7 * 86400000)
+      : null);
+
+  if (finTrial && new Date(finTrial) > ahora) {
+    return next();
+  }
+
+  const esTrial = agencia.billing?.status === 'trial' || Boolean(finTrial);
   throw ApiError.forbidden(
-    'La suscripción de tu agencia no está activa. Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que se active o se reactive un plan.'
+    esTrial
+      ? 'El periodo de prueba gratuita de 7 días de tu agencia ha concluido. Tus viajes siguen guardados, pero necesitas activar un plan para crear o editar contenido.'
+      : 'La suscripción de tu agencia no está activa. Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que se active un plan.'
   );
 });
 

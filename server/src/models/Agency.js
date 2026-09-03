@@ -46,12 +46,21 @@ const billingSchema = new mongoose.Schema(
     // Vacio en el plan vitalicio: es un pago unico, no una suscripcion.
     stripeSubscriptionId: { type: String, default: '' },
     plan: { type: String, enum: PLANES_AGENCIA, default: null },
-    status: { type: String, enum: ['pendiente', 'activa', 'congelada'], default: 'pendiente' },
+    status: {
+      type: String,
+      enum: ['trial', 'pendiente', 'activa', 'congelada'],
+      default: 'trial',
+    },
     // Asientos comprados encima de AGENTES_INCLUIDOS.
     extraAgentes: { type: Number, default: 0, min: 0 },
     // Vacio en el plan vitalicio, que no vence. En mensual/anual es la fecha
     // que Stripe reporta como fin del periodo pagado.
     periodoHasta: { type: Date },
+    // Periodo de prueba gratuito de 7 dias para agencias nuevas.
+    trialHasta: {
+      type: Date,
+      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
   },
   { _id: false }
 );

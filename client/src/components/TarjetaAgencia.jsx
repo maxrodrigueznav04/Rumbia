@@ -399,19 +399,45 @@ function VistaConAgencia({ actualizarUsuario }) {
  * editar viajes) ya requiere un plan activo desde el primer agente. Nadie
  * pierde datos: solo no se puede crear ni editar hasta activarla.
  */
-function AvisoCongelada({ paraDueno, yaTuvoPlan }) {
+function calcularTrial(billing) {
+  if (!billing) return { enTrial: false, diasRestantes: 0, trialVencido: false };
+  const ahora = Date.now();
+  const fin = billing.trialHasta ? new Date(billing.trialHasta).getTime() : 0;
+  const diasRestantes = Math.max(0, Math.ceil((fin - ahora) / (1000 * 60 * 60 * 24)));
+  const enTrial = billing.status === 'trial' && diasRestantes > 0;
+  const trialVencido = billing.status === 'trial' && diasRestantes === 0;
+  return { enTrial, diasRestantes, trialVencido };
+}
+
+function AvisoCongelada({ paraDueno, yaTuvoPlan, esTrialVencido }) {
+  const titulo = esTrialVencido
+    ? 'Tu prueba gratuita de 7 días ha finalizado'
+    : 'El plan de esta agencia no está activo';
+
   return (
-    <Aviso tipo="alerta" titulo="El plan de esta agencia no está activo">
+    <Aviso tipo="alerta" titulo={titulo}>
       {paraDueno ? (
         <>
-          Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta
-          que {yaTuvoPlan ? 'reactives' : 'actives'} el plan.{' '}
-          <a href="#plan-agencia" style={{ fontWeight: 600 }}>
-            Ir a {yaTuvoPlan ? 'reactivarlo' : 'activarlo'} →
-          </a>
+          {esTrialVencido ? (
+            <>
+              Tus viajes y propuestas siguen a salvo en tu cuenta. Para continuar creando y editando
+              itinerarios oficiales con tu logo y margen, activa tu suscripción.{' '}
+              <a href="#plan-agencia" style={{ fontWeight: 600 }}>
+                Elegir y activar plan →
+              </a>
+            </>
+          ) : (
+            <>
+              Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta
+              que {yaTuvoPlan ? 'reactives' : 'actives'} el plan.{' '}
+              <a href="#plan-agencia" style={{ fontWeight: 600 }}>
+                Ir a {yaTuvoPlan ? 'reactivarlo' : 'activarlo'} →
+              </a>
+            </>
+          )}
         </>
       ) : (
-        `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia ${yaTuvoPlan ? 'reactive' : 'active'} el plan.`
+        `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia active o reactive el plan.`
       )}
     </Aviso>
   );
@@ -420,6 +446,9 @@ function AvisoCongelada({ paraDueno, yaTuvoPlan }) {
 function VistaMiembro({ agencia, actualizarUsuario }) {
   const [saliendo, setSaliendo] = useState(false);
   const [error, setError] = useState(null);
+
+  const trial = calcularTrial(agencia.billing);
+  const congelada = !trial.enTrial && agencia.billing?.status && agencia.billing.status !== 'activa';
 
   const salir = async () => {
     setError(null);
@@ -440,8 +469,18 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
         puede editarla.
       </p>
 
-      {agencia.billing?.status && agencia.billing.status !== 'activa' && (
-        <AvisoCongelada paraDueno={false} yaTuvoPlan={agencia.billing.status === 'congelada'} />
+      {trial.enTrial && (
+        <Aviso tipo="info" titulo={`Prueba gratuita activa (${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'})`}>
+          Tu agencia está disfrutando del periodo de prueba gratuita de 7 días con acceso completo.
+        </Aviso>
+      )}
+
+      {congelada && (
+        <AvisoCongelada
+          paraDueno={false}
+          yaTuvoPlan={agencia.billing.status === 'congelada'}
+          esTrialVencido={trial.trialVencido}
+        />
       )}
 
       {error && <Aviso tipo="error">{error}</Aviso>}
@@ -601,19 +640,37 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
     }
   };
 
+  const trial = calcularTrial(billing);
+
   return (
     <Tarjeta
       id="plan-agencia"
       titulo="Plan de la agencia"
       accion={
         billing.status && (
-          <Insignia color={billing.status === 'activa' ? 'verde' : 'ambar'}>
-            {billing.status === 'activa' ? 'Activo' : billing.status === 'congelada' ? 'Vencido' : 'Sin activar'}
+          <Insignia color={billing.status === 'activa' || trial.enTrial ? 'verde' : 'ambar'}>
+            {billing.status === 'activa'
+              ? 'Activo'
+              : trial.enTrial
+              ? `Prueba (${trial.diasRestantes}d)`
+              : trial.trialVencido
+              ? 'Prueba vencida'
+              : billing.status === 'congelada'
+              ? 'Vencido'
+              : 'Sin activar'}
           </Insignia>
         )
       }
     >
       {error && <Aviso tipo="error">{error}</Aviso>}
+
+      {trial.enTrial && (
+        <Aviso tipo="info" titulo={`Prueba gratuita activa · ${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'}`}>
+          Tu agencia tiene acceso libre a todas las funciones profesionales
+          {billing.trialHasta ? ` hasta el ${new Date(billing.trialHasta).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}` : ''}.
+          Puedes activar tu plan en cualquier momento para asegurar el servicio continuo.
+        </Aviso>
+      )}
 
       {billing.status === 'activa' && (
         <>
@@ -922,10 +979,26 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
     }
   };
 
+  const trial = calcularTrial(agencia.billing);
+  const congelada = !trial.enTrial && agencia.billing?.status !== 'activa';
+
   return (
     <>
-      {agencia.billing?.status !== 'activa' && (
-        <AvisoCongelada paraDueno yaTuvoPlan={agencia.billing?.status === 'congelada'} />
+      {trial.enTrial && (
+        <Aviso
+          tipo="info"
+          titulo={`Prueba gratuita de 7 días activa (${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'})`}
+        >
+          Tienes acceso completo a todas las funciones profesionales: crea itinerarios ilimitados, genera cotizaciones en PDF con tu logo y añade márgenes comerciales a tus propuestas.
+        </Aviso>
+      )}
+
+      {congelada && (
+        <AvisoCongelada
+          paraDueno
+          yaTuvoPlan={agencia.billing?.status === 'congelada'}
+          esTrialVencido={trial.trialVencido}
+        />
       )}
 
       <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
