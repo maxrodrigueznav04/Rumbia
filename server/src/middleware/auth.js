@@ -63,19 +63,16 @@ export function clearAuthCookie(res) {
 }
 
 /**
- * Exige un token valido y cuelga req.user. Lee primero la cookie httpOnly
- * (el mecanismo actual); si no hay, cae al header "Authorization: Bearer"
- * como respaldo temporal -- cubre a quien tenga abierta en el navegador la
- * version anterior del cliente justo cuando esto se despliega. Quitar ese
- * respaldo (y el campo "token" que siguen mandando register/login/etc.) en
- * un PR aparte una vez que de verdad no quede nadie en el cliente viejo.
+ * Exige un token valido y cuelga req.user. Lee la cookie httpOnly
+ * (`rumbia_token`), que es lo unico que el cliente actual manda: nunca lee
+ * ni maneja el JWT a mano, solo `credentials:'include'` para que el
+ * navegador la adjunte solo. El respaldo por header "Authorization: Bearer"
+ * y el campo "token" en el JSON de register/login/etc. ya se quitaron -- el
+ * cliente nunca los uso (es una SPA que siempre corre el build mas reciente,
+ * no hay clientes de terceros ni versiones viejas circulando).
  */
 export const protect = asyncHandler(async (req, _res, next) => {
-  let token = req.cookies?.[COOKIE_NAME];
-  if (!token) {
-    const header = req.headers.authorization || '';
-    token = header.startsWith('Bearer ') ? header.slice(7).trim() : null;
-  }
+  const token = req.cookies?.[COOKIE_NAME];
 
   if (!token) throw ApiError.unauthorized('Falta el token de acceso.');
 

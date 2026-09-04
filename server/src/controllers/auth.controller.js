@@ -97,14 +97,11 @@ export const register = asyncHandler(async (req, res) => {
 
   await enviarVerificacionEmail(user);
 
+  setAuthCookie(res, user._id);
   res.status(201).json({
     success: true,
     message: 'Cuenta creada.',
-    // "token" se mantiene en la respuesta solo por compatibilidad temporal
-    // con el cliente anterior (que lo guardaba a mano): quitarlo en un PR
-    // aparte una vez que nadie siga corriendo esa version. La cookie ya
-    // quedo puesta por setAuthCookie, que es lo que usa el cliente actual.
-    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
+    data: { user: await usuarioConAgencia(user) },
   });
 });
 
@@ -183,10 +180,11 @@ export const login = asyncHandler(async (req, res) => {
   user.lastLoginAt = new Date();
   await user.save({ validateBeforeSave: false });
 
+  setAuthCookie(res, user._id);
   res.json({
     success: true,
     message: 'Sesión iniciada.',
-    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
+    data: { user: await usuarioConAgencia(user) },
   });
 });
 
@@ -300,10 +298,11 @@ export const resetPassword = asyncHandler(async (req, res) => {
   user.resetTokenExpires = undefined;
   await user.save();
 
+  setAuthCookie(res, user._id);
   res.json({
     success: true,
     message: 'Contraseña actualizada.',
-    data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
+    data: { user: await usuarioConAgencia(user) },
   });
 });
 
@@ -342,7 +341,8 @@ export const changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword; // el hook pre-save la hashea
   await user.save();
 
-  res.json({ success: true, message: 'Contraseña actualizada.', data: { token: setAuthCookie(res, user._id) } });
+  setAuthCookie(res, user._id);
+  res.json({ success: true, message: 'Contraseña actualizada.', data: {} });
 });
 
 /**
