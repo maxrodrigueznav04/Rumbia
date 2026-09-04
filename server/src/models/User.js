@@ -99,6 +99,16 @@ const userSchema = new mongoose.Schema(
     // filtrara, lo que hay aqui no sirve para restablecer nada.
     resetTokenHash: { type: String, select: false },
     resetTokenExpires: { type: Date, select: false },
+    // Default en `true` A PROPOSITO (al reves de lo que se esperaria): una
+    // cuenta ya existente en la base, creada antes de que este campo
+    // existiera, no lo trae guardado -- Mongoose le aplica el default al
+    // cargarla. Si el default fuera `false`, todo usuario real (pagando o
+    // no) quedaria "sin verificar" el dia que esto se despliegue. register()
+    // es el UNICO lugar que pone `false` a proposito, para las cuentas
+    // nuevas de aqui en adelante. Mismo patron de hash que resetTokenHash.
+    emailVerified: { type: Boolean, default: true },
+    emailVerifyTokenHash: { type: String, select: false },
+    emailVerifyTokenExpires: { type: Date, select: false },
     // Bloqueo de cuenta por intentos fallidos, aparte del rate-limit por IP:
     // ese ultimo no frena un ataque distribuido en varias IPs contra un mismo
     // correo. Van con select:false porque son datos de seguridad interna, no

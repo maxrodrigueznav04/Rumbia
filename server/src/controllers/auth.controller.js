@@ -12,13 +12,18 @@ import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { setAuthCookie, clearAuthCookie } from '../middleware/auth.js';
-import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
+import { enviarCorreo, correoRecuperacion, correoVerificacion } from '../services/email.service.js';
 import { subirLogo } from '../services/logo.service.js';
 import { cancelarSuscripcion } from '../services/stripe.service.js';
 import { usuarioConAgencia } from './agency.controller.js';
 
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
 const RESET_MINUTOS = 30;
+
+// Mucho mas largo que el de recuperacion: nadie revisa el correo de
+// bienvenida con la misma urgencia que uno de "olvidaste tu contraseña", y
+// no es una llave hacia una cuenta ajena si alguien mas lo intercepta.
+const VERIFICAR_MINUTOS = 24 * 60;
 
 // El rate-limit por IP (authLimiter) no frena un ataque distribuido en varias
 // IPs contra un mismo correo. Este bloqueo es POR CUENTA, no por IP.
@@ -34,6 +39,37 @@ const hashToken = (token) => crypto.createHash('sha256').update(token).digest('h
 // que "password incorrecta", y ese tiempo delata que correos estan
 // registrados aunque el mensaje de error sea identico.
 const HASH_SENUELO = bcrypt.hashSync('nadie-tiene-esta-contrasena', 12);
+
+/**
+ * Genera un token nuevo, lo guarda (hasheado) y manda el correo. La usan
+ * tanto register() como resendVerification() -- reenviar no es mas que
+ * repetir esto con un token fresco, sin reinventar nada.
+ */
+async function enviarVerificacionEmail(user) {
+  const token = crypto.randomBytes(32).toString('hex');
+  user.emailVerifyTokenHash = hashToken(token);
+  user.emailVerifyTokenExpires = new Date(Date.now() + VERIFICAR_MINUTOS * 60 * 1000);
+  await user.save({ validateBeforeSave: false });
+
+  const enlace = `${env.clientUrl}/verificar-correo/${token}`;
+  const { asunto, html, texto } = correoVerificacion({
+    nombre: user.name,
+    enlace,
+    horas: VERIFICAR_MINUTOS / 60,
+  });
+
+  const salio = await enviarCorreo({ para: user.email, asunto, html, texto });
+
+  // Mismo criterio que forgotPassword: en produccion el enlace es una
+  // credencial y no se imprime a los logs; en local, sin Resend
+  // configurado, es la unica forma de probar el flujo completo.
+  if (!salio && !env.isProd) {
+    console.log(`
+[correo] Enlace de verificación para ${user.email}:
+  ${enlace}
+`);
+  }
+}
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, perfilUso, referenciaContacto } = req.body;
@@ -54,7 +90,12 @@ export const register = asyncHandler(async (req, res) => {
     email,
     password,
     ...(perfilUso ? { preferences: { perfilUso } } : {}),
+    // Unico lugar que lo pone en false a proposito (ver el default en
+    // User.js): toda cuenta NUEVA nace sin verificar.
+    emailVerified: false,
   });
+
+  await enviarVerificacionEmail(user);
 
   res.status(201).json({
     success: true,
@@ -65,6 +106,43 @@ export const register = asyncHandler(async (req, res) => {
     // quedo puesta por setAuthCookie, que es lo que usa el cliente actual.
     data: { user: await usuarioConAgencia(user), token: setAuthCookie(res, user._id) },
   });
+});
+
+/** Paso 2 del registro: confirma el correo con el token del enlace. */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  const user = await User.findOne({
+    emailVerifyTokenHash: hashToken(token),
+    emailVerifyTokenExpires: { $gt: new Date() },
+  }).select('+emailVerifyTokenHash +emailVerifyTokenExpires');
+
+  // Un solo mensaje para "no existe", "ya se uso" y "caduco", igual que
+  // resetPassword: los tres se arreglan pidiendo un enlace nuevo.
+  if (!user) {
+    throw ApiError.badRequest('Este enlace ya no sirve. Pide uno nuevo desde el aviso en la app.');
+  }
+
+  user.emailVerified = true;
+  user.emailVerifyTokenHash = undefined;
+  user.emailVerifyTokenExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  res.json({
+    success: true,
+    message: 'Correo verificado.',
+    data: { user: await usuarioConAgencia(user) },
+  });
+});
+
+/** Reenvía el correo de verificación a la cuenta en sesión. */
+export const resendVerification = asyncHandler(async (req, res) => {
+  if (req.user.emailVerified) {
+    return res.json({ success: true, message: 'Tu correo ya está verificado.' });
+  }
+
+  await enviarVerificacionEmail(req.user);
+  res.json({ success: true, message: 'Te enviamos un correo nuevo para verificar tu cuenta.' });
 });
 
 export const login = asyncHandler(async (req, res) => {

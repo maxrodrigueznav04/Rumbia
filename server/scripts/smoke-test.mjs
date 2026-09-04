@@ -316,6 +316,36 @@ await check('User rechaza mas de 5 estilos', async () => {
   return 'max 5';
 });
 
+await check('User nace con emailVerified=true por default (cuentas viejas sin el campo no quedan bloqueadas)', async () => {
+  const u = new User({ name: 'Ana', email: 'a@b.com', password: 'secreto123' });
+  assert(u.emailVerified === true, `emailVerified=${u.emailVerified}`);
+  return 'default true: solo register() lo pone en false a proposito para cuentas nuevas';
+});
+
+await check('requireEmailVerificado no lanza si emailVerified es true', async () => {
+  const { requireEmailVerificado } = await import('../src/utils/requireEmailVerificado.js');
+  requireEmailVerificado({ email: 'a@b.com', emailVerified: true });
+  return 'sin lanzar';
+});
+
+await check('requireEmailVerificado lanza si emailVerified es false', async () => {
+  const { requireEmailVerificado } = await import('../src/utils/requireEmailVerificado.js');
+  let err;
+  try {
+    requireEmailVerificado({ email: 'a@b.com', emailVerified: false });
+  } catch (e) {
+    err = e;
+  }
+  assert(err?.statusCode === 403, `statusCode=${err?.statusCode}`);
+  return err.message;
+});
+
+await check('requireEmailVerificado nunca lanza para ADMIN_EMAIL, aunque emailVerified sea false', async () => {
+  const { requireEmailVerificado } = await import('../src/utils/requireEmailVerificado.js');
+  requireEmailVerificado({ email: 'admin@rumbia.app', emailVerified: false });
+  return 'admin exento, mismo criterio que los demas topes de uso';
+});
+
 await check('esAdmin reconoce solo al correo de ADMIN_EMAIL', async () => {
   assert(esAdmin({ email: 'admin@rumbia.app' }) === true, 'deberia reconocer al admin');
   assert(esAdmin({ email: 'otro@correo.com' }) === false, 'nadie mas deberia pasar');

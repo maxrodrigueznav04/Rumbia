@@ -4,6 +4,7 @@ import { cancelarSuscripcion } from '../services/stripe.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { esAdmin } from '../utils/esAdmin.js';
+import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
 
 /**
  * Selecciona solo lo que un agente cualquiera (no el dueno) puede ver de su
@@ -45,6 +46,11 @@ function vistaAgenciaMiembro(agencia) {
  * primero tiene que salir de la que ya tiene (endpoint /salir).
  */
 export const crearAgencia = asyncHandler(async (req, res) => {
+  // Crear una agencia da un trial de 7 dias con acceso completo, gratis: el
+  // mismo abuso de correos desechables que se cierra al generar con IA (ver
+  // requireEmailVerificado.js) aplica aqui, y con un premio mas grande.
+  requireEmailVerificado(req.user);
+
   if (req.user.agency) {
     throw ApiError.conflict('Ya perteneces a una agencia. Sal de ella antes de crear otra.');
   }

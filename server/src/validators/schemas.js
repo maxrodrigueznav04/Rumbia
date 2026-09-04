@@ -144,6 +144,10 @@ export const resetPasswordSchema = z.object({
     .max(72, 'Máximo 72 caracteres.'),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().trim().min(20, 'El enlace no es válido.').max(200),
+});
+
 export const createAgencySchema = z.object({
   agencyName: z.string().trim().min(2, 'Ponle un nombre a la agencia.').max(80),
   contact: z.string().trim().max(160).optional(),

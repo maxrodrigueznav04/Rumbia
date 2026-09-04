@@ -51,6 +51,20 @@ export const resetPasswordLimiter = rateLimit({
 });
 
 /**
+ * Reenviar el correo de verificacion: manda un correo real, mismo espiritu
+ * que forgotPasswordLimiter, pero por USUARIO (viene de una sesion ya
+ * autenticada) en vez de por IP.
+ */
+export const resendVerificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => String(req.user?._id || req.ip),
+  message: jsonMessage('Pediste el correo de verificación demasiadas veces. Espera una hora e intenta de nuevo.'),
+});
+
+/**
  * IA sin cuenta. Se limita por IP y con mano mucho mas dura que a los usuarios
  * registrados: es un endpoint abierto que gasta cuota de Gemini, y sin freno
  * cualquiera podria vaciarla en una tarde.

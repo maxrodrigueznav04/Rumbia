@@ -100,6 +100,13 @@ vez del gratuito, para evitar el cold-start de cara al lanzamiento público).
   los JWT anteriores, así que quien se hubiera metido pierde la sesión — que es lo único que hace
   útil un restablecimiento. Sin `RESEND_API_KEY` la app sigue en pie y en desarrollo el enlace se
   imprime en la consola del servidor.
+- **Verificación de correo al registrarse.** La cuenta queda activa de inmediato (mismo flujo de
+  siempre, sin fricción para entrar), pero "sin verificar" hasta confirmar el enlace que se manda
+  al correo — caduca en 24 horas, con reenvío desde un aviso permanente en la app. Mientras tanto
+  se puede navegar y editar viajes con normalidad; lo que queda bloqueado es lo que cuesta dinero
+  real o se presta a abuso con correos desechables: generar con IA, el chat y crear una agencia
+  (con su trial gratis de 7 días). Las cuentas de antes de este cambio nacen verificadas por
+  default — no es una sorpresa retroactiva para quien ya estaba pagando.
 - **Itinerario en PDF, con marca propia.** El botón *Descargar PDF* imprime el plan día por día
   sin la interfaz de la app. Si en el perfil se llena la marca (nombre, logo y contacto), el
   membrete sale con ella en vez de con la de Rumbia, que es lo que necesita quien arma itinerarios
@@ -567,6 +574,7 @@ temporal con clientes ya desplegados, `protect` también acepta
 | `PATCH` | `/api/auth/me/password` | Cambia la contraseña. |
 | `DELETE` | `/api/auth/me` | Elimina la cuenta y todo lo asociado. |
 | `POST` | `/api/auth/forgot-password` · `/api/auth/reset-password` | Recuperación de contraseña por correo. |
+| `POST` | `/api/auth/verify-email` · `/api/auth/resend-verification` | Confirma el correo con el token del enlace, o pide uno nuevo (con sesión). |
 | `GET` `POST` | `/api/trips` | Lista (filtra por estado y texto) y crea. |
 | `GET` `PATCH` `DELETE` | `/api/trips/:id` | Detalle, edición y borrado en cascada. |
 | `POST` | `/api/trips/:id/duplicar` | Copia un viaje completo (útil para variantes de una misma propuesta). |

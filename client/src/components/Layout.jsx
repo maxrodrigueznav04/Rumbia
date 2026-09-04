@@ -4,6 +4,7 @@ import { useTema } from '../hooks/useTema.js';
 import { Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
 import ChatFlotante from './ChatFlotante.jsx';
+import AvisoVerificarCorreo from './AvisoVerificarCorreo.jsx';
 
 const enlaces = [
   { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
@@ -81,6 +82,7 @@ export default function Layout() {
       </header>
 
       <main className="contenedor pagina">
+        {user && !user.emailVerified && <AvisoVerificarCorreo />}
         <Outlet />
       </main>
 

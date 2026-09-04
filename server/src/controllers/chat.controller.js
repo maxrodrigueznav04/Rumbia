@@ -5,6 +5,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { sendChatMessage } from '../services/chat.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { esAdmin } from '../utils/esAdmin.js';
+import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
 
 // Cuantos mensajes se conservan por viaje. Recortar el historial guardado
 // evita que un documento crezca sin limite; el chat sigue funcionando bien
@@ -66,6 +67,8 @@ export const getChat = asyncHandler(async (req, res) => {
 
 /** Manda un mensaje y guarda tanto la pregunta como la respuesta. */
 export const sendMessage = asyncHandler(async (req, res) => {
+  requireEmailVerificado(req.user);
+
   const { message, tripId } = req.body;
   const trip = await resolveTrip(tripId, req.user._id);
 
