@@ -1891,26 +1891,53 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 
 .inicio-hero {
+  position: relative;
+  overflow: hidden;
   background: var(--degradado);
   color: #fff;
-  padding: var(--e6) 0 var(--e7);
+  padding: var(--e7) 0 calc(var(--e7) + var(--e3));
 }
+/* Un brillo suave arriba a la derecha para que el degradado no se sienta
+   plano -- puramente decorativo, no compite con el texto porque el texto
+   siempre queda a la izquierda. */
+.inicio-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 88% 8%, rgba(255, 255, 255, 0.28), transparent 55%);
+  pointer-events: none;
+}
+.inicio-hero > .contenedor { position: relative; }
 .inicio-hero h1 {
   color: #fff;
   max-width: 16ch;
   margin-bottom: var(--e3);
+  font-size: clamp(2rem, 1.5rem + 2.2vw, 2.75rem);
 }
 .inicio-hero p {
   margin: 0;
-  max-width: 52ch;
-  font-size: 1.05rem;
-  line-height: 1.55;
+  max-width: 48ch;
+  font-size: 1.08rem;
+  line-height: 1.6;
   opacity: 0.95;
 }
 .inicio-hero-acciones { margin-top: var(--e5); }
 /* Boton solido de siempre, pero sobre el degradado se ve mejor con un
-   borde blanco: el verde de .boton ya contrasta, esto solo lo remata. */
-.inicio-hero-acciones .boton { border-color: rgba(255, 255, 255, 0.6); }
+   borde blanco y una sombra propia: el verde de .boton ya contrasta, esto
+   solo lo remata y le da un poco de peso sobre el fondo. */
+.inicio-hero-acciones .boton {
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 28px rgba(18, 61, 50, 0.35);
+}
+.inicio-hero-confianza {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: var(--e4) 0 0;
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+.inicio-hero-confianza .icono { flex-shrink: 0; }
 
 /* Info rapida antes de pedirle al visitante que llene algo: quien llega no
    sabe todavia si esto le sirve, y un formulario de entrada se siente como
@@ -1920,6 +1947,16 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   padding: var(--e7) 0;
   border-bottom: 1px solid var(--linea-suave);
 }
+.inicio-eyebrow {
+  margin: 0 0 var(--e2);
+  font-family: var(--fuente-titulo);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--verde);
+  text-align: center;
+}
 .inicio-puntos {
   display: grid;
   gap: var(--e5);
@@ -1928,7 +1965,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 @media (min-width: 760px) {
   .inicio-puntos { grid-template-columns: repeat(3, 1fr); }
 }
-.inicio-puntos h3 { margin: var(--e2) 0 var(--e1); }
+.inicio-punto { text-align: center; }
+.inicio-punto-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radio);
+  background: var(--marca-100);
+  color: var(--verde);
+}
+.inicio-puntos h3 { margin: var(--e3) 0 var(--e1); }
 .inicio-puntos p { margin: 0; font-size: 0.92rem; }
 
 .inicio-cuerpo { padding-top: var(--e7); padding-bottom: var(--e7); }
@@ -1938,7 +1985,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   margin: 0 auto var(--e5);
 }
 .inicio-probar-encabezado h2 { margin-bottom: var(--e2); }
-.inicio-form { box-shadow: var(--sombra-lg); }
+.inicio-form {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: var(--sombra-lg);
+}
 
 /* El enlace para compartir: se muestra completo y se puede seleccionar a mano
    si el navegador no da permiso de portapapeles. */
