@@ -34,14 +34,21 @@ export const listar = asyncHandler(async (req, res) => {
   res.json({ success: true, data: { templates: data } });
 });
 
-/** Carga una plantilla y revienta si quien pide no puede verla. */
+/**
+ * Carga una plantilla y revienta si quien pide no puede verla.
+ *
+ * "esDueña" solo cuenta cuando la plantilla NUNCA tuvo agencia: antes
+ * bastaba con haberla creado, sin importar si desde entonces se salio de la
+ * agencia con la que se compartia -- ese es justo el mismo escape que
+ * filtroPertenencia (client.controller.js) tenia para clientes del CRM.
+ */
 async function plantillaVisible(id, user) {
   const plantilla = await ItineraryTemplate.findById(id);
   if (!plantilla) throw ApiError.notFound('Plantilla no encontrada.');
 
-  const esDueña = String(plantilla.user) === String(user._id);
+  const esPersonalPropia = !plantilla.agency && String(plantilla.user) === String(user._id);
   const esDeLaAgencia = plantilla.agency && user.agency && String(plantilla.agency) === String(user.agency);
-  if (!esDueña && !esDeLaAgencia) throw ApiError.forbidden();
+  if (!esPersonalPropia && !esDeLaAgencia) throw ApiError.forbidden();
 
   return plantilla;
 }

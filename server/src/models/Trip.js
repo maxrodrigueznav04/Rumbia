@@ -15,6 +15,15 @@ export const TRIP_STATUSES = ['borrador', 'planeado', 'aprobado', 'en-curso', 'c
 // (public.controller.js) la avanza a "aceptada" cuando el cliente da clic en
 // el enlace. "pagada"/"cancelada" las pone el agente a mano.
 export const ESTADOS_PROPUESTA = ['borrador', 'enviada', 'aceptada', 'pagada', 'cancelada'];
+// Tope duro de duracion, exigido en el propio modelo (no solo en Zod) para
+// cubrir TODOS los caminos que guardan un Trip -- crear, editar, aplicar una
+// plantilla, un script futuro -- sin repetir el chequeo en cada uno. Sin
+// esto, un rango de fechas absurdo (anos de diferencia) hace que
+// createBlank/sincronizarItinerario (itinerary.controller.js,
+// trip.controller.js) y el clima por rango construyan arreglos de cientos de
+// miles de elementos de un solo golpe, sincronicamente, con una sola
+// peticion.
+export const MAX_DURACION_VIAJE_DIAS = 366;
 export const OUTBOUND_MODES = ['avion', 'autobus', 'auto-propio', 'tren', 'otro'];
 export const LODGING_TYPES = ['hotel', 'hostal', 'airbnb', 'cabana', 'casa-amigos', 'camping', 'otro'];
 export const LOCAL_TRANSPORT_TYPES = ['renta-auto', 'app-transporte', 'taxi', 'transporte-publico', 'bicicleta', 'a-pie'];
@@ -252,6 +261,13 @@ tripSchema.virtual('expenses', {
 tripSchema.pre('validate', function validateDates(next) {
   if (this.startDate && this.endDate && this.endDate < this.startDate) {
     this.invalidate('endDate', 'La fecha de regreso no puede ser anterior a la de salida.');
+  }
+
+  if (this.startDate && this.endDate) {
+    const dias = Math.round((this.endDate.getTime() - this.startDate.getTime()) / 86400000) + 1;
+    if (dias > MAX_DURACION_VIAJE_DIAS) {
+      this.invalidate('endDate', `Un viaje no puede durar más de ${MAX_DURACION_VIAJE_DIAS} días.`);
+    }
   }
 
   // Cada parada tiene que caer dentro del rango del viaje completo: sin

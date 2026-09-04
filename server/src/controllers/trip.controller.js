@@ -1,4 +1,4 @@
-import { Trip, Itinerary, Expense, Client } from '../models/index.js';
+import { Trip, Itinerary, Expense, Client, TripChat } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
@@ -70,9 +70,13 @@ export function escaparRegex(texto) {
  */
 async function esClientePropio(clientId, user) {
   if (!clientId) return true;
+  // agency:null en el respaldo personal, mismo motivo que filtroPertenencia
+  // en client.controller.js: un cliente que se registro para OTRA agencia no
+  // deberia poder vincularse via el respaldo "user: user._id" solo porque el
+  // usuario ya no pertenece a ella.
   const filtro = user.agency
-    ? { _id: clientId, $or: [{ agency: user.agency }, { user: user._id }] }
-    : { _id: clientId, user: user._id };
+    ? { _id: clientId, $or: [{ agency: user.agency }, { user: user._id, agency: null }] }
+    : { _id: clientId, user: user._id, agency: null };
   return Boolean(await Client.exists(filtro));
 }
 
@@ -329,6 +333,7 @@ export const deleteTrip = asyncHandler(async (req, res) => {
   await Promise.all([
     Itinerary.deleteOne({ trip: trip._id }),
     Expense.deleteMany({ trip: trip._id }),
+    TripChat.deleteOne({ trip: trip._id }),
   ]);
   await trip.deleteOne();
 

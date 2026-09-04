@@ -112,6 +112,23 @@ await check('Trip acepta el estado "aprobado" y rechaza uno inventado', async ()
   return 'aprobado valido, estado inventado rechazado';
 });
 
+await check('Trip rechaza una duracion absurda (DoS con un rango de fechas gigante)', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2000-01-01'), endDate: new Date('2100-01-01'),
+  });
+  const err = await t.validate().then(() => null, (e) => e);
+  assert(err?.errors?.endDate, 'un viaje de decadas de duracion deberia fallar');
+
+  const ok = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-01-01'), endDate: new Date('2026-12-31'),
+  });
+  const sinError = await ok.validate().then(() => null, (e) => e);
+  assert(!sinError, sinError?.message);
+  return 'rango de anos rechazado, un viaje de casi un año pasa';
+});
+
 await check('Trip: estadoPropuesta por defecto "borrador", valida su catalogo aparte de status', async () => {
   const t = new Trip({
     user: uid, title: 'X', destination: { name: 'Y' },
@@ -683,6 +700,28 @@ await check('createExpenseSchema no fuerza moneda: el controller hereda la del v
   assert(r.success, JSON.stringify(r.error?.issues));
   assert(r.data.currency === undefined, 'sin default de moneda en el schema');
   return 'sin default, expense.controller.js hereda de trip.budget.currency';
+});
+
+await check('createExpenseSchema rechaza montos infinitos ("Infinity", 1e309)', async () => {
+  const base = { trip: '507f1f77bcf86cd799439011', description: 'Cena' };
+  const infinito = schemas.createExpenseSchema.safeParse({ ...base, amount: 'Infinity' });
+  assert(!infinito.success, 'Infinity no deberia ser un monto valido');
+  const gigante = schemas.createExpenseSchema.safeParse({ ...base, amount: '1e309' });
+  assert(!gigante.success, '1e309 (Number() lo redondea a Infinity) no deberia pasar');
+  const normal = schemas.createExpenseSchema.safeParse({ ...base, amount: 250 });
+  assert(normal.success, 'un monto normal si debe seguir pasando');
+  return 'Infinity/1e309 rechazados, un monto normal pasa';
+});
+
+await check('activitySchema.bookingUrl solo acepta https (o http fuera de produccion)', async () => {
+  const base = { title: 'Tour' };
+  const js = schemas.activitySchema.safeParse({ ...base, bookingUrl: 'javascript:alert(1)' });
+  assert(!js.success, 'javascript: no deberia ser una URL valida');
+  const dataUri = schemas.activitySchema.safeParse({ ...base, bookingUrl: 'data:text/html,<script>1</script>' });
+  assert(!dataUri.success, 'data: no deberia ser una URL valida');
+  const https = schemas.activitySchema.safeParse({ ...base, bookingUrl: 'https://booking.com/x' });
+  assert(https.success, 'https si debe seguir pasando');
+  return 'esquemas activos rechazados, https pasa';
 });
 
 await check('checkoutAgencySchema exige un plan valido y por defecto 0 agentes extra', async () => {
