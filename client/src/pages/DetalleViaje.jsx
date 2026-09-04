@@ -448,6 +448,7 @@ export default function DetalleViaje() {
                     variante="fantasma"
                     chico
                     onClick={() => setModal({ tipo: 'transporte', tramo })}
+                    aria-label={`Editar transporte de ${etiqueta.toLowerCase()}`}
                   >
                     <Icono nombre={datos?.cost > 0 || datos?.provider ? 'lapiz' : 'mas'} tamano={15} />
                   </Boton>

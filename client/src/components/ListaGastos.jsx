@@ -76,6 +76,7 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
                     className="gasto-check"
                     onClick={() => alternarPagado(g)}
                     aria-pressed={g.isPaid}
+                    aria-label={g.isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
                     title={g.isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
                   >
                     {g.isPaid ? '✓' : ''}

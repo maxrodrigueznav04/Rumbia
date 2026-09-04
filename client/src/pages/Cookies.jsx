@@ -96,7 +96,7 @@ export default function Cookies() {
       <p>
         Rumbia podrá participar en programas de afiliados. En la práctica esto significa que
         algunos de los enlaces de reserva podrían llevar un identificador que indica que la
-        visita vino de Rumbia. Cuando eso pase, el enlace se marca como "Afiliado" en pantalla.
+        visita vino de Rumbia. Cuando eso pase, el enlace se marca como &quot;Afiliado&quot; en pantalla.
       </p>
       <p>Cuando das clic en uno de esos enlaces:</p>
       <ul>

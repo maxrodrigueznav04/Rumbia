@@ -8,7 +8,7 @@ export default function RutaProtegida({ children }) {
   const location = useLocation();
 
   // Sin esta espera, un refresh con token valido parpadearia hacia el login.
-  if (cargando) return <Cargando texto="Verificando tu sesion..." />;
+  if (cargando) return <Cargando texto="Verificando tu sesión..." />;
 
   if (!autenticado) {
     // Se recuerda a donde iba para volver ahi despues de entrar.
