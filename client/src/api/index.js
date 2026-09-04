@@ -113,6 +113,14 @@ export const publicApi = {
   aceptarPropuesta: (token) => api.post(`/public/itinerary/${token}/aceptar`, undefined, { auth: false }),
 };
 
+export const clientsApi = {
+  list: (params, opts) => api.get(`/clients${qs(params)}`, opts),
+  get: (id, opts) => api.get(`/clients/${id}`, opts),
+  create: (payload) => api.post('/clients', payload),
+  update: (id, payload) => api.patch(`/clients/${id}`, payload),
+  remove: (id) => api.delete(`/clients/${id}`),
+};
+
 export const itineraryApi = {
   get: (tripId, opts) => api.get(`/trips/${tripId}/itinerary`, opts),
   createBlank: (tripId) => api.post(`/trips/${tripId}/itinerary`),

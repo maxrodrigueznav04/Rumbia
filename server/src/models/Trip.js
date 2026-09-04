@@ -162,6 +162,8 @@ const tripSchema = new mongoose.Schema(
     estadoPropuesta: { type: String, enum: ESTADOS_PROPUESTA, default: 'borrador', index: true },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },
+    // Cliente del CRM vinculado opcionalmente al viaje
+    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null, index: true },
     // Quien viaja, no quien organiza. Ninguno de los dos es obligatorio:
     // alguien planeando su propio viaje no necesita esto. Sirve para
     // encontrar el viaje en la lista ("el de la familia Hernandez") y para

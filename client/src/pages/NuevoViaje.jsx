@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { tripsApi, weatherApi } from '../api/index.js';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { tripsApi, weatherApi, clientsApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
@@ -23,6 +23,32 @@ export default function NuevoViaje() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
+  const [searchParams] = useSearchParams();
+
+  const clientIdParam = searchParams.get('clientId');
+  const clientNameParam = searchParams.get('clientName');
+  const clientContactParam = searchParams.get('clientContact');
+
+  const [clienteId, setClienteId] = useState(clientIdParam || '');
+  const [clienteNombre, setClienteNombre] = useState(clientNameParam || '');
+  const [clienteContacto, setClienteContacto] = useState(clientContactParam || '');
+  const [listaClientes, setListaClientes] = useState([]);
+
+  useEffect(() => {
+    clientsApi.list({ limit: 50 }).then((res) => {
+      setListaClientes(res.clientes || []);
+    }).catch(() => {});
+  }, []);
+
+  const seleccionarCliente = (id) => {
+    setClienteId(id);
+    if (!id) return;
+    const encontrado = listaClientes.find((c) => c._id === id);
+    if (encontrado) {
+      setClienteNombre(encontrado.nombre);
+      setClienteContacto(encontrado.telefono || encontrado.email || '');
+    }
+  };
 
   const [form, setForm] = useState({
     title: '',
@@ -102,6 +128,11 @@ export default function NuevoViaje() {
           amount: Number(form.presupuesto) || 0,
           currency: user?.preferences?.currency || 'MXN',
         },
+        client: clienteId || undefined,
+        cliente:
+          clienteNombre.trim() || clienteContacto.trim()
+            ? { nombre: clienteNombre.trim(), contacto: clienteContacto.trim() }
+            : undefined,
         interests: estilos,
         pace: pace || undefined,
         budgetLevel: budgetLevel || undefined,
@@ -159,6 +190,62 @@ export default function NuevoViaje() {
             error={errorDe('title')}
             ayuda="Si lo dejas vacío usamos el destino."
           />
+
+          {/* Cliente del viaje / Cotización */}
+          <div
+            style={{
+              background: 'var(--surface-alt)',
+              padding: '14px 16px',
+              borderRadius: 'var(--radio)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 10 }}>
+              <span className="etiqueta" style={{ margin: 0 }}>Cliente / Cotización (opcional)</span>
+              {listaClientes.length > 0 && (
+                <span className="tenue" style={{ fontSize: '0.78rem' }}>
+                  {listaClientes.length} en CRM
+                </span>
+              )}
+            </div>
+
+            {listaClientes.length > 0 && (
+              <div className="campo" style={{ marginBottom: 10 }}>
+                <label>Seleccionar de la cartera de clientes</label>
+                <select
+                  value={clienteId}
+                  onChange={(e) => seleccionarCliente(e.target.value)}
+                >
+                  <option value="">-- Escribir cliente nuevo o sin asignar --</option>
+                  {listaClientes.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.nombre} {c.telefono ? `(${c.telefono})` : c.email ? `(${c.email})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="rejilla rejilla-2" style={{ gap: 10 }}>
+              <Campo
+                label="Nombre del cliente o familia"
+                placeholder="Ej. Familia González"
+                value={clienteNombre}
+                onChange={(e) => {
+                  setClienteNombre(e.target.value);
+                  if (clienteId) setClienteId('');
+                }}
+                style={{ marginBottom: 0 }}
+              />
+              <Campo
+                label="WhatsApp / Contacto"
+                placeholder="55 1234 5678"
+                value={clienteContacto}
+                onChange={(e) => setClienteContacto(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+            </div>
+          </div>
 
           <CampoFechas
             inicio={form.startDate}

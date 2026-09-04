@@ -14,6 +14,7 @@ import DetalleViaje from './pages/DetalleViaje.jsx';
 import Itinerario from './pages/Itinerario.jsx';
 import Perfil from './pages/Perfil.jsx';
 import Plantillas from './pages/Plantillas.jsx';
+import Clientes from './pages/Clientes.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import Terminos from './pages/Terminos.jsx';
@@ -93,6 +94,7 @@ export default function App() {
             >
               <Route path="/viajes" element={<Dashboard />} />
               <Route path="/viajes/nuevo" element={<NuevoViaje />} />
+              <Route path="/clientes" element={<Clientes />} />
               <Route path="/viajes/:id" element={<DetalleViaje />} />
               <Route path="/viajes/:id/itinerario" element={<Itinerario />} />
               <Route path="/plantillas" element={<Plantillas />} />

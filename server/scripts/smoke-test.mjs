@@ -3,7 +3,7 @@ process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
 process.env.ADMIN_EMAIL ||= 'admin@rumbia.app';
 
-const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog } = await import('../src/models/index.js');
+const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client } = await import('../src/models/index.js');
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
@@ -428,6 +428,35 @@ await check('ItineraryTemplate exige nombre a cada actividad', async () => {
   return 'title obligatorio en cada actividad';
 });
 
+await check('Client valida nombre obligatorio y guarda etiquetas', async () => {
+  const c = new Client({ user: uid, nombre: 'Familia González', email: 'gonzalez@email.com', etiquetas: ['VIP', 'Familia'] });
+  assert(!c.validateSync(), 'cliente valido debe pasar');
+  assert(c.nombre === 'Familia González', 'nombre guardado');
+  assert(c.etiquetas.length === 2, 'etiquetas guardadas');
+
+  const sinNombre = new Client({ user: uid, email: 'x@y.com' });
+  assert(sinNombre.validateSync()?.errors?.nombre, 'nombre debe ser obligatorio');
+  return 'nombre requerido, etiquetas guardadas';
+});
+
+await check('Trip acepta client ObjectId ref y estadoPropuesta', async () => {
+  const cid = new mongoose.Types.ObjectId();
+  const t = new Trip({
+    user: uid,
+    client: cid,
+    title: 'Viaje a Cancún',
+    destination: { name: 'Cancún' },
+    startDate: new Date('2026-10-01'),
+    endDate: new Date('2026-10-05'),
+    status: 'planeado',
+    estadoPropuesta: 'enviada',
+  });
+  assert(!t.validateSync(), 'trip con client y propuesta debe ser valido');
+  assert(String(t.client) === String(cid), 'client ObjectId ref guardado');
+  assert(t.estadoPropuesta === 'enviada', 'estadoPropuesta guardado');
+  return 'client ref y estadoPropuesta guardados';
+});
+
 console.log('\n== Itinerario: reordenar por hora ==');
 
 const { reorderByTime } = await import('../src/controllers/itinerary.controller.js');
@@ -750,6 +779,23 @@ await check('bookingLinksQuerySchema acepta lodgingIndex opcional', async () => 
   assert(!negativo.success, 'rechaza negativos');
 
   return 'opcional, coerciona a numero, rechaza negativos';
+});
+
+await check('createClientSchema exige nombre y valida email opcional', async () => {
+  const ok = schemas.createClientSchema.safeParse({ nombre: 'Laura Pausini', email: 'laura@test.com', telefono: '5512345678' });
+  assert(ok.success, 'datos validos deben pasar');
+  assert(ok.data.email === 'laura@test.com', 'email en minusculas');
+
+  const sinNombre = schemas.createClientSchema.safeParse({ email: 'x@y.com' });
+  assert(!sinNombre.success, 'sin nombre debe fallar');
+
+  const emailInvalido = schemas.createClientSchema.safeParse({ nombre: 'X', email: 'no-es-correo' });
+  assert(!emailInvalido.success, 'email invalido debe fallar');
+
+  const emailVacio = schemas.createClientSchema.safeParse({ nombre: 'X', email: '' });
+  assert(emailVacio.success, 'email vacio debe pasar como opcional');
+
+  return 'nombre obligatorio, email validado o vacio permitido';
 });
 
 console.log('\n== Seguridad ==');

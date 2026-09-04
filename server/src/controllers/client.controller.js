@@ -1,0 +1,162 @@
+import { Client, Trip } from '../models/index.js';
+import ApiError from '../utils/ApiError.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import { escaparRegex } from './trip.controller.js';
+
+/**
+ * Resuelve el filtro de pertenencia: si el usuario pertenece a una agencia,
+ * comparte la cartera de clientes con sus compañeros de equipo. Si no,
+ * solo ve sus clientes propios.
+ */
+function filtroPertenencia(user) {
+  if (user.agency) {
+    return { $or: [{ agency: user.agency }, { user: user._id }] };
+  }
+  return { user: user._id };
+}
+
+export const listarClientes = asyncHandler(async (req, res) => {
+  const { q, etiqueta, page, limit } = req.validatedQuery;
+  const baseFilter = filtroPertenencia(req.user);
+  const filter = { ...baseFilter };
+
+  if (q) {
+    const re = new RegExp(escaparRegex(q), 'i');
+    filter.$or = [{ nombre: re }, { email: re }, { telefono: re }];
+  }
+
+  if (etiqueta) {
+    filter.etiquetas = etiqueta;
+  }
+
+  const [clientes, total] = await Promise.all([
+    Client.find(filter)
+      .sort({ updatedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    Client.countDocuments(filter),
+  ]);
+
+  // Contar viajes asociados a cada cliente devuelto
+  const clientIds = clientes.map((c) => c._id);
+  const conteos = await Trip.aggregate([
+    { $match: { client: { $in: clientIds } } },
+    { $group: { _id: '$client', totalViajes: { $sum: 1 } } },
+  ]);
+
+  const conteoMap = new Map(conteos.map((c) => [String(c._id), c.totalViajes]));
+  const clientesConConteo = clientes.map((c) => ({
+    ...c,
+    viajesCount: conteoMap.get(String(c._id)) || 0,
+  }));
+
+  res.json({
+    success: true,
+    data: {
+      clientes: clientesConConteo,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit) || 1,
+      },
+    },
+  });
+});
+
+export const obtenerCliente = asyncHandler(async (req, res) => {
+  const cliente = await Client.findOne({
+    _id: req.params.id,
+    ...filtroPertenencia(req.user),
+  }).lean();
+
+  if (!cliente) {
+    throw ApiError.notFound('Cliente no encontrado.');
+  }
+
+  // Traer historial de viajes asociados
+  const viajes = await Trip.find({ client: cliente._id })
+    .select('title destination startDate endDate budget status coverImage')
+    .sort({ startDate: -1 })
+    .lean();
+
+  res.json({
+    success: true,
+    data: {
+      cliente,
+      viajes,
+    },
+  });
+});
+
+export const crearCliente = asyncHandler(async (req, res) => {
+  const payload = {
+    ...req.body,
+    user: req.user._id,
+    agency: req.user.agency || null,
+  };
+
+  const cliente = await Client.create(payload);
+
+  res.status(201).json({
+    success: true,
+    message: 'Cliente registrado exitosamente.',
+    data: { cliente },
+  });
+});
+
+export const actualizarCliente = asyncHandler(async (req, res) => {
+  const cliente = await Client.findOne({
+    _id: req.params.id,
+    ...filtroPertenencia(req.user),
+  });
+
+  if (!cliente) {
+    throw ApiError.notFound('Cliente no encontrado.');
+  }
+
+  const campos = ['nombre', 'email', 'telefono', 'notas', 'origen', 'etiquetas'];
+  for (const campo of campos) {
+    if (req.body[campo] !== undefined) {
+      cliente[campo] = req.body[campo];
+    }
+  }
+
+  await cliente.save();
+
+  // Si cambiaron nombre o contacto, sincronizar viajes vinculados para mantener coherencia en PDFs
+  if (req.body.nombre !== undefined || req.body.telefono !== undefined) {
+    const update = {};
+    if (req.body.nombre !== undefined) update['cliente.nombre'] = req.body.nombre;
+    if (req.body.telefono !== undefined) update['cliente.contacto'] = req.body.telefono;
+    await Trip.updateMany({ client: cliente._id }, { $set: update });
+  }
+
+  res.json({
+    success: true,
+    message: 'Cliente actualizado.',
+    data: { cliente },
+  });
+});
+
+export const eliminarCliente = asyncHandler(async (req, res) => {
+  const cliente = await Client.findOne({
+    _id: req.params.id,
+    ...filtroPertenencia(req.user),
+  });
+
+  if (!cliente) {
+    throw ApiError.notFound('Cliente no encontrado.');
+  }
+
+  await cliente.deleteOne();
+
+  // Desvincular viajes sin borrarlos
+  await Trip.updateMany({ client: cliente._id }, { $set: { client: null } });
+
+  res.json({
+    success: true,
+    message: 'Cliente eliminado correctamente.',
+  });
+});

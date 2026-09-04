@@ -317,12 +317,21 @@ export default function DetalleViaje() {
             <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>
           </div>
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
-          {esAgencia && viaje.cliente?.nombre && (
+          {viaje.client ? (
+            <p className="suave" style={{ margin: '0 0 4px', fontSize: '0.92rem' }}>
+              Cliente CRM: <strong>{viaje.client.nombre}</strong>
+              {viaje.client.telefono ? ` · ${viaje.client.telefono}` : viaje.client.email ? ` · ${viaje.client.email}` : ''}
+              {' · '}
+              <Link to="/clientes" style={{ color: 'var(--marca)', fontWeight: 500, fontSize: '0.82rem' }}>
+                Ver en CRM →
+              </Link>
+            </p>
+          ) : esAgencia && viaje.cliente?.nombre ? (
             <p className="suave" style={{ margin: '0 0 2px' }}>
               Para <strong>{viaje.cliente.nombre}</strong>
               {viaje.cliente.contacto ? ` · ${viaje.cliente.contacto}` : ''}
             </p>
-          )}
+          ) : null}
           <p className="suave" style={{ margin: 0 }}>
             <Icono nombre="pin" tamano={15} />{' '}
             {viaje.destination?.name}

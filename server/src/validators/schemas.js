@@ -262,6 +262,7 @@ export const createTripSchema = z
     estadoPropuesta: z.enum(ESTADOS_PROPUESTA).optional(),
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
+    client: objectId.optional().nullable(),
     cliente: clienteSchema.optional(),
     // Gustos del viajero de este viaje (no de quien lo arma). Opcionales: un
     // agente puede no saberlos todavia al crear el viaje.
@@ -303,6 +304,7 @@ export const updateTripSchema = z
     pace: z.enum(TRIP_PACES).optional(),
     budgetLevel: z.enum(BUDGET_LEVELS).optional(),
     margen: z.object({ tipo: z.enum(['fijo', 'porcentaje']).optional(), monto: money.optional() }).optional(),
+    client: objectId.optional().nullable(),
     cliente: clienteSchema.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' })
@@ -470,3 +472,32 @@ export const geocodeQuerySchema = z.object({
 });
 
 export const idParamSchema = z.object({ id: objectId });
+
+/* ------------------------------- CRM: Clientes ----------------------- */
+
+export const createClientSchema = z.object({
+  nombre: z.string().trim().min(1, 'El nombre del cliente es obligatorio.').max(160),
+  email: z.string().trim().toLowerCase().email('Email inválido.').or(z.literal('')).optional(),
+  telefono: z.string().trim().max(40).optional(),
+  notas: z.string().trim().max(2000).optional(),
+  origen: z.string().trim().max(80).optional(),
+  etiquetas: z.array(z.string().trim().max(40)).max(20).optional(),
+});
+
+export const updateClientSchema = z
+  .object({
+    nombre: z.string().trim().min(1, 'El nombre no puede quedar vacío.').max(160).optional(),
+    email: z.string().trim().toLowerCase().email('Email inválido.').or(z.literal('')).optional(),
+    telefono: z.string().trim().max(40).optional(),
+    notas: z.string().trim().max(2000).optional(),
+    origen: z.string().trim().max(80).optional(),
+    etiquetas: z.array(z.string().trim().max(40)).max(20).optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
+
+export const clientListQuerySchema = z.object({
+  q: opcionalEnQuery(z.string().trim().max(100)),
+  etiqueta: opcionalEnQuery(z.string().trim().max(40)),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});

@@ -7,6 +7,7 @@ import ChatFlotante from './ChatFlotante.jsx';
 
 const enlaces = [
   { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
+  { to: '/clientes', texto: 'Clientes', icono: 'persona' },
   { to: '/viajes/nuevo', texto: 'Nuevo viaje', icono: 'mas' },
   { to: '/plantillas', texto: 'Plantillas', icono: 'recibo' },
   { to: '/perfil', texto: 'Perfil', icono: 'persona' },

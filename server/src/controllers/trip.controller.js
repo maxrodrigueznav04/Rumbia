@@ -104,6 +104,7 @@ export const getTrip = asyncHandler(async (req, res) => {
   await trip.populate([
     { path: 'itinerary' },
     { path: 'expenses', options: { sort: { date: -1 } } },
+    { path: 'client' },
   ]);
 
   // Otras variantes del mismo prospecto (ver duplicarViaje): el raiz de la
@@ -156,6 +157,7 @@ export const CAMPOS_EDITABLES_DIRECTO = [
   'interests',
   'pace',
   'budgetLevel',
+  'client',
 ];
 
 export const updateTrip = asyncHandler(async (req, res) => {
