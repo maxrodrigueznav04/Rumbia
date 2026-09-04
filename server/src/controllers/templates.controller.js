@@ -60,6 +60,14 @@ export const eliminar = asyncHandler(async (req, res) => {
   if (String(plantilla.user) !== String(req.user._id)) {
     throw ApiError.forbidden('Solo quien guardó la plantilla puede eliminarla.');
   }
+  // Mismo escape que plantillaVisible ya cubre para leerla o aplicarla: haber
+  // sido quien la guardo no basta si desde entonces se salio de la agencia
+  // con la que se comparte (o se unio a otra) -- sin este chequeo, alguien
+  // podia seguir borrando una plantilla del banco de un equipo del que ya no
+  // es parte, aunque /plantillas ya no se la mostrara.
+  if (plantilla.agency && String(plantilla.agency) !== String(req.user.agency)) {
+    throw ApiError.forbidden('Ya no perteneces a la agencia con la que se comparte esta plantilla.');
+  }
 
   await plantilla.deleteOne();
   res.json({ success: true, message: 'Plantilla eliminada.' });

@@ -123,11 +123,24 @@ export const listTrips = asyncHandler(async (req, res) => {
 
 export const getTrip = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.params.id, req.user._id);
-  await trip.populate([
-    { path: 'itinerary' },
-    { path: 'expenses', options: { sort: { date: -1 } } },
-    { path: 'client' },
-  ]);
+  await trip.populate([{ path: 'itinerary' }, { path: 'expenses', options: { sort: { date: -1 } } }]);
+
+  /**
+   * El cliente (CRM) solo se puebla si sigue siendo "propio" en la agencia
+   * ACTUAL del usuario -- mismo chequeo que esClientePropio usa al guardar.
+   * findOwnedTrip solo confirma que el VIAJE siga siendo suyo (trip.user no
+   * cambia al salir de una agencia); sin esto, un ex-integrante que dejo el
+   * equipo (o se unio a otro) seguia pudiendo leer nombre, correo, telefono y
+   * notas de un cliente que sigue siendo del equipo del que ya no es parte,
+   * a traves de un viaje viejo que trajo consigo al irse.
+   */
+  if (trip.client) {
+    if (await esClientePropio(trip.client, req.user)) {
+      await trip.populate({ path: 'client' });
+    } else {
+      trip.client = null;
+    }
+  }
 
   // Otras variantes del mismo prospecto (ver duplicarViaje): el raiz de la
   // familia no tiene grupoPropuesta propio, asi que el ancla es su propio id.
