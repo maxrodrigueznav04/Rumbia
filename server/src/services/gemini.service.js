@@ -7,9 +7,14 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 // se acerca al minuto. Uno de varias ciudades le pide al modelo mas trabajo
 // por dia (ubicar cada actividad en la ciudad correcta segun el rango de
 // dias, no solo generar texto suelto), asi que puede tardar mas todavia.
-// 150 s da margen para el caso mas pesado (21 dias, varias ciudades) sin
-// dejar la peticion colgada para siempre; el timeout del cliente para
-// generaciones (TIMEOUT_IA_MS en client.js) es 180 s, siempre mayor a este.
+// 150 s da margen para el caso mas pesado que de verdad se probo (~21 dias,
+// varias ciudades) sin dejar la peticion colgada para siempre. El limite de
+// MAX_DIAS_GENERAR_IA (itinerary.controller.js) es 30 -- un margen modesto
+// sobre ese caso probado, no una cifra que ya se haya medido aparte. Si algun
+// dia se sube mucho mas alla de 30, hay que volver a medir tiempos reales (y
+// probablemente partir la generacion en varias llamadas en vez de una sola).
+// El timeout del cliente para generaciones (TIMEOUT_IA_MS en client.js) es
+// 180 s, siempre mayor a este.
 const TIMEOUT_MS = 150000;
 
 /**

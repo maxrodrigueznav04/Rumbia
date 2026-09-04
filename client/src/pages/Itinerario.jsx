@@ -34,10 +34,10 @@ import {
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
-// Debe coincidir con el limite de itinerary.controller.js (generate()): ahi
-// es donde de verdad se hace cumplir. Aqui solo evita que alguien llene el
+// Debe coincidir con MAX_DIAS_GENERAR_IA (itinerary.controller.js): ahi es
+// donde de verdad se hace cumplir. Aqui solo evita que alguien llene el
 // formulario, espere la generacion y hasta el final se entere del rechazo.
-const LIMITE_DIAS_IA = 21;
+const LIMITE_DIAS_IA = 30;
 
 function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd }) {
   // La IA a veces repite el título como nombre del lugar: no vale la pena mostrarlo dos veces.
