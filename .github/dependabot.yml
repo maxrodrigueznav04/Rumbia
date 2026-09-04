@@ -33,6 +33,16 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # React 19 es una migracion deliberada, no un bump mas: Dependabot los
+      # abre como dos PRs separados (react y react-dom cada uno por su
+      # lado), que ademas se pisan entre si en npm install porque exige que
+      # las dos compartan la misma version mayor. Se ignoran hasta que se
+      # haga la migracion a proposito, en un solo PR.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
