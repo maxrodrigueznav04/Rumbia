@@ -15,9 +15,6 @@ cliente final lo vea.
 
 **Demo en vivo:** <https://rumbiamx.com> — cuenta de prueba `demo@rumbo.app` / `demo1234`
 
-> El backend corre en el plan gratuito de Render, que duerme el servicio tras 15 minutos sin uso.
-> La primera petición puede tardar cerca de un minuto; la app lo avisa mientras despierta.
-
 ### Mis viajes
 
 Cada tarjeta resume fechas, duración y qué tanto del presupuesto lleva gastado.
@@ -59,7 +56,8 @@ regenerar; el mapa ubica las actividades que traen coordenadas.
 | Validación | Zod en el borde de la API |
 | Cobros | Stripe (Checkout + Customer Portal + webhooks) |
 
-Todo el stack corre en tiers gratuitos.
+Todo el stack corre en tiers gratuitos, salvo el backend en producción (Render, plan Starter en
+vez del gratuito, para evitar el cold-start de cara al lanzamiento público).
 
 ---
 
@@ -423,6 +421,10 @@ El servicio se duerme tras 15 minutos sin tráfico y la primera petición tarda
 servidor" en vez de un spinner mudo, y el cliente espera hasta 70 s antes de
 rendirse. Aun así, conviene avisarlo en el README de tu demo.
 
+En producción (`rumbiamx.com`) ya se pasó al plan Starter (~$7 USD/mes): con tráfico real de
+usuarios pagando, ese cold-start le cuesta conversión al negocio de una forma que no vale la pena
+en un proyecto de portafolio con el tier gratuito.
+
 ## Arquitectura
 
 ```
@@ -678,6 +680,11 @@ Turnstile) se filtra o se sospecha comprometida:
 - El cobro a agencias con Stripe ya corre en modo live (Checkout, webhook, Prices en MXN). Muchas
   tarjetas mexicanas rechazan cargos en divisa extranjera aunque se les muestre convertida — por
   eso los Price de producción están en MXN nativo, no en USD (ver `stripe-setup.mjs`).
+- El dominio `rumbiamx.com` todavía no tiene el DNS de Resend verificado (DKIM/SPF). Mientras
+  tanto, `MAIL_FROM` sigue en `onboarding@resend.dev`: los correos transaccionales (bienvenida,
+  recuperación de contraseña) funcionan, pero corren más riesgo de caer en spam que si salieran
+  de un dominio propio verificado. No bloquea el registro ni el cobro — solo la entrega de esos
+  correos.
 - Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
