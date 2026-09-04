@@ -251,6 +251,11 @@ export default function Acerca() {
                       <strong>Variantes en 1 clic:</strong> Duplica propuestas para presentar opciones
                       (ej. Económica vs. Premium) sin retrabajo.
                     </li>
+                    <li>
+                      <strong>Seguimiento de tu embudo de ventas:</strong> Cada propuesta pasa de
+                      enviada a aceptada a pagada; tu cliente puede aceptarla con un clic desde el
+                      mismo enlace que le compartes, y te avisamos por correo en cuanto lo hace.
+                    </li>
                   </ul>
                 </div>
 
@@ -601,6 +606,7 @@ export default function Acerca() {
                     <li><strong>150 itinerarios inteligentes</strong> al mes</li>
                     <li><strong>Asistente virtual de chat ilimitado</strong></li>
                     <li><strong>Logo, membrete y color de acento propio</strong> en el PDF</li>
+                    <li><strong>Tipografía y tamaño de texto</strong> personalizables en el PDF</li>
                     <li><strong>Marca blanca</strong> (sin pie de Rumbia)</li>
                     <li><strong>Margen comercial automático</strong> (% o monto fijo)</li>
                     <li><strong>Ocultar desglose de precios</strong> (precio cerrado al cliente)</li>
