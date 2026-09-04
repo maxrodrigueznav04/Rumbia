@@ -187,7 +187,7 @@ export default function Acerca() {
                 {/* Límites claros para viajeros */}
                 <div
                   style={{
-                    background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                    background: 'var(--arena-200)',
                     padding: '12px 14px',
                     borderRadius: 'var(--radio-sm)',
                     border: '1px solid var(--border)',
@@ -218,7 +218,7 @@ export default function Acerca() {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  borderTop: '4px solid var(--marca-oscura, #12513F)',
+                  borderTop: '4px solid var(--verde-800)',
                 }}
               >
                 <div>
@@ -263,7 +263,7 @@ export default function Acerca() {
                 {/* Resumen de planes y botón para desplegar */}
                 <div
                   style={{
-                    background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                    background: 'var(--arena-200)',
                     padding: '12px 14px',
                     borderRadius: 'var(--radio-sm)',
                     border: '1px solid var(--border)',
@@ -311,7 +311,7 @@ export default function Acerca() {
                 </div>
 
                 {/* Selector interactivo */}
-                <div className="fila" style={{ background: 'var(--bg-suave, rgba(0,0,0,0.05))', padding: 4, borderRadius: 'var(--radio-sm)' }}>
+                <div className="fila" style={{ background: 'var(--arena-300)', padding: 4, borderRadius: 'var(--radio-sm)' }}>
                   <button
                     type="button"
                     className={`boton chico ${modoDesglose === 'total' ? '' : 'fantasma'}`}
@@ -337,7 +337,7 @@ export default function Acerca() {
                   border: '1.5px solid var(--border)',
                   borderRadius: 'var(--radio)',
                   padding: '20px',
-                  background: 'var(--card-bg, #fff)',
+                  background: 'var(--surface)',
                 }}
               >
                 {/* Membrete de agencia simulado */}
@@ -477,7 +477,7 @@ export default function Acerca() {
                 className="fila"
                 style={{
                   justifyContent: 'center',
-                  background: 'var(--bg-suave, rgba(0,0,0,0.05))',
+                  background: 'var(--arena-300)',
                   display: 'inline-flex',
                   padding: '4px',
                   borderRadius: 'var(--radio)',
@@ -532,7 +532,7 @@ export default function Acerca() {
 
                   <div
                     style={{
-                      background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                      background: 'var(--arena-200)',
                       padding: '8px 12px',
                       borderRadius: 'var(--radio-xs)',
                       marginBottom: 16,
@@ -593,7 +593,7 @@ export default function Acerca() {
 
                   <div
                     style={{
-                      background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                      background: 'var(--arena-200)',
                       padding: '8px 12px',
                       borderRadius: 'var(--radio-xs)',
                       marginBottom: 16,
@@ -651,7 +651,7 @@ export default function Acerca() {
 
                   <div
                     style={{
-                      background: 'var(--bg-suave, rgba(0,0,0,0.03))',
+                      background: 'var(--arena-200)',
                       padding: '8px 12px',
                       borderRadius: 'var(--radio-xs)',
                       marginBottom: 16,

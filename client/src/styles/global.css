@@ -1981,7 +1981,9 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 /* Cierre corto de la portada: en vez de repetir el contenido de /acerca
    aqui, un puente hacia alla para quien quiere ver el detalle completo
    (viajero vs agencia, planes, CRM, plantillas...) antes de decidirse. */
-.inicio-cierre { padding: var(--e7) 0; }
+.inicio-perfiles { padding: 0 0 var(--e7); }
+
+.inicio-cierre { padding: var(--e7) 0; border-top: 1px solid var(--linea-suave); }
 .inicio-cierre-caja {
   max-width: 640px;
   margin: 0 auto;

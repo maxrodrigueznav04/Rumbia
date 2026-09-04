@@ -88,12 +88,49 @@ export default function Inicio() {
         </div>
       </section>
 
+      <section className="inicio-perfiles">
+        <div className="contenedor">
+          <p className="inicio-eyebrow">Para cada tipo de viaje</p>
+          <div className="rejilla rejilla-2" style={{ gap: 'var(--e5)' }}>
+            <div className="tarjeta">
+              <div className="fila" style={{ gap: 8, marginBottom: 10 }}>
+                <Icono nombre="brujula" tamano={20} className="icono-seccion" />
+                <h3 style={{ margin: 0 }}>Para viajeros</h3>
+              </div>
+              <p className="suave" style={{ margin: '0 0 10px' }}>
+                Planea tus vacaciones o un viaje en grupo, gratis.
+              </p>
+              <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
+                <li>Itinerarios con IA, día por día</li>
+                <li>Presupuesto y gastos en un solo lugar</li>
+                <li>Clima y mapa de cada destino</li>
+              </ul>
+            </div>
+
+            <div className="tarjeta">
+              <div className="fila" style={{ gap: 8, marginBottom: 10 }}>
+                <Icono nombre="maleta" tamano={20} className="icono-seccion" />
+                <h3 style={{ margin: 0 }}>Para agencias</h3>
+              </div>
+              <p className="suave" style={{ margin: '0 0 10px' }}>
+                Cotiza con tu marca, cobra tu margen y da seguimiento a tus clientes.
+              </p>
+              <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
+                <li>Cotizaciones con tu logo y margen comercial</li>
+                <li>CRM de clientes y plantillas reutilizables</li>
+                <li>Seguimiento del embudo de ventas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="inicio-cierre">
         <div className="contenedor inicio-cierre-caja">
-          <h2>¿Viajas por tu cuenta o cotizas para clientes?</h2>
+          <h2>¿Quieres ver todo el detalle?</h2>
           <p className="suave">
-            Rumbia sirve para las dos cosas, con límites y funciones distintas para cada una —
-            planes de agencia, cotizaciones con tu marca, seguimiento de propuestas y más.
+            Planes de agencia, cómo funciona la cotización con tu marca, y todo lo demás que
+            incluye Rumbia.
           </p>
           <Link to="/acerca" className="boton secundario">
             Ver todo lo que incluye
