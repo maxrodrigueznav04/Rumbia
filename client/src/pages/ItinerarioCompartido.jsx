@@ -7,7 +7,7 @@ import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
 import Icono from '../components/Icono.jsx';
-import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio } from '../components/ui.jsx';
+import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio, Aviso } from '../components/ui.jsx';
 import {
   formatoFecha,
   formatoMoneda,
@@ -35,6 +35,8 @@ export default function ItinerarioCompartido() {
   );
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
   const [personas, setPersonas] = useState(null);
+  const [aceptando, setAceptando] = useState(false);
+  const [errorAceptar, setErrorAceptar] = useState(null);
   const moneda = data?.viaje?.budget?.currency || 'MXN';
   const paraCuantos = data
     ? Math.min(personas ?? data.viaje.travelers, data.viaje.travelers)
@@ -46,6 +48,19 @@ export default function ItinerarioCompartido() {
   useEffect(() => {
     cargarFuentePdf(data?.marca);
   }, [data?.marca?.marcaBlanca, data?.marca?.fuentePdf]);
+
+  const aceptarPropuesta = async () => {
+    setAceptando(true);
+    setErrorAceptar(null);
+    try {
+      await publicApi.aceptarPropuesta(token);
+      recargar();
+    } catch (err) {
+      setErrorAceptar(err.message || 'No se pudo aceptar la propuesta.');
+    } finally {
+      setAceptando(false);
+    }
+  };
 
   return (
     <div className="inicio">
@@ -181,6 +196,23 @@ export default function ItinerarioCompartido() {
                       Actividades sugeridas, más lo que ya se capturó en transporte y hospedaje. Son
                       estimaciones, no precios en firme.
                     </p>
+
+                    {['borrador', 'enviada'].includes(data.viaje.estadoPropuesta) && (
+                      <div style={{ marginTop: 14 }}>
+                        {errorAceptar && <Aviso tipo="error">{errorAceptar}</Aviso>}
+                        <Boton ancho cargando={aceptando} onClick={aceptarPropuesta}>
+                          <Icono nombre="palomita" tamano={16} /> Aceptar esta propuesta
+                        </Boton>
+                      </div>
+                    )}
+
+                    {['aceptada', 'pagada'].includes(data.viaje.estadoPropuesta) && (
+                      <div style={{ marginTop: 14 }}>
+                        <Aviso tipo="exito" titulo="Propuesta aceptada">
+                          Ya avisamos a quien preparó tu viaje. En breve se pondrá en contacto contigo.
+                        </Aviso>
+                      </div>
+                    )}
                   </Tarjeta>
                 )}
 

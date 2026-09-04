@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES, PERFIL_USO } from '../models/User.js';
 import {
   TRIP_STATUSES,
+  ESTADOS_PROPUESTA,
   OUTBOUND_MODES,
   LODGING_TYPES,
   LOCAL_TRANSPORT_TYPES,
@@ -258,6 +259,7 @@ export const createTripSchema = z
       .object({ amount: money.default(0), currency: currency.optional() })
       .default({ amount: 0 }),
     status: z.enum(TRIP_STATUSES).optional(),
+    estadoPropuesta: z.enum(ESTADOS_PROPUESTA).optional(),
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
     cliente: clienteSchema.optional(),
@@ -290,6 +292,7 @@ export const updateTripSchema = z
     travelers: entero('Escribe cuántas personas viajan.').min(1, 'Al menos 1 viajero.').max(30, 'Máximo 30 viajeros.').optional(),
     budget: z.object({ amount: money.optional(), currency: currency.optional() }).optional(),
     status: z.enum(TRIP_STATUSES).optional(),
+    estadoPropuesta: z.enum(ESTADOS_PROPUESTA).optional(),
     coverImage: z.string().trim().max(600).optional(),
     notes: z.string().trim().max(2000).optional(),
     transport: z.object({ outbound: legSchema.optional(), inbound: legSchema.optional() }).optional(),
@@ -320,6 +323,7 @@ export const updateTripSchema = z
 
 export const tripListQuerySchema = z.object({
   status: opcionalEnQuery(z.enum([...TRIP_STATUSES, 'proximos', 'pasados'])),
+  estadoPropuesta: opcionalEnQuery(z.enum(ESTADOS_PROPUESTA)),
   q: opcionalEnQuery(z.string().trim().max(120)),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),

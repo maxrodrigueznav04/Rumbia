@@ -2,9 +2,11 @@ import { Itinerary, Trip, ClickSalida } from '../models/index.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { decorarSecciones, hayAfiliados } from '../services/affiliates.service.js';
+import { enviarCorreo, correoPropuestaAceptada } from '../services/email.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { isoDay, addDays } from '../utils/dates.js';
+import env from '../config/env.js';
 
 // Un invitado no puede pedir un viaje de tres semanas: cada dia extra cuesta
 // tiempo de Gemini, y esto se sirve sin cuenta ni limite por usuario.
@@ -108,7 +110,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen user'
+      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen estadoPropuesta user'
     )
     .populate({
       path: 'user',
@@ -245,6 +247,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         precioTotalPorPersona,
         margenPorPersona,
         hayMargen,
+        estadoPropuesta: trip.estadoPropuesta,
       },
       itinerary: {
         days: diasPublicos,
@@ -258,6 +261,49 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       marca,
     },
   });
+});
+
+/**
+ * El cliente acepta la propuesta desde el enlace publico, sin sesion.
+ *
+ * Idempotente a proposito: un doble clic o una recarga de pagina no debe
+ * reenviar el correo al agente ni pisar un estado mas avanzado (pagada) con
+ * uno anterior (aceptada). Solo se puede aceptar desde "borrador" o
+ * "enviada" -- una propuesta ya pagada o cancelada no se reabre desde aqui.
+ */
+export const aceptarPropuesta = asyncHandler(async (req, res) => {
+  const itinerary = await Itinerary.findOne({ shareToken: req.params.token });
+  if (!itinerary) {
+    throw ApiError.notFound('Este enlace ya no existe o dejo de compartirse.');
+  }
+
+  const trip = await Trip.findById(itinerary.trip).populate({ path: 'user', select: 'name email' });
+  if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
+
+  if (trip.estadoPropuesta === 'aceptada') {
+    return res.json({ success: true, message: 'Ya habias aceptado esta propuesta.', data: { estadoPropuesta: trip.estadoPropuesta } });
+  }
+  if (['pagada', 'cancelada'].includes(trip.estadoPropuesta)) {
+    throw ApiError.badRequest('Esta propuesta ya no se puede aceptar desde aqui.');
+  }
+
+  trip.estadoPropuesta = 'aceptada';
+  await trip.save();
+
+  // Sin await a proposito: quien acepta no debe esperar a que salga el
+  // correo (enviarCorreo ya tiene su propio timeout de 10s) para ver la
+  // confirmacion. enviarCorreo nunca lanza, asi que no hace falta .catch().
+  if (trip.user?.email) {
+    const enlace = `${env.clientUrl}/viajes/${trip._id}`;
+    const { asunto, html, texto } = correoPropuestaAceptada({
+      nombre: trip.user.name,
+      viaje: trip.title,
+      enlace,
+    });
+    enviarCorreo({ para: trip.user.email, asunto, html, texto });
+  }
+
+  res.json({ success: true, message: 'Propuesta aceptada.', data: { estadoPropuesta: trip.estadoPropuesta } });
 });
 
 /**

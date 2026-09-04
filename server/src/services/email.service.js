@@ -113,3 +113,39 @@ export function correoRecuperacion({ nombre, enlace, minutos }) {
 
   return { asunto: 'Recupera tu contraseña de Rumbia', html, texto };
 }
+
+/** Aviso al agente/dueño del viaje cuando el cliente acepta la propuesta desde el enlace público. */
+export function correoPropuestaAceptada({ nombre, viaje, enlace }) {
+  const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';
+
+  const html = `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
+  <h1 style="font-size:19px;margin:0 0 12px">${saludo}, ¡tu cliente aceptó una propuesta!</h1>
+  <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
+    Le dio clic a "Aceptar" en el enlace que compartiste de <strong>${esc(viaje)}</strong>.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${esc(enlace)}" style="display:inline-block;background:#1F6F5C;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px">
+      Ver el viaje en Rumbia
+    </a>
+  </p>
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0 0 8px">
+    Si el botón no funciona, copia esta dirección en tu navegador:
+  </p>
+  <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0">${esc(enlace)}</p>
+</div>`.trim();
+
+  const texto = [
+    `${nombre ? `Hola ${nombre}` : 'Hola'}, ¡tu cliente aceptó una propuesta!`,
+    '',
+    `Le dio clic a "Aceptar" en el enlace que compartiste de ${viaje}.`,
+    '',
+    'Ve el viaje en Rumbia:',
+    enlace,
+    '',
+    'Rumbia',
+  ].join('\n');
+
+  return { asunto: `${viaje} · el cliente aceptó la propuesta`, html, texto };
+}

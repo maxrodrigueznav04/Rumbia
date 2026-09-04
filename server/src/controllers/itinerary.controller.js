@@ -249,10 +249,18 @@ export const compartir = asyncHandler(async (req, res) => {
     await itinerary.save();
   }
 
+  // Compartir el enlace es, en la practica, "mandar la propuesta": si el
+  // viaje seguia en borrador, avanza solo a "enviada". No pisa un estado mas
+  // avanzado (aceptada/pagada/cancelada) si el agente vuelve a compartir.
+  if (trip.estadoPropuesta === 'borrador') {
+    trip.estadoPropuesta = 'enviada';
+    await trip.save();
+  }
+
   res.json({
     success: true,
     message: 'Enlace listo.',
-    data: { token: itinerary.shareToken, sharedAt: itinerary.sharedAt },
+    data: { token: itinerary.shareToken, sharedAt: itinerary.sharedAt, estadoPropuesta: trip.estadoPropuesta },
   });
 });
 

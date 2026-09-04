@@ -191,6 +191,17 @@ export const ETIQUETAS_ESTADO = {
   completado: { texto: 'Completado', color: 'verde' },
 };
 
+// Embudo de ventas de la propuesta, independiente del status de arriba (ver
+// el comentario en Trip.js): en que va la conversacion comercial, no en que
+// va el viaje en si.
+export const ETIQUETAS_ESTADO_PROPUESTA = {
+  borrador: { texto: 'Sin enviar', color: '' },
+  enviada: { texto: 'Enviada', color: 'ambar' },
+  aceptada: { texto: 'Aceptada', color: 'exito' },
+  pagada: { texto: 'Pagada', color: 'verde' },
+  cancelada: { texto: 'Cancelada', color: 'error' },
+};
+
 export const ICONOS_CATEGORIA = {
   comida: '🍽️',
   cultura: '🏛️',

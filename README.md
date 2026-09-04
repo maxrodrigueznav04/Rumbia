@@ -462,7 +462,12 @@ planeador-viajes-ia/
 **Trip** — pertenece a un User. Guarda destino y origen como subdocumentos con coordenadas, fechas,
 viajeros, presupuesto y estado. Anida las tres secciones de gasto: `transport.outbound` /
 `transport.inbound`, un arreglo de `lodging` y otro de `localTransport`. Expone virtuales
-calculados: `durationDays`, `nightsCount` y `coreCosts` (transporte + hospedaje + local).
+calculados: `durationDays`, `nightsCount` y `coreCosts` (transporte + hospedaje + local). Tiene dos
+ejes de estado independientes: `status` (en qué va el viaje en sí: borrador → planeado → aprobado →
+en-curso → completado) y `estadoPropuesta` (en qué va la venta: borrador → enviada → aceptada →
+pagada, con cancelada como salida). `estadoPropuesta` avanza solo a "enviada" cuando se genera el
+enlace público del itinerario, y a "aceptada" cuando el cliente acepta desde ese mismo enlace;
+"pagada" y "cancelada" las pone el agente a mano.
 
 **Itinerary** — uno por viaje (índice único sobre `trip`). Contiene `days[]`, y cada día sus
 `activities[]` con hora, categoría, ubicación, costo estimado y `source` (`ia` o `usuario`).
@@ -594,6 +599,7 @@ temporal con clientes ya desplegados, `protect` también acepta
 | `POST` | `/api/templates/:id/aplicar` | Crea un viaje nuevo a partir de una plantilla. |
 | `POST` | `/api/public/itinerary` | Genera un itinerario sin cuenta (portada), limitado por IP. |
 | `GET` | `/api/public/itinerary/:token` | Ve un itinerario compartido por enlace, sin sesión. |
+| `POST` | `/api/public/itinerary/:token/aceptar` | El cliente acepta la propuesta desde el enlace: mueve `estadoPropuesta` a "aceptada" y avisa por correo a quien la armó. |
 | `POST` | `/api/public/click` | Registra un clic de salida (con o sin sesión). |
 | `GET` | `/api/stats/clicks` | Reporte de clics por proveedor (solo `ADMIN_EMAIL`). |
 | `GET` | `/api/stats/auditoria` | Acciones sensibles de todas las agencias (solo `ADMIN_EMAIL`). |

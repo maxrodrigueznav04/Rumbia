@@ -70,13 +70,15 @@ export async function findOwnedTrip(tripId, userId) {
 }
 
 export const listTrips = asyncHandler(async (req, res) => {
-  const { status, q, page, limit } = req.validatedQuery;
+  const { status, estadoPropuesta, q, page, limit } = req.validatedQuery;
   const filter = { user: req.user._id };
   const now = new Date();
 
   if (status === 'proximos') filter.endDate = { $gte: now };
   else if (status === 'pasados') filter.endDate = { $lt: now };
   else if (status) filter.status = status;
+
+  if (estadoPropuesta) filter.estadoPropuesta = estadoPropuesta;
 
   if (q) {
     const re = new RegExp(escaparRegex(q), 'i');
@@ -145,6 +147,7 @@ export const CAMPOS_EDITABLES_DIRECTO = [
   'endDate',
   'travelers',
   'status',
+  'estadoPropuesta',
   'coverImage',
   'notes',
   'lodging',

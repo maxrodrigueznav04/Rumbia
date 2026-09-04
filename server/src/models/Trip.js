@@ -6,6 +6,15 @@ import { TRAVEL_STYLES, TRIP_PACES, BUDGET_LEVELS } from './User.js';
 // distinguir "armado, esperando visto bueno" de "ya aprobado, listo para
 // salir".
 export const TRIP_STATUSES = ['borrador', 'planeado', 'aprobado', 'en-curso', 'completado'];
+// Embudo de ventas: en que va la PROPUESTA con el cliente, no en que va el
+// viaje en si (eso lo dice status, arriba). Son ejes independientes a
+// proposito: un viaje puede estar "planeado" y su propuesta "pagada", o
+// "en-curso" con la propuesta todavia "enviada" si el cliente pago aparte.
+// compartir() (itinerary.controller.js) la avanza sola de "borrador" a
+// "enviada" al generar el enlace publico; aceptarPropuesta()
+// (public.controller.js) la avanza a "aceptada" cuando el cliente da clic en
+// el enlace. "pagada"/"cancelada" las pone el agente a mano.
+export const ESTADOS_PROPUESTA = ['borrador', 'enviada', 'aceptada', 'pagada', 'cancelada'];
 export const OUTBOUND_MODES = ['avion', 'autobus', 'auto-propio', 'tren', 'otro'];
 export const LODGING_TYPES = ['hotel', 'hostal', 'airbnb', 'cabana', 'casa-amigos', 'camping', 'otro'];
 export const LOCAL_TRANSPORT_TYPES = ['renta-auto', 'app-transporte', 'taxi', 'transporte-publico', 'bicicleta', 'a-pie'];
@@ -150,6 +159,7 @@ const tripSchema = new mongoose.Schema(
     pace: { type: String, enum: TRIP_PACES, default: null },
     budgetLevel: { type: String, enum: BUDGET_LEVELS, default: null },
     status: { type: String, enum: TRIP_STATUSES, default: 'borrador', index: true },
+    estadoPropuesta: { type: String, enum: ESTADOS_PROPUESTA, default: 'borrador', index: true },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },
     // Quien viaja, no quien organiza. Ninguno de los dos es obligatorio:

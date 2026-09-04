@@ -112,6 +112,38 @@ await check('Trip acepta el estado "aprobado" y rechaza uno inventado', async ()
   return 'aprobado valido, estado inventado rechazado';
 });
 
+await check('Trip: estadoPropuesta por defecto "borrador", valida su catalogo aparte de status', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'),
+  });
+  assert(t.estadoPropuesta === 'borrador', `default deberia ser borrador, fue "${t.estadoPropuesta}"`);
+  assert(!t.validateSync(), 'deberia validar sin errores');
+
+  const conAmbos = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'),
+    status: 'en-curso', estadoPropuesta: 'pagada',
+  });
+  assert(!conAmbos.validateSync(), 'status y estadoPropuesta son ejes independientes, ambos deberian valer a la vez');
+
+  const invalida = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date('2026-09-10'), endDate: new Date('2026-09-14'),
+    estadoPropuesta: 'rechazada',
+  });
+  assert(invalida.validateSync()?.errors?.estadoPropuesta, 'un estado de propuesta inventado deberia fallar');
+  return 'default borrador, catalogo propio, independiente de status';
+});
+
+await check('trip.controller: CAMPOS_EDITABLES_DIRECTO incluye estadoPropuesta', async () => {
+  assert(
+    CAMPOS_EDITABLES_DIRECTO.includes('estadoPropuesta'),
+    'un PATCH deberia poder mover la propuesta de estado'
+  );
+  return 'PATCH /trips/:id acepta estadoPropuesta';
+});
+
 await check('coreCosts suma transporte + hospedaje + local', async () => {
   const t = new Trip({
     user: uid, title: 'X',
