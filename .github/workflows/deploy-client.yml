@@ -31,14 +31,27 @@ jobs:
         working-directory: client
         run: npm ci
 
-      # "deploy" ya encadena "build": nunca publica un dist/ viejo.
-      # CLOUDFLARE_API_TOKEN es el unico secret obligatorio; si el token no
-      # alcanza a resolver la cuenta solo (mensaje "Multiple accounts
-      # found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como secret y
-      # descomenta la linea de abajo.
+      # "deploy" ya encadena "build": nunca publica un dist/ viejo. Vite
+      # incrusta VITE_* en el bundle AL COMPILAR (no se leen despues en
+      # ningun dashboard de Cloudflare) -- sin pasarlas aqui, el sitio se
+      # publica apuntando a un backend vacio ("" cae al dominio del propio
+      # sitio, no a la API real).
+      #
+      # Secrets obligatorios en Settings > Secrets and variables > Actions:
+      #   CLOUDFLARE_API_TOKEN  - permiso "Edit Cloudflare Workers"
+      #   VITE_API_URL          - ej. https://api.rumbiamx.com/api
+      # Opcional (sin ella el widget de Turnstile simplemente no aparece,
+      # igual que en local sin configurar nada):
+      #   VITE_TURNSTILE_SITE_KEY
+      #
+      # Si CLOUDFLARE_API_TOKEN no alcanza a resolver la cuenta solo (mensaje
+      # "Multiple accounts found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como
+      # secret y descomenta esa linea.
       - name: Deploy a Cloudflare
         working-directory: client
         run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           # CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
