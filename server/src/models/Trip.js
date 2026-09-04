@@ -80,7 +80,11 @@ const lodgingSchema = new mongoose.Schema({
   // Booking, Airbnb y compañía cotizan la estancia completa ("$3,000 por 3
   // noches"), no la noche suelta: se captura el total y la tarifa por noche se
   // deriva. nightlyRate se conserva para los registros anteriores al cambio.
-  totalCost: { type: Number, min: 0, default: 0 },
+  // Sin default a proposito: un registro que nunca capturo totalCost tiene
+  // que leerse como undefined, no como 0, para que el virtual subtotal (abajo)
+  // pueda distinguir "nunca se capturo" (cae a nightlyRate x nights) de "de
+  // verdad costo $0" (cortesia, puntos) sin resucitar un costo viejo.
+  totalCost: { type: Number, min: 0 },
   nightlyRate: { type: Number, min: 0, default: 0 },
   nights: { type: Number, min: 0, default: 0 },
   bookingRef: { type: String, trim: true, maxlength: 60 },
@@ -90,11 +94,15 @@ const lodgingSchema = new mongoose.Schema({
 });
 
 /**
- * Costo de la estancia. Manda totalCost; si viene en cero se cae a la fórmula
- * vieja (tarifa x noches) para no romper los viajes ya guardados.
+ * Costo de la estancia. Manda totalCost; solo se cae a la fórmula vieja
+ * (tarifa x noches) cuando totalCost nunca se capturó (undefined/null), no
+ * cuando de verdad es 0 -- un hospedaje regalado o pagado con puntos tiene
+ * totalCost:0 a proposito, y con "||" un registro viejo que todavia trae
+ * nightlyRate/nights de antes del cambio resucitaba un costo que ya no
+ * existe en cuanto alguien editaba totalCost a 0.
  */
 lodgingSchema.virtual('subtotal').get(function subtotal() {
-  const total = this.totalCost || (this.nightlyRate || 0) * (this.nights || 0);
+  const total = this.totalCost != null ? this.totalCost : (this.nightlyRate || 0) * (this.nights || 0);
   return Number(total.toFixed(2));
 });
 
@@ -221,12 +229,9 @@ tripSchema.virtual('nightsCount').get(function nightsCount() {
 tripSchema.virtual('coreCosts').get(function coreCosts() {
   const transport =
     (this.transport?.outbound?.cost || 0) + (this.transport?.inbound?.cost || 0);
-  // Misma regla que el virtual subtotal: manda el total capturado y solo se
-  // recurre a tarifa x noches en los registros viejos.
-  const lodging = (this.lodging || []).reduce(
-    (sum, l) => sum + (l.totalCost || (l.nightlyRate || 0) * (l.nights || 0)),
-    0
-  );
+  // Reusa el virtual subtotal de cada hospedaje (no repite su logica aqui) --
+  // asi ambos coinciden siempre, incluida la correccion de totalCost:0.
+  const lodging = (this.lodging || []).reduce((sum, l) => sum + l.subtotal, 0);
   const local = (this.localTransport || []).reduce((sum, t) => sum + (t.estimatedCost || 0), 0);
   return {
     transport: Number(transport.toFixed(2)),

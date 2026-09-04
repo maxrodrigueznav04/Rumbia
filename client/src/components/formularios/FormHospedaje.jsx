@@ -100,8 +100,12 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
     // el formulario no tocara (externalUrl, y ahora totalCost) se perdiera al
     // editar otro elemento: se conserva todo y solo se quitan los calculados.
     const lista = (viaje.lodging || []).map((l) => {
+      // resto ya trae totalCost tal cual lo mando la API: recalcularlo aqui
+      // con "||" pisaba un totalCost:0 legitimo (hospedaje regalado) con la
+      // tarifa x noches vieja de un registro anterior al cambio, cada vez que
+      // se editaba OTRO hospedaje del mismo viaje.
       const { _id, id: _ignorado, subtotal, perNight, ...resto } = l;
-      return { ...resto, totalCost: l.totalCost || (l.nightlyRate || 0) * (l.nights || 0) };
+      return resto;
     });
 
     if (editando) lista[indice] = item;

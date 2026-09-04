@@ -10,7 +10,7 @@ import {
 import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
 import { EXPENSE_CATEGORIES } from '../models/Expense.js';
 import { ORIGENES_CLICK } from '../models/ClickSalida.js';
-import { FUENTES_PDF, DENSIDADES_PDF } from '../models/Agency.js';
+import { FUENTES_PDF, DENSIDADES_PDF, PLANES_AGENCIA } from '../models/Agency.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
 
@@ -150,17 +150,7 @@ export const joinAgencySchema = z.object({
 });
 
 export const checkoutAgencySchema = z.object({
-  plan: z.enum([
-    'inicio_mensual',
-    'inicio_anual',
-    'agencia_mensual',
-    'agencia_anual',
-    'pro_mensual',
-    'pro_anual',
-    'mensual',
-    'anual',
-    'vitalicio',
-  ]),
+  plan: z.enum(PLANES_AGENCIA),
   extraAgentes: z.coerce.number().int().min(0).max(500).default(0),
 });
 
@@ -477,7 +467,7 @@ export const idParamSchema = z.object({ id: objectId });
 
 export const createClientSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre del cliente es obligatorio.').max(160),
-  email: z.string().trim().toLowerCase().email('Email inválido.').or(z.literal('')).optional(),
+  email: z.string().trim().toLowerCase().max(160).email('Email inválido.').or(z.literal('')).optional(),
   telefono: z.string().trim().max(40).optional(),
   notas: z.string().trim().max(2000).optional(),
   origen: z.string().trim().max(80).optional(),
@@ -487,7 +477,7 @@ export const createClientSchema = z.object({
 export const updateClientSchema = z
   .object({
     nombre: z.string().trim().min(1, 'El nombre no puede quedar vacío.').max(160).optional(),
-    email: z.string().trim().toLowerCase().email('Email inválido.').or(z.literal('')).optional(),
+    email: z.string().trim().toLowerCase().max(160).email('Email inválido.').or(z.literal('')).optional(),
     telefono: z.string().trim().max(40).optional(),
     notas: z.string().trim().max(2000).optional(),
     origen: z.string().trim().max(80).optional(),
