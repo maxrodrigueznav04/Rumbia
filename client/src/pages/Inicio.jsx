@@ -107,13 +107,39 @@ export default function Inicio() {
         <div className="contenedor">
           <h1>Planea tu viaje completo en un solo lugar</h1>
           <p>
-            Transporte, hospedaje, presupuesto e itinerario día por día con asistencia inteligente. Pruébalo
-            aquí abajo: no necesitas cuenta.
+            Transporte, hospedaje, presupuesto e itinerario día por día, armado con asistencia
+            inteligente en minutos.
           </p>
+          <div className="fila inicio-hero-acciones">
+            <a href="#probar" className="boton">
+              Pruébalo gratis, sin cuenta
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="inicio-intro">
+        <div className="contenedor inicio-puntos">
+          {[
+            ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
+            ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
+            ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
+          ].map(([icono, titulo, texto]) => (
+            <div key={titulo}>
+              <Icono nombre={icono} tamano={26} className="icono-seccion" />
+              <h3>{titulo}</h3>
+              <p className="suave">{texto}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       <main className="contenedor inicio-cuerpo">
+        <div id="probar" className="inicio-probar-encabezado">
+          <h2>Pruébalo tú mismo</h2>
+          <p className="suave">Sin cuenta: escribe a dónde quieres ir y arma un itinerario en segundos.</p>
+        </div>
+
         <Tarjeta titulo="Arma un itinerario ahora" className="inicio-form">
           <form onSubmit={generar} className="pila" noValidate>
             <Campo
@@ -233,20 +259,6 @@ export default function Inicio() {
             </Tarjeta>
           </div>
         )}
-
-        <section className="inicio-puntos">
-          {[
-            ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
-            ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
-            ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
-          ].map(([icono, titulo, texto]) => (
-            <div key={titulo}>
-              <Icono nombre={icono} tamano={26} className="icono-seccion" />
-              <h3>{titulo}</h3>
-              <p className="suave">{texto}</p>
-            </div>
-          ))}
-        </section>
       </main>
 
       <footer className="pie">
