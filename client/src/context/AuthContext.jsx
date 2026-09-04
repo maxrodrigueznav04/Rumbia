@@ -38,10 +38,17 @@ export function AuthProvider({ children }) {
       .then((data) => setUser(data.user))
       .catch((err) => {
         if (err.name === 'AbortError') return;
-        // Cookie vencida o invalida: se limpia la bandera y se avisa en la pantalla de login.
-        sesionFlag.limpiar();
         setUser(null);
-        setSesionExpirada(true);
+        // Solo un 401 de verdad es "la sesion expiro" -- cualquier otro error
+        // (sin red, un 503 del arranque en frio de Render, timeout) no
+        // significa que el token sea invalido. Antes esto trataba CUALQUIER
+        // error igual, y mandaba a alguien con sesion valida a la pantalla
+        // de login diciendole que expiro, solo porque el servidor tardo en
+        // despertar.
+        if (err.status === 401) {
+          sesionFlag.limpiar();
+          setSesionExpirada(true);
+        }
       })
       .finally(() => {
         // Si la peticion se aborto todavia hay otra en curso (StrictMode monta el

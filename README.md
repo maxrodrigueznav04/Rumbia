@@ -559,9 +559,10 @@ se muestra después de que el usuario salió del campo, no mientras teclea la pr
 
 Las rutas privadas se autentican con una cookie `httpOnly` (`rumbia_token`) que
 pone el propio servidor al iniciar sesión — el cliente nunca la lee ni la
-maneja a mano, solo manda `credentials: 'include'`. Por compatibilidad
-temporal con clientes ya desplegados, `protect` también acepta
-`Authorization: Bearer <token>` como respaldo.
+maneja a mano, solo manda `credentials: 'include'`. El respaldo por header
+`Authorization: Bearer <token>` y el campo `token` en el JSON de
+register/login/etc. ya se quitaron: eran compatibilidad temporal para un
+cliente que nunca llegó a usarlos.
 
 | Método | Ruta | Qué hace |
 |---|---|---|
