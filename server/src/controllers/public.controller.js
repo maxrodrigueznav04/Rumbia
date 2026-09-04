@@ -110,7 +110,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose margen estadoPropuesta user'
+      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose ocultarCodigos margen estadoPropuesta user'
     )
     .populate({
       path: 'user',
@@ -192,6 +192,31 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   const coreCostsPublico = desglosePublico ? trip.coreCosts : { total: trip.coreCosts.total };
 
   /**
+   * Independiente de ocultarDesglose (eso es precio): bookingRef, externalUrl
+   * y notes sirven para que el AGENTE administre la reserva ya hecha (codigo
+   * de confirmacion, link para modificarla, recordatorios internos), no para
+   * que el cliente final la manipule. Oculto por default (ver Trip.js).
+   */
+  const codigosPublicos = !trip.ocultarCodigos;
+  const CAMPOS_CODIGO_RESERVA = ['bookingRef', 'externalUrl', 'notes'];
+  const sinCodigos = (obj) => {
+    if (!obj) return obj;
+    const plano = typeof obj.toObject === 'function' ? obj.toObject() : { ...obj };
+    for (const campo of CAMPOS_CODIGO_RESERVA) delete plano[campo];
+    return plano;
+  };
+  const transportSinCodigos = codigosPublicos
+    ? transportPublico
+    : {
+        outbound: sinCodigos(transportPublico.outbound),
+        inbound: sinCodigos(transportPublico.inbound),
+      };
+  const lodgingSinCodigos = codigosPublicos ? lodgingPublico : (lodgingPublico || []).map(sinCodigos);
+  const localTransportSinCodigos = codigosPublicos
+    ? localTransportPublico
+    : (localTransportPublico || []).map(sinCodigos);
+
+  /**
    * El precio final que ve el cliente: costo real (actividades + logistica)
    * mas la cuota/margen de la agencia, si la capturo. El margen crudo (tipo y
    * monto) NUNCA viaja al publico: solo se manda como una linea reconciliada
@@ -239,11 +264,12 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         travelers: trip.travelers,
         durationDays: trip.durationDays,
         budget: { currency: trip.budget?.currency || 'MXN' },
-        transport: transportPublico,
-        lodging: lodgingPublico,
-        localTransport: localTransportPublico,
+        transport: transportSinCodigos,
+        lodging: lodgingSinCodigos,
+        localTransport: localTransportSinCodigos,
         coreCosts: coreCostsPublico,
         ocultarDesglose: trip.ocultarDesglose,
+        ocultarCodigos: trip.ocultarCodigos,
         precioTotalPorPersona,
         margenPorPersona,
         hayMargen,

@@ -180,6 +180,7 @@ export const CAMPOS_EDITABLES_DIRECTO = [
   'lodging',
   'localTransport',
   'ocultarDesglose',
+  'ocultarCodigos',
   'interests',
   'pace',
   'budgetLevel',
@@ -288,6 +289,7 @@ export const duplicarViaje = asyncHandler(async (req, res) => {
     notes: original.notes,
     cliente: { nombre: original.cliente?.nombre, contacto: original.cliente?.contacto },
     ocultarDesglose: original.ocultarDesglose,
+    ocultarCodigos: original.ocultarCodigos,
     margen: original.margen ? { tipo: original.margen.tipo, monto: original.margen.monto } : undefined,
     transport: {
       outbound: original.transport?.outbound ? original.transport.outbound.toObject() : undefined,

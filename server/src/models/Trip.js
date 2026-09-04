@@ -194,6 +194,14 @@ const tripSchema = new mongoose.Schema(
     // no el precio de cada renglon. Se aplica en el PDF y el enlace publico;
     // el dueño del viaje sigue viendo todo en su propia pantalla.
     ocultarDesglose: { type: Boolean, default: false },
+    // Independiente de ocultarDesglose (eso es precio): esto tapa el codigo
+    // de reservacion, el link de gestion externo y las notas internas de
+    // transporte/hospedaje en el PDF y el enlace publico -- datos que sirven
+    // para que el agente administre la reserva, no para que el cliente la
+    // manipule. Default true a proposito: la mayoria de los viajes no
+    // necesita mostrarle esto al cliente, asi que empieza oculto y el agente
+    // decide activarlo si de verdad quiere compartirlo.
+    ocultarCodigos: { type: Boolean, default: true },
     // La cuota de servicio o margen de la agencia sobre el costo real. "fijo"
     // es un monto total del viaje (se reparte entre los viajeros igual que
     // transporte y hospedaje); "porcentaje" se aplica sobre el costo total.
