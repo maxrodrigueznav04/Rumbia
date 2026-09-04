@@ -152,6 +152,29 @@ export async function cambiarAgentesSuscripcion({ agencia, plan, nuevoExtraAgent
 }
 
 /**
+ * Cancela la suscripcion de Stripe de una agencia, si tiene una. Se llama
+ * ANTES de borrar la agencia (el dueño sale sin mas agentes, o borra su
+ * cuenta): sin esto, Stripe le seguiria cobrando cada mes/año por una
+ * agencia que ya no existe en Rumbia, sin que nadie pueda ya entrar a
+ * cancelarla desde el Customer Portal (necesita la agencia para llegar ahi).
+ *
+ * "vitalicio" es pago unico: no tiene stripeSubscriptionId, no hay nada que
+ * cancelar. Si Stripe falla (red, suscripcion ya cancelada del otro lado) no
+ * se tira el borrado por eso -- perder el registro del usuario porque Stripe
+ * tuvo un hipo seria peor que un cobro de mas que se resuelve a mano.
+ */
+export async function cancelarSuscripcion({ agencia }) {
+  if (!stripe || !agencia?.billing?.stripeSubscriptionId) return;
+  try {
+    await stripe.subscriptions.cancel(agencia.billing.stripeSubscriptionId);
+  } catch (err) {
+    console.error(
+      `[stripe] No se pudo cancelar la suscripcion ${agencia.billing.stripeSubscriptionId} de la agencia ${agencia._id}: ${err.message}`
+    );
+  }
+}
+
+/**
  * Los errores de la API de Stripe ya traen el detalle util (que parametro y
  * por que), pero solo en `type`/`param`/`message` — sin esto el usuario ve un
  * "Not a valid URL" pelón sin saber si fue el success_url, el customer o el
@@ -177,4 +200,10 @@ export function construirEvento(payloadCrudo, firma) {
   return s.webhooks.constructEvent(payloadCrudo, firma, env.stripe.webhookSecret);
 }
 
-export default { crearSesionCheckout, crearSesionPortal, cambiarAgentesSuscripcion, construirEvento };
+export default {
+  crearSesionCheckout,
+  crearSesionPortal,
+  cambiarAgentesSuscripcion,
+  cancelarSuscripcion,
+  construirEvento,
+};
