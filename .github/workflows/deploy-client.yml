@@ -1,0 +1,44 @@
+name: Deploy cliente a Cloudflare
+
+# Solo en push directo a main (no en PRs: un PR abierto no debe tocar
+# produccion) y solo cuando cambia algo bajo client/, para no gastar minutos
+# en un push que solo toca el server.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - '.github/workflows/deploy-client.yml'
+
+concurrency:
+  group: deploy-client-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build y wrangler deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: client
+        run: npm ci
+
+      # "deploy" ya encadena "build": nunca publica un dist/ viejo.
+      # CLOUDFLARE_API_TOKEN es el unico secret obligatorio; si el token no
+      # alcanza a resolver la cuenta solo (mensaje "Multiple accounts
+      # found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como secret y
+      # descomenta la linea de abajo.
+      - name: Deploy a Cloudflare
+        working-directory: client
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
