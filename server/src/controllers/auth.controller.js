@@ -7,6 +7,7 @@ import Expense from '../models/Expense.js';
 import Agency from '../models/Agency.js';
 import Client from '../models/Client.js';
 import TripChat from '../models/TripChat.js';
+import ItineraryTemplate from '../models/ItineraryTemplate.js';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -317,6 +318,9 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // se esta dando de baja, y conservarlos violaria la promesa de "se borra de
   // verdad" de arriba.
   await Client.deleteMany({ user: user._id, agency: null });
+  // Mismo criterio que Client: una plantilla compartida con una agencia se
+  // queda con el equipo, solo se borran las personales (sin agencia).
+  await ItineraryTemplate.deleteMany({ user: user._id, agency: null });
   await Trip.deleteMany({ _id: { $in: idsViajes } });
   await user.deleteOne();
 
