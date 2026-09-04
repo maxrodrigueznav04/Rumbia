@@ -1278,5 +1278,20 @@ await check('cambiarAgentesSuscripcion tambien avisa claro sin STRIPE_SECRET_KEY
   }
 });
 
+// A diferencia de las de arriba, cancelarSuscripcion NUNCA debe lanzar: se
+// llama justo antes de borrar una agencia/cuenta, y ese borrado tiene que
+// completarse aunque Stripe no este configurado o la agencia nunca haya
+// tenido plan -- perder el registro del usuario por un problema de Stripe
+// seria peor que un cobro de mas que se resuelve a mano despues.
+await check('cancelarSuscripcion no lanza sin STRIPE_SECRET_KEY (no debe bloquear el borrado)', async () => {
+  await stripeService.cancelarSuscripcion({ agencia: { _id: 'x', billing: { stripeSubscriptionId: 'sub_123' } } });
+  return 'resuelto sin lanzar';
+});
+
+await check('cancelarSuscripcion no lanza si la agencia nunca tuvo suscripcion', async () => {
+  await stripeService.cancelarSuscripcion({ agencia: { _id: 'x', billing: {} } });
+  return 'resuelto sin lanzar';
+});
+
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);
 process.exit(fail === 0 ? 0 : 1);

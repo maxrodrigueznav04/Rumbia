@@ -14,6 +14,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { setAuthCookie, clearAuthCookie } from '../middleware/auth.js';
 import { enviarCorreo, correoRecuperacion } from '../services/email.service.js';
 import { subirLogo } from '../services/logo.service.js';
+import { cancelarSuscripcion } from '../services/stripe.service.js';
 import { usuarioConAgencia } from './agency.controller.js';
 
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
@@ -300,6 +301,9 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   const agenciaPropia = await Agency.findOne({ owner: user._id });
   if (agenciaPropia) {
     await User.updateMany({ agency: agenciaPropia._id }, { agency: null });
+    // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
+    // que ya no existe y a la que nadie puede volver a entrar para cancelar.
+    await cancelarSuscripcion({ agencia: agenciaPropia });
     await Agency.deleteOne({ _id: agenciaPropia._id });
   }
 
