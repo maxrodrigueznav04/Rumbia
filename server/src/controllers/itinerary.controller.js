@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { Itinerary, Trip, ItineraryTemplate } from '../models/index.js';
+import { Itinerary, Trip, ItineraryTemplate, Agency } from '../models/index.js';
 import { LIMITE_GENERACIONES_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -117,7 +117,17 @@ export const generate = asyncHandler(async (req, res) => {
     throw ApiError.badRequest(`Por ahora la IA genera itinerarios de máximo ${MAX_DIAS_GENERAR_IA} días.`);
   }
 
-  verificarCupoPersonal(req.user);
+  verificarCupoPersonal(req.user); // no-op si tiene agencia (ver arriba)
+
+  // Con agencia, el cupo mensual lo decide el plan de la agencia (25/150/500
+  // itinerarios segun tier), no el personal de arriba. Antes de este cambio
+  // ninguno de los dos aplicaba: una agencia con plan activo tenia
+  // generacion de IA sin limite real, pagara el tier que pagara.
+  let agenciaParaCupo = null;
+  if (req.user.agency && !esAdmin(req.user)) {
+    agenciaParaCupo = await Agency.findById(req.user.agency).select('billing');
+    if (agenciaParaCupo) agenciaParaCupo.verificarCupoIA('generaciones');
+  }
 
   // Paradas del viaje, traducidas a dias relativos (1..N) para que el prompt
   // pueda decir "dias 4-6" en vez de fechas de calendario. Se ordenan por
@@ -208,6 +218,7 @@ export const generate = asyncHandler(async (req, res) => {
   // el cupo mensual. Antes de este punto, cualquier throw (Gemini saturado,
   // timeout, JSON invalido) deja el cupo intacto.
   await consumirCupoPersonal(req.user);
+  if (agenciaParaCupo) await agenciaParaCupo.consumirCupoIA('generaciones');
 
   res.status(existing || huboCarrera ? 200 : 201).json({
     success: true,

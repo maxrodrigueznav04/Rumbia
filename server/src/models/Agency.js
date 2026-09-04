@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
+import ApiError from '../utils/ApiError.js';
 
 /**
  * Agencia: la marca que comparten varios agentes sin compartir cuenta.
@@ -30,6 +31,34 @@ export const PLANES_AGENCIA = [
 
 // Agentes que trae el plan base de inicio antes de comprar asientos extra.
 export const AGENTES_INCLUIDOS = 3;
+
+/**
+ * Limites de uso de IA por mes que Rumbia SI anuncia en /acerca y en la
+ * tarjeta de cada plan (TarjetaAgencia.jsx). Antes de esto no existia ningun
+ * contador a nivel Agency: cualquier agencia con plan activo quedaba exenta
+ * de todo limite (ver el bypass `if (user.agency) return` que sigue existiendo
+ * en itinerary.controller.js / chat.controller.js para el cupo PERSONAL, que
+ * no aplica con agencia de por medio). `null` = sin limite prometido para ese
+ * campo en ese tier.
+ *
+ * Los planes legacy (mensual/anual/vitalicio, de antes de que existieran los
+ * tiers Inicio/Agencia/Pro) no tienen contador aqui a proposito: no hay
+ * ninguna promesa vigente de "X itinerarios al mes" para ellos en la pagina
+ * actual, y limitar retroactivamente a alguien que ya estaba pagando sin ese
+ * tope seria una sorpresa peor que dejarlo como esta hoy.
+ */
+const LIMITES_PLAN = {
+  inicio: { itinerarios: 25, chat: 60 },
+  agencia: { itinerarios: 150, chat: null },
+  pro: { itinerarios: 500, chat: null },
+};
+
+export function limitesDePlan(plan) {
+  if (plan?.startsWith('inicio')) return LIMITES_PLAN.inicio;
+  if (plan?.startsWith('agencia')) return LIMITES_PLAN.agencia;
+  if (plan?.startsWith('pro')) return LIMITES_PLAN.pro;
+  return null;
+}
 
 // Opciones de tipografia del PDF (beneficio Agencia/Pro, igual que
 // colorAcento). '' = la tipografia de Rumbia de siempre (Sora/Manrope). El
@@ -81,6 +110,29 @@ const billingSchema = new mongoose.Schema(
       type: Date,
       default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
+    // Contador de uso de IA del mes en curso, mismo patron y mismo campo "mes"
+    // (YYYY-MM) que User.usoIA, pero a nivel agencia: mientras el cupo
+    // personal es "por cuenta sin agencia", este es "por agencia", compartido
+    // entre todos sus agentes. Ver Agency.verificarCupoIA/consumirCupoIA.
+    usoIA: {
+      mes: { type: String, default: '' },
+      generaciones: { type: Number, default: 0 },
+      mensajesChat: { type: Number, default: 0 },
+    },
+    // Ultimo evento de Stripe aplicado a este documento (su campo `created`,
+    // no cuando Rumbia lo recibio): un webhook reenviado o que llega atrasado
+    // respecto a uno mas reciente no debe pisar un estado mas nuevo. Ver
+    // billing.controller.js.
+    ultimoEventoStripeEn: { type: Date },
+    // true entre que Stripe reporta cancel_at_period_end y el fin del periodo
+    // pagado: la agencia sigue activa, pero no se va a renovar sola. Sin esto
+    // la UI decia "se renueva el [fecha]" para una suscripcion que ya se
+    // cancelo desde el Customer Portal.
+    cancelaAlFinalizarPeriodo: { type: Boolean, default: false },
+    // Sesion de Checkout todavia abierta (no completada ni expirada), para no
+    // crear una segunda si el dueno le da doble clic o tiene dos pestañas
+    // abiertas del mismo formulario. Ver stripe.service.js.
+    checkoutSessionId: { type: String, default: '' },
   },
   { _id: false }
 );
@@ -133,5 +185,45 @@ agencySchema.virtual('capacidadAgentes').get(function capacidadAgentes() {
   if (plan?.startsWith('inicio')) return 3 + (this.billing?.extraAgentes || 0);
   return AGENTES_INCLUIDOS + (this.billing?.extraAgentes || 0);
 });
+
+/**
+ * Revisa el cupo mensual de IA del plan de esta agencia. `campo` es
+ * 'generaciones' (itinerarios) o 'chat' (mensajes). Sin plan reconocido
+ * (trial, pendiente, congelada o un plan legacy) no hay limite que aplicar
+ * aqui -- el candado real para una agencia sin plan activo ya es
+ * soloLecturaSiCongelada (middleware/billing.js), que bloquea toda
+ * escritura, generar itinerarios incluido.
+ */
+agencySchema.methods.verificarCupoIA = function verificarCupoIA(campo) {
+  const limites = limitesDePlan(this.billing?.plan);
+  const limite = campo === 'chat' ? limites?.chat : limites?.itinerarios;
+  if (limite == null) return;
+
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const usados =
+    this.billing.usoIA?.mes === mesActual
+      ? campo === 'chat'
+        ? this.billing.usoIA.mensajesChat
+        : this.billing.usoIA.generaciones
+      : 0;
+
+  if (usados >= limite) {
+    const nombre = campo === 'chat' ? 'mensajes al chat' : 'itinerarios generados con IA';
+    throw ApiError.forbidden(
+      `Tu agencia llegó al límite de ${limite} ${nombre} este mes en su plan. Sube de plan para generar más.`
+    );
+  }
+};
+
+/** Suma 1 al contador del mes en curso (reiniciandolo si cambio de mes) y guarda. */
+agencySchema.methods.consumirCupoIA = async function consumirCupoIA(campo) {
+  const mesActual = new Date().toISOString().slice(0, 7);
+  if (this.billing.usoIA?.mes !== mesActual) {
+    this.billing.usoIA = { mes: mesActual, generaciones: 0, mensajesChat: 0 };
+  }
+  if (campo === 'chat') this.billing.usoIA.mensajesChat += 1;
+  else this.billing.usoIA.generaciones += 1;
+  await this.save();
+};
 
 export default mongoose.model('Agency', agencySchema);

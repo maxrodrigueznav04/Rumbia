@@ -123,6 +123,12 @@ const userSchema = new mongoose.Schema(
       mensajesChat: { type: Number, default: 0 },
     },
     lastLoginAt: { type: Date },
+    // Se marca la primera vez que este usuario CREA una agencia (nunca se
+    // desmarca al salir o borrarla): sin esto, salir de una agencia y crear
+    // otra le regalaba un trial de 7 dias nuevo cada vez, indefinidamente.
+    // Vive en el usuario, no en la agencia, justo para sobrevivir a que la
+    // agencia se borre. Ver agency.controller.js crearAgencia.
+    trialAgenciaUsado: { type: Boolean, default: false },
   },
   {
     timestamps: true,

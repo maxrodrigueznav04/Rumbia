@@ -148,7 +148,12 @@ export default function ItinerarioCompartido() {
               </div>
 
               <div className="pila">
-                {(data.itinerary.totalEstimatedCost > 0 || data.viaje.coreCosts?.total > 0) && (
+                {/* Con el desglose oculto, el servidor ya no manda totalEstimatedCost
+                    ni coreCosts.total (ver public.controller.js): precioTotalPorPersona
+                    es la señal de que hay un precio que mostrar en ese caso. */}
+                {(data.viaje.precioTotalPorPersona > 0 ||
+                  data.itinerary.totalEstimatedCost > 0 ||
+                  data.viaje.coreCosts?.total > 0) && (
                   <Tarjeta titulo={data.viaje.hayMargen ? 'Precio total' : 'Costo total estimado'}>
                     {!ocultarCosto && (
                       <div className="pila-sm">

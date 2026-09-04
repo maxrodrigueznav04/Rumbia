@@ -62,14 +62,41 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
   const s = requerirStripe();
   const cfg = configDePlan(plan);
 
+  // Ya tiene un plan cobrando: otra sesion de Checkout aqui crearia una
+  // SEGUNDA suscripcion en paralelo, no cambiaria la que ya existe (Stripe no
+  // las fusiona solo). Cambiar de plan pasa por crearSesionPortal; ajustar
+  // asientos, por cambiarAgentesSuscripcion. Ninguno de los dos pasa por aqui.
+  if (agencia.billing?.status === 'activa') {
+    throw ApiError.badRequest(
+      'Esta agencia ya tiene un plan activo. Usa "Administrar plan" para cambiarlo, no actives uno nuevo.'
+    );
+  }
+
   try {
+    // Doble clic o dos pestañas con el mismo formulario: si ya hay una sesion
+    // de Checkout abierta y sin usar, se reutiliza en vez de crear otra --
+    // que, si ambas se llegan a completar, dejaria dos suscripciones cobrando
+    // a la vez. "abierta" se pregunta a Stripe mismo, no se guarda una fecha
+    // de vencimiento propia que se pueda desincronizar.
+    if (agencia.billing?.checkoutSessionId) {
+      const existente = await s.checkout.sessions.retrieve(agencia.billing.checkoutSessionId).catch(() => null);
+      if (existente?.status === 'open') return existente.url;
+    }
+
     let customerId = agencia.billing?.stripeCustomerId;
     if (!customerId) {
-      const customer = await s.customers.create({
-        email: user.email,
-        name: agencia.agencyName,
-        metadata: { agencyId: String(agencia._id) },
-      });
+      const customer = await s.customers.create(
+        {
+          email: user.email,
+          name: agencia.agencyName,
+          metadata: { agencyId: String(agencia._id) },
+        },
+        // Clave estable por agencia: dos requests concurrentes con los mismos
+        // parametros (doble clic, dos pestañas) reciben el MISMO Customer de
+        // Stripe en vez de uno cada una -- es justo la carrera que reprodujo
+        // la auditoria externa de lanzamiento.
+        { idempotencyKey: `rumbia-customer-${agencia._id}` }
+      );
       customerId = customer.id;
     }
 
@@ -88,6 +115,12 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
         ? { subscription_data: { metadata: { agencyId: String(agencia._id), plan } } }
         : {}),
     });
+
+    // Se guarda de una vez, sin esperar al webhook: es lo que permite que la
+    // reutilizacion de arriba funcione en la siguiente llamada.
+    agencia.billing.stripeCustomerId = customerId;
+    agencia.billing.checkoutSessionId = session.id;
+    await agencia.save();
 
     return session.url;
   } catch (err) {
@@ -152,6 +185,39 @@ export async function cambiarAgentesSuscripcion({ agencia, plan, nuevoExtraAgent
 }
 
 /**
+ * Deriva el plan y los agentes extra de una suscripcion a partir de sus
+ * items reales (el Price de cada renglon), no de la metadata que Rumbia le
+ * puso una sola vez al crearla. Hace falta porque cambiar de plan desde el
+ * Customer Portal de Stripe reemplaza los items de la suscripcion pero NO
+ * actualiza `subscription.metadata` -- sin esto, un cambio de plan hecho ahi
+ * se cobraba distinto pero los permisos en Rumbia se quedaban con el plan
+ * viejo. Devuelve null si ningun plan conocido coincide con los items (Price
+ * fuera de catalogo, o config incompleta) para no pisar un plan valido con
+ * uno adivinado a medias.
+ *
+ * Nota: si dos claves de PLANES comparten el mismo Price por un fallback de
+ * configuracion (agencia_mensual sin su propio STRIPE_PRICE_* cae al de
+ * "mensual", ver env.js), se resuelve la primera que aparezca en PLANES --
+ * hoy eso favorece los tiers nuevos (Inicio/Agencia/Pro) sobre los legacy.
+ */
+export function resolverPlanDesdeSuscripcion(sub) {
+  const priceIds = (sub.items?.data || []).map((it) => it.price?.id).filter(Boolean);
+  for (const [plan, cfg] of Object.entries(PLANES)) {
+    if (cfg.modo !== 'subscription') continue;
+    const basePriceId = cfg.base();
+    if (!basePriceId || !priceIds.includes(basePriceId)) continue;
+
+    let extraAgentes = 0;
+    if (cfg.permiteExtra && cfg.agente()) {
+      const itemAgente = sub.items.data.find((it) => it.price?.id === cfg.agente());
+      extraAgentes = itemAgente?.quantity || 0;
+    }
+    return { plan, extraAgentes };
+  }
+  return null;
+}
+
+/**
  * Cancela la suscripcion de Stripe de una agencia, si tiene una. Se llama
  * ANTES de borrar la agencia (el dueño sale sin mas agentes, o borra su
  * cuenta): sin esto, Stripe le seguiria cobrando cada mes/año por una
@@ -204,6 +270,7 @@ export default {
   crearSesionCheckout,
   crearSesionPortal,
   cambiarAgentesSuscripcion,
+  resolverPlanDesdeSuscripcion,
   cancelarSuscripcion,
   construirEvento,
 };

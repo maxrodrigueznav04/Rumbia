@@ -50,9 +50,20 @@ export const crearAgencia = asyncHandler(async (req, res) => {
   }
 
   const { agencyName, contact } = req.body;
-  const agencia = await Agency.create({ agencyName, contact, owner: req.user._id });
+  // El trial de 7 dias es un beneficio por USUARIO, no por agencia: sin este
+  // chequeo, salir de una agencia y crear otra daba un trial nuevo cada vez.
+  // "pendiente" es el mismo bloqueo de escritura que "congelada"
+  // (middleware/billing.js) -- solo cambia el texto que ve el dueno.
+  const yaUsoTrial = req.user.trialAgenciaUsado;
+  const agencia = await Agency.create({
+    agencyName,
+    contact,
+    owner: req.user._id,
+    ...(yaUsoTrial ? { billing: { status: 'pendiente', trialHasta: new Date(0) } } : {}),
+  });
 
   req.user.agency = agencia._id;
+  req.user.trialAgenciaUsado = true;
   await req.user.save();
 
   res.status(201).json({
