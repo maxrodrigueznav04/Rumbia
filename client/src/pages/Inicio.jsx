@@ -115,22 +115,31 @@ export default function Inicio() {
               Pruébalo gratis, sin cuenta
             </a>
           </div>
+          <p className="inicio-hero-confianza">
+            <Icono nombre="palomita" tamano={14} />
+            Sin tarjeta, sin registro para probarlo
+          </p>
         </div>
       </section>
 
       <section className="inicio-intro">
-        <div className="contenedor inicio-puntos">
-          {[
-            ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
-            ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
-            ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
-          ].map(([icono, titulo, texto]) => (
-            <div key={titulo}>
-              <Icono nombre={icono} tamano={26} className="icono-seccion" />
-              <h3>{titulo}</h3>
-              <p className="suave">{texto}</p>
-            </div>
-          ))}
+        <div className="contenedor">
+          <p className="inicio-eyebrow">Todo en un solo lugar</p>
+          <div className="inicio-puntos">
+            {[
+              ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
+              ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
+              ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
+            ].map(([icono, titulo, texto]) => (
+              <div key={titulo} className="inicio-punto">
+                <span className="inicio-punto-icono">
+                  <Icono nombre={icono} tamano={22} />
+                </span>
+                <h3>{titulo}</h3>
+                <p className="suave">{texto}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
