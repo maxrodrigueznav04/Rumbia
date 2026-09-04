@@ -16,6 +16,7 @@ import Perfil from './pages/Perfil.jsx';
 import Plantillas from './pages/Plantillas.jsx';
 import Clientes from './pages/Clientes.jsx';
 import Inicio from './pages/Inicio.jsx';
+import Probar from './pages/Probar.jsx';
 import Privacidad from './pages/Privacidad.jsx';
 import Terminos from './pages/Terminos.jsx';
 import ItinerarioCompartido from './pages/ItinerarioCompartido.jsx';
@@ -114,8 +115,12 @@ export default function App() {
             <Route path="/acerca" element={<Acerca />} />
             <Route path="/acerca-de" element={<Navigate to="/acerca" replace />} />
 
-            {/* La portada es publica: quien llega sin cuenta tiene que poder
-                ver que hace la app y probarla antes de registrarse. */}
+            {/* Generador de prueba sin cuenta: separado de la portada a
+                proposito, ver el comentario en Probar.jsx. */}
+            <Route path="/probar" element={<Probar />} />
+
+            {/* La portada es publica, corta a proposito: enlaza a /probar y
+                /acerca en vez de traer todo montado aqui mismo. */}
             <Route path="/" element={<Inicio />} />
             <Route path="*" element={<NoEncontrado />} />
           </Routes>
