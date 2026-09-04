@@ -34,6 +34,11 @@ import {
 
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 
+// Debe coincidir con el limite de itinerary.controller.js (generate()): ahi
+// es donde de verdad se hace cumplir. Aqui solo evita que alguien llene el
+// formulario, espere la generacion y hasta el final se entere del rechazo.
+const LIMITE_DIAS_IA = 21;
+
 function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd }) {
   // La IA a veces repite el título como nombre del lugar: no vale la pena mostrarlo dos veces.
   const lugar = actividad.location?.name;
@@ -192,6 +197,16 @@ export default function Itinerario() {
       setErrorGen(err);
     } finally {
       setGenerando(false);
+    }
+  };
+
+  const armarEnBlanco = async () => {
+    setErrorGen(null);
+    try {
+      await itineraryApi.createBlank(id);
+      itinReq.recargar();
+    } catch (err) {
+      setErrorGen(err);
     }
   };
 
@@ -455,13 +470,15 @@ export default function Itinerario() {
             <Boton variante="secundario" onClick={generarEnlace} cargando={trabajandoEnlace}>
               <Icono nombre="flechaSalida" tamano={15} /> Compartir
             </Boton>
-            <Boton
-              variante="secundario"
-              onClick={() => setConfirmarRegenerar(true)}
-              cargando={generando}
-            >
-              <Icono nombre="chispa" tamano={15} /> Regenerar
-            </Boton>
+            {viaje.durationDays <= LIMITE_DIAS_IA && (
+              <Boton
+                variante="secundario"
+                onClick={() => setConfirmarRegenerar(true)}
+                cargando={generando}
+              >
+                <Icono nombre="chispa" tamano={15} /> Regenerar
+              </Boton>
+            )}
             <Boton variante="secundario" onClick={() => setPlantillaAbierta(true)}>
               <Icono nombre="recibo" tamano={15} /> Guardar como plantilla
             </Boton>
@@ -525,7 +542,25 @@ export default function Itinerario() {
       <ResumenViaje viaje={viaje} personas={paraCuantos} />
 
       {/* ---------- Sin itinerario: invitación a generarlo ---------- */}
-      {!itinerario && (
+      {!itinerario && viaje.durationDays > LIMITE_DIAS_IA && (
+        <Tarjeta>
+          <Vacio
+            icono="✨"
+            titulo="Este viaje es muy largo para generarlo con IA"
+            accion={
+              <div className="fila" style={{ justifyContent: 'center' }}>
+                <Boton onClick={armarEnBlanco}>Armar el itinerario yo mismo</Boton>
+              </div>
+            }
+          >
+            Por ahora la IA arma itinerarios de hasta {LIMITE_DIAS_IA} días, y este viaje dura{' '}
+            {viaje.durationDays}. Empieza el itinerario en blanco y agrega los días a mano, o acorta
+            las fechas del viaje si quieres que la IA te ayude.
+          </Vacio>
+        </Tarjeta>
+      )}
+
+      {!itinerario && viaje.durationDays <= LIMITE_DIAS_IA && (
         <Tarjeta>
           <Vacio
             icono="✨"
@@ -535,18 +570,7 @@ export default function Itinerario() {
                 <Boton onClick={() => generar(false)} cargando={generando}>
                   {generando ? 'Generando...' : 'Generar itinerario'}
                 </Boton>
-                <Boton
-                  variante="secundario"
-                  onClick={async () => {
-                    setErrorGen(null);
-                    try {
-                      await itineraryApi.createBlank(id);
-                      itinReq.recargar();
-                    } catch (err) {
-                      setErrorGen(err);
-                    }
-                  }}
-                >
+                <Boton variante="secundario" onClick={armarEnBlanco}>
                   Armarlo yo
                 </Boton>
               </div>
