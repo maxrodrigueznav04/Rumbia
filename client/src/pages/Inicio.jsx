@@ -46,6 +46,10 @@ export default function Inicio() {
   if (cargando) return null;
   if (autenticado) return <Navigate to="/viajes" replace />;
 
+  const irAProbar = () => {
+    document.getElementById('probar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const alternar = (v) =>
     setEstilos((prev) =>
       prev.includes(v) ? prev.filter((x) => x !== v) : prev.length < 5 ? [...prev, v] : prev
@@ -111,9 +115,13 @@ export default function Inicio() {
             inteligente en minutos.
           </p>
           <div className="fila inicio-hero-acciones">
-            <a href="#probar" className="boton">
+            {/* No es un <a href="#probar"> a proposito: eso deja el hash en la
+                URL/historial, y quien vuelva a abrir ese link (o recargue)
+                cae directo a la seccion de prueba en vez de arriba del todo.
+                Un scroll por JS logra lo mismo sin tocar la URL. */}
+            <button type="button" className="boton" onClick={irAProbar}>
               Pruébalo gratis, sin cuenta
-            </a>
+            </button>
           </div>
           <p className="inicio-hero-confianza">
             <Icono nombre="palomita" tamano={14} />
