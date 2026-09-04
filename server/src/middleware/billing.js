@@ -16,7 +16,12 @@ import { esAdmin } from '../utils/esAdmin.js';
  * agencia creada. La cuenta admin (ADMIN_EMAIL) tampoco se congela nunca.
  */
 export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
-  if (!req.user.agency || req.method === 'GET' || esAdmin(req.user)) return next();
+  // Revocar un enlace compartido es una accion de seguridad/privacidad, no
+  // "usar" el producto de pago -- sin esta excepcion, una agencia vencida no
+  // podia dejar de exponer un itinerario publico solo porque se le vencio el
+  // plan, justo cuando mas podria importarle cerrarlo.
+  const esRevocarCompartir = req.method === 'DELETE' && req.originalUrl.endsWith('/itinerary/share');
+  if (!req.user.agency || req.method === 'GET' || esAdmin(req.user) || esRevocarCompartir) return next();
 
   const agencia = await Agency.findById(req.user.agency).select('billing createdAt');
   if (!agencia) return next();

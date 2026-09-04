@@ -12,7 +12,7 @@ export const CONTACTO_PRIVACIDAD = 'contacto@rumbiamx.com';
  * cuando cambia el tratamiento de los datos, así que hay que moverla cuando se
  * edite el contenido, no cuando se toque el estilo.
  */
-export const ULTIMA_ACTUALIZACION = '3 de septiembre de 2026';
+export const ULTIMA_ACTUALIZACION = '4 de septiembre de 2026';
 
 /**
  * Detecta los marcadores sin sustituir para avisar en pantalla. Cubre tanto el

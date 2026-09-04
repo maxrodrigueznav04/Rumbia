@@ -1451,5 +1451,21 @@ await check('resolverPlanDesdeSuscripcion devuelve null si ningun Price conocido
   return 'null: no pisa el plan actual con una suposicion';
 });
 
+console.log('\n== Logo (Cloudinary sin configurar) ==');
+
+const { borrarLogo } = await import('../src/services/logo.service.js');
+
+// Igual que cancelarSuscripcion: el borrado de la cuenta/agencia tiene que
+// completarse aunque Cloudinary no este configurado o falle.
+await check('borrarLogo no lanza sin credenciales de Cloudinary', async () => {
+  await borrarLogo('cualquier-id');
+  return 'resuelto sin lanzar';
+});
+
+await check('borrarLogo no lanza sin idLogo', async () => {
+  await borrarLogo('');
+  return 'resuelto sin lanzar';
+});
+
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);
 process.exit(fail === 0 ? 0 : 1);

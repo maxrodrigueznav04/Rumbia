@@ -1,5 +1,5 @@
-import { Agency, User, Trip, AuditLog } from '../models/index.js';
-import { subirLogo as subirLogoCloudinary } from '../services/logo.service.js';
+import { Agency, User, Trip, AuditLog, Client, ItineraryTemplate } from '../models/index.js';
+import { subirLogo as subirLogoCloudinary, borrarLogo } from '../services/logo.service.js';
 import { cancelarSuscripcion } from '../services/stripe.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -239,6 +239,14 @@ export const salirAgencia = asyncHandler(async (req, res) => {
     // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
     // que ya no existe y a la que nadie puede volver a entrar para cancelar.
     await cancelarSuscripcion({ agencia });
+    // El dueno esta solo (otrosMiembros === 0): todo lo que quede con este
+    // agency._id lo creo el mismo, nunca un companero de equipo. Sin
+    // borrarlo aqui, quedaba huerfano -- apuntando a una Agency que ya no
+    // existe, invisible para siempre (nada en la app vuelve a consultar por
+    // ese agencyId una vez borrado).
+    await Client.deleteMany({ agency: agencia._id });
+    await ItineraryTemplate.deleteMany({ agency: agencia._id });
+    if (agencia.logoUrl) await borrarLogo(`agencia-${agencia._id}`);
     await Agency.deleteOne({ _id: agencia._id });
   }
 

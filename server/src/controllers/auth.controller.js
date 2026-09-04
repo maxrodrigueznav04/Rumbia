@@ -13,7 +13,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { setAuthCookie, clearAuthCookie } from '../middleware/auth.js';
 import { enviarCorreo, correoRecuperacion, correoVerificacion } from '../services/email.service.js';
-import { subirLogo } from '../services/logo.service.js';
+import { subirLogo, borrarLogo } from '../services/logo.service.js';
 import { cancelarSuscripcion } from '../services/stripe.service.js';
 import { usuarioConAgencia } from './agency.controller.js';
 
@@ -378,10 +378,24 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // igual que cuando el dueño sale por la via normal (salirAgencia).
   const agenciaPropia = await Agency.findOne({ owner: user._id });
   if (agenciaPropia) {
+    const otrosMiembros = await User.countDocuments({
+      agency: agenciaPropia._id,
+      _id: { $ne: user._id },
+    });
     await User.updateMany({ agency: agenciaPropia._id }, { agency: null });
     // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
     // que ya no existe y a la que nadie puede volver a entrar para cancelar.
     await cancelarSuscripcion({ agencia: agenciaPropia });
+    // Si el dueño estaba SOLO, todo lo que comparte esta agencia lo creo el
+    // mismo (nunca un companero): sin borrarlo aqui quedaba huerfano,
+    // apuntando a una Agency que ya no existe. Con otros agentes activos NO
+    // se toca -- es cartera del equipo que sigue ahi, mismo criterio que
+    // Client/ItineraryTemplate personales unas lineas abajo.
+    if (otrosMiembros === 0) {
+      await Client.deleteMany({ agency: agenciaPropia._id });
+      await ItineraryTemplate.deleteMany({ agency: agenciaPropia._id });
+    }
+    if (agenciaPropia.logoUrl) await borrarLogo(`agencia-${agenciaPropia._id}`);
     await Agency.deleteOne({ _id: agenciaPropia._id });
   }
 
@@ -404,6 +418,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // queda con el equipo, solo se borran las personales (sin agencia).
   await ItineraryTemplate.deleteMany({ user: user._id, agency: null });
   await Trip.deleteMany({ _id: { $in: idsViajes } });
+  if (user.branding?.logoUrl) await borrarLogo(String(user._id));
   await user.deleteOne();
 
   res.json({

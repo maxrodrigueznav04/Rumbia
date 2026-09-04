@@ -162,8 +162,14 @@ export const eliminarCliente = asyncHandler(async (req, res) => {
 
   await cliente.deleteOne();
 
-  // Desvincular viajes sin borrarlos
-  await Trip.updateMany({ client: cliente._id }, { $set: { client: null } });
+  // Desvincular viajes sin borrarlos. cliente.nombre/contacto es una COPIA
+  // embebida (para que el PDF no dependa de que el Client siga existiendo);
+  // sin limpiarla tambien, un viaje viejo seguia mostrando el nombre y
+  // telefono de un cliente que se acaba de borrar.
+  await Trip.updateMany(
+    { client: cliente._id },
+    { $set: { client: null, 'cliente.nombre': '', 'cliente.contacto': '' } }
+  );
 
   res.json({
     success: true,
