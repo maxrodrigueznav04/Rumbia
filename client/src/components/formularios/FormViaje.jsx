@@ -47,6 +47,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       clienteNombre: viaje.cliente?.nombre || '',
       clienteContacto: viaje.cliente?.contacto || '',
       ocultarDesglose: viaje.ocultarDesglose ?? false,
+      ocultarCodigos: viaje.ocultarCodigos ?? true,
       margenTipo: viaje.margen?.tipo || 'fijo',
       margenMonto: viaje.margen?.monto || '',
     },
@@ -81,6 +82,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       notes: v.notes.trim(),
       cliente: { nombre: v.clienteNombre.trim(), contacto: v.clienteContacto.trim() },
       ocultarDesglose: v.ocultarDesglose,
+      ocultarCodigos: v.ocultarCodigos,
       margen: { tipo: v.margenTipo, monto: Number(v.margenMonto) || 0 },
       additionalDestinations: paradasAPayload(paradas),
     };
@@ -224,6 +226,21 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
         <Campo label="Notas">
           <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
         </Campo>
+
+        <label className="campo-check">
+          <input
+            type="checkbox"
+            name="ocultarCodigos"
+            checked={form.valores.ocultarCodigos}
+            onChange={form.cambiar}
+          />
+          Ocultar códigos de reservación y notas internas en el enlace compartido
+        </label>
+        <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
+          {form.valores.ocultarCodigos
+            ? 'Quien reciba el enlace ve el vuelo, el hotel y el transporte, pero no el código de confirmación, el link de gestión ni tus notas internas.'
+            : 'Vas a compartir el código de confirmación, el link de gestión y tus notas internas de cada renglón. Actívalo solo si de verdad quieres que el cliente los tenga.'}
+        </p>
 
         {esAgencia && (
           <>

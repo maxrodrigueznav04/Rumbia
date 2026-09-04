@@ -313,6 +313,7 @@ export const updateTripSchema = z
     lodging: z.array(lodgingSchema).max(10).optional(),
     localTransport: z.array(localTransportSchema).max(10).optional(),
     ocultarDesglose: z.boolean().optional(),
+    ocultarCodigos: z.boolean().optional(),
     interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
     pace: z.enum(TRIP_PACES).optional(),
     budgetLevel: z.enum(BUDGET_LEVELS).optional(),
