@@ -28,7 +28,7 @@ export default function AvisoServidor() {
   return (
     <div className="aviso-servidor" role="status">
       <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-      Despertando el servidor... la primera carga del día tarda unos segundos.
+      Despertando el servidor... la primera carga del día puede tardar hasta un minuto.
     </div>
   );
 }

@@ -38,7 +38,7 @@ function NoEncontrado() {
           </Link>
         }
       >
-        Revisa la direccion o vuelve al inicio.
+        Revisa la dirección o vuelve al inicio.
       </Vacio>
     </div>
   );

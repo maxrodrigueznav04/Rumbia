@@ -4,18 +4,9 @@ import { clientsApi, ApiError } from '../api/index.js';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { Boton, Campo, Tarjeta, Modal, Aviso, Insignia, Vacio } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
-import { rangoFechas, formatoMoneda } from '../utils/format.js';
+import { rangoFechas, formatoMoneda, ETIQUETAS_ESTADO } from '../utils/format.js';
 
 const ORIGENES_COMUNES = ['WhatsApp', 'Instagram', 'Recomendación', 'Página Web', 'Facebook', 'Feria de Viajes', 'Otro'];
-
-const ESTADOS_MAP = {
-  borrador: { texto: 'Borrador', color: 'gris' },
-  planeado: { texto: 'Propuesta enviada', color: 'ambar' },
-  aprobado: { texto: 'Aceptada 🎉', color: 'verde' },
-  'en-curso': { texto: 'En curso', color: 'azul' },
-  completado: { texto: 'Completado', color: 'verde' },
-  cancelado: { texto: 'Cancelada', color: 'error' },
-};
 
 export default function Clientes() {
   useMetaPagina({
@@ -264,7 +255,7 @@ export default function Clientes() {
         >
           {busqueda || etiquetaFiltro
             ? 'Intenta con otro término de búsqueda o limpia los filtros.'
-            : 'Registra a tus clientes frecuentes para asociar sus propuestas y cotizaciones con un solo clic.'}
+            : 'Registra a tus clientes frecuentes para asociar sus propuestas con un solo clic.'}
         </Vacio>
       ) : (
         <div className="rejilla rejilla-3" style={{ gap: 16 }}>
@@ -405,7 +396,7 @@ export default function Clientes() {
                   }}
                 >
                   <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                    {c.viajesCount === 1 ? '1 viaje / propuesta' : `${c.viajesCount || 0} viajes`}
+                    {c.viajesCount === 1 ? '1 propuesta' : `${c.viajesCount || 0} propuestas`}
                   </span>
                   <button
                     type="button"
@@ -414,7 +405,7 @@ export default function Clientes() {
                     onClick={(e) => crearViajeParaCliente(c, e)}
                     title="Crear nueva propuesta para este cliente"
                   >
-                    + Cotizar viaje
+                    + Nueva propuesta
                   </button>
                 </div>
               </div>
@@ -612,7 +603,7 @@ export default function Clientes() {
                   className="suave"
                   style={{ fontSize: '0.82rem', fontWeight: 600 }}
                 >
-                  + Armar nueva cotización
+                  + Armar nueva propuesta
                 </Link>
               </div>
 
@@ -639,7 +630,7 @@ export default function Clientes() {
               ) : (
                 <div className="pila" style={{ gap: 10 }}>
                   {viajesCliente.map((v) => {
-                    const estadoInfo = ESTADOS_MAP[v.status] || ESTADOS_MAP.borrador;
+                    const estadoInfo = ETIQUETAS_ESTADO[v.status] || ETIQUETAS_ESTADO.borrador;
                     return (
                       <Link
                         key={v._id}

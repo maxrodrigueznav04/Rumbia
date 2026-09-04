@@ -45,7 +45,7 @@ export default function TiraClima({ clima }) {
 
       <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.78rem' }}>
         {!meta?.configured
-          ? 'Estimación por temporada. Configura OPENWEATHER_API_KEY para ver el pronóstico real.'
+          ? 'Estimación por temporada. El pronóstico real no está disponible por ahora.'
           : todoEstimado
             ? 'Tu viaje está a más de 5 días: estos valores son una estimación según la temporada, no un pronóstico.'
             : meta?.estimatedDays > 0
