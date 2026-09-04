@@ -4,15 +4,28 @@ import asyncHandler from '../utils/asyncHandler.js';
 import stripeService from '../services/stripe.service.js';
 import { agenciaComoDueno } from './agency.controller.js';
 
-/** Estado de pago de la agencia del usuario en sesion (cualquier miembro puede verlo). */
+/**
+ * Estado de pago de la agencia del usuario en sesion (cualquier miembro puede verlo).
+ *
+ * stripeCustomerId/stripeSubscriptionId nunca salen de aqui: ningun miembro
+ * (ni siquiera el dueno, que ya los usa del lado del servidor via
+ * agenciaComoDueno para abrir el portal o el checkout) necesita verlos en
+ * pantalla. Lo unico que el cliente si necesitaba de stripeCustomerId era
+ * saber si la agencia "ya tuvo un plan antes" -- eso se manda como booleano.
+ */
 export const obtenerBilling = asyncHandler(async (req, res) => {
   if (!req.user.agency) throw ApiError.notFound('No perteneces a ninguna agencia.');
   const agencia = await Agency.findById(req.user.agency).select('billing capacidadAgentes');
   if (!agencia) throw ApiError.notFound('No perteneces a ninguna agencia.');
 
+  const { stripeCustomerId, stripeSubscriptionId, ...billingPublico } = agencia.billing.toObject();
+
   res.json({
     success: true,
-    data: { billing: agencia.billing, capacidadAgentes: agencia.capacidadAgentes },
+    data: {
+      billing: { ...billingPublico, tuvoPlanAlgunaVez: Boolean(stripeCustomerId) },
+      capacidadAgentes: agencia.capacidadAgentes,
+    },
   });
 });
 
