@@ -28,12 +28,35 @@ const currency = z.string().length(3, 'Usa el código de 3 letras, ej. MXN.').to
  * "Expected number, received nan", que es lo que acaba viendo el usuario en
  * pantalla porque el front pinta los `details` del backend tal cual.
  */
+// .finite() a proposito: z.coerce.number() por si solo acepta "Infinity" y
+// "1e309" (que Number() redondea a Infinity al pasarse del maximo
+// representable) como numeros validos con forma correcta -- sin este tope,
+// un monto o coordenada asi llegaba intacto hasta Mongoose y danaba
+// cualquier suma o promedio que lo tocara despues.
 const numero = (mensaje = 'Debe ser un número.') =>
-  z.coerce.number({ errorMap: () => ({ message: mensaje }) });
+  z.coerce.number({ errorMap: () => ({ message: mensaje }) }).finite('Ese número es demasiado grande.');
 
 const money = numero('Escribe un monto válido.').min(0, 'No puede ser negativo.');
 const entero = (mensaje) => numero(mensaje).int('Debe ser un número entero.');
-const url = z.string().url('URL inválida.').max(600).or(z.literal(''));
+// Solo https (y http en desarrollo, para poder probar contra un backend
+// local): z.string().url() por si solo acepta "javascript:", "data:" y
+// otros esquemas activos, que un enlace de reserva o un logo terminarian
+// abriendo tal cual como si fueran una URL normal.
+const ESQUEMAS_URL_PERMITIDOS = process.env.NODE_ENV === 'production' ? ['https:'] : ['https:', 'http:'];
+const url = z
+  .string()
+  .max(600)
+  .refine(
+    (v) => {
+      try {
+        return ESQUEMAS_URL_PERMITIDOS.includes(new URL(v).protocol);
+      } catch {
+        return false;
+      }
+    },
+    { message: 'URL inválida.' }
+  )
+  .or(z.literal(''));
 
 const place = z.object({
   name: z.string().trim().min(1, 'El nombre del lugar es obligatorio.').max(160),

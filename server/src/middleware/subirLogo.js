@@ -14,7 +14,10 @@ const MAX_BYTES = 2 * 1024 * 1024; // 2 MB: un logo no necesita mas, y cada MB d
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_BYTES, files: 1 },
+  // fields:0 a proposito: este formulario nunca manda texto, solo el archivo
+  // -- rechazar cualquier campo de texto de entrada reduce la superficie que
+  // multer tiene que parsear por peticion.
+  limits: { fileSize: MAX_BYTES, files: 1, fields: 0 },
   fileFilter: (_req, file, cb) => {
     if (!TIPOS_PERMITIDOS.has(file.mimetype)) {
       return cb(ApiError.badRequest('El logo debe ser PNG, JPEG o WebP.'));

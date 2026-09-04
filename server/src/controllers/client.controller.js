@@ -7,27 +7,37 @@ import { escaparRegex } from './trip.controller.js';
  * Resuelve el filtro de pertenencia: si el usuario pertenece a una agencia,
  * comparte la cartera de clientes con sus compañeros de equipo. Si no,
  * solo ve sus clientes propios.
+ *
+ * "agency: null" en el respaldo personal es a proposito: sin el, alguien que
+ * registro un cliente mientras estaba en una agencia lo seguia viendo (via
+ * "user: user._id") aunque ya hubiera salido de esa agencia -- ese cliente
+ * es cartera del EQUIPO que dejo atras, no algo que se lleve consigo.
  */
 function filtroPertenencia(user) {
   if (user.agency) {
-    return { $or: [{ agency: user.agency }, { user: user._id }] };
+    return { $or: [{ agency: user.agency }, { user: user._id, agency: null }] };
   }
-  return { user: user._id };
+  return { user: user._id, agency: null };
 }
 
 export const listarClientes = asyncHandler(async (req, res) => {
   const { q, etiqueta, page, limit } = req.validatedQuery;
-  const baseFilter = filtroPertenencia(req.user);
-  const filter = { ...baseFilter };
+  // $and de condiciones separadas, nunca reasignando una clave "$or" que ya
+  // trae filtroPertenencia: hacer filter.$or = [...] aqui PISABA por
+  // completo el $or de pertenencia en cuanto habia busqueda, y devolvia
+  // clientes de CUALQUIER agencia que coincidieran con el texto buscado.
+  const condiciones = [filtroPertenencia(req.user)];
 
   if (q) {
     const re = new RegExp(escaparRegex(q), 'i');
-    filter.$or = [{ nombre: re }, { email: re }, { telefono: re }];
+    condiciones.push({ $or: [{ nombre: re }, { email: re }, { telefono: re }] });
   }
 
   if (etiqueta) {
-    filter.etiquetas = etiqueta;
+    condiciones.push({ etiquetas: etiqueta });
   }
+
+  const filter = condiciones.length > 1 ? { $and: condiciones } : condiciones[0];
 
   const [clientes, total] = await Promise.all([
     Client.find(filter)
