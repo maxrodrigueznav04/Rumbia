@@ -8,6 +8,15 @@ import { findOwnedTrip } from './trip.controller.js';
 import { addDays, isoDay, daysBetween } from '../utils/dates.js';
 import { esAdmin } from '../utils/esAdmin.js';
 
+// Independiente del limite de duracion del propio viaje (MAX_DURACION_VIAJE_DIAS
+// en Trip.js, 366 dias, pensado para logistica manual): esto tapa una sola
+// llamada a Gemini pidiendo demasiados dias de golpe. 30 es un margen modesto
+// sobre el caso mas pesado que de verdad se probo (~21 dias, varias ciudades,
+// ver el comentario de TIMEOUT_MS en gemini.service.js) -- subir mucho mas
+// necesitaria partir la generacion en varias llamadas en vez de una sola para
+// no arriesgar el timeout o una respuesta de Gemini cortada a la mitad.
+export const MAX_DIAS_GENERAR_IA = 30;
+
 /**
  * Sin agencia, hasta LIMITE_GENERACIONES_PERSONAL generaciones por mes.
  * Con agencia el cupo lo cubre el plan de la agencia (o el candado de
@@ -104,8 +113,8 @@ export const generate = asyncHandler(async (req, res) => {
   }
 
   const days = trip.durationDays;
-  if (days > 21) {
-    throw ApiError.badRequest('Por ahora la IA genera itinerarios de máximo 21 días.');
+  if (days > MAX_DIAS_GENERAR_IA) {
+    throw ApiError.badRequest(`Por ahora la IA genera itinerarios de máximo ${MAX_DIAS_GENERAR_IA} días.`);
   }
 
   verificarCupoPersonal(req.user);
