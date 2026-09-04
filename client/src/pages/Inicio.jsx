@@ -159,12 +159,16 @@ export default function Inicio() {
 
         <Tarjeta titulo="Arma un itinerario ahora" className="inicio-form">
           <form onSubmit={generar} className="pila" noValidate>
+            {/* Sin autoFocus a proposito: el navegador hace scroll automatico
+                hasta el campo enfocado en cuanto monta, y como el formulario
+                vive mas abajo que el hero, la pagina "abria" a la mitad en
+                vez de arriba del todo -- pasaba siempre, sin importar la URL
+                ni el historial. */}
             <Campo
               label="¿A dónde vas?"
               placeholder="Oaxaca, Ciudad de México, Cancún..."
               value={destino}
               onChange={(e) => setDestino(e.target.value)}
-              autoFocus
             />
 
             <CampoFechas
