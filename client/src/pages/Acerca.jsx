@@ -786,7 +786,10 @@ export default function Acerca() {
                     <h4 style={{ margin: 0 }}>Chatbot contextual</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Asistente flotante que conoce los detalles de tu viaje: pregúntale rutas, clima o sugerencias en tiempo real.
+                    Asistente flotante que conoce los detalles de tu viaje: pregúntale rutas, clima o
+                    sugerencias y te responde al instante, con conocimiento general de IA — no es una
+                    consulta en vivo a proveedores, así que confirma precios y disponibilidad en un
+                    comparador real.
                   </p>
                 </div>
               </div>
