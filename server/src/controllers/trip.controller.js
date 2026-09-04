@@ -1,4 +1,4 @@
-import { Trip, Itinerary, Expense } from '../models/index.js';
+import { Trip, Itinerary, Expense, Client } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
@@ -56,6 +56,24 @@ async function sincronizarItinerario(trip) {
  */
 export function escaparRegex(texto) {
   return texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Confirma que un `client` (CRM) que se va a guardar en un Trip pertenezca
+ * de verdad al usuario o a su agencia.
+ *
+ * updateTripSchema/createTripSchema solo validan que `client` tenga forma de
+ * ObjectId -- sin este chequeo, cualquier cuenta podia apuntar su propio
+ * viaje al cliente de OTRA cuenta o agencia con solo adivinar o conseguir su
+ * id, y getTrip lo popula sin restriccion, exponiendo nombre, correo,
+ * telefono y notas de un cliente ajeno.
+ */
+async function esClientePropio(clientId, user) {
+  if (!clientId) return true;
+  const filtro = user.agency
+    ? { _id: clientId, $or: [{ agency: user.agency }, { user: user._id }] }
+    : { _id: clientId, user: user._id };
+  return Boolean(await Client.exists(filtro));
 }
 
 /**
@@ -122,6 +140,10 @@ export const getTrip = asyncHandler(async (req, res) => {
 });
 
 export const createTrip = asyncHandler(async (req, res) => {
+  if (req.body.client && !(await esClientePropio(req.body.client, req.user))) {
+    throw ApiError.badRequest('Cliente no encontrado.');
+  }
+
   const payload = { ...req.body, user: req.user._id };
 
   // Moneda por defecto: la del perfil, si el usuario no mando una.
@@ -169,6 +191,11 @@ export const updateTrip = asyncHandler(async (req, res) => {
   // sin borrar transport.inbound. origin, margen y cliente necesitan el mismo
   // trato: un PATCH con un solo subcampo no debe borrar los demas.
   const { transport, budget, origin, margen, cliente, ...rest } = req.body;
+
+  if (rest.client && !(await esClientePropio(rest.client, req.user))) {
+    throw ApiError.badRequest('Cliente no encontrado.');
+  }
+
   for (const campo of CAMPOS_EDITABLES_DIRECTO) {
     if (rest[campo] !== undefined) trip[campo] = rest[campo];
   }
