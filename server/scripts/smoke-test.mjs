@@ -201,6 +201,15 @@ await check('lodging: los registros viejos siguen sumando', async () => {
   return 'tarifa x noches como respaldo';
 });
 
+await check('lodging: totalCost:0 de verdad es gratis, no resucita nightlyRate x nights', async () => {
+  // Un hospedaje regalado o pagado con puntos: totalCost:0 explicito junto a
+  // un nightlyRate/nights que quedaron de una captura anterior. "||" trataba
+  // el 0 como "no capturado" y volvia a cobrar el costo viejo.
+  const l = viajeCon([{ totalCost: 0, nightlyRate: 1200, nights: 3 }]).lodging[0];
+  assert(l.subtotal === 0, `subtotal=${l.subtotal}, deberia ser 0 (hospedaje gratis)`);
+  return 'totalCost:0 se respeta como gratis de verdad';
+});
+
 await check('lodging: totalCost manda sobre nightlyRate', async () => {
   const l = viajeCon([{ totalCost: 2500, nightlyRate: 999, nights: 2 }]).lodging[0];
   assert(l.subtotal === 2500, `subtotal=${l.subtotal}`);

@@ -43,23 +43,29 @@ services:
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
       # Cobro a agencias. Sin estas, /agency/billing responde con un aviso
-      # claro y el resto de la app sigue igual. Los seis STRIPE_PRICE_* salen
-      # de correr "npm run stripe:setup" en server/.
+      # claro y el resto de la app sigue igual. Las ocho STRIPE_PRICE_* salen
+      # de correr "npm run stripe:setup" en server/ (planes Inicio, Agencia y
+      # Pro; Inicio y Agencia no llevan "_AGENTE" porque no cobran por
+      # asiento extra).
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
-      - key: STRIPE_PRICE_MENSUAL_BASE
+      - key: STRIPE_PRICE_INICIO_MENSUAL_BASE
         sync: false
-      - key: STRIPE_PRICE_MENSUAL_AGENTE
+      - key: STRIPE_PRICE_INICIO_ANUAL_BASE
         sync: false
-      - key: STRIPE_PRICE_ANUAL_BASE
+      - key: STRIPE_PRICE_AGENCIA_MENSUAL_BASE
         sync: false
-      - key: STRIPE_PRICE_ANUAL_AGENTE
+      - key: STRIPE_PRICE_AGENCIA_ANUAL_BASE
         sync: false
-      - key: STRIPE_PRICE_VITALICIO_BASE
+      - key: STRIPE_PRICE_PRO_MENSUAL_BASE
         sync: false
-      - key: STRIPE_PRICE_VITALICIO_AGENTE
+      - key: STRIPE_PRICE_PRO_MENSUAL_AGENTE
+        sync: false
+      - key: STRIPE_PRICE_PRO_ANUAL_BASE
+        sync: false
+      - key: STRIPE_PRICE_PRO_ANUAL_AGENTE
         sync: false
       # Enlaces de afiliado. Se deja sin valor a proposito: mientras no exista,
       # los enlaces salen como busquedas publicas y la app no dice que gana

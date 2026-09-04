@@ -12,6 +12,12 @@ import { esAdmin } from '../utils/esAdmin.js';
 // (ver chat.service.js buildSystemInstruction).
 const MAX_MENSAJES_GUARDADOS = 100;
 
+// Debe coincidir con el maxlength de chatMessageSchema.text (TripChat.js). El
+// system prompt le pide respuestas cortas a Gemini, pero es una instruccion
+// de estilo, no un limite duro -- sin este recorte, una respuesta larga de
+// verdad tronaba el guardado completo del turno con un 400 generico.
+const MAX_LARGO_MENSAJE = 4000;
+
 /**
  * Mismo patron de dos pasos que verificarCupoPersonal/consumirCupoPersonal
  * en itinerary.controller.js, con su propio contador (usoIA.mensajesChat)
@@ -75,7 +81,11 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const respuesta = await sendChatMessage({ trip, itinerary, messages: doc.messages });
 
-  doc.messages.push({ role: 'model', text: respuesta.text });
+  const textoModelo =
+    respuesta.text.length > MAX_LARGO_MENSAJE
+      ? `${respuesta.text.slice(0, MAX_LARGO_MENSAJE - 1)}…`
+      : respuesta.text;
+  doc.messages.push({ role: 'model', text: textoModelo });
   if (doc.messages.length > MAX_MENSAJES_GUARDADOS) {
     doc.messages = doc.messages.slice(-MAX_MENSAJES_GUARDADOS);
   }
