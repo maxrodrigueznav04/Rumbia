@@ -95,3 +95,48 @@ export async function subirLogo({ buffer, mimeType, userId }) {
     clearTimeout(timer);
   }
 }
+
+/**
+ * Borra el logo de Cloudinary cuando se borra la cuenta o la agencia dueña.
+ *
+ * Reemplazar un logo nunca deja huerfano al anterior (subirLogo usa el mismo
+ * public_id con overwrite:true), pero borrar el USUARIO o la AGENCIA si lo
+ * dejaba: ese public_id (su id de Mongo, o "agencia-<id>") nunca se vuelve a
+ * usar, asi que la imagen se quedaba ocupando espacio en Cloudinary para
+ * siempre. `idLogo` es el mismo valor que se le paso a subirLogo como
+ * userId. Fail-soft a proposito, igual que cancelarSuscripcion: el borrado
+ * de la cuenta tiene que completarse aunque Cloudinary tenga un problema.
+ */
+export async function borrarLogo(idLogo) {
+  if (!env.cloudinary.enabled || !idLogo) return;
+
+  const publicId = `rumbia/logos/${idLogo}`;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = firmar({ public_id: publicId, timestamp });
+
+  const form = new FormData();
+  form.append('public_id', publicId);
+  form.append('api_key', env.cloudinary.apiKey);
+  form.append('timestamp', String(timestamp));
+  form.append('signature', signature);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${env.cloudinary.cloudName}/image/destroy`, {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      console.error(`[logo] No se pudo borrar ${publicId} de Cloudinary: ${data?.error?.message || res.status}`);
+    }
+  } catch (err) {
+    const motivo = err.name === 'AbortError' ? 'tardo demasiado' : err.message;
+    console.error(`[logo] No se pudo borrar ${publicId} de Cloudinary: ${motivo}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}

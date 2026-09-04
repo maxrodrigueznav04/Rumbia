@@ -115,16 +115,23 @@ export default function Privacidad() {
         uno:
       </p>
 
-      <h3>Google (Gemini) — generación del itinerario</h3>
+      <h3>Google (Gemini) — generación del itinerario y chat con el asistente</h3>
       <p>
         Cuando pides generar un itinerario, se envía a la API de Gemini el <strong>destino, las
         fechas, el número de días y de viajeros, tus intereses, el ritmo, el presupuesto o nivel de
         gasto y las notas adicionales que hayas escrito</strong> para esa generación.
       </p>
       <p>
+        El chat con el asistente virtual (pensado para el agente, no para tu cliente final) manda
+        además el <strong>título del viaje y un resumen de lo ya capturado</strong> (destino, fechas,
+        hospedaje, transporte) como contexto, más el <strong>texto de cada mensaje que escribas</strong> en
+        la conversación.
+      </p>
+      <p>
         <strong>No se envía tu nombre, tu correo ni ningún identificador de tu cuenta.</strong> Ten
-        en cuenta, eso sí, que las notas adicionales son texto libre: lo que escribas ahí se manda
-        tal cual, así que conviene no poner datos personales que no quieras compartir.
+        en cuenta, eso sí, que tanto las notas adicionales como los mensajes del chat son texto
+        libre: lo que escribas ahí se manda tal cual, así que conviene no poner datos personales
+        (tuyos o de tus clientes) que no quieras compartir — ni siquiera en el título del viaje.
       </p>
 
       <h3>OpenWeatherMap — clima del destino</h3>
@@ -145,6 +152,39 @@ export default function Privacidad() {
         La base de datos está alojada en MongoDB Atlas; la API corre en Render y la interfaz en
         Cloudflare Workers. Almacenan y procesan la información por cuenta nuestra para que la
         aplicación funcione.
+      </p>
+
+      <h3>Resend — correos de la cuenta</h3>
+      <p>
+        Cuando pides recuperar tu contraseña, confirmar tu correo al registrarte, o cuando tu
+        cliente acepta una propuesta que compartiste, el correo se envía a través de Resend.
+        Recibe tu <strong>dirección de correo y tu nombre</strong>, únicamente para entregar ese
+        mensaje.
+      </p>
+
+      <h3>Cloudinary — logo de tu marca o de tu agencia</h3>
+      <p>
+        Si subes un logo (personal o de tu agencia) para que aparezca en tus PDF, la imagen se
+        almacena en Cloudinary. No recibe ningún otro dato tuyo — solo el archivo que subiste.
+      </p>
+
+      <h3>Clientes que capturas (CRM básico)</h3>
+      <p>
+        Si usas la sección de clientes para llevar el registro de a quién le armas un viaje, ahí
+        guardas <strong>nombre, correo, teléfono, origen y notas</strong> de esa persona — no de tu
+        propia cuenta, sino de un tercero al que le prestas el servicio. Esos datos no se comparten
+        con Gemini, OpenWeatherMap ni ningún proveedor de los que arman enlaces de reserva: viven
+        únicamente en Rumbia, visibles para ti (y, si perteneces a una agencia, para tu equipo).
+        Frente a esos datos, quien decide qué se guarda y por qué eres tú o tu agencia — Rumbia
+        actúa como encargado del tratamiento, no como responsable de los datos de tus clientes.
+      </p>
+
+      <h3>Registro de acciones sensibles de la agencia</h3>
+      <p>
+        Si perteneces a una agencia, ciertas acciones (sacar a un agente, regenerar el código de
+        invitación, que la agencia se elimine) quedan registradas con quién las hizo, cuándo y qué
+        pasó — incluye tu <strong>nombre y correo</strong> como quien ejecutó la acción. Solo lo ve
+        el dueño de tu propia agencia, y se conserva un año.
       </p>
 
       <h3>Enlaces de reserva y programas de afiliados</h3>
@@ -202,7 +242,12 @@ export default function Privacidad() {
       </p>
       <ul>
         <li><strong>Acceso:</strong> saber qué datos tuyos tenemos y para qué los usamos.</li>
-        <li><strong>Rectificación:</strong> corregirlos si están mal o incompletos. Tu nombre, correo y preferencias los puedes editar tú mismo desde <em>Perfil</em>.</li>
+        <li>
+          <strong>Rectificación:</strong> corregirlos si están mal o incompletos. Tu nombre y tus
+          preferencias los puedes editar tú mismo desde <em>Perfil</em>. Para corregir tu correo,
+          escríbenos a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong> desde
+          la cuenta con la que te registraste.
+        </li>
         <li>
           <strong>Cancelación:</strong> pedir que se borren. Puedes hacerlo tú mismo desde{' '}
           <em>Perfil → Eliminar mi cuenta</em>.
