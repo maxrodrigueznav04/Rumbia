@@ -7,6 +7,7 @@ import {
   authLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter,
+  resendVerificationLimiter,
 } from '../middleware/rateLimiters.js';
 import verificarCaptcha from '../middleware/turnstile.js';
 import {
@@ -17,6 +18,7 @@ import {
   deleteAccountSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyEmailSchema,
 } from '../validators/schemas.js';
 
 const router = Router();
@@ -45,6 +47,14 @@ router.post(
   validate(resetPasswordSchema),
   ctrl.resetPassword
 );
+
+// Verificar correo: el token de 64 hex ya hace de limite (no se adivina), y
+// no manda ningun correo -- mismo criterio que reset-password, no el mas
+// estricto de forgot-password.
+router.post('/verify-email', resetPasswordLimiter, validate(verifyEmailSchema), ctrl.verifyEmail);
+// Reenviar si manda uno nuevo, asi que si necesita el limite estricto, por
+// cuenta (viene de una sesion ya iniciada, sin cuenta no tiene sentido).
+router.post('/resend-verification', protect, resendVerificationLimiter, ctrl.resendVerification);
 
 router.get('/me', protect, ctrl.me);
 router.patch('/me', protect, validate(updateProfileSchema), ctrl.updateProfile);

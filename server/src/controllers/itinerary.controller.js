@@ -7,6 +7,7 @@ import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { addDays, isoDay, daysBetween } from '../utils/dates.js';
 import { esAdmin } from '../utils/esAdmin.js';
+import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
 
 // Independiente del limite de duracion del propio viaje (MAX_DURACION_VIAJE_DIAS
 // en Trip.js, 366 dias, pensado para logistica manual): esto tapa una sola
@@ -102,6 +103,8 @@ export const getItinerary = asyncHandler(async (req, res) => {
 
 /** POST /api/trips/:id/itinerary/generate — rate-limitado por usuario. */
 export const generate = asyncHandler(async (req, res) => {
+  requireEmailVerificado(req.user);
+
   const trip = await findOwnedTrip(req.params.id, req.user._id);
   const { extraNotes, pace, interests, force } = req.body;
 

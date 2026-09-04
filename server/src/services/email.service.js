@@ -114,6 +114,47 @@ export function correoRecuperacion({ nombre, enlace, minutos }) {
   return { asunto: 'Recupera tu contraseña de Rumbia', html, texto };
 }
 
+/** Correo de verificacion de cuenta nueva. */
+export function correoVerificacion({ nombre, enlace, horas }) {
+  const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';
+  const plazo = horas === 24 ? '24 horas' : `${horas} horas`;
+
+  const html = `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
+  <h1 style="font-size:19px;margin:0 0 12px">${saludo}, confirma tu correo</h1>
+  <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
+    Pulsa el botón para activar tu cuenta. El enlace caduca en ${plazo}.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${esc(enlace)}" style="display:inline-block;background:#1F6F5C;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px">
+      Confirmar mi correo
+    </a>
+  </p>
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0 0 8px">
+    Si el botón no funciona, copia esta dirección en tu navegador:
+  </p>
+  <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0 0 24px">${esc(enlace)}</p>
+  <hr style="border:none;border-top:1px solid #EFE6D3;margin:24px 0">
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0">
+    Si no creaste una cuenta en Rumbia, puedes ignorar este correo.
+  </p>
+</div>`.trim();
+
+  const texto = [
+    `${nombre ? `Hola ${nombre}` : 'Hola'}, confirma tu correo`,
+    '',
+    `Abre esta dirección para activar tu cuenta. Caduca en ${plazo}:`,
+    enlace,
+    '',
+    'Si no creaste una cuenta en Rumbia, ignora este correo.',
+    '',
+    'Rumbia',
+  ].join('\n');
+
+  return { asunto: 'Confirma tu correo en Rumbia', html, texto };
+}
+
 /** Aviso al agente/dueño del viaje cuando el cliente acepta la propuesta desde el enlace público. */
 export function correoPropuestaAceptada({ nombre, viaje, enlace }) {
   const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';

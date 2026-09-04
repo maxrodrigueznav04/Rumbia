@@ -7,6 +7,7 @@ import RutaProtegida, { RutaPublica } from './components/RutaProtegida.jsx';
 import Entrar from './pages/Entrar.jsx';
 import Recuperar from './pages/Recuperar.jsx';
 import Restablecer from './pages/Restablecer.jsx';
+import VerificarCorreo from './pages/VerificarCorreo.jsx';
 import Registro from './pages/Registro.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import NuevoViaje from './pages/NuevoViaje.jsx';
@@ -84,6 +85,11 @@ export default function App() {
                 alguien mas"— y la guardia lo mandaria al panel sin dejarlo
                 restablecer nada. */}
             <Route path="/restablecer/:token" element={<Restablecer />} />
+
+            {/* Mismo criterio: quien registro la cuenta ya tiene sesion en
+                este navegador (register() la deja puesta), pero puede abrir
+                el enlace desde otro dispositivo sin ella. */}
+            <Route path="/verificar-correo/:token" element={<VerificarCorreo />} />
 
             {/* Privadas: comparten el layout con navegacion. */}
             <Route
