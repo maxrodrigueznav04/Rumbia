@@ -1978,6 +1978,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 .inicio-puntos h3 { margin: var(--e3) 0 var(--e1); }
 .inicio-puntos p { margin: 0; font-size: 0.92rem; }
 
+/* Cierre corto de la portada: en vez de repetir el contenido de /acerca
+   aqui, un puente hacia alla para quien quiere ver el detalle completo
+   (viajero vs agencia, planes, CRM, plantillas...) antes de decidirse. */
+.inicio-cierre { padding: var(--e7) 0; }
+.inicio-cierre-caja {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+.inicio-cierre-caja p { margin: var(--e2) 0 var(--e4); }
+
 .inicio-cuerpo { padding-top: var(--e7); padding-bottom: var(--e7); }
 .inicio-probar-encabezado {
   text-align: center;

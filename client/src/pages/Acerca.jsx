@@ -118,7 +118,7 @@ export default function Acerca() {
               {autenticado ? 'Crear un nuevo viaje' : 'Comenzar gratis'}
             </Link>
             {!autenticado && (
-              <Link to="/" className="boton secundario">
+              <Link to="/probar" className="boton secundario">
                 Probar generador sin cuenta
               </Link>
             )}
@@ -245,7 +245,8 @@ export default function Acerca() {
                     </li>
                     <li>
                       <strong>Privacidad comercial en cotizaciones:</strong> Elige si muestras el
-                      desglose o solo el precio total cerrado por persona.
+                      desglose o solo el precio total cerrado por persona, y si el cliente ve o no
+                      los códigos de confirmación y notas internas de cada reservación.
                     </li>
                     <li>
                       <strong>Variantes en 1 clic:</strong> Duplica propuestas para presentar opciones
@@ -792,6 +793,61 @@ export default function Acerca() {
             </Tarjeta>
           </section>
 
+          {/* 6. SECCIÓN: CRM, plantillas y viajes multi-destino */}
+          <section>
+            <Tarjeta>
+              <div className="fila-entre" style={{ flexWrap: 'wrap', gap: 14, marginBottom: 16 }}>
+                <div className="fila" style={{ gap: 10 }}>
+                  <Icono nombre="persona" tamano={24} className="icono-seccion" />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.35rem' }}>
+                      Organiza tu trabajo, no lo repitas
+                    </h3>
+                    <p className="suave" style={{ margin: '3px 0 0', fontSize: '0.92rem' }}>
+                      Para cuando ya no se trata de un viaje suelto, sino de varios clientes y
+                      propuestas al mismo tiempo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rejilla rejilla-3" style={{ gap: 16 }}>
+                <div className="tarjeta-plana">
+                  <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
+                    <Icono nombre="persona" tamano={17} />
+                    <h4 style={{ margin: 0 }}>Clientes (CRM básico)</h4>
+                  </div>
+                  <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
+                    Guarda contacto y notas de cada cliente, vincúlalo a sus viajes y cotizaciones,
+                    y búscalo cuando vuelva a pedirte algo.
+                  </p>
+                </div>
+
+                <div className="tarjeta-plana">
+                  <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
+                    <Icono nombre="calendario" tamano={17} />
+                    <h4 style={{ margin: 0 }}>Plantillas reutilizables</h4>
+                  </div>
+                  <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
+                    Arma un itinerario tipo una vez ("Cancún todo incluido", "Ruta por Europa") y
+                    aplícalo a cada cliente nuevo en vez de empezar de cero.
+                  </p>
+                </div>
+
+                <div className="tarjeta-plana">
+                  <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
+                    <Icono nombre="pin" tamano={17} />
+                    <h4 style={{ margin: 0 }}>Viajes multi-destino</h4>
+                  </div>
+                  <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
+                    Suma paradas adicionales a un mismo viaje, cada una con sus fechas, clima e
+                    itinerario propio.
+                  </p>
+                </div>
+              </div>
+            </Tarjeta>
+          </section>
+
           {/* CTA Final */}
           <section style={{ textAlign: 'center', padding: 'var(--e4) 0 var(--e2)' }}>
             <Tarjeta className="centrado" style={{ padding: 'var(--e6) var(--e4)' }}>
@@ -806,7 +862,7 @@ export default function Acerca() {
                   {autenticado ? 'Ir a mis viajes' : 'Crear cuenta gratis'}
                 </Link>
                 {!autenticado && (
-                  <Link to="/" className="boton secundario">
+                  <Link to="/probar" className="boton secundario">
                     Generar itinerario sin cuenta
                   </Link>
                 )}
