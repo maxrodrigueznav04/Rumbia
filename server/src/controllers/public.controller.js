@@ -146,9 +146,16 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
    * le suman su comision), el precio de cada renglon se quita AQUI, en el
    * servidor: esconderlo solo en la pantalla no sirve de nada si la respuesta
    * cruda todavia trae el numero real para quien abra las herramientas del
-   * navegador. Lo unico que se conserva es el total (coreCosts.total y
-   * totalEstimatedCost): el cliente ve cuanto es y de que se compone, pero no
-   * el precio de cada vuelo, noche de hotel o actividad.
+   * navegador.
+   *
+   * Con el desglose oculto, TAMPOCO se manda coreCosts.total ni
+   * itinerary.totalEstimatedCost (antes si se mandaban, "solo el total"):
+   * junto con precioTotalPorPersona y travelers -- que si son publicos, son
+   * el precio final -- esos dos numeros alcanzan para reconstruir el margen
+   * a mano (costoSinMargen = totalEstimatedCost + coreCosts.total/travelers;
+   * margen = precioTotalPorPersona - costoSinMargen), sin necesitar que
+   * margenPorPersona viaje directo. Es la misma cuenta que hace este mismo
+   * archivo un poco mas abajo para calcular precioTotalPorPersona.
    */
   const desglosePublico = !trip.ocultarDesglose;
 
@@ -189,7 +196,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
         notes: t.notes,
       }));
 
-  const coreCostsPublico = desglosePublico ? trip.coreCosts : { total: trip.coreCosts.total };
+  const coreCostsPublico = desglosePublico ? trip.coreCosts : undefined;
 
   /**
    * Independiente de ocultarDesglose (eso es precio): bookingRef, externalUrl
@@ -278,7 +285,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       itinerary: {
         days: diasPublicos,
         generatedBy: itinerary.generatedBy,
-        totalEstimatedCost: itinerary.totalEstimatedCost,
+        totalEstimatedCost: desglosePublico ? itinerary.totalEstimatedCost : undefined,
         activityCount: itinerary.activityCount,
       },
       pins: itinerary.mapPins(),

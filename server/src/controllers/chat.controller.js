@@ -1,4 +1,4 @@
-import { Itinerary, TripChat } from '../models/index.js';
+import { Itinerary, TripChat, Agency } from '../models/index.js';
 import { LIMITE_MENSAJES_CHAT_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -69,7 +69,15 @@ export const sendMessage = asyncHandler(async (req, res) => {
   const { message, tripId } = req.body;
   const trip = await resolveTrip(tripId, req.user._id);
 
-  verificarCupoChat(req.user);
+  verificarCupoChat(req.user); // no-op si tiene agencia (ver arriba)
+
+  // Con agencia, Inicio topa a 60 mensajes/mes; Agencia y Pro no tienen tope
+  // de chat (limitesDePlan devuelve null para 'chat' en esos tiers).
+  let agenciaParaCupo = null;
+  if (req.user.agency && !esAdmin(req.user)) {
+    agenciaParaCupo = await Agency.findById(req.user.agency).select('billing');
+    if (agenciaParaCupo) agenciaParaCupo.verificarCupoIA('chat');
+  }
 
   const [chat, itinerary] = await Promise.all([
     TripChat.findOne({ user: req.user._id, trip: trip?._id || null }),
@@ -94,6 +102,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   // Recien aqui, con la respuesta y el guardado ya confirmados, se gasta el
   // cupo mensual: un intento fallido (Gemini saturado, timeout) no lo gasta.
   await consumirCupoChat(req.user);
+  if (agenciaParaCupo) await agenciaParaCupo.consumirCupoIA('chat');
 
   res.json({ success: true, data: { messages: doc.messages } });
 });

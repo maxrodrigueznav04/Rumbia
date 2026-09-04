@@ -2,8 +2,17 @@
 process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia';
 process.env.JWT_SECRET ||= 'test_secret_test_secret_test_secret';
 process.env.ADMIN_EMAIL ||= 'admin@rumbia.app';
+// Precios de Stripe de mentira, solo para poder probar resolverPlanDesdeSuscripcion
+// (reverse-lookup de Price ID -> plan) sin depender de una cuenta real de Stripe.
+// Tienen que estar ANTES de importar env.js (que los lee una sola vez al cargar).
+process.env.STRIPE_PRICE_INICIO_MENSUAL_BASE ||= 'price_test_inicio_mensual';
+process.env.STRIPE_PRICE_AGENCIA_MENSUAL_BASE ||= 'price_test_agencia_mensual';
+process.env.STRIPE_PRICE_PRO_MENSUAL_BASE ||= 'price_test_pro_mensual';
+process.env.STRIPE_PRICE_PRO_MENSUAL_AGENTE ||= 'price_test_pro_mensual_agente';
 
-const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client } = await import('../src/models/index.js');
+const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client, limitesDePlan } = await import(
+  '../src/models/index.js'
+);
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
@@ -595,6 +604,88 @@ await check('verificarCupoChat no aplica a cuentas con agencia', async () => {
   });
   verificarCupoChat(u); // no deberia lanzar: con agencia, el cupo mensual no aplica
   return 'agencia sin limite mensual, igual que verificarCupoPersonal';
+});
+
+console.log('\n== Cupo mensual de IA (agencia) ==');
+
+// Hallazgo real de la auditoria de lanzamiento (R3): con agencia, ningun
+// limite se aplicaba nunca -- el bypass de arriba (verificarCupoChat/
+// verificarCupoPersonal "no aplica con agencia") daba por hecho que el cupo
+// de la agencia se checaba en otro lado, y ese otro lado no existia.
+// Agency.verificarCupoIA/consumirCupoIA (Agency.js) son ese "otro lado".
+
+await check('limitesDePlan: 25/150/500 segun el prefijo del plan, null para legacy y sin plan', () => {
+  assert(limitesDePlan('inicio_mensual').itinerarios === 25, 'inicio=25');
+  assert(limitesDePlan('inicio_anual').chat === 60, 'inicio chat=60');
+  assert(limitesDePlan('agencia_mensual').itinerarios === 150, 'agencia=150');
+  assert(limitesDePlan('agencia_anual').chat === null, 'agencia chat sin limite');
+  assert(limitesDePlan('pro_mensual').itinerarios === 500, 'pro=500');
+  assert(limitesDePlan('mensual') === null, 'legacy mensual sin limite prometido');
+  assert(limitesDePlan('vitalicio') === null, 'legacy vitalicio sin limite prometido');
+  assert(limitesDePlan(null) === null, 'sin plan (trial/pendiente/congelada) sin limite aqui');
+  return 'inicio 25/60, agencia 150/sin, pro 500/sin, legacy y sin plan sin limite';
+});
+
+await check('Agency.verificarCupoIA no lanza por debajo del limite del plan', () => {
+  const a = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'inicio_mensual', usoIA: { mes: mesActual, generaciones: 24 } },
+  });
+  a.verificarCupoIA('generaciones'); // 24 de 25, no deberia lanzar
+  return '24 de 25 usadas, sigue pasando';
+});
+
+await check('Agency.verificarCupoIA lanza al llegar al limite del plan Inicio', () => {
+  const a = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'inicio_mensual', usoIA: { mes: mesActual, generaciones: 25 } },
+  });
+  let err;
+  try { a.verificarCupoIA('generaciones'); } catch (e) { err = e; }
+  assert(err, 'deberia lanzar al llegar a 25');
+  return err.message;
+});
+
+await check('Agency.verificarCupoIA respeta el tope de cada tier (150 Agencia, 500 Pro)', () => {
+  const agencia = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'agencia_mensual', usoIA: { mes: mesActual, generaciones: 150 } },
+  });
+  assert((() => { try { agencia.verificarCupoIA('generaciones'); return false; } catch { return true; } })(), 'agencia al tope de 150 debe lanzar');
+
+  const pro = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'pro_mensual', usoIA: { mes: mesActual, generaciones: 499 } },
+  });
+  pro.verificarCupoIA('generaciones'); // 499 de 500, no deberia lanzar
+  return 'agencia=150 tope real, pro=500 tope real';
+});
+
+await check('Agency.verificarCupoIA: el chat no tiene tope en Agencia/Pro, aunque generaciones ya esten al limite', () => {
+  const a = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'pro_mensual', usoIA: { mes: mesActual, generaciones: 500, mensajesChat: 999999 } },
+  });
+  a.verificarCupoIA('chat'); // no deberia lanzar: Pro no topa el chat
+  return 'chat ilimitado en Pro, independiente del cupo de generaciones';
+});
+
+await check('Agency.verificarCupoIA: un plan legacy (mensual) no tiene tope aqui', () => {
+  const a = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'mensual', usoIA: { mes: mesActual, generaciones: 99999 } },
+  });
+  a.verificarCupoIA('generaciones'); // no deberia lanzar: legacy sin promesa numerica vigente
+  return 'legacy sin limite (no se le prometio un numero en la pagina actual)';
+});
+
+await check('Agency.verificarCupoIA: mes distinto reinicia el conteo a cero', () => {
+  const a = new Agency({
+    agencyName: 'X', owner: uid,
+    billing: { plan: 'inicio_mensual', usoIA: { mes: '2000-01', generaciones: 999 } },
+  });
+  a.verificarCupoIA('generaciones'); // "999" es de un mes viejo, este mes va en 0
+  return 'contador de un mes distinto no cuenta contra el mes actual';
 });
 
 console.log('\n== Validadores (Zod) ==');
@@ -1291,6 +1382,43 @@ await check('cancelarSuscripcion no lanza sin STRIPE_SECRET_KEY (no debe bloquea
 await check('cancelarSuscripcion no lanza si la agencia nunca tuvo suscripcion', async () => {
   await stripeService.cancelarSuscripcion({ agencia: { _id: 'x', billing: {} } });
   return 'resuelto sin lanzar';
+});
+
+// Hallazgo real de la auditoria de lanzamiento (B4): un cambio de plan hecho
+// desde el Customer Portal de Stripe reemplaza los items de la suscripcion
+// pero nunca toca subscription.metadata -- sin esto, Rumbia seguia dando los
+// permisos del plan viejo aunque el cobro ya fuera el del nuevo.
+await check('resolverPlanDesdeSuscripcion deriva el plan del Price real de los items, no de metadata', () => {
+  const sub = {
+    metadata: { agencyId: 'x', plan: 'inicio_mensual' }, // metadata vieja, ya no corresponde
+    items: { data: [{ price: { id: 'price_test_agencia_mensual' }, quantity: 1 }] },
+  };
+  const r = stripeService.resolverPlanDesdeSuscripcion(sub);
+  assert(r?.plan === 'agencia_mensual', `plan=${r?.plan}`);
+  assert(r.extraAgentes === 0, 'sin renglon de agente extra');
+  return `resuelto a ${r.plan}, ignorando la metadata vieja (${sub.metadata.plan})`;
+});
+
+await check('resolverPlanDesdeSuscripcion cuenta los agentes extra del renglon correspondiente', () => {
+  const sub = {
+    metadata: {},
+    items: {
+      data: [
+        { price: { id: 'price_test_pro_mensual' }, quantity: 1 },
+        { price: { id: 'price_test_pro_mensual_agente' }, quantity: 4 },
+      ],
+    },
+  };
+  const r = stripeService.resolverPlanDesdeSuscripcion(sub);
+  assert(r?.plan === 'pro_mensual' && r.extraAgentes === 4, `plan=${r?.plan} extra=${r?.extraAgentes}`);
+  return 'pro_mensual con 4 agentes extra';
+});
+
+await check('resolverPlanDesdeSuscripcion devuelve null si ningun Price conocido calza', () => {
+  const sub = { metadata: {}, items: { data: [{ price: { id: 'price_de_otro_producto' }, quantity: 1 }] } };
+  const r = stripeService.resolverPlanDesdeSuscripcion(sub);
+  assert(r === null, 'no deberia adivinar un plan sin Price que calce');
+  return 'null: no pisa el plan actual con una suposicion';
 });
 
 console.log(`\n${fail === 0 ? 'TODO OK' : 'HAY FALLOS'}: ${pass} pasaron, ${fail} fallaron\n`);

@@ -362,8 +362,11 @@ curl https://rumbia-api.onrender.com/api/health
 Si vas a cobrar a agencias: corre `npm run stripe:setup` (local, contra tu cuenta de Stripe)
 para conseguir los `STRIPE_PRICE_*` de cada tier, y crea el webhook en el dashboard de Stripe apuntando
 a `https://rumbia-api.onrender.com/api/billing/webhook` con los eventos `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
 `customer.subscription.updated` y `customer.subscription.deleted` — de ahí sale `STRIPE_WEBHOOK_SECRET`.
-Sin esto la app funciona igual, solo que nadie puede pagarte.
+Los dos eventos `async_payment_*` cubren metodos de pago que confirman el cobro unos dias despues
+(OXXO, SPEI): sin ellos, una agencia que pague por ahi se queda sin activar. Sin nada de esto la
+app funciona igual, solo que nadie puede pagarte.
 
 ### 3. Frontend en Cloudflare Workers
 

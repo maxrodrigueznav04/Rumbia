@@ -685,7 +685,11 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
           <p className="suave" style={{ marginTop: 0 }}>
             Plan {PLANES[billing.plan]?.etiqueta || billing.plan}, {agencia.capacidadAgentes} agente(s)
             de cupo ({totalAgentes} en uso)
-            {billing.periodoHasta && ` · se renueva el ${new Date(billing.periodoHasta).toLocaleDateString('es-MX')}`}.
+            {billing.periodoHasta &&
+              ` · ${billing.cancelaAlFinalizarPeriodo ? 'se cancela el' : 'se renueva el'} ${new Date(
+                billing.periodoHasta
+              ).toLocaleDateString('es-MX')}`}
+            .
           </p>
           {billing.plan === 'vitalicio' ? (
             <p className="tenue" style={{ marginTop: 0, fontSize: '0.85rem' }}>

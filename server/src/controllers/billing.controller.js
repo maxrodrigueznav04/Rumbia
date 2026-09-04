@@ -1,4 +1,4 @@
-import { Agency, User } from '../models/index.js';
+import { Agency, User, StripeEvent } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import stripeService from '../services/stripe.service.js';
@@ -18,7 +18,8 @@ export const obtenerBilling = asyncHandler(async (req, res) => {
   const agencia = await Agency.findById(req.user.agency).select('billing capacidadAgentes');
   if (!agencia) throw ApiError.notFound('No perteneces a ninguna agencia.');
 
-  const { stripeCustomerId, stripeSubscriptionId, ...billingPublico } = agencia.billing.toObject();
+  const { stripeCustomerId, stripeSubscriptionId, checkoutSessionId, ultimoEventoStripeEn, ...billingPublico } =
+    agencia.billing.toObject();
 
   res.json({
     success: true,
@@ -88,6 +89,52 @@ export const abrirPortal = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Aplica un cambio de billing solo si este evento es igual o mas nuevo que el
+ * ultimo que ya se aplico a esta agencia (billing.ultimoEventoStripeEn,
+ * comparado contra `evento.created` de Stripe, no contra cuando Rumbia lo
+ * recibio). Es un update atomico con el chequeo de frescura en el propio
+ * filtro: sin esto, un webhook reenviado fuera de orden (Stripe no garantiza
+ * el orden de entrega) podia pisar un estado mas nuevo con uno viejo -- por
+ * ejemplo, una cancelacion seguida de un `checkout.session.completed`
+ * atrasado que reactivaba la agencia por error.
+ */
+async function aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate) {
+  await Agency.updateOne(
+    {
+      _id: agencyId,
+      $or: [
+        { 'billing.ultimoEventoStripeEn': { $exists: false } },
+        { 'billing.ultimoEventoStripeEn': { $lte: eventoCreatedDate } },
+      ],
+    },
+    { $set: { ...camposUpdate, 'billing.ultimoEventoStripeEn': eventoCreatedDate } }
+  );
+}
+
+/**
+ * Activa la agencia a partir de una sesion de Checkout ya pagada. La misma
+ * logica sirve para el pago inmediato (checkout.session.completed) y para el
+ * que se confirma despues (checkout.session.async_payment_succeeded, metodos
+ * como OXXO/SPEI) -- ver la llamada de cada uno mas abajo.
+ */
+async function activarPorCheckout(session, eventoCreatedDate) {
+  const { agencyId, plan, extraAgentes } = session.metadata || {};
+  if (!agencyId) return;
+
+  await aplicarSiEsFresco(agencyId, eventoCreatedDate, {
+    'billing.status': 'activa',
+    'billing.plan': plan,
+    'billing.extraAgentes': Number(extraAgentes || 0),
+    'billing.stripeCustomerId': session.customer,
+    'billing.stripeSubscriptionId': session.mode === 'subscription' ? session.subscription : '',
+    // El plan vitalicio (mode: payment) no vence; los de suscripcion
+    // reciben su fecha real en customer.subscription.updated, que Stripe
+    // manda enseguida.
+    ...(session.mode === 'payment' ? { 'billing.periodoHasta': null } : {}),
+  });
+}
+
+/**
  * Webhook de Stripe. Se monta en app.js con el body crudo (no JSON-parseado)
  * porque la verificacion de firma necesita los bytes exactos que Stripe mando.
  *
@@ -105,23 +152,47 @@ export const webhook = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Firma invalida.');
   }
 
+  // Stripe puede reenviar el mismo evento si no vio la respuesta 2xx a
+  // tiempo (timeout de red, redeploy a la mitad). El indice unico de
+  // eventId es quien de verdad evita procesarlo dos veces: si otro proceso
+  // ya lo inserto entre que se checa y se inserta, este insert simplemente
+  // choca y se responde 200 sin repetir ningun efecto.
+  try {
+    await StripeEvent.create({ eventId: evento.id, type: evento.type });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.json({ received: true, duplicado: true });
+    }
+    throw err;
+  }
+
+  const eventoCreatedDate = new Date(evento.created * 1000);
+
   switch (evento.type) {
     case 'checkout.session.completed': {
       const session = evento.data.object;
-      const { agencyId, plan, extraAgentes } = session.metadata || {};
-      if (!agencyId) break;
+      // Con metodos de pago asincronos (OXXO, SPEI, comunes en MXN) esta
+      // sesion puede "completarse" (el cliente eligio como pagar) sin que el
+      // pago en si ya haya llegado. Activar aqui de todas formas regalaria
+      // el plan sin cobro confirmado; se espera a async_payment_succeeded.
+      if (session.payment_status === 'unpaid') break;
+      await activarPorCheckout(session, eventoCreatedDate);
+      break;
+    }
 
-      await Agency.findByIdAndUpdate(agencyId, {
-        'billing.status': 'activa',
-        'billing.plan': plan,
-        'billing.extraAgentes': Number(extraAgentes || 0),
-        'billing.stripeCustomerId': session.customer,
-        'billing.stripeSubscriptionId': session.mode === 'subscription' ? session.subscription : '',
-        // El plan vitalicio (mode: payment) no vence; los de suscripcion
-        // reciben su fecha real en customer.subscription.updated, que Stripe
-        // manda enseguida.
-        ...(session.mode === 'payment' ? { 'billing.periodoHasta': null } : {}),
-      });
+    // El pago asincrono (OXXO/SPEI) se confirmo unos dias despues de crear
+    // la sesion: recien aqui se activa el plan que checkout.session.completed
+    // dejo pendiente arriba.
+    case 'checkout.session.async_payment_succeeded': {
+      await activarPorCheckout(evento.data.object, eventoCreatedDate);
+      break;
+    }
+
+    case 'checkout.session.async_payment_failed': {
+      const { agencyId } = evento.data.object.metadata || {};
+      if (agencyId) {
+        console.warn(`[stripe] Pago asincrono fallido para la agencia ${agencyId} (sesion ${evento.data.object.id}).`);
+      }
       break;
     }
 
@@ -136,10 +207,26 @@ export const webhook = asyncHandler(async (req, res) => {
       const activa = evento.type === 'customer.subscription.updated' && ['active', 'trialing'].includes(sub.status);
       const periodoHasta = sub.current_period_end ? new Date(sub.current_period_end * 1000) : undefined;
 
-      await Agency.findByIdAndUpdate(agencyId, {
+      const camposUpdate = {
         'billing.status': activa ? 'activa' : 'congelada',
+        'billing.cancelaAlFinalizarPeriodo': Boolean(sub.cancel_at_period_end),
         ...(periodoHasta ? { 'billing.periodoHasta': periodoHasta } : {}),
-      });
+      };
+
+      // Un cambio de plan hecho desde el Customer Portal reemplaza los items
+      // de la suscripcion pero no toca subscription.metadata: sin esto,
+      // Rumbia se enteraba del nuevo cobro pero seguia dando los permisos
+      // del plan viejo. Si ningun plan conocido calza con los items (Price
+      // fuera de catalogo), se deja el plan actual como esta, sin adivinar.
+      if (evento.type === 'customer.subscription.updated') {
+        const resuelto = stripeService.resolverPlanDesdeSuscripcion(sub);
+        if (resuelto) {
+          camposUpdate['billing.plan'] = resuelto.plan;
+          camposUpdate['billing.extraAgentes'] = resuelto.extraAgentes;
+        }
+      }
+
+      await aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate);
       break;
     }
 
