@@ -10,6 +10,7 @@ import templateRoutes from './templates.routes.js';
 import chatRoutes from './chat.routes.js';
 import clientRoutes from './client.routes.js';
 import env from '../config/env.js';
+import mongoose from 'mongoose';
 
 const router = Router();
 
@@ -23,6 +24,17 @@ router.get('/health', (_req, res) => {
       gemini: env.gemini.enabled ? 'configurado' : 'no configurado',
       openWeather: env.openWeather.enabled ? 'configurado' : 'no configurado',
     },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/** Readiness: confirma que la instancia puede atender datos, no solo responder HTTP. */
+router.get('/ready', (_req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    success: databaseReady,
+    status: databaseReady ? 'ready' : 'not_ready',
+    database: databaseReady ? 'conectada' : 'no disponible',
     timestamp: new Date().toISOString(),
   });
 });

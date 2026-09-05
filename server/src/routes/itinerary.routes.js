@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as ctrl from '../controllers/itinerary.controller.js';
 import validate from '../middleware/validate.js';
-import { aiLimiter } from '../middleware/rateLimiters.js';
+import { aiLimiter, heavyAiConcurrencyLimit } from '../middleware/rateLimiters.js';
 import {
   generateItinerarySchema,
   activitySchema,
@@ -25,7 +25,7 @@ router.delete('/share', ctrl.dejarDeCompartir);
 router.post('/plantilla', validate(crearPlantillaSchema), ctrl.crearPlantilla);
 
 // El unico endpoint que consume cuota de Gemini: limitado por usuario/hora.
-router.post('/generate', aiLimiter, validate(generateItinerarySchema), ctrl.generate);
+router.post('/generate', aiLimiter, validate(generateItinerarySchema), heavyAiConcurrencyLimit, ctrl.generate);
 
 router.patch('/days/:dayId', validate(updateDaySchema), ctrl.updateDay);
 router.delete('/days/:dayId', ctrl.deleteDay);

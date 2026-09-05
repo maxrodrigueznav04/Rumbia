@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as ctrl from '../controllers/public.controller.js';
 import validate from '../middleware/validate.js';
-import { publicAiLimiter } from '../middleware/rateLimiters.js';
+import { publicAiLimiter, heavyAiConcurrencyLimit } from '../middleware/rateLimiters.js';
 import { publicItinerarySchema, clickSalidaSchema } from '../validators/schemas.js';
 
 /**
@@ -14,6 +14,7 @@ router.post(
   '/itinerary',
   publicAiLimiter,
   validate(publicItinerarySchema),
+  heavyAiConcurrencyLimit,
   ctrl.generarItinerarioInvitado
 );
 

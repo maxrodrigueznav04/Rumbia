@@ -14,6 +14,11 @@ const server = app.listen(env.port, () => {
   if (!env.openWeather.enabled) console.warn('[server] OPENWEATHER_API_KEY ausente: el clima usara solo estimaciones.');
 });
 
+// Corta clientes lentos sin interrumpir una generacion valida de IA (150 s).
+server.requestTimeout = 190000;
+server.headersTimeout = 15000;
+server.keepAliveTimeout = 5000;
+
 async function shutdown(signal) {
   console.log(`\n[server] ${signal} recibido, cerrando...`);
   server.close(async () => {

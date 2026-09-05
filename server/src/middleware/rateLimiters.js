@@ -1,7 +1,17 @@
 import rateLimit from 'express-rate-limit';
 import env from '../config/env.js';
+import { createConcurrencyLimit } from './concurrencyLimit.js';
 
 const jsonMessage = (message) => ({ success: false, message });
+
+// Candado compartido por la muestra publica y las generaciones autenticadas.
+// Protege una instancia pequena ante una rafaga aunque cada IP/usuario siga
+// dentro de su propio rate limit.
+export const heavyAiConcurrencyLimit = createConcurrencyLimit({
+  maxActive: env.aiMaxConcurrent,
+  maxQueue: env.aiMaxQueue,
+  maxWaitMs: env.aiQueueWaitMs,
+});
 
 /** Limite general de la API. */
 export const apiLimiter = rateLimit({

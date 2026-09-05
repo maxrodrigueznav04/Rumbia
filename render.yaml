@@ -42,6 +42,12 @@ services:
         sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
+      - key: AI_MAX_CONCURRENT
+        value: 3
+      - key: AI_MAX_QUEUE
+        value: 6
+      - key: AI_QUEUE_WAIT_MS
+        value: 12000
       # Cobro a agencias. Sin estas, /agency/billing responde con un aviso
       # claro y el resto de la app sigue igual. Las ocho STRIPE_PRICE_* salen
       # de correr "npm run stripe:setup" en server/ (planes Inicio, Agencia y

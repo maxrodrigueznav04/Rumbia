@@ -25,6 +25,11 @@ if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET === JWT_SECRET_
   process.exit(1);
 }
 
+const numeroEntero = (valor, respaldo, minimo = 0) => {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? Math.max(minimo, Math.floor(numero)) : respaldo;
+};
+
 export const env = {
   port: Number(process.env.PORT || 4000),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -94,6 +99,9 @@ export const env = {
     enabled: Boolean(process.env.STRIPE_SECRET_KEY),
   },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),
+  aiMaxConcurrent: numeroEntero(process.env.AI_MAX_CONCURRENT, 3, 1),
+  aiMaxQueue: numeroEntero(process.env.AI_MAX_QUEUE, 6, 0),
+  aiQueueWaitMs: numeroEntero(process.env.AI_QUEUE_WAIT_MS, 12000, 1000),
   // El chat manda muchos mensajes cortos en una sola sesion, a diferencia de
   // generar un itinerario completo: un tope tan bajo como el de arriba haria
   // el chat inutilizable a medio de una conversacion normal.

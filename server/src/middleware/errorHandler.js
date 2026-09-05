@@ -49,7 +49,9 @@ export function errorHandler(err, _req, res, _next) {
   res.status(statusCode).json({
     success: false,
     message,
-    ...(details ? { details } : {}),
+    // Los detalles de un proveedor pueden contener fragmentos de respuestas
+    // internas. En produccion solo son utiles para errores 4xx de validacion.
+    ...(details && (!env.isProd || statusCode < 500) ? { details } : {}),
     ...(env.isProd ? {} : { stack: err.stack }),
   });
 }
