@@ -89,8 +89,8 @@ export default function Layout() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
-            completas la reserva.
+            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor,
+            donde completas la reserva.
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces del sitio">
             <Link to="/acerca">Acerca de</Link>

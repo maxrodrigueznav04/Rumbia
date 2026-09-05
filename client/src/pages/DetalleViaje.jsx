@@ -304,6 +304,7 @@ export default function DetalleViaje() {
                   onChange={cambiarEstadoPropuesta}
                   disabled={guardandoPropuesta}
                   aria-label="Estado de la propuesta"
+                  title="Lo marcas tú a mano: es para tu seguimiento, no un comprobante de pago."
                   style={{ padding: '3px 6px', fontSize: '0.85rem' }}
                 >
                   {Object.entries(ETIQUETAS_ESTADO_PROPUESTA).map(([valor, info]) => (

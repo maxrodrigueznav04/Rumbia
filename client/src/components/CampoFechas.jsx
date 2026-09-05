@@ -15,7 +15,7 @@ const diasEntre = (a, b) => {
   return Number.isNaN(ms) ? 0 : Math.round(ms / 86400000) + 1;
 };
 
-const ATAJOS = [
+const ATAJOS_DEFAULT = [
   { texto: 'Fin de semana', noches: 2 },
   { texto: '5 días', noches: 4 },
   { texto: 'Una semana', noches: 6 },
@@ -42,6 +42,10 @@ export default function CampoFechas({
   minimo = HOY,
   etiquetaInicio = 'Salida',
   etiquetaFin = 'Regreso',
+  // Sobrescribible para quien tenga un tope de dias mas corto que la cuenta
+  // registrada (ver Probar.jsx, MAX_DIAS_INVITADO=7 del lado del servidor):
+  // sin esto, "Dos semanas" aqui y el rechazo del servidor se contradecian.
+  atajos = ATAJOS_DEFAULT,
 }) {
   const dias = diasEntre(inicio, fin);
   const noches = Math.max(0, dias - 1);
@@ -97,7 +101,7 @@ export default function CampoFechas({
         <span className="campo-ayuda" style={{ marginRight: 2 }}>
           Atajos:
         </span>
-        {ATAJOS.map((a) => (
+        {atajos.map((a) => (
           <button
             key={a.texto}
             type="button"

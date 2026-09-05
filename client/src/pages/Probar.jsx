@@ -11,6 +11,32 @@ import { formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const ESTILOS = ['aventura', 'cultura', 'relax', 'gastronomia', 'naturaleza', 'vida-nocturna'];
 
+// Sin cuenta, el servidor limita a 7 dias (MAX_DIAS_INVITADO en
+// public.controller.js): sin este recorte, el atajo "Dos semanas" del
+// selector normal proponia algo que el servidor iba a rechazar despues.
+const ATAJOS_INVITADO = [
+  { texto: 'Fin de semana', noches: 2 },
+  { texto: '5 días', noches: 4 },
+  { texto: 'Una semana', noches: 6 },
+];
+
+// Guarda lo que escribió (no el itinerario generado, que sigue sin
+// persistir en ningún lado) para que Registro.jsx pueda prellenar el
+// formulario real con lo mismo, en vez de que tenga que retecleario todo
+// tras crear su cuenta. Ver LEE_BORRADOR_INVITADO en NuevoViaje.jsx.
+const CLAVE_BORRADOR = 'rumbia_borrador_invitado';
+
+function guardarBorrador({ destino, fechas, viajeros, estilos }) {
+  try {
+    localStorage.setItem(
+      CLAVE_BORRADOR,
+      JSON.stringify({ destino, inicio: fechas.inicio, fin: fechas.fin, viajeros, estilos })
+    );
+  } catch {
+    /* localStorage puede fallar en navegacion privada; no es critico. */
+  }
+}
+
 const hoyMas = (dias) => {
   const d = new Date();
   d.setDate(d.getDate() + dias);
@@ -78,6 +104,7 @@ export default function Probar() {
         interests: estilos,
       });
       setResultado(datos);
+      guardarBorrador({ destino, fechas, viajeros, estilos });
     } catch (err) {
       setError(err);
     } finally {
@@ -137,7 +164,12 @@ export default function Probar() {
               onChange={(e) => setDestino(e.target.value)}
             />
 
-            <CampoFechas inicio={fechas.inicio} fin={fechas.fin} onCambio={setFechas} />
+            <CampoFechas
+              inicio={fechas.inicio}
+              fin={fechas.fin}
+              onCambio={setFechas}
+              atajos={ATAJOS_INVITADO}
+            />
 
             <Campo
               label="¿Cuántos viajan?"
@@ -244,7 +276,7 @@ export default function Probar() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor.
+            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces del sitio">
             <Link to="/acerca">Acerca de</Link>

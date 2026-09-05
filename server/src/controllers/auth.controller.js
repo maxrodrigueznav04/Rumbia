@@ -47,10 +47,6 @@ const HASH_SENUELO = bcrypt.hashSync('nadie-tiene-esta-contrasena', 12);
  */
 async function enviarVerificacionEmail(user) {
   const token = crypto.randomBytes(32).toString('hex');
-  user.emailVerifyTokenHash = hashToken(token);
-  user.emailVerifyTokenExpires = new Date(Date.now() + VERIFICAR_MINUTOS * 60 * 1000);
-  await user.save({ validateBeforeSave: false });
-
   const enlace = `${env.clientUrl}/verificar-correo/${token}`;
   const { asunto, html, texto } = correoVerificacion({
     nombre: user.name,
@@ -60,9 +56,19 @@ async function enviarVerificacionEmail(user) {
 
   const salio = await enviarCorreo({ para: user.email, asunto, html, texto });
 
-  // Mismo criterio que forgotPassword: en produccion el enlace es una
-  // credencial y no se imprime a los logs; en local, sin Resend
-  // configurado, es la unica forma de probar el flujo completo.
+  // Mismo criterio que forgotPassword: si el correo falla, no se pisa un
+  // token anterior que siguiera siendo valido (relevante sobre todo en
+  // resendVerification, donde SI puede existir uno de antes) sin llegar a
+  // entregar nunca el nuevo.
+  if (salio || !env.isProd) {
+    user.emailVerifyTokenHash = hashToken(token);
+    user.emailVerifyTokenExpires = new Date(Date.now() + VERIFICAR_MINUTOS * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+  }
+
+  // En produccion el enlace es una credencial y no se imprime a los logs;
+  // en local, sin Resend configurado, es la unica forma de probar el flujo
+  // completo.
   if (!salio && !env.isProd) {
     console.log(`
 [correo] Enlace de verificación para ${user.email}:
@@ -245,10 +251,6 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   if (!user || user.email === env.demoEmail) return res.json(respuesta);
 
   const token = crypto.randomBytes(32).toString('hex');
-  user.resetTokenHash = hashToken(token);
-  user.resetTokenExpires = new Date(Date.now() + RESET_MINUTOS * 60 * 1000);
-  await user.save({ validateBeforeSave: false });
-
   const enlace = `${env.clientUrl}/restablecer/${token}`;
   const { asunto, html, texto } = correoRecuperacion({
     nombre: user.name,
@@ -257,6 +259,18 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   });
 
   const salio = await enviarCorreo({ para: user.email, asunto, html, texto });
+
+  // Solo se persiste el token nuevo si de verdad va a llegarle a alguien: si
+  // el correo falla en produccion, se deja intacto lo que ya hubiera --
+  // guardarlo primero, incondicionalmente, podia invalidar un enlace
+  // anterior que SI funcionaba sin llegar a entregar nunca el nuevo. Pedir
+  // "olvidé mi contraseña" dos veces no debe dejar a alguien peor que si no
+  // lo hubiera pedido la segunda vez.
+  if (salio || !env.isProd) {
+    user.resetTokenHash = hashToken(token);
+    user.resetTokenExpires = new Date(Date.now() + RESET_MINUTOS * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+  }
 
   // En local casi nunca hay clave de correo configurada, y sin esto no habria
   // forma de probar el flujo entero. En produccion NO se imprime: el enlace es

@@ -38,6 +38,30 @@ export default function Registro() {
 
   const crear = form.enviar(async (valores) => {
     await register({ ...valores, perfilUso, turnstileToken });
+
+    // Si vino de probar el generador sin cuenta (Probar.jsx), se manda
+    // directo a Nuevo viaje con lo que ya había escrito ahí -- no hay que
+    // volver a teclear destino, fechas, viajeros y gustos desde cero justo
+    // después de crear la cuenta.
+    try {
+      const crudo = localStorage.getItem('rumbia_borrador_invitado');
+      if (crudo) {
+        localStorage.removeItem('rumbia_borrador_invitado');
+        const b = JSON.parse(crudo);
+        const params = new URLSearchParams({
+          destino: b.destino || '',
+          startDate: b.inicio || '',
+          endDate: b.fin || '',
+          travelers: String(b.viajeros || 1),
+          estilos: (b.estilos || []).join(','),
+        });
+        navigate(`/viajes/nuevo?${params.toString()}`, { replace: true });
+        return;
+      }
+    } catch {
+      /* borrador ilegible o localStorage no disponible: sigue el flujo normal */
+    }
+
     navigate('/viajes', { replace: true });
   });
 

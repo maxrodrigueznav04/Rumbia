@@ -29,6 +29,15 @@ export default function NuevoViaje() {
   const clientNameParam = searchParams.get('clientName');
   const clientContactParam = searchParams.get('clientContact');
 
+  // Vienen de Registro.jsx cuando alguien probó el generador sin cuenta
+  // (Probar.jsx) y se acaba de registrar: se prellena con lo mismo que ya
+  // había escrito ahí, en vez de hacerlo retecleario todo.
+  const destinoParam = searchParams.get('destino') || '';
+  const startDateParam = searchParams.get('startDate') || '';
+  const endDateParam = searchParams.get('endDate') || '';
+  const travelersParam = searchParams.get('travelers');
+  const estilosParam = searchParams.get('estilos');
+
   const [clienteId, setClienteId] = useState(clientIdParam || '');
   const [clienteNombre, setClienteNombre] = useState(clientNameParam || '');
   const [clienteContacto, setClienteContacto] = useState(clientContactParam || '');
@@ -52,18 +61,18 @@ export default function NuevoViaje() {
 
   const [form, setForm] = useState({
     title: '',
-    destino: '',
+    destino: destinoParam,
     origen: user?.preferences?.homeCity || '',
-    startDate: '',
-    endDate: '',
-    travelers: 1,
+    startDate: startDateParam,
+    endDate: endDateParam,
+    travelers: travelersParam ? Number(travelersParam) || 1 : 1,
     presupuesto: '',
   });
   // Gustos del viajero de ESTE viaje, no del perfil de quien lo crea: para
   // una agencia, cada viaje es de un cliente distinto con su propio gusto.
   // Vacios por defecto (a diferencia del perfil) porque no siempre se
   // conocen todavia al crear el viaje — la IA cae al perfil si se dejan asi.
-  const [estilos, setEstilos] = useState([]);
+  const [estilos, setEstilos] = useState(estilosParam ? estilosParam.split(',').filter(Boolean) : []);
   const [pace, setPace] = useState('');
   const [budgetLevel, setBudgetLevel] = useState('');
 
