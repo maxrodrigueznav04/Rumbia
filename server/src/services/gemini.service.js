@@ -302,6 +302,15 @@ export async function generateItinerary(ctx) {
             body.slice(0, 300)
           );
         }
+        // 500/502/504 (y cualquier otro codigo no listado arriba) en el
+        // ULTIMO modelo de la cadena: ya se agoto el respaldo. Antes esto
+        // caia a "Gemini respondio 500.", un mensaje tecnico que no le dice
+        // al usuario que hacer -- mismo tono que los otros mensajes de arriba.
+        if ([500, 502, 504].includes(res.status)) {
+          throw ApiError.serviceUnavailable(
+            'Gemini tuvo un problema técnico al generar el itinerario. Intenta de nuevo en unos minutos.'
+          );
+        }
         throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
       }
 

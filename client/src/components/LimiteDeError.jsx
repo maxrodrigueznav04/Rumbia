@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { reportarError } from '../config/sentry.js';
 
 /**
  * Atrapa errores de render para que un fallo en una pantalla no deje la app en
@@ -18,8 +19,9 @@ export default class LimiteDeError extends Component {
   }
 
   componentDidCatch(error, info) {
-    // En un proyecto real aquí iría el reporte a Sentry o similar.
     console.error('[render]', error, info.componentStack);
+    // No-op sin VITE_SENTRY_DSN (ver config/sentry.js).
+    reportarError(error, { react: { componentStack: info.componentStack } });
   }
 
   render() {

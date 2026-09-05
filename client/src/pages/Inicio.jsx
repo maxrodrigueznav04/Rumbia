@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Icono from '../components/Icono.jsx';
+import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 
 /**
  * Portada pública.
@@ -142,6 +143,14 @@ export default function Inicio() {
         <div className="contenedor">
           <p className="tenue">
             Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
+          </p>
+          <p className="tenue">
+            ¿Dudas antes de empezar? Escríbenos a{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+            .
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces del sitio">
             <Link to="/acerca">Acerca de</Link>

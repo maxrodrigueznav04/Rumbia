@@ -1,0 +1,111 @@
+name: Backup diario de MongoDB
+
+# El respaldo real de Mongo Atlas (Cloud Backup / point-in-time recovery) solo
+# existe en clusters de pago; el tier gratuito (M0) que usa Rumbia hoy no lo
+# ofrece en absoluto. Esto NO es un sustituto de eso -- es un mongodump diario
+# a costo cero, para no quedarse sin ninguna red si un bug o un deleteMany mal
+# apuntado borra algo. Si algun dia el cluster pasa a un tier de pago con
+# Cloud Backup real, este workflow deja de ser necesario.
+#
+# Requiere dos secrets en Settings > Secrets and variables > Actions:
+#   MONGO_URI          - la misma cadena de conexion que usa Render.
+#   BACKUP_PASSPHRASE  - una frase larga cualquiera, SOLO para este backup
+#                        (no reutilizar ninguna contraseña real). Sin ella
+#                        el job falla explicitamente en vez de subir un
+#                        respaldo sin cifrar.
+#
+# Importante sobre el IP access list de Atlas: los runners de GitHub Actions
+# no tienen una IP fija, asi que Atlas tiene que aceptar conexiones desde
+# cualquier IP (0.0.0.0/0) para que este job funcione -- lo mismo que Render
+# ya necesita hoy para conectarse (tampoco tiene IP fija en el plan actual).
+# Si en el futuro se restringe el access list de Atlas a IPs fijas, este job
+# se rompe y hay que resolverlo aparte (por ejemplo, corriendo el backup
+# desde un servidor con IP fija en vez de GitHub Actions).
+on:
+  schedule:
+    # 09:00 UTC = 03:00 en Culiacan (UTC-6): de madrugada, cuando casi no hay
+    # trafico escribiendo a la base.
+    - cron: '0 9 * * *'
+  # Para poder correrlo a mano desde la pestaña Actions sin esperar al cron,
+  # por ejemplo justo antes de un cambio riesgoso.
+  workflow_dispatch: {}
+
+concurrency:
+  group: mongo-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: mongodump + cifrar + subir
+    runs-on: ubuntu-latest
+    steps:
+      # mongodump no viene preinstalado en el runner: se instala desde el
+      # repo apt oficial de MongoDB, detectando el codename de Ubuntu en vez
+      # de fijarlo a mano -- asi sigue funcionando aunque GitHub actualice
+      # la version de "ubuntu-latest" mas adelante, sin tener que tocar este
+      # archivo. La version del repo (7.0) es independiente de la version
+      # real del servidor de Mongo: mongodump es compatible hacia adelante
+      # con versiones de servidor mas nuevas para un dump/restore simple.
+      - name: Instalar mongodump
+        run: |
+          set -euo pipefail
+          curl -fsSL https://pgp.mongodb.com/server-7.0.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+          CODENAME="$(. /etc/os-release && echo "$VERSION_CODENAME")"
+          echo "deb [ arch=amd64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/7.0 multiverse" \
+            | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+
+      - name: Respaldar y cifrar
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MONGO_URI:-}" ]; then
+            echo "::error::Falta el secret MONGO_URI. Agregalo en Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          if [ -z "${BACKUP_PASSPHRASE:-}" ]; then
+            echo "::error::Falta el secret BACKUP_PASSPHRASE. Agregalo en Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          FECHA="$(date -u +%Y-%m-%d)"
+          ARCHIVO_CRUDO="rumbia-${FECHA}.archive.gz"
+          ARCHIVO_CIFRADO="rumbia-${FECHA}.archive.gz.gpg"
+
+          mongodump --uri="$MONGO_URI" --gzip --archive="$ARCHIVO_CRUDO"
+
+          # Cifrado simetrico (AES256): aunque el repo ya es privado, un
+          # dump trae datos de clientes (nombre, correo, telefono) -- mejor
+          # que ni siquiera alguien con acceso al repo lo pueda leer sin la
+          # passphrase, que solo tiene quien la necesite para restaurar.
+          gpg --batch --yes --symmetric --cipher-algo AES256 \
+            --passphrase "$BACKUP_PASSPHRASE" \
+            --output "$ARCHIVO_CIFRADO" \
+            "$ARCHIVO_CRUDO"
+          rm -f "$ARCHIVO_CRUDO"
+
+          echo "NOMBRE_ARCHIVO=$ARCHIVO_CIFRADO" >> "$GITHUB_ENV"
+
+      - name: Subir respaldo como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NOMBRE_ARCHIVO }}
+          path: ${{ env.NOMBRE_ARCHIVO }}
+          # 90 dias es el maximo que da el plan gratuito de Actions para un
+          # repo privado -- ventana de sobra para notar un problema.
+          retention-days: 90
+          if-no-files-found: error
+
+# Como restaurar un respaldo (a mano, no automatizado a proposito -- restaurar
+# nunca deberia poder pasar sin que alguien lo decida explicitamente):
+#   1. Descargar el artifact desde la pestaña Actions de esta corrida.
+#   2. Descifrar:  gpg --batch --yes --decrypt --passphrase "LA_PASSPHRASE" \
+#                    --output rumbia.archive.gz rumbia-FECHA.archive.gz.gpg
+#   3. Restaurar:  mongorestore --uri="LA_MONGO_URI_DE_DESTINO" --gzip \
+#                    --archive=rumbia.archive.gz
+#      (--drop antes de --gzip si se quiere reemplazar todo lo que ya
+#      exista en destino, en vez de solo agregar encima)

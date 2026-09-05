@@ -72,3 +72,7 @@ services:
       # comision. Al aprobar una red se pega aqui el JSON y basta con eso.
       - key: AFFILIATE_LINKS
         sync: false
+      # Monitoreo de errores (opcional, gratis en sentry.io). Sin esta
+      # variable el monitoreo queda apagado y el servidor corre igual.
+      - key: SENTRY_DSN
+        sync: false

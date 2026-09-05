@@ -39,9 +39,9 @@ export default function PaginaLegal({ titulo, entrada, children }) {
 
         {FALTAN_DATOS && (
           <Aviso tipo="alerta" titulo="Falta completar los datos de contacto">
-            Este documento todavía trae marcadores en el nombre del responsable y en el correo de
-            contacto. Hay que sustituirlos en <code>client/src/config/legal.js</code> antes de
-            publicarlo.
+            Este documento todavía trae marcadores en el nombre del responsable, el domicilio o el
+            correo de contacto. Hay que sustituirlos en <code>client/src/config/legal.js</code>{' '}
+            antes de publicarlo.
           </Aviso>
         )}
 

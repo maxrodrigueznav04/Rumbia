@@ -25,6 +25,7 @@
     "otorgar-plan": "node scripts/otorgar-plan.mjs"
   },
   "dependencies": {
+    "@sentry/node": "10.73.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.7",

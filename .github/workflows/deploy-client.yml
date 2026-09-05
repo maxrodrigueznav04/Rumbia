@@ -62,9 +62,11 @@ jobs:
       # Secrets obligatorios en Settings > Secrets and variables > Actions:
       #   CLOUDFLARE_API_TOKEN  - permiso "Edit Cloudflare Workers"
       #   VITE_API_URL          - ej. https://api.rumbiamx.com/api
-      # Opcional (sin ella el widget de Turnstile simplemente no aparece,
-      # igual que en local sin configurar nada):
+      # Opcionales (sin ellas el widget de Turnstile simplemente no aparece y
+      # el monitoreo de errores queda apagado, igual que en local sin
+      # configurar nada):
       #   VITE_TURNSTILE_SITE_KEY
+      #   VITE_SENTRY_DSN
       #
       # Si CLOUDFLARE_API_TOKEN no alcanza a resolver la cuenta solo (mensaje
       # "Multiple accounts found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como
@@ -77,3 +79,4 @@ jobs:
           # CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}

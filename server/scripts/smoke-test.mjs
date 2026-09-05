@@ -9,6 +9,9 @@ process.env.STRIPE_PRICE_INICIO_MENSUAL_BASE ||= 'price_test_inicio_mensual';
 process.env.STRIPE_PRICE_AGENCIA_MENSUAL_BASE ||= 'price_test_agencia_mensual';
 process.env.STRIPE_PRICE_PRO_MENSUAL_BASE ||= 'price_test_pro_mensual';
 process.env.STRIPE_PRICE_PRO_MENSUAL_AGENTE ||= 'price_test_pro_mensual_agente';
+// Sin esto env.gemini.enabled queda en false y generateItinerary/sendChatMessage
+// rechazan de entrada, antes de poder simular la respuesta HTTP con fetch.
+process.env.GEMINI_API_KEY ||= 'test_key_test_key';
 
 const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client, limitesDePlan } = await import(
   '../src/models/index.js'
@@ -16,8 +19,8 @@ const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Cli
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
-const { buildRouteLines, normalizeDays } = await import('../src/services/gemini.service.js');
-const { buildTripContext } = await import('../src/services/chat.service.js');
+const { buildRouteLines, normalizeDays, generateItinerary } = await import('../src/services/gemini.service.js');
+const { buildTripContext, sendChatMessage } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
 const { escaparRegex, CAMPOS_EDITABLES_DIRECTO, filtroPertenenciaTrip } = await import(
   '../src/controllers/trip.controller.js'
@@ -970,6 +973,44 @@ await check('ApiError.serviceUnavailable expone statusCode, no status', () => {
   assert(err.statusCode === 503, `statusCode=${err.statusCode}`);
   assert(err.status === undefined, 'err.status no existe en ApiError: revisarlo comparaba contra undefined siempre');
   return 'gemini.service.js/chat.service.js deben leer err.statusCode para detectar 503/429';
+});
+
+// Un 500/502/504 en el ULTIMO modelo de la cadena de respaldo (ya no hay a
+// donde conmutar) caia a "Gemini respondio 500.", un mensaje tecnico crudo.
+// Se simula fetch para forzar ese ultimo intento sin llamar a la red real.
+const ctxItinerarioMinimo = {
+  destination: 'Oaxaca', days: 1, travelers: 1,
+  startDate: '2026-01-01', endDate: '2026-01-01', paradas: [],
+};
+
+await check('generateItinerary: 500 en el ultimo modelo da un mensaje claro, no crudo', async () => {
+  const fetchReal = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 500, text: async () => 'Internal error' });
+  try {
+    await generateItinerary(ctxItinerarioMinimo);
+    throw new Error('deberia haber lanzado');
+  } catch (err) {
+    assert(!/Gemini respondió 500/.test(err.message), `mensaje crudo sin corregir: ${err.message}`);
+    assert(/problema técnico/i.test(err.message), `esperaba mensaje de problema tecnico, salio: ${err.message}`);
+  } finally {
+    globalThis.fetch = fetchReal;
+  }
+  return 'mensaje de problema tecnico en vez de "Gemini respondio 500."';
+});
+
+await check('sendChatMessage: 502 en el ultimo modelo da un mensaje claro, no crudo', async () => {
+  const fetchReal = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 502, text: async () => 'Bad gateway' });
+  try {
+    await sendChatMessage({ trip: null, itinerary: null, messages: [{ role: 'user', text: 'hola' }] });
+    throw new Error('deberia haber lanzado');
+  } catch (err) {
+    assert(!/Gemini respondió 502/.test(err.message), `mensaje crudo sin corregir: ${err.message}`);
+    assert(/problema técnico/i.test(err.message), `esperaba mensaje de problema tecnico, salio: ${err.message}`);
+  } finally {
+    globalThis.fetch = fetchReal;
+  }
+  return 'mensaje de problema tecnico en vez de "Gemini respondio 502."';
 });
 
 console.log('\n== Validadores (Zod) ==');

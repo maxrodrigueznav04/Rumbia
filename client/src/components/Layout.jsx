@@ -6,6 +6,7 @@ import { Aviso, Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
 import ChatFlotante from './ChatFlotante.jsx';
 import AvisoVerificarCorreo from './AvisoVerificarCorreo.jsx';
+import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 
 const enlaces = [
   { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
@@ -102,6 +103,14 @@ export default function Layout() {
           <p className="tenue">
             Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor,
             donde completas la reserva.
+          </p>
+          <p className="tenue">
+            ¿Algo no funciona o tienes una duda? Escríbenos a{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+            .
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces del sitio">
             <Link to="/acerca">Acerca de</Link>
