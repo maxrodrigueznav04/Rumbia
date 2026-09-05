@@ -269,6 +269,24 @@ export const compartir = asyncHandler(async (req, res) => {
   if (!itinerary.shareToken) {
     itinerary.shareToken = randomBytes(16).toString('hex');
     itinerary.sharedAt = new Date();
+
+    // Se congela la marca (agencia o personal) en el momento de compartir:
+    // ver el comentario de marcaCompartida en Itinerary.js.
+    await req.user.populate({
+      path: 'agency',
+      select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf billing.plan',
+    });
+    const fuenteMarca = req.user.agency || req.user.branding;
+    itinerary.marcaCompartida = {
+      agencyName: fuenteMarca?.agencyName || '',
+      logoUrl: fuenteMarca?.logoUrl || '',
+      contact: fuenteMarca?.contact || '',
+      colorAcento: fuenteMarca?.colorAcento || '',
+      fuentePdf: fuenteMarca?.fuentePdf || '',
+      densidadPdf: fuenteMarca?.densidadPdf || 'normal',
+      marcaBlanca: Boolean(req.user.agency?.marcaBlanca),
+    };
+
     await itinerary.save();
   }
 

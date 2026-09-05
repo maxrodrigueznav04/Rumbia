@@ -177,6 +177,18 @@ const tripSchema = new mongoose.Schema(
     budgetLevel: { type: String, enum: BUDGET_LEVELS, default: null },
     status: { type: String, enum: TRIP_STATUSES, default: 'borrador', index: true },
     estadoPropuesta: { type: String, enum: ESTADOS_PROPUESTA, default: 'borrador', index: true },
+    // Rastro de la aceptacion desde el enlace publico (aceptarPropuesta): sin
+    // esto, el flag estadoPropuesta='aceptada' no dice quien la acepto ni con
+    // que precio/version de itinerario se quedo el cliente si luego el agente
+    // cambia el margen o regenera el itinerario. No es sensible (no hay cuenta
+    // de cliente en este sistema): solo IP/user-agent de quien dio clic.
+    aceptacion: {
+      en: { type: Date },
+      ip: { type: String, trim: true, default: '' },
+      userAgent: { type: String, trim: true, default: '' },
+      precioTotalPorPersona: { type: Number, min: 0 },
+      itineraryVersion: { type: Number },
+    },
     coverImage: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, maxlength: 2000, default: '' },
     // Cliente del CRM vinculado opcionalmente al viaje

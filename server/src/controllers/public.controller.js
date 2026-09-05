@@ -89,6 +89,27 @@ export const generarItinerarioInvitado = asyncHandler(async (req, res) => {
 });
 
 /**
+ * El precio final que ve el cliente: costo real (actividades + logistica) mas
+ * la cuota/margen de la agencia, si la capturo. Se comparte entre el enlace
+ * publico y aceptarPropuesta (que la congela en el momento de aceptar) para
+ * que las dos cuentas jamas se desalineen.
+ */
+export function precioTotalPorPersonaDe(trip, itinerary) {
+  const travelers = trip.travelers || 1;
+  const costoPorPersonaSinMargen = itinerary.totalEstimatedCost + (trip.coreCosts.total || 0) / travelers;
+  const margenMonto = trip.margen?.monto || 0;
+  return Number(
+    (
+      margenMonto <= 0
+        ? costoPorPersonaSinMargen
+        : trip.margen.tipo === 'porcentaje'
+          ? costoPorPersonaSinMargen * (1 + margenMonto / 100)
+          : costoPorPersonaSinMargen + margenMonto / travelers
+    ).toFixed(2)
+  );
+}
+
+/**
  * Itinerario compartido por enlace, sin sesion.
  *
  * Se devuelve el viaje completo para leerlo: destino, fechas, dias, y como
@@ -129,7 +150,18 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // publica aqui. Si algun dia se le agrega un campo sensible a cualquiera de
   // los dos esquemas, no empieza a salir solo porque este endpoint reenvia el
   // objeto entero.
-  const fuenteMarca = trip.user?.agency || trip.user?.branding;
+  //
+  // Se prefiere la marca CONGELADA al compartir (itinerary.marcaCompartida)
+  // sobre la marca en vivo del dueno: si ya mando este enlace a un cliente y
+  // despues cambia de agencia, el enlace no debe empezar a mostrar la marca
+  // nueva sola. Los enlaces compartidos antes de que existiera este campo no
+  // tienen snapshot (queda vacio), asi que caen a resolverla en vivo como antes.
+  const fuenteMarcaViva = trip.user?.agency || trip.user?.branding;
+  const snapshot = itinerary.marcaCompartida;
+  const tieneSnapshot = Boolean(
+    snapshot?.agencyName || snapshot?.logoUrl || snapshot?.contact
+  );
+  const fuenteMarca = tieneSnapshot ? snapshot : fuenteMarcaViva;
   const marca = {
     agencyName: fuenteMarca?.agencyName || '',
     logoUrl: fuenteMarca?.logoUrl || '',
@@ -138,7 +170,9 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     fuentePdf: fuenteMarca?.fuentePdf || '',
     densidadPdf: fuenteMarca?.densidadPdf || 'normal',
     // Solo la agencia trae este virtual; branding personal nunca lo tiene.
-    marcaBlanca: Boolean(trip.user?.agency?.marcaBlanca),
+    marcaBlanca: tieneSnapshot
+      ? Boolean(snapshot.marcaBlanca)
+      : Boolean(trip.user?.agency?.marcaBlanca),
   };
 
   /**
@@ -233,15 +267,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   const travelers = trip.travelers || 1;
   const costoPorPersonaSinMargen = itinerary.totalEstimatedCost + (trip.coreCosts.total || 0) / travelers;
   const margenMonto = trip.margen?.monto || 0;
-  const precioTotalPorPersona = Number(
-    (
-      margenMonto <= 0
-        ? costoPorPersonaSinMargen
-        : trip.margen.tipo === 'porcentaje'
-          ? costoPorPersonaSinMargen * (1 + margenMonto / 100)
-          : costoPorPersonaSinMargen + margenMonto / travelers
-    ).toFixed(2)
-  );
+  const precioTotalPorPersona = precioTotalPorPersonaDe(trip, itinerary);
   const margenPorPersona =
     desglosePublico && margenMonto > 0
       ? Number((precioTotalPorPersona - costoPorPersonaSinMargen).toFixed(2))
@@ -303,6 +329,12 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
  * reenviar el correo al agente ni pisar un estado mas avanzado (pagada) con
  * uno anterior (aceptada). Solo se puede aceptar desde "borrador" o
  * "enviada" -- una propuesta ya pagada o cancelada no se reabre desde aqui.
+ *
+ * El paso borrador/enviada -> aceptada es un findOneAndUpdate condicionado al
+ * estado actual, no un read-then-save: dos aceptaciones que lleguen al mismo
+ * tiempo (doble clic en dos pestañas, o el cliente reenviando la peticion por
+ * una red lenta) solo pueden hacer match una vez, asi que solo una manda el
+ * correo al agente y la otra cae directo al branch "ya habias aceptado".
  */
 export const aceptarPropuesta = asyncHandler(async (req, res) => {
   const itinerary = await Itinerary.findOne({ shareToken: req.params.token });
@@ -310,18 +342,42 @@ export const aceptarPropuesta = asyncHandler(async (req, res) => {
     throw ApiError.notFound('Este enlace ya no existe o dejo de compartirse.');
   }
 
-  const trip = await Trip.findById(itinerary.trip).populate({ path: 'user', select: 'name email' });
-  if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
+  // Se necesita el trip ya cargado para calcular el precio (coreCosts,
+  // margen) que se va a congelar en la aceptacion -- ninguno de esos campos
+  // cambia con este update, asi que leerlo antes no abre ninguna ventana de
+  // carrera para el estado en si (ese lo protege el filtro de abajo).
+  const tripActual = await Trip.findById(itinerary.trip);
+  if (!tripActual) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
 
-  if (trip.estadoPropuesta === 'aceptada') {
-    return res.json({ success: true, message: 'Ya habias aceptado esta propuesta.', data: { estadoPropuesta: trip.estadoPropuesta } });
-  }
-  if (['pagada', 'cancelada'].includes(trip.estadoPropuesta)) {
+  const aceptacion = {
+    en: new Date(),
+    ip: req.ip || '',
+    userAgent: req.get('user-agent') || '',
+    precioTotalPorPersona: precioTotalPorPersonaDe(tripActual, itinerary),
+    itineraryVersion: itinerary.version,
+  };
+
+  const trip = await Trip.findOneAndUpdate(
+    { _id: itinerary.trip, estadoPropuesta: { $in: ['borrador', 'enviada'] } },
+    { $set: { estadoPropuesta: 'aceptada', aceptacion } },
+    { new: true }
+  ).populate({ path: 'user', select: 'name email' });
+
+  if (!trip) {
+    // No hizo match: o ya estaba aceptada (posible incluso por una peticion
+    // concurrente que gano la carrera hace un instante), o esta en un estado
+    // que ya no se puede aceptar desde aqui. Se relee para saber cual de los
+    // dos es, sin volver a tocar el estado.
+    const actual = await Trip.findById(itinerary.trip).select('estadoPropuesta');
+    if (actual?.estadoPropuesta === 'aceptada') {
+      return res.json({
+        success: true,
+        message: 'Ya habias aceptado esta propuesta.',
+        data: { estadoPropuesta: 'aceptada' },
+      });
+    }
     throw ApiError.badRequest('Esta propuesta ya no se puede aceptar desde aqui.');
   }
-
-  trip.estadoPropuesta = 'aceptada';
-  await trip.save();
 
   // Sin await a proposito: quien acepta no debe esperar a que salga el
   // correo (enviarCorreo ya tiene su propio timeout de 10s) para ver la

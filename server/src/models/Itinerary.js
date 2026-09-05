@@ -94,6 +94,25 @@ const itinerarySchema = new mongoose.Schema(
      */
     shareToken: { type: String, index: { unique: true, sparse: true }, select: false },
     sharedAt: { type: Date },
+    /**
+     * Marca (agencia o personal) congelada en el momento de compartir, no
+     * resuelta en vivo cada vez que alguien abre el enlace. Sin esto, si el
+     * dueño cambiaba de agencia (o salía y creaba otra) DESPUES de compartir
+     * una propuesta, el enlace que ya le había mandado a un cliente empezaba
+     * a mostrar la marca de la agencia NUEVA en vez de la que de verdad armó
+     * esa propuesta -- una propuesta ya enviada no debería cambiar de marca
+     * sola. Queda vacío en itinerarios compartidos antes de este campo
+     * existir; verItinerarioCompartido cae a resolverla en vivo en ese caso.
+     */
+    marcaCompartida: {
+      agencyName: { type: String, default: '' },
+      logoUrl: { type: String, default: '' },
+      contact: { type: String, default: '' },
+      colorAcento: { type: String, default: '' },
+      fuentePdf: { type: String, default: '' },
+      densidadPdf: { type: String, default: 'normal' },
+      marcaBlanca: { type: Boolean, default: false },
+    },
 
     version: { type: Number, default: 1 },
     days: { type: [daySchema], default: [] },

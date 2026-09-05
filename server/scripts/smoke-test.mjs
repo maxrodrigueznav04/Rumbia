@@ -279,6 +279,16 @@ await check('Itinerary rechaza hora mal formada', async () => {
   return 'formato HH:mm exigido';
 });
 
+await check('Itinerary.marcaCompartida: campos declarados para congelar la marca al compartir', async () => {
+  for (const campo of ['agencyName', 'logoUrl', 'contact', 'colorAcento', 'fuentePdf', 'densidadPdf', 'marcaBlanca']) {
+    assert(Itinerary.schema.path(`marcaCompartida.${campo}`), `falta marcaCompartida.${campo}`);
+  }
+  const it = new Itinerary({ trip: uid, user: uid });
+  assert(it.marcaCompartida.densidadPdf === 'normal', 'un itinerario sin marcaCompartida no deberia romper: default normal');
+  assert(it.marcaCompartida.marcaBlanca === false, 'default false');
+  return 'snapshot vacio por defecto, retrocompatible con itinerarios ya compartidos';
+});
+
 await check('Itinerary totales y pines', async () => {
   const it = new Itinerary({
     trip: uid, user: uid,
@@ -523,6 +533,49 @@ await check('Trip acepta client ObjectId ref y estadoPropuesta', async () => {
 });
 
 console.log('\n== Itinerario: reordenar por hora ==');
+
+const { precioTotalPorPersonaDe } = await import('../src/controllers/public.controller.js');
+
+await check('precioTotalPorPersonaDe: sin margen, es solo el costo real', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date(), endDate: new Date(), travelers: 2,
+    transport: { outbound: { cost: 1000 }, inbound: { cost: 1000 } },
+  });
+  const it = new Itinerary({ trip: uid, user: uid, days: [{ dayNumber: 1, activities: [{ title: 'A', estimatedCost: 400 }] }] });
+  // coreCosts.total=2000 entre 2 viajeros = 1000/persona, mas 400 del itinerario
+  assert(precioTotalPorPersonaDe(t, it) === 1400, `precio=${precioTotalPorPersonaDe(t, it)}`);
+  return '1400 (costo real, sin cuota de servicio)';
+});
+
+await check('precioTotalPorPersonaDe: margen fijo se reparte entre viajeros', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date(), endDate: new Date(), travelers: 2,
+    margen: { tipo: 'fijo', monto: 1000 },
+  });
+  const it = new Itinerary({ trip: uid, user: uid, days: [] });
+  assert(precioTotalPorPersonaDe(t, it) === 500, `precio=${precioTotalPorPersonaDe(t, it)}`);
+  return '1000 fijo entre 2 viajeros -> 500/persona';
+});
+
+await check('precioTotalPorPersonaDe: margen porcentaje se aplica sobre el costo real', async () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date(), endDate: new Date(), travelers: 1,
+    margen: { tipo: 'porcentaje', monto: 20 },
+  });
+  const it = new Itinerary({ trip: uid, user: uid, days: [{ dayNumber: 1, activities: [{ title: 'A', estimatedCost: 1000 }] }] });
+  assert(precioTotalPorPersonaDe(t, it) === 1200, `precio=${precioTotalPorPersonaDe(t, it)}`);
+  return '1000 + 20% -> 1200';
+});
+
+await check('Trip.aceptacion: campos declarados para el rastro de aceptarPropuesta', async () => {
+  for (const campo of ['en', 'ip', 'userAgent', 'precioTotalPorPersona', 'itineraryVersion']) {
+    assert(Trip.schema.path(`aceptacion.${campo}`), `falta aceptacion.${campo}`);
+  }
+  return 'en/ip/userAgent/precioTotalPorPersona/itineraryVersion';
+});
 
 const { reorderByTime } = await import('../src/controllers/itinerary.controller.js');
 

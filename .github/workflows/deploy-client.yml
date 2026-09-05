@@ -1,14 +1,20 @@
 name: Deploy cliente a Cloudflare
 
-# Solo en push directo a main (no en PRs: un PR abierto no debe tocar
-# produccion) y solo cuando cambia algo bajo client/, para no gastar minutos
-# en un push que solo toca el server.
+# Se dispara cuando el workflow "CI" TERMINA en main, no por push directo:
+# antes, esto corria en paralelo a CI, sin relacion entre los dos, asi que
+# un push con las pruebas del cliente rotas se desplegaba igual (CI se ponia
+# rojo, pero por separado, sin frenar nada). Ahora depende de su resultado.
+#
+# El precio de este cambio: se pierde el filtro `paths: ['client/**']` --
+# workflow_run no lo soporta, asi que esto corre en CADA CI exitoso en main,
+# no solo cuando cambia el cliente (el build igual es rapido y "deploy" ya
+# encadena "build", asi que republicar un dist/ identico no hace dano, solo
+# gasta unos segundos de mas).
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'client/**'
-      - '.github/workflows/deploy-client.yml'
 
 concurrency:
   group: deploy-client-${{ github.ref }}
@@ -18,8 +24,16 @@ jobs:
   deploy:
     name: Build y wrangler deploy
     runs-on: ubuntu-latest
+    # workflow_run se dispara con CUALQUIER conclusion (tambien si CI fallo):
+    # sin este filtro, un CI en rojo igual disparaba el deploy de todas formas.
+    if: github.event.workflow_run.conclusion == 'success'
     steps:
+      # Se despliega exactamente el commit que CI aprobo (head_sha del run),
+      # no el HEAD actual de main -- que para cuando este job arranca ya
+      # pudo avanzar con un commit nuevo que CI ni siquiera reviso todavia.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -30,6 +44,14 @@ jobs:
       - name: Instalar dependencias
         working-directory: client
         run: npm ci
+
+      # Repite las pruebas aqui mismo, como segunda red ademas de CI: confiar
+      # solo en la conclusion de otro workflow (workflow_run) sin verificar
+      # nada localmente dejaria pasar, por ejemplo, un cambio a este propio
+      # archivo que rompiera el deploy sin que ninguna prueba lo hubiera visto.
+      - name: Pruebas
+        working-directory: client
+        run: npm test
 
       # "deploy" ya encadena "build": nunca publica un dist/ viejo. Vite
       # incrusta VITE_* en el bundle AL COMPILAR (no se leen despues en
