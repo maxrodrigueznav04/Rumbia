@@ -243,7 +243,7 @@ export async function sendChatMessage({ trip, itinerary, messages }) {
       clearTimeout(timer);
       ultimoError = err;
       const esTimeout = err.name === 'AbortError';
-      const esSaturado = err instanceof ApiError && (err.status === 503 || err.status === 429);
+      const esSaturado = err instanceof ApiError && (err.statusCode === 503 || err.statusCode === 429);
 
       if ((esTimeout || esSaturado) && !esUltimo) {
         console.warn(

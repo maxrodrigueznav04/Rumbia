@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
 import ApiError from '../utils/ApiError.js';
+import { incrementarUsoIAMensual } from '../utils/cupoIA.js';
 
 /**
  * Agencia: la marca que comparten varios agentes sin compartir cuenta.
@@ -215,15 +216,15 @@ agencySchema.methods.verificarCupoIA = function verificarCupoIA(campo) {
   }
 };
 
-/** Suma 1 al contador del mes en curso (reiniciandolo si cambio de mes) y guarda. */
+/**
+ * Suma 1 al contador del mes en curso (reiniciandolo si cambio de mes), de
+ * forma atomica -- sin cargar this.billing.usoIA y volver a guardarlo, que
+ * perdia un incremento si dos agentes de la misma agencia generaban casi al
+ * mismo tiempo (ver incrementarUsoIAMensual).
+ */
 agencySchema.methods.consumirCupoIA = async function consumirCupoIA(campo) {
-  const mesActual = new Date().toISOString().slice(0, 7);
-  if (this.billing.usoIA?.mes !== mesActual) {
-    this.billing.usoIA = { mes: mesActual, generaciones: 0, mensajesChat: 0 };
-  }
-  if (campo === 'chat') this.billing.usoIA.mensajesChat += 1;
-  else this.billing.usoIA.generaciones += 1;
-  await this.save();
+  const [propio, otro] = campo === 'chat' ? ['mensajesChat', 'generaciones'] : ['generaciones', 'mensajesChat'];
+  await incrementarUsoIAMensual(this.constructor, { _id: this._id }, 'billing.usoIA', propio, otro);
 };
 
 export default mongoose.model('Agency', agencySchema);

@@ -1,4 +1,4 @@
-import { Itinerary, TripChat, Agency } from '../models/index.js';
+import { Itinerary, TripChat, Agency, User } from '../models/index.js';
 import { LIMITE_MENSAJES_CHAT_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -6,6 +6,7 @@ import { sendChatMessage } from '../services/chat.service.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { esAdmin } from '../utils/esAdmin.js';
 import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
+import { incrementarUsoIAMensual } from '../utils/cupoIA.js';
 
 // Cuantos mensajes se conservan por viaje. Recortar el historial guardado
 // evita que un documento crezca sin limite; el chat sigue funcionando bien
@@ -38,13 +39,7 @@ export function verificarCupoChat(user) {
 
 export async function consumirCupoChat(user) {
   if (user.agency || esAdmin(user)) return;
-
-  const mesActual = new Date().toISOString().slice(0, 7);
-  if (user.usoIA?.mes !== mesActual) {
-    user.usoIA = { mes: mesActual, generaciones: 0, mensajesChat: 0 };
-  }
-  user.usoIA.mensajesChat += 1;
-  await user.save();
+  await incrementarUsoIAMensual(User, { _id: user._id }, 'usoIA', 'mensajesChat', 'generaciones');
 }
 
 /**

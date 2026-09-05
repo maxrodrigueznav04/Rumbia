@@ -16,10 +16,12 @@ const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Cli
 const schemas = await import('../src/validators/schemas.js');
 const { buildLinksForTrip } = await import('../src/services/bookingLinks.service.js');
 const { getWeatherForRange, getWeatherForStops } = await import('../src/services/weather.service.js');
-const { buildRouteLines } = await import('../src/services/gemini.service.js');
+const { buildRouteLines, normalizeDays } = await import('../src/services/gemini.service.js');
 const { buildTripContext } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
 const { escaparRegex, CAMPOS_EDITABLES_DIRECTO } = await import('../src/controllers/trip.controller.js');
+const { incrementarUsoIAMensual } = await import('../src/utils/cupoIA.js');
+const ApiError = (await import('../src/utils/ApiError.js')).default;
 const mongoose = (await import('mongoose')).default;
 
 let pass = 0, fail = 0;
@@ -769,6 +771,142 @@ await check('Agency.verificarCupoIA: mes distinto reinicia el conteo a cero', ()
   });
   a.verificarCupoIA('generaciones'); // "999" es de un mes viejo, este mes va en 0
   return 'contador de un mes distinto no cuenta contra el mes actual';
+});
+
+console.log('\n== Cupo mensual de IA: incremento atomico (R4) ==');
+
+// incrementarUsoIAMensual ya no hace read-then-save (perdia incrementos con
+// dos requests concurrentes): arma un pipeline de update atomico. Se prueba
+// con un Model de mentira que solo captura el pipeline que se le manda, sin
+// necesitar Mongo real -- lo que importa aqui es que el pipeline calcule bien
+// el +1 y el reinicio de mes, no que Mongo lo ejecute.
+const modeloDeMentira = () => {
+  const llamadas = [];
+  return { updateOne: async (filtro, pipeline) => llamadas.push({ filtro, pipeline }), llamadas };
+};
+// Evalua una expresion de agregacion como lo haria Mongo, contra un
+// documento de prueba, para no depender de leer a mano la forma exacta del
+// arbol de $cond. El chequeo de "$campo" va ANTES del de "no es objeto":
+// una ruta como "$usoIA.mes" es un string, y devolverlo tal cual (en vez de
+// resolverlo contra doc) haria que todo $eq comparara contra el string
+// literal y nunca contra el valor real.
+const evaluarExpr = (expr, doc) => {
+  if (typeof expr === 'string' && expr.startsWith('$')) {
+    return expr.slice(1).split('.').reduce((v, k) => v?.[k], doc);
+  }
+  if (expr === null || typeof expr !== 'object') return expr;
+  if (Array.isArray(expr)) return expr.map((e) => evaluarExpr(e, doc));
+  if ('$eq' in expr) {
+    const [a, b] = expr.$eq.map((e) => evaluarExpr(e, doc));
+    return a === b;
+  }
+  if ('$cond' in expr) {
+    const [cond, si, no] = expr.$cond;
+    return evaluarExpr(cond, doc) ? evaluarExpr(si, doc) : evaluarExpr(no, doc);
+  }
+  if ('$ifNull' in expr) {
+    const [v, def] = expr.$ifNull.map((e) => evaluarExpr(e, doc));
+    return v == null ? def : v;
+  }
+  if ('$add' in expr) return expr.$add.map((e) => evaluarExpr(e, doc)).reduce((a, b) => a + b, 0);
+  // Objeto plano (p.ej. el propio "usoIA: {...}" del $set): se evalua cada valor.
+  return Object.fromEntries(Object.entries(expr).map(([k, v]) => [k, evaluarExpr(v, doc)]));
+};
+
+// $set de Mongo acepta llaves con ruta ("billing.usoIA") que anidan en vez de
+// crear una llave literal con puntos -- se aplica igual aqui antes de leer el
+// resultado, para que un basePath anidado (como el de Agency) quede en
+// resultado.billing.usoIA y no en resultado['billing.usoIA'].
+const aplicarSet = (setObj, doc) => {
+  const resultado = JSON.parse(JSON.stringify(doc));
+  for (const [ruta, expr] of Object.entries(setObj)) {
+    const valor = evaluarExpr(expr, doc);
+    const partes = ruta.split('.');
+    let nodo = resultado;
+    for (let i = 0; i < partes.length - 1; i++) {
+      nodo[partes[i]] ??= {};
+      nodo = nodo[partes[i]];
+    }
+    nodo[partes.at(-1)] = valor;
+  }
+  return resultado;
+};
+
+await check('incrementarUsoIAMensual: mismo mes suma 1 sin pisar el otro contador', async () => {
+  const m = modeloDeMentira();
+  await incrementarUsoIAMensual(m, { _id: uid }, 'usoIA', 'generaciones', 'mensajesChat');
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const doc = { usoIA: { mes: mesActual, generaciones: 4, mensajesChat: 10 } };
+  const resultado = aplicarSet(m.llamadas[0].pipeline[0].$set, doc);
+  assert(resultado.usoIA.generaciones === 5, `generaciones=${resultado.usoIA.generaciones}`);
+  assert(resultado.usoIA.mensajesChat === 10, `mensajesChat=${resultado.usoIA.mensajesChat}, no debia tocarse`);
+  return 'generaciones 4->5, mensajesChat intacto en 10';
+});
+
+await check('incrementarUsoIAMensual: mes distinto reinicia ambos contadores antes de sumar', async () => {
+  const m = modeloDeMentira();
+  await incrementarUsoIAMensual(m, { _id: uid }, 'usoIA', 'generaciones', 'mensajesChat');
+  const doc = { usoIA: { mes: '2000-01', generaciones: 999, mensajesChat: 999 } };
+  const resultado = aplicarSet(m.llamadas[0].pipeline[0].$set, doc);
+  assert(resultado.usoIA.generaciones === 1, `generaciones=${resultado.usoIA.generaciones}`);
+  assert(resultado.usoIA.mensajesChat === 0, `mensajesChat=${resultado.usoIA.mensajesChat}`);
+  return 'mes viejo: generaciones arranca en 1, mensajesChat en 0';
+});
+
+await check('incrementarUsoIAMensual: Agency.consumirCupoIA arma el pipeline sobre billing.usoIA', async () => {
+  const a = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'pro_mensual' } });
+  const llamadas = [];
+  const updateOneOriginal = a.constructor.updateOne;
+  a.constructor.updateOne = async (filtro, pipeline) => llamadas.push({ filtro, pipeline });
+  try {
+    await a.consumirCupoIA('chat');
+  } finally {
+    a.constructor.updateOne = updateOneOriginal;
+  }
+  assert(llamadas.length === 1, 'debia llamar a updateOne una vez');
+  assert(JSON.stringify(llamadas[0].filtro) === JSON.stringify({ _id: a._id }), 'filtra por la agencia correcta');
+  const doc = { billing: { usoIA: { mes: new Date().toISOString().slice(0, 7), generaciones: 2, mensajesChat: 5 } } };
+  const resultado = aplicarSet(llamadas[0].pipeline[0].$set, doc);
+  assert(resultado.billing.usoIA.mensajesChat === 6, `mensajesChat=${resultado.billing.usoIA.mensajesChat}`);
+  assert(resultado.billing.usoIA.generaciones === 2, `generaciones=${resultado.billing.usoIA.generaciones}, no debia tocarse`);
+  return "campo='chat' incrementa mensajesChat, deja generaciones intacto";
+});
+
+console.log('\n== Gemini: normalizacion de coordenadas (R6) ==');
+
+await check('normalizeDays: lat/lng null NO se guardan como (0,0)', () => {
+  const dias = normalizeDays(
+    { days: [{ dayNumber: 1, activities: [{ title: 'A', lat: null, lng: null }] }] },
+    1
+  );
+  assert(dias[0].activities[0].location.lat === undefined, `lat=${dias[0].activities[0].location.lat}`);
+  assert(dias[0].activities[0].location.lng === undefined, `lng=${dias[0].activities[0].location.lng}`);
+  return 'sin lat/lng en location: mapPins() no la cuenta como pin';
+});
+
+await check('normalizeDays: lat/lng ausentes (undefined) tampoco caen a (0,0)', () => {
+  const dias = normalizeDays({ days: [{ dayNumber: 1, activities: [{ title: 'A' }] }] }, 1);
+  assert(dias[0].activities[0].location.lat === undefined, 'sin coordenadas de Gemini, sin pin falso');
+  return 'consistente con el caso null';
+});
+
+await check('normalizeDays: coordenadas reales si se guardan', () => {
+  const dias = normalizeDays(
+    { days: [{ dayNumber: 1, activities: [{ title: 'A', lat: 17.06, lng: -96.72 }] }] },
+    1
+  );
+  assert(dias[0].activities[0].location.lat === 17.06, `lat=${dias[0].activities[0].location.lat}`);
+  assert(dias[0].activities[0].location.lng === -96.72, `lng=${dias[0].activities[0].location.lng}`);
+  return 'un pin real (17.06, -96.72) sigue guardandose igual';
+});
+
+console.log('\n== Gemini/chat: deteccion de saturacion (R2) ==');
+
+await check('ApiError.serviceUnavailable expone statusCode, no status', () => {
+  const err = ApiError.serviceUnavailable('Gemini devolvió un JSON malformado.');
+  assert(err.statusCode === 503, `statusCode=${err.statusCode}`);
+  assert(err.status === undefined, 'err.status no existe en ApiError: revisarlo comparaba contra undefined siempre');
+  return 'gemini.service.js/chat.service.js deben leer err.statusCode para detectar 503/429';
 });
 
 console.log('\n== Validadores (Zod) ==');

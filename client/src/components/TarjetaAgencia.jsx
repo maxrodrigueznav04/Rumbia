@@ -24,6 +24,13 @@ const PLANES = {
   vitalicio: { etiqueta: 'De por vida (Legacy)', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
 };
 
+// Mismo monto que pro_mensual.agente/pro_anual.agente en PLANES de arriba (y
+// que los STRIPE_PRICE_PRO_*_AGENTE reales del servidor): duplicado a
+// proposito en vez de parsear el texto de PLANES, para no depender de que su
+// redaccion no cambie nunca.
+const PRECIO_AGENTE_EXTRA_PRO_MENSUAL = 75;
+const PRECIO_AGENTE_EXTRA_PRO_ANUAL = 780;
+
 export const TIERS_SELECCION = [
   {
     id: 'inicio',
@@ -340,12 +347,17 @@ function UnirseOCrear({ actualizarUsuario }) {
 /* ------------------------------------------------------------------ */
 
 function VistaConAgencia({ actualizarUsuario }) {
-  const { data, cargando, error, recargar } = useFetch(({ signal }) => agencyApi.obtener({ signal }), []);
+  const { data, cargando, error, recargar, setData } = useFetch(
+    ({ signal }) => agencyApi.obtener({ signal }),
+    []
+  );
   const [avisoStripe, setAvisoStripe] = useState(null);
 
-  // Vuelta de Stripe Checkout: se limpia el query param de la URL y se
-  // refresca la agencia. El webhook puede tardar un par de segundos mas que
-  // la redirección del navegador, asi que se recarga una segunda vez.
+  // Vuelta de Stripe Checkout: se limpia el query param de la URL. El
+  // webhook que activa el plan puede tardar unos segundos mas que la
+  // redireccion del navegador, asi que NO se afirma "pago recibido" de
+  // entrada -- se reintenta la carga de la agencia hasta confirmar
+  // billing.status==='activa' antes de decir que ya se proceso.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const resultado = params.get('billing');
@@ -353,18 +365,42 @@ function VistaConAgencia({ actualizarUsuario }) {
 
     window.history.replaceState({}, '', window.location.pathname);
 
-    if (resultado === 'exito') {
-      setAvisoStripe('Pago recibido. Activando tu plan...');
-      recargar();
-      const t = setTimeout(() => {
-        recargar();
-        setAvisoStripe(null);
-      }, 2500);
-      return () => clearTimeout(t);
-    }
     if (resultado === 'cancelado') {
       setAvisoStripe('No se completó el pago: no se hizo ningún cargo.');
+      return;
     }
+    if (resultado !== 'exito') return;
+
+    let cancelado = false;
+    setAvisoStripe('Verificando tu pago...');
+
+    (async () => {
+      for (const espera of [0, 2000, 4000]) {
+        if (espera) await new Promise((r) => setTimeout(r, espera));
+        if (cancelado) return;
+        try {
+          const fresca = await agencyApi.obtener();
+          if (cancelado) return;
+          setData(fresca);
+          if (fresca?.agency?.billing?.status === 'activa') {
+            setAvisoStripe('Pago recibido. Tu plan ya está activo.');
+            setTimeout(() => !cancelado && setAvisoStripe(null), 3000);
+            return;
+          }
+        } catch {
+          // Se ignora: se reintenta en la siguiente vuelta.
+        }
+      }
+      // Se agoto el reintento sin ver el plan activo todavia: se pide
+      // paciencia en vez de afirmar algo que no se pudo confirmar.
+      if (!cancelado) {
+        setAvisoStripe('Tu pago está en proceso. Puede tardar unos segundos más en reflejarse aquí.');
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -613,10 +649,20 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
 
   const planClave = `${tier}_${frecuencia}`;
   const tierSeleccionado = TIERS_SELECCION.find((t) => t.id === tier) || TIERS_SELECCION[1];
-  const precioActual = frecuencia === 'mensual' ? tierSeleccionado.precioMensual : tierSeleccionado.precioAnual;
   const periodoTexto = frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)';
 
   const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - 15));
+
+  // "Total a pagar" tiene que incluir los agentes extra: el checkout real
+  // (irACheckout de abajo, y stripe.service.js del lado del servidor) sí les
+  // agrega su propio renglon de Stripe -- mostrar solo el precio base del
+  // tier subestimaba el cargo real en Pro con agentes extra.
+  const extraAgentesNum = tier === 'pro' ? Number(extraAgentes) || 0 : 0;
+  const costoExtra = extraAgentesNum * (frecuencia === 'mensual' ? PRECIO_AGENTE_EXTRA_PRO_MENSUAL : PRECIO_AGENTE_EXTRA_PRO_ANUAL);
+  const precioBaseTexto = frecuencia === 'mensual' ? tierSeleccionado.precioMensual : tierSeleccionado.precioAnual;
+  const precioBaseNum = Number(precioBaseTexto.replace(/[^0-9]/g, ''));
+  const precioActual =
+    costoExtra > 0 ? `$${(precioBaseNum + costoExtra).toLocaleString('es-MX')} MXN` : precioBaseTexto;
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
