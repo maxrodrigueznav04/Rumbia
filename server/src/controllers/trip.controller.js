@@ -121,8 +121,9 @@ export async function findOwnedTrip(tripId, user) {
 }
 
 export const listTrips = asyncHandler(async (req, res) => {
-  const { status, estadoPropuesta, q, page, limit } = req.validatedQuery;
+  const { status, estadoPropuesta, atencion, q, page, limit } = req.validatedQuery;
   const now = new Date();
+  now.setUTCHours(0, 0, 0, 0);
 
   // $and de condiciones separadas, nunca reasignando una clave "$or" que ya
   // trae filtroPertenenciaTrip: mismo bug que ya se corrigio en
@@ -136,6 +137,8 @@ export const listTrips = asyncHandler(async (req, res) => {
   else if (status) condiciones.push({ status });
 
   if (estadoPropuesta) condiciones.push({ estadoPropuesta });
+  if (atencion === 'salidas') condiciones.push({ startDate: { $gte: now, $lt: addDays(now, 7) } });
+  if (atencion === 'pendientes') condiciones.push(filtroPendientes());
 
   if (q) {
     const re = new RegExp(escaparRegex(q), 'i');
@@ -152,10 +155,30 @@ export const listTrips = asyncHandler(async (req, res) => {
     Trip.countDocuments(filter),
   ]);
 
+  const itinerarios = await Itinerary.find({ trip: { $in: trips.map((t) => t._id) } }).select('trip').lean();
+  const conItinerario = new Set(itinerarios.map((i) => String(i.trip)));
+
   res.json({
     success: true,
-    data: { trips, pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 } },
+    data: { trips: trips.map((t) => ({ ...t.toObject(), tieneItinerario: conItinerario.has(String(t._id)) })), pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 } },
   });
+});
+
+function filtroPendientes() {
+  return { estadoPropuesta: { $nin: ['cancelada', 'pagada'] }, status: { $ne: 'completado' },
+    $or: [{ 'cliente.nombre': { $in: ['', null] } }, { 'lodging.0': { $exists: false } }] };
+}
+
+export const getPanel = asyncHandler(async (req, res) => {
+  const propio = filtroPertenenciaTrip(req.user);
+  const hoy = new Date(); hoy.setUTCHours(0, 0, 0, 0);
+  const [porEnviar, seguimiento, proximasSalidas, pendientes] = await Promise.all([
+    Trip.countDocuments({ ...propio, estadoPropuesta: 'borrador', endDate: { $gte: hoy } }),
+    Trip.countDocuments({ ...propio, estadoPropuesta: 'enviada' }),
+    Trip.countDocuments({ ...propio, startDate: { $gte: hoy, $lt: addDays(hoy, 7) } }),
+    Trip.countDocuments({ ...propio, $and: [filtroPendientes()] }),
+  ]);
+  res.json({ success: true, data: { porEnviar, seguimiento, proximasSalidas, pendientes } });
 });
 
 export const getTrip = asyncHandler(async (req, res) => {
@@ -186,9 +209,8 @@ export const getTrip = asyncHandler(async (req, res) => {
   // las variantes armadas por cualquier companero de equipo tambien cuentan.
   const ancla = trip.grupoPropuesta || trip._id;
   const variantes = await Trip.find({
-    ...filtroPertenenciaTrip(req.user),
     _id: { $ne: trip._id },
-    $or: [{ _id: ancla }, { grupoPropuesta: ancla }],
+    $and: [filtroPertenenciaTrip(req.user), { $or: [{ _id: ancla }, { grupoPropuesta: ancla }] }],
   })
     .select('title status startDate endDate destination')
     .sort({ createdAt: 1 });

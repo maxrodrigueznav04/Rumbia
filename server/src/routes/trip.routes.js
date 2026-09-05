@@ -22,6 +22,7 @@ router.use(soloLecturaSiCongelada);
 
 router.get('/', validate(tripListQuerySchema, 'query'), ctrl.listTrips);
 router.post('/', validate(createTripSchema), ctrl.createTrip);
+router.get('/panel', ctrl.getPanel);
 
 router.get('/:id', ctrl.getTrip);
 router.patch('/:id', validate(updateTripSchema), ctrl.updateTrip);

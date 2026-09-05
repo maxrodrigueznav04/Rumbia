@@ -344,6 +344,7 @@ export const updateTripSchema = z
 export const tripListQuerySchema = z.object({
   status: opcionalEnQuery(z.enum([...TRIP_STATUSES, 'proximos', 'pasados'])),
   estadoPropuesta: opcionalEnQuery(z.enum(ESTADOS_PROPUESTA)),
+  atencion: opcionalEnQuery(z.enum(['salidas', 'pendientes'])),
   q: opcionalEnQuery(z.string().trim().max(120)),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
