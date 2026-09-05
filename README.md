@@ -695,10 +695,6 @@ Turnstile) se filtra o se sospecha comprometida:
   query ni llama `qs.stringify` directo en ningún lado (solo lo usa Express por debajo, con su
   configuración por default, para parsear `req.query`). No correr `npm audit fix --force`: eso
   bajaría `express` de version sin que el codigo este migrado.
-- El aviso de privacidad (`client/src/pages/Privacidad.jsx`, sección "Quién es responsable de tus
-  datos") todavía no incluye un domicilio del responsable, que el art. 15 de la LFPDPPP exige.
-  Falta agregarlo (`client/src/config/legal.js` es donde viven `RESPONSABLE`/`CONTACTO_PRIVACIDAD`,
-  sería el lugar natural para un tercer dato de domicilio) en cuanto se tenga uno que publicar.
 - El captcha con Cloudflare Turnstile (`server/src/services/turnstile.service.js`,
   `client/src/components/Captcha.jsx`) existe en el código pero se queda apagado a propósito:
   sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
