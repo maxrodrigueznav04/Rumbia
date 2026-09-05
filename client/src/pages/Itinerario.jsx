@@ -603,8 +603,8 @@ export default function Itinerario() {
 
           {generando && (
             <Aviso tipo="info" titulo="Generando tu itinerario">
-              Suele tardar entre 20 y 60 segundos, más mientras más días tenga el viaje. No cierres
-              la pestaña.
+              Suele tardar entre 20 y 60 segundos, más mientras más días tenga el viaje. Si la IA
+              está saturada puede tardar un poco más mientras se reintenta. No cierres la pestaña.
             </Aviso>
           )}
         </Tarjeta>

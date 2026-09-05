@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
+import { reportarError } from '../config/sentry.js';
 
 export function notFound(req, _res, next) {
   next(ApiError.notFound(`Ruta no encontrada: ${req.method} ${req.originalUrl}`));
@@ -36,7 +37,13 @@ export function errorHandler(err, _req, res, _next) {
   // mensaje util: una linea basta. El stack completo se reserva para los bugs.
   if (statusCode >= 500) {
     if (err.isOperational) console.warn(`[aviso] ${statusCode} ${message}`);
-    else console.error('[error]', err);
+    else {
+      console.error('[error]', err);
+      // Mismo criterio que el console.error: solo bugs de verdad, nunca los
+      // 503 esperados de un servicio externo caido (esos ya se resuelven
+      // solos y no hace falta que nadie los revise a mano).
+      reportarError(err);
+    }
   }
 
   res.status(statusCode).json({

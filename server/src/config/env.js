@@ -106,6 +106,10 @@ export const env = {
   // no se lleve por delante la demo del portafolio.
   demoEmail: (process.env.SEED_USER_EMAIL || 'demo@rumbo.app').toLowerCase(),
   isProd: (process.env.NODE_ENV || 'development') === 'production',
+  // Sin SENTRY_DSN, el monitoreo de errores queda apagado y el servidor se
+  // comporta exactamente igual que antes de que existiera esta integracion
+  // (mismo criterio que Cloudinary/Turnstile/Stripe de arriba).
+  sentryDsn: process.env.SENTRY_DSN || '',
 };
 
 export default env;

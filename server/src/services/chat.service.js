@@ -216,6 +216,13 @@ export async function sendChatMessage({ trip, itinerary, messages }) {
             body.slice(0, 300)
           );
         }
+        // Mismo motivo que gemini.service.js: sin esto, un 500/502/504 en el
+        // ultimo modelo de la cadena caia a un mensaje tecnico crudo.
+        if ([500, 502, 504].includes(res.status)) {
+          throw ApiError.serviceUnavailable(
+            'El asistente tuvo un problema técnico. Intenta de nuevo en unos minutos.'
+          );
+        }
         throw ApiError.serviceUnavailable(`Gemini respondió ${res.status}.`, body.slice(0, 300));
       }
 

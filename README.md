@@ -712,11 +712,22 @@ Turnstile) se filtra o se sospecha comprometida:
   recuperación de contraseña) funcionan, pero corren más riesgo de caer en spam que si salieran
   de un dominio propio verificado. No bloquea el registro ni el cobro — solo la entrega de esos
   correos.
+- **Backup diario de MongoDB** (`.github/workflows/mongo-backup.yml`): el tier gratuito de Atlas
+  (M0) no ofrece Cloud Backup ni point-in-time recovery en absoluto, así que un `mongodump` diario
+  corre gratis en GitHub Actions, se cifra (AES256 simétrico, aunque el repo ya es privado) y se
+  sube como artifact (90 días de retención). Requiere los secrets `MONGO_URI` y
+  `BACKUP_PASSPHRASE` en Settings > Secrets and variables > Actions — sin ellos el job falla
+  explícitamente en vez de saltarse el respaldo en silencio. No sustituye un backup real de un
+  cluster de pago, pero es infinitamente mejor que no tener ninguno. Nota: como los runners de
+  GitHub no tienen IP fija, esto necesita que Atlas acepte conexiones desde cualquier IP
+  (`0.0.0.0/0`) — lo mismo que Render ya necesita hoy para conectarse.
 - Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
-    billing; hoy depende solo de la contraseña.
+    billing; hoy depende solo de la contraseña. Diseño completo listo para implementar en
+    `docs/diseno-2fa.md` — deliberadamente no implementado en código todavía: toca el flujo de
+    login, que se despliega automáticamente en cuanto pasa CI, y no se pudo probar en vivo contra
+    un autenticador real en el entorno donde se diseñó.
   - **Config del lado de los proveedores, no del código**: IP allowlist en MongoDB Atlas (nada de
-    `0.0.0.0/0`), llaves restringidas (no la secret key completa) donde Stripe y Cloudinary lo
-    permitan, y confirmar que el plan de Atlas tiene backups o point-in-time recovery — es la única
-    red real contra un `deleteMany` mal apuntado.
+    `0.0.0.0/0`, salvo por lo que necesita el backup de arriba) y llaves restringidas (no la
+    secret key completa) donde Stripe y Cloudinary lo permitan.

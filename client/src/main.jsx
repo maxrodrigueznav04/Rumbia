@@ -9,6 +9,11 @@ import App from './App.jsx';
 import '@fontsource-variable/sora';
 import '@fontsource-variable/manrope';
 import './styles/global.css';
+import { initSentry, instalarListenersGlobales } from './config/sentry.js';
+
+// Antes de montar la app: sin VITE_SENTRY_DSN, ambas son no-ops (ver sentry.js).
+initSentry();
+instalarListenersGlobales();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

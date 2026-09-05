@@ -48,13 +48,21 @@ const MS_ANTES_DE_AVISAR = 4000;
 const TIMEOUT_MS = 70000;
 
 /**
- * La generación con IA es la única llamada que puede tardar minutos: el
- * servidor le da 90 s a Gemini y encima puede sumarse el arranque en frío de
- * Render (~50 s). Con el timeout general de 70 s el navegador abortaba antes
- * de que el servidor terminara: el itinerario quedaba guardado y aun así se
- * veía un error. El del cliente tiene que ser mayor que el del servidor.
+ * La generación con IA es la única llamada que puede tardar minutos, y el
+ * peor caso real es peor de lo que parece a primera vista: el servidor le da
+ * hasta 150 s a Gemini POR INTENTO (TIMEOUT_MS en gemini.service.js), y si el
+ * modelo principal falla o se satura conmuta a cada modelo de respaldo
+ * (MODELOS_FALLBACK, hoy 2 mas) probando cada uno con el mismo presupuesto de
+ * 150 s -- en el peor caso son 3 intentos completos, ~450 s, antes de que el
+ * servidor de una respuesta final (mas el arranque en frio de Render, ~50 s,
+ * si el servicio llevaba rato dormido). Un timeout de cliente mas corto que
+ * eso no es solo "un error de mas": el navegador aborta la conexion, pero el
+ * servidor sigue corriendo y puede terminar guardando el itinerario de todas
+ * formas -- el usuario ve un error y el viaje reaparece con un itinerario
+ * que "no debia existir". El del cliente tiene que cubrir el peor caso
+ * completo del servidor, no solo un intento.
  */
-export const TIMEOUT_IA_MS = 180000;
+export const TIMEOUT_IA_MS = 480000;
 
 let peticionesEnVuelo = 0;
 

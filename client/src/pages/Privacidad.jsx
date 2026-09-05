@@ -1,6 +1,6 @@
 import { Tarjeta } from '../components/ui.jsx';
 import PaginaLegal from '../components/PaginaLegal.jsx';
-import { RESPONSABLE, CONTACTO_PRIVACIDAD } from '../config/legal.js';
+import { RESPONSABLE, CONTACTO_PRIVACIDAD, DOMICILIO } from '../config/legal.js';
 
 /**
  * Política de privacidad.
@@ -27,8 +27,9 @@ export default function Privacidad() {
       <h2>1. Quién es responsable de tus datos</h2>
       <p>
         El responsable del tratamiento de los datos personales que recabamos es{' '}
-        <strong>{RESPONSABLE}</strong>. Para cualquier asunto relacionado con esta política puedes
-        escribir a <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
+        <strong>{RESPONSABLE}</strong>, con domicilio en <strong>{DOMICILIO}</strong>. Para cualquier
+        asunto relacionado con esta política puedes escribir a{' '}
+        <strong><a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a></strong>.
       </p>
       <p>
         Rumbia es una plataforma de planeación y cotización de viajes: centraliza la información de tus rutas y

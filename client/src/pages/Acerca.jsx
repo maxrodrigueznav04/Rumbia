@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { useJsonLd } from '../hooks/useJsonLd.js';
+import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 
 // Fuera del componente para que sea la misma referencia en cada render: si
 // viviera adentro, cada vez que se toca el toggle mensual/anual el hook de
@@ -880,6 +881,14 @@ export default function Acerca() {
         <div className="contenedor">
           <p className="tenue">
             Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
+          </p>
+          <p className="tenue">
+            ¿Dudas, algo no funciona, o quieres hablar con nosotros? Escríbenos a{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+            .
           </p>
           <nav className="pie-enlaces" aria-label="Enlaces del sitio">
             <Link to="/acerca">Acerca de</Link>

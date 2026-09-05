@@ -61,7 +61,15 @@ export default function Captcha({ onToken }) {
     return () => {
       cancelado = true;
       if (widgetIdRef.current != null && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current);
+        // No debería lanzar nunca, pero un remove() sobre un widget que
+        // Cloudflare ya limpió por su cuenta (o un script que aun no
+        // termino de cargar del todo) no tiene por que tirar la pantalla
+        // completa -- es limpieza de un componente que ya se esta yendo.
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch {
+          // deliberadamente silencioso: ver comentario de arriba.
+        }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

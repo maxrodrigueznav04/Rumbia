@@ -1,6 +1,7 @@
 import { Tarjeta } from '../components/ui.jsx';
 import PaginaLegal from '../components/PaginaLegal.jsx';
 import { RESPONSABLE, CONTACTO_PRIVACIDAD } from '../config/legal.js';
+import { ENLACE_WHATSAPP } from '../config/contacto.js';
 
 /**
  * Términos y condiciones.
@@ -108,6 +109,18 @@ export default function Terminos() {
         permanecerá activo hasta el final del ciclo ya pagado y no se realizarán cargos posteriores.
       </p>
       <p>
+        <strong>Política de reembolsos:</strong> Los cobros de suscripción ya procesados no son reembolsables.
+        Al cancelar, el servicio sigue activo hasta el final del periodo que ya pagaste y no se te vuelve a
+        cobrar, pero no se devuelve el importe de ese periodo en curso. La única excepción es un error de
+        cobro de nuestra parte (por ejemplo, un cargo duplicado o por un monto distinto al de tu plan): en
+        ese caso, escríbenos a{' '}
+        <strong>
+          <a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a>
+        </strong>{' '}
+        y lo corregimos. Nada de esto limita los derechos que la legislación mexicana de protección al
+        consumidor te reconozca.
+      </p>
+      <p>
         Hacemos lo posible por mantener Rumbia funcionando sin contratiempos, apoyados en proveedores serios
         (Cloudflare, Render y MongoDB Atlas), pero como cualquier aplicación en internet no podemos garantizar
         que esté disponible el 100% del tiempo ni completamente libre de errores. Tampoco respondemos por
@@ -156,6 +169,12 @@ export default function Terminos() {
         reclamación puedes escribir a{' '}
         <strong>
           <a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a>
+        </strong>{' '}
+        o por{' '}
+        <strong>
+          <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
+            WhatsApp
+          </a>
         </strong>
         .
       </p>

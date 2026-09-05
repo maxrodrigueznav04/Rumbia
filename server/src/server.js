@@ -1,6 +1,10 @@
 import app from './app.js';
 import env from './config/env.js';
 import { connectDB, disconnectDB } from './config/db.js';
+import { initSentry, reportarError } from './config/sentry.js';
+
+// Antes que cualquier otra cosa: sin SENTRY_DSN es un no-op (ver sentry.js).
+initSentry();
 
 await connectDB();
 
@@ -24,4 +28,5 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('unhandledRejection', (reason) => {
   console.error('[server] Promesa rechazada sin manejar:', reason);
+  reportarError(reason instanceof Error ? reason : new Error(String(reason)));
 });
