@@ -68,9 +68,18 @@ export const crearAgencia = asyncHandler(async (req, res) => {
     ...(yaUsoTrial ? { billing: { status: 'pendiente', trialHasta: new Date(0) } } : {}),
   });
 
-  req.user.agency = agencia._id;
-  req.user.trialAgenciaUsado = true;
-  await req.user.save();
+  // Sin transacciones (no damos por hecho el replica set, ver comentario en
+  // deleteAccount): si el save del usuario falla despues de crear la agencia,
+  // se borra la agencia recien creada en vez de dejarla huerfana (sin dueno
+  // que la vea ni referencia que apunte a ella).
+  try {
+    req.user.agency = agencia._id;
+    req.user.trialAgenciaUsado = true;
+    await req.user.save();
+  } catch (err) {
+    await Agency.deleteOne({ _id: agencia._id });
+    throw err;
+  }
 
   res.status(201).json({
     success: true,

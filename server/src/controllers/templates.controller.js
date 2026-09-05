@@ -121,21 +121,31 @@ export const aplicar = asyncHandler(async (req, res) => {
     })),
   }));
 
-  const itinerary = await Itinerary.create({
-    trip: trip._id,
-    user: req.user._id,
-    generatedBy: 'manual',
-    promptContext: {
-      destination: plantilla.destination?.name,
-      paradas: (plantilla.additionalDestinations || []).map((p) => ({
-        nombre: p.place?.name,
-        startDay: p.startDayNumber,
-        endDay: p.endDayNumber,
-      })),
-      days: days.length,
-    },
-    days,
-  });
+  // Sin transacciones (no damos por hecho el replica set, ver comentario en
+  // deleteAccount): si crear el itinerario falla despues de crear el viaje,
+  // se borra el viaje recien creado en vez de dejarlo huerfano (un viaje sin
+  // itinerario que el usuario no pidio y no puede regenerar desde cero igual).
+  let itinerary;
+  try {
+    itinerary = await Itinerary.create({
+      trip: trip._id,
+      user: req.user._id,
+      generatedBy: 'manual',
+      promptContext: {
+        destination: plantilla.destination?.name,
+        paradas: (plantilla.additionalDestinations || []).map((p) => ({
+          nombre: p.place?.name,
+          startDay: p.startDayNumber,
+          endDay: p.endDayNumber,
+        })),
+        days: days.length,
+      },
+      days,
+    });
+  } catch (err) {
+    await Trip.deleteOne({ _id: trip._id });
+    throw err;
+  }
 
   res.status(201).json({
     success: true,
