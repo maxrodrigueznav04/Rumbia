@@ -48,6 +48,7 @@ export default function TarjetaViaje({ viaje }) {
 
         <h3 className="viaje-destino">{nombreDestino(viaje)}</h3>
         <p className="viaje-titulo">{viaje.title}</p>
+        {esAgencia && <p className="tenue">Creado por: {String(viaje.user?._id || viaje.user) === String(user?._id) ? user?.name : 'Integrante del equipo'}{!viaje.cliente?.nombre && ' · Cliente por asignar'}</p>}
         {viaje.cliente?.nombre && (
           <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.85rem' }}>
             Para {viaje.cliente.nombre}
@@ -81,7 +82,7 @@ export default function TarjetaViaje({ viaje }) {
                 {presupuesto > 0 ? `${Math.round(porcentaje)}% del presupuesto` : 'Capturado'}
               </span>
               <span className="numero" style={{ fontSize: '0.92rem' }}>
-                {formatoMoneda(gastado, moneda)}
+                {formatoMoneda(gastado, moneda)} {moneda}
                 {presupuesto > 0 && (
                   <span className="tenue" style={{ fontWeight: 400 }}>
                     {' / '}

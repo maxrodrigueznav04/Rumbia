@@ -57,6 +57,7 @@ const qs = (params) => {
 };
 
 export const tripsApi = {
+  panel: (opts) => api.get('/trips/panel', opts),
   list: (params, opts) => api.get(`/trips${qs(params)}`, opts),
   get: (id, opts) => api.get(`/trips/${id}`, opts),
   create: (payload) => api.post('/trips', payload),

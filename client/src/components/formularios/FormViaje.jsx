@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
+import ClienteDelViaje from '../ClienteDelViaje.jsx';
 import CampoFechas from '../CampoFechas.jsx';
 import CampoDestino from '../CampoDestino.jsx';
 import CampoParadas, { paradasAPayload, payloadAParadas } from '../CampoParadas.jsx';
@@ -12,7 +13,7 @@ import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 const ESTADOS = [
   { valor: 'borrador', texto: 'Borrador' },
   { valor: 'planeado', texto: 'Planeado' },
-  { valor: 'aprobado', texto: 'Aprobado por el cliente' },
+  { valor: 'aprobado', texto: 'Listo para viajar' },
   { valor: 'en-curso', texto: 'En curso' },
   { valor: 'completado', texto: 'Completado' },
 ];
@@ -30,6 +31,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
   // eso es para quien arma el viaje para alguien más.
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
   // Coordenadas de la sugerencia elegida en el autocompletado, si eligió una.
+  const [clienteId, setClienteId] = useState(viaje.client?._id || viaje.client || '');
   const [lugarElegido, setLugarElegido] = useState(null);
   const [paradas, setParadas] = useState(() => payloadAParadas(viaje.additionalDestinations));
 
@@ -44,8 +46,8 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       presupuesto: viaje.budget?.amount || '',
       status: viaje.status || 'borrador',
       notes: viaje.notes || '',
-      clienteNombre: viaje.cliente?.nombre || '',
-      clienteContacto: viaje.cliente?.contacto || '',
+      clienteNombre: viaje.client?.nombre || viaje.cliente?.nombre || '',
+      clienteContacto: viaje.client?.telefono || viaje.client?.email || viaje.cliente?.contacto || '',
       ocultarDesglose: viaje.ocultarDesglose ?? false,
       ocultarCodigos: viaje.ocultarCodigos ?? true,
       margenTipo: viaje.margen?.tipo || 'fijo',
@@ -80,6 +82,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       budget: { amount: Number(v.presupuesto) || 0 },
       status: v.status,
       notes: v.notes.trim(),
+      client: clienteId || null,
       cliente: { nombre: v.clienteNombre.trim(), contacto: v.clienteContacto.trim() },
       ocultarDesglose: v.ocultarDesglose,
       ocultarCodigos: v.ocultarCodigos,
@@ -124,21 +127,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
 
         <Campo label="Nombre del viaje" {...form.props('title')} />
 
-        {esAgencia && (
-          <div className="campos-2">
-            <Campo
-              label="Cliente"
-              placeholder="Familia Hernández"
-              ayuda="Opcional. Para encontrarlo en tu lista y saber para quién es."
-              {...form.props('clienteNombre')}
-            />
-            <Campo
-              label="Contacto del cliente"
-              placeholder="WhatsApp, correo..."
-              {...form.props('clienteContacto')}
-            />
-          </div>
-        )}
+        {esAgencia && <ClienteDelViaje value={{ id: clienteId, nombre: valores.clienteNombre, contacto: valores.clienteContacto }} onChange={(c) => { setClienteId(c.id); form.fijar('clienteNombre', c.nombre); form.fijar('clienteContacto', c.contacto); }} />}
 
         <CampoDestino
           label="Destino"
@@ -213,7 +202,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           />
         </div>
 
-        <Campo label="Estado">
+        <Campo label="Estado operativo del viaje" ayuda="La aceptación y el pago se registran en el estado de la propuesta.">
           <select {...form.props('status')}>
             {ESTADOS.map((e) => (
               <option key={e.valor} value={e.valor}>
@@ -234,7 +223,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
             checked={form.valores.ocultarCodigos}
             onChange={form.cambiar}
           />
-          Ocultar códigos de reservación y notas internas en el enlace compartido
+          Ocultar códigos de reservación y notas internas en el PDF y enlace compartido
         </label>
         <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
           {form.valores.ocultarCodigos

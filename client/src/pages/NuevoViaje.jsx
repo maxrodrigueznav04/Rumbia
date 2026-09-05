@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { tripsApi, weatherApi, clientsApi } from '../api/index.js';
+import { tripsApi, weatherApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
+import ClienteDelViaje from '../components/ClienteDelViaje.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
 import CampoDestino from '../components/CampoDestino.jsx';
 import CampoParadas, { paradasAPayload } from '../components/CampoParadas.jsx';
@@ -41,24 +42,6 @@ export default function NuevoViaje() {
   const [clienteId, setClienteId] = useState(clientIdParam || '');
   const [clienteNombre, setClienteNombre] = useState(clientNameParam || '');
   const [clienteContacto, setClienteContacto] = useState(clientContactParam || '');
-  const [listaClientes, setListaClientes] = useState([]);
-
-  useEffect(() => {
-    clientsApi.list({ limit: 50 }).then((res) => {
-      setListaClientes(res.clientes || []);
-    }).catch(() => {});
-  }, []);
-
-  const seleccionarCliente = (id) => {
-    setClienteId(id);
-    if (!id) return;
-    const encontrado = listaClientes.find((c) => c._id === id);
-    if (encontrado) {
-      setClienteNombre(encontrado.nombre);
-      setClienteContacto(encontrado.telefono || encontrado.email || '');
-    }
-  };
-
   const [form, setForm] = useState({
     title: '',
     destino: destinoParam,
@@ -71,7 +54,7 @@ export default function NuevoViaje() {
   // Gustos del viajero de ESTE viaje, no del perfil de quien lo crea: para
   // una agencia, cada viaje es de un cliente distinto con su propio gusto.
   // Vacios por defecto (a diferencia del perfil) porque no siempre se
-  // conocen todavia al crear el viaje — la IA cae al perfil si se dejan asi.
+  // conocen al crear el viaje. Para agencias se usa un respaldo equilibrado.
   const [estilos, setEstilos] = useState(estilosParam ? estilosParam.split(',').filter(Boolean) : []);
   const [pace, setPace] = useState('');
   const [budgetLevel, setBudgetLevel] = useState('');
@@ -171,7 +154,7 @@ export default function NuevoViaje() {
         <h1 style={{ marginTop: 8 }}>Nuevo viaje</h1>
         <p className="suave" style={{ margin: 0 }}>
           {esAgencia
-            ? 'Con el destino y las fechas basta para empezar. El cliente y el margen los agregas después, desde "Editar".'
+            ? 'Empieza con destino, fechas y viajeros. Después completa la cotización y revisa la propuesta para tu cliente.'
             : 'Con el destino y las fechas basta para empezar. Lo demás lo vas llenando después.'}
         </p>
       </div>
@@ -190,72 +173,6 @@ export default function NuevoViaje() {
             error={errorDe('destination')}
           />
 
-          <Campo
-            label="¿Cómo se llama el viaje?"
-            name="title"
-            placeholder={form.destino ? `Viaje a ${form.destino}` : 'Escapada de fin de semana'}
-            value={form.title}
-            onChange={cambiar}
-            error={errorDe('title')}
-            ayuda="Si lo dejas vacío usamos el destino."
-          />
-
-          {/* Cliente del viaje / Cotización */}
-          <div
-            style={{
-              background: 'var(--surface-alt)',
-              padding: '14px 16px',
-              borderRadius: 'var(--radio)',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 10 }}>
-              <span className="etiqueta" style={{ margin: 0 }}>Cliente / Cotización (opcional)</span>
-              {listaClientes.length > 0 && (
-                <span className="tenue" style={{ fontSize: '0.78rem' }}>
-                  {listaClientes.length} en CRM
-                </span>
-              )}
-            </div>
-
-            {listaClientes.length > 0 && (
-              <div className="campo" style={{ marginBottom: 10 }}>
-                <label>Seleccionar de la cartera de clientes</label>
-                <select
-                  value={clienteId}
-                  onChange={(e) => seleccionarCliente(e.target.value)}
-                >
-                  <option value="">-- Escribir cliente nuevo o sin asignar --</option>
-                  {listaClientes.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.nombre} {c.telefono ? `(${c.telefono})` : c.email ? `(${c.email})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="rejilla rejilla-2" style={{ gap: 10 }}>
-              <Campo
-                label="Nombre del cliente o familia"
-                placeholder="Ej. Familia González"
-                value={clienteNombre}
-                onChange={(e) => {
-                  setClienteNombre(e.target.value);
-                  if (clienteId) setClienteId('');
-                }}
-                style={{ marginBottom: 0 }}
-              />
-              <Campo
-                label="WhatsApp / Contacto"
-                placeholder="55 1234 5678"
-                value={clienteContacto}
-                onChange={(e) => setClienteContacto(e.target.value)}
-                style={{ marginBottom: 0 }}
-              />
-            </div>
-          </div>
-
           <CampoFechas
             inicio={form.startDate}
             fin={form.endDate}
@@ -265,6 +182,31 @@ export default function NuevoViaje() {
             }
             errorInicio={errorDe('startDate')}
             errorFin={errorDe('endDate')}
+          />
+
+            <Campo
+              label="¿Cuántos viajan?"
+              name="travelers"
+              type="number"
+              min="1"
+              max="30"
+              value={form.travelers}
+              onChange={cambiar}
+              error={errorDe('travelers')}
+            />
+          {esAgencia && <details className="opciones-formulario" open={Boolean(clienteId) || undefined}>
+            <summary>Cliente (opcional)</summary>
+            <ClienteDelViaje value={{ id: clienteId, nombre: clienteNombre, contacto: clienteContacto }} onChange={(c) => { setClienteId(c.id); setClienteNombre(c.nombre); setClienteContacto(c.contacto); }} />
+          </details>}
+          <details className="opciones-formulario" open={detalles.some((d) => !['destination', 'startDate', 'endDate', 'travelers'].some((campo) => d.field?.startsWith(campo))) || undefined}><summary>Personalizar viaje y preferencias</summary><div className="pila">
+          <Campo
+            label="¿Cómo se llama el viaje?"
+            name="title"
+            placeholder={form.destino ? `Viaje a ${form.destino}` : 'Escapada de fin de semana'}
+            value={form.title}
+            onChange={cambiar}
+            error={errorDe('title')}
+            ayuda="Si lo dejas vacío usamos el destino."
           />
 
           <CampoParadas
@@ -285,16 +227,6 @@ export default function NuevoViaje() {
 
           <div className="rejilla rejilla-2">
             <Campo
-              label="¿Cuántos viajan?"
-              name="travelers"
-              type="number"
-              min="1"
-              max="30"
-              value={form.travelers}
-              onChange={cambiar}
-              error={errorDe('travelers')}
-            />
-            <Campo
               label="Presupuesto estimado"
               name="presupuesto"
               type="number"
@@ -311,7 +243,7 @@ export default function NuevoViaje() {
             <label>Gustos de quien viaja (opcional)</label>
             <p className="campo-ayuda" style={{ marginTop: 0 }}>
               {esAgencia
-                ? 'Son del cliente, no los tuyos: si los dejas vacíos, la IA usa tu perfil como respaldo al generar.'
+                ? 'Si no los conoces, usamos un plan equilibrado, ritmo moderado y gasto medio. Puedes personalizarlo aquí.'
                 : 'Si los dejas vacíos, usamos lo que configuraste en tu perfil.'}
             </p>
             <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }}>
@@ -336,7 +268,7 @@ export default function NuevoViaje() {
           <div className="rejilla rejilla-2">
             <Campo label="Ritmo de viaje">
               <select value={pace} onChange={(e) => setPace(e.target.value)}>
-                <option value="">Usar el de mi perfil</option>
+                <option value="">{esAgencia ? 'Equilibrado (sin preferencias del cliente)' : 'Usar el de mi perfil'}</option>
                 {RITMOS.map((r) => (
                   <option key={r.valor} value={r.valor}>
                     {r.texto}
@@ -346,7 +278,7 @@ export default function NuevoViaje() {
             </Campo>
             <Campo label="Nivel de gasto">
               <select value={budgetLevel} onChange={(e) => setBudgetLevel(e.target.value)}>
-                <option value="">Usar el de mi perfil</option>
+                <option value="">{esAgencia ? 'Equilibrado (sin preferencias del cliente)' : 'Usar el de mi perfil'}</option>
                 <option value="bajo">Bajo — mochilero, lo económico</option>
                 <option value="medio">Medio — cómodo sin excesos</option>
                 <option value="alto">Alto — sin fijarse mucho en el precio</option>
@@ -354,6 +286,7 @@ export default function NuevoViaje() {
             </Campo>
           </div>
 
+          </div></details>
           <div className="fila" style={{ marginTop: 4 }}>
             <Boton type="submit" cargando={enviando}>
               {enviando ? 'Creando...' : 'Crear viaje'}

@@ -11,7 +11,7 @@ export default function ResumenPresupuesto({ resumen }) {
 
   if (!hayGastos) {
     return (
-      <Tarjeta titulo="Presupuesto">
+      <Tarjeta titulo="Control de gastos internos">
         <Vacio icono="💰" titulo="Sin gastos capturados">
           Conforme registres transporte, hospedaje y gastos sueltos, aquí vas a ver el desglose.
         </Vacio>
@@ -23,7 +23,7 @@ export default function ResumenPresupuesto({ resumen }) {
   const claseBarra = budget.isOver ? 'excedido' : porcentaje > 80 ? 'alerta' : '';
 
   return (
-    <Tarjeta titulo="Presupuesto">
+    <Tarjeta titulo="Control de gastos internos">
       {conversion?.sinConvertir?.length > 0 && (
         <Aviso tipo="alerta" titulo="Hay gastos fuera de esta suma">
           No se pudo obtener el tipo de cambio de {conversion.sinConvertir.join(', ')}, así que esos

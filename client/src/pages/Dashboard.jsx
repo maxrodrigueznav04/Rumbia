@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import useFetch from '../hooks/useFetch.js';
 import useDebounce from '../hooks/useDebounce.js';
 import TarjetaViaje from '../components/TarjetaViaje.jsx';
+import { ReporteAgencia } from '../components/TarjetaAgencia.jsx';
 import { Boton, Vacio, ErrorCarga, Esqueleto } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
 
@@ -20,6 +21,7 @@ const FILTROS = [
 // quien cotiza para clientes.
 const FILTROS_PROPUESTA = [
   { valor: '', texto: 'Cualquier propuesta' },
+  { valor: 'borrador', texto: 'Sin enviar' },
   { valor: 'enviada', texto: 'Enviadas' },
   { valor: 'aceptada', texto: 'Aceptadas' },
   { valor: 'pagada', texto: 'Pagadas' },
@@ -47,6 +49,13 @@ export default function Dashboard() {
   const [filtro, setFiltro] = useState('proximos');
   const [filtroPropuesta, setFiltroPropuesta] = useState('');
   const [busqueda, setBusqueda] = useState('');
+  const [atencion, setAtencion] = useState('');
+  const [ambito, setAmbito] = useState('mios');
+  const esDueno = user?.agency && String(user.agency.owner) === String(user._id);
+  const panel = useFetch(({ signal }) => esAgencia ? tripsApi.panel({ signal }) : Promise.resolve(null), [esAgencia]);
+  const verAtencion = (propuesta, estado, pendiente = '') => {
+    setFiltroPropuesta(propuesta); setFiltro(estado); setAtencion(pendiente); setBusqueda(''); setPagina(1);
+  };
 
   // Sin debounce se dispararía una petición por cada tecla.
   const consulta = useDebounce(busqueda.trim(), 350);
@@ -58,20 +67,21 @@ export default function Dashboard() {
   // el nuevo filtro solo tiene una, la vista quedaría vacía sin explicación.
   useEffect(() => {
     setPagina(1);
-  }, [filtro, filtroPropuesta, consulta]);
+  }, [filtro, filtroPropuesta, consulta, atencion]);
 
   const { data, cargando, error, recargar } = useFetch(
     ({ signal }) =>
       tripsApi.list(
         {
           status: filtro || undefined,
+          atencion: atencion || undefined,
           estadoPropuesta: filtroPropuesta || undefined,
           q: consulta || undefined,
           page: pagina,
         },
         { signal }
       ),
-    [filtro, filtroPropuesta, consulta, pagina]
+    [filtro, filtroPropuesta, consulta, pagina, atencion]
   );
 
   const viajes = data?.trips || [];
@@ -124,6 +134,24 @@ export default function Dashboard() {
         </Link>
       </header>
 
+      {esDueno && <div className="fila" aria-label="Ámbito de trabajo">
+        <Boton variante={ambito === 'mios' ? 'primario' : 'secundario'} onClick={() => setAmbito('mios')} aria-pressed={ambito === 'mios'}>Viajes</Boton>
+        <Boton variante={ambito === 'equipo' ? 'primario' : 'secundario'} onClick={() => setAmbito('equipo')} aria-pressed={ambito === 'equipo'}>Reporte del equipo</Boton>
+      </div>}
+      {ambito === 'equipo' ? <><p className="suave">Productividad de tu equipo. Los viajes de la agencia se comparten entre sus integrantes.</p><ReporteAgencia /></> : <>
+      {esAgencia && panel.error && <ErrorCarga error={panel.error} onReintentar={panel.recargar} contexto="Pendientes del día" />}
+      {esAgencia && <div className="panel-trabajo" aria-label="Pendientes del día">
+        {[
+          ['porEnviar', 'Por preparar', 'Propuestas próximas sin enviar', () => verAtencion('borrador', 'proximos')],
+          ['seguimiento', 'Dar seguimiento', 'Propuestas enviadas', () => verAtencion('enviada', '')],
+          ['proximasSalidas', 'Próximas salidas', 'Durante los siguientes 7 días', () => verAtencion('', '', 'salidas')],
+          ['pendientes', 'Completar datos', 'Falta cliente u hospedaje', () => verAtencion('', '', 'pendientes')],
+        ].map(([key, titulo, ayuda, accion]) => <button key={key} className="tarjeta metrica-trabajo" onClick={accion}>
+          <span>{titulo}</span><strong>{panel.data?.[key] ?? '—'}</strong><small>{ayuda}</small>
+        </button>)}
+      </div>}
+      {atencion && <div className="fila"><span>{atencion === 'salidas' ? 'Salidas en los próximos 7 días' : 'Viajes con datos pendientes'}</span><Boton chico variante="secundario" onClick={() => setAtencion('')}>Quitar filtro</Boton></div>}
+
       <div className="fila-entre" style={{ gap: 10, flexWrap: 'wrap' }}>
         <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }} role="tablist" aria-label="Filtrar viajes">
           {FILTROS.map((f) => (
@@ -131,7 +159,7 @@ export default function Dashboard() {
               key={f.valor || 'todos'}
               role="tab"
               aria-selected={filtro === f.valor}
-              onClick={() => setFiltro(f.valor)}
+              onClick={() => { setFiltro(f.valor); setAtencion(''); }}
               className={`insignia ${filtro === f.valor ? 'marca' : ''}`}
             >
               {f.texto}
@@ -141,6 +169,7 @@ export default function Dashboard() {
           {/* Embudo de ventas: solo le importa a quien cotiza para clientes. */}
           {esAgencia && (
             <select
+              className="filtro-propuesta"
               value={filtroPropuesta}
               onChange={(e) => setFiltroPropuesta(e.target.value)}
               aria-label="Filtrar por estado de la propuesta"
@@ -254,6 +283,7 @@ export default function Dashboard() {
           </Boton>
         </nav>
       )}
+      </>}
     </div>
   );
 }

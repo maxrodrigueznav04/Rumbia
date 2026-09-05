@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { tripsApi, itineraryApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import FormActividad from '../components/formularios/FormActividad.jsx';
@@ -18,6 +18,8 @@ import {
 } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
+import VistaPreviaPropuesta from '../components/VistaPreviaPropuesta.jsx';
+import { viajeParaCliente } from '../utils/cotizacion.js';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import RevisionItinerario from '../components/RevisionItinerario.jsx';
 import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
@@ -116,6 +118,8 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
 
 export default function Itinerario() {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const [vistaPrevia, setVistaPrevia] = useState(params.get('entregar') === '1');
   // Solo para el membrete del PDF: si el usuario pertenece a una agencia, su
   // marca gana sobre la personal (mismo criterio que el enlace compartido).
   const { user } = useAuth();
@@ -145,7 +149,7 @@ export default function Itinerario() {
   const [destino, setDestino] = useState(null); // { diaId, indice }
   // Para cuántos de los viajeros se ven los precios. null = todos (default).
   const [personas, setPersonas] = useState(null);
-  const [plantillaAbierta, setPlantillaAbierta] = useState(false);
+  const [plantillaAbierta, setPlantillaAbierta] = useState(params.get('plantilla') === '1');
   const [nombrePlantilla, setNombrePlantilla] = useState('');
   const [guardandoPlantilla, setGuardandoPlantilla] = useState(false);
   const [errorPlantilla, setErrorPlantilla] = useState(null);
@@ -164,7 +168,7 @@ export default function Itinerario() {
   const hayMargen = Boolean(viaje?.margen?.monto > 0);
   const costoSinMargen =
     (itinerario?.totalEstimatedCost || 0) + porPersonas(viaje?.coreCosts?.total || 0, viaje?.travelers, 1);
-  const precioBasePorPersona = conMargen(costoSinMargen, viaje?.margen, viaje?.travelers);
+  const precioBasePorPersona = Number(conMargen(costoSinMargen, viaje?.margen, viaje?.travelers).toFixed(2));
 
   const generar = async (regenerar = false) => {
     setErrorGen(null);
@@ -219,12 +223,15 @@ export default function Itinerario() {
 
   const generarEnlace = async () => {
     setTrabajandoEnlace(true);
+    setErrorGen(null);
     try {
       const datos = await itineraryApi.compartir(id);
       setCompartir({ token: datos.token });
       setCopiado(false);
+      return true;
     } catch (err) {
       setErrorGen(err);
+      return false;
     } finally {
       setTrabajandoEnlace(false);
     }
@@ -467,8 +474,8 @@ export default function Itinerario() {
             <Boton variante="secundario" onClick={() => window.print()}>
               <Icono nombre="descarga" tamano={15} /> Descargar PDF
             </Boton>
-            <Boton variante="secundario" onClick={generarEnlace} cargando={trabajandoEnlace}>
-              <Icono nombre="flechaSalida" tamano={15} /> Compartir
+            <Boton variante="secundario" onClick={() => setVistaPrevia(true)} cargando={trabajandoEnlace}>
+              <Icono nombre="flechaSalida" tamano={15} /> Revisar y compartir
             </Boton>
             {viaje.durationDays <= LIMITE_DIAS_IA && (
               <Boton
@@ -486,6 +493,7 @@ export default function Itinerario() {
         )}
       </header>
 
+      {vistaPrevia && itinerario && <VistaPreviaPropuesta viaje={viaje} itinerario={itinerario} marca={marca} onCerrar={() => setVistaPrevia(false)} compartiendo={trabajandoEnlace} error={errorGen?.message} onCompartir={async () => { if (await generarEnlace()) setVistaPrevia(false); }} />}
       {plantillaGuardada && (
         <Aviso tipo="exito" titulo="Plantilla guardada">
           Ya la puedes usar para armar el próximo viaje a este destino desde{' '}
@@ -539,7 +547,8 @@ export default function Itinerario() {
       )}
 
       <SelectorPersonas personas={paraCuantos} maximo={viaje.travelers} onCambio={setPersonas} />
-      <ResumenViaje viaje={viaje} personas={paraCuantos} />
+      <div className="no-imprimir"><ResumenViaje viaje={viaje} personas={paraCuantos} /></div>
+      <div className="solo-imprimir"><ResumenViaje viaje={viajeParaCliente(viaje)} personas={paraCuantos} /></div>
 
       {/* ---------- Sin itinerario: invitación a generarlo ---------- */}
       {!itinerario && viaje.durationDays > LIMITE_DIAS_IA && (
@@ -608,7 +617,7 @@ export default function Itinerario() {
             {itinerario.generatedBy === 'ia' && (
               <div className="no-imprimir">
                 <Aviso tipo="info">
-                  Generado con {itinerario.model || 'IA'}. Revisa horarios, precios y disponibilidad
+                  Itinerario asistido con IA. Revisa horarios, precios y disponibilidad
                   antes de darlo por hecho: la IA se puede equivocar.
                 </Aviso>
               </div>
@@ -724,7 +733,7 @@ export default function Itinerario() {
               </p>
             </Tarjeta>
 
-            <Tarjeta titulo={hayMargen ? 'Precio total' : 'Costo total estimado'}>
+            <Tarjeta titulo={`Precio propuesto · ${moneda}`}>
               {!ocultarCosto && (
                 <div className="pila-sm">
                   <div className="linea-gasto">

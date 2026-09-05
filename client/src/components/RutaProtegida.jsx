@@ -1,14 +1,15 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Cargando } from './ui.jsx';
+import { Cargando, Aviso, Boton } from './ui.jsx';
 
 /** Bloquea las rutas privadas hasta saber si hay sesion valida. */
 export default function RutaProtegida({ children }) {
-  const { autenticado, cargando } = useAuth();
+  const { autenticado, cargando, errorSesion, verificarSesion } = useAuth();
   const location = useLocation();
 
   // Sin esta espera, un refresh con token valido parpadearia hacia el login.
   if (cargando) return <Cargando texto="Verificando tu sesión..." />;
+  if (errorSesion) return <div className="contenedor pagina"><Aviso tipo="error">{errorSesion}</Aviso><Boton onClick={verificarSesion}>Reintentar sesión</Boton></div>;
 
   if (!autenticado) {
     // Se recuerda a donde iba para volver ahi despues de entrar.

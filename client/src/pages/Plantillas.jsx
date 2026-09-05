@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { templatesApi } from '../api/index.js';
+import { templatesApi, tripsApi } from '../api/index.js';
+import useDebounce from '../hooks/useDebounce.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import useFetch from '../hooks/useFetch.js';
 import CampoFechas from '../components/CampoFechas.jsx';
@@ -35,6 +36,7 @@ export default function Plantillas() {
 
   const [porUsar, setPorUsar] = useState(null); // plantilla elegida para aplicar
   const [porEliminar, setPorEliminar] = useState(null);
+  const [elegirViaje, setElegirViaje] = useState(false);
 
   const plantillas = data?.templates || [];
 
@@ -47,6 +49,7 @@ export default function Plantillas() {
             ? 'Compartidas con tu equipo: cualquier agente de tu agencia las puede usar.'
             : 'Destinos que armas seguido, listos para aplicar a un viaje nuevo sin empezar de cero.'}
         </p>
+        <Boton variante="secundario" onClick={() => setElegirViaje(true)}>Crear desde un itinerario</Boton>
       </div>
 
       {cargando && (
@@ -64,7 +67,7 @@ export default function Plantillas() {
       {error && <ErrorCarga error={error} onReintentar={recargar} />}
 
       {data && plantillas.length === 0 && (
-        <Vacio icono="🗂️" titulo="Todavía no tienes plantillas">
+        <Vacio icono="🗂️" titulo="Todavía no tienes plantillas" accion={<Boton onClick={() => setElegirViaje(true)}>Elegir un itinerario existente</Boton>}>
           Abre cualquier itinerario ya armado y usa "Guardar como plantilla" para reutilizarlo con el
           próximo cliente que viaje al mismo destino.
         </Vacio>
@@ -107,6 +110,7 @@ export default function Plantillas() {
           onCreado={(tripId) => navigate(`/viajes/${tripId}`)}
         />
       )}
+      {elegirViaje && <ElegirItinerario onCerrar={() => setElegirViaje(false)} />}
 
       <ModalConfirmar
         abierto={Boolean(porEliminar)}
@@ -121,6 +125,23 @@ export default function Plantillas() {
       />
     </div>
   );
+}
+
+function ElegirItinerario({ onCerrar }) {
+  const [busqueda, setBusqueda] = useState('');
+  const [page, setPage] = useState(1);
+  const q = useDebounce(busqueda, 300);
+  const req = useFetch(({ signal }) => tripsApi.list({ q, page }, { signal }), [q, page]);
+  const viajes = (req.data?.trips || []).filter((v) => v.tieneItinerario);
+  return <Modal abierto onCerrar={onCerrar} titulo="Elegir itinerario">
+    <Campo label="Buscar viaje o destino" type="search" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPage(1); }} />
+    {req.error && <ErrorCarga error={req.error} onReintentar={req.recargar} />}
+    {req.cargando ? <Esqueleto alto={80} /> : <div className="pila-sm">
+      {viajes.map((v) => <Link key={v._id} className="boton secundario" to={`/viajes/${v._id}/itinerario?plantilla=1`}>{v.title} · {nombreDestino(v)}</Link>)}
+      {!viajes.length && !req.error && <p className="suave">No hay itinerarios en esta página de resultados. Busca otro destino o <Link to="/viajes/nuevo">crea un viaje</Link>.</p>}
+    </div>}
+    {req.data?.pagination?.pages > 1 && <div className="modal-acciones"><Boton disabled={page <= 1 || req.cargando} onClick={() => setPage(page - 1)}>Anterior</Boton><span>{page} / {req.data.pagination.pages}</span><Boton disabled={page >= req.data.pagination.pages || req.cargando} onClick={() => setPage(page + 1)}>Siguiente</Boton></div>}
+  </Modal>;
 }
 
 /** Modal: título, fechas y viajeros para crear el viaje a partir de la plantilla elegida. */

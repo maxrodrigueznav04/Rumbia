@@ -17,6 +17,13 @@ export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 // toparse con un 401. Si alguien la manipulara a mano no ganaria nada: sin
 // la cookie de verdad, el servidor sigue rechazando todo.
 const FLAG_SESION = 'rumbia_tuvo_sesion';
+export const CAMBIO_SESION = 'rumbia:cambio-sesion';
+export const REVISION_SESION = 'rumbia_revision_sesion';
+let usuarioEsperado = null;
+export function fijarUsuarioSesion(id) { usuarioEsperado = id || null; }
+export function anunciarSesion(tipo = 'actualizada') {
+  localStorage.setItem(REVISION_SESION, `${tipo}:${Date.now()}-${Math.random()}`);
+}
 export const sesionFlag = {
   marcar: () => localStorage.setItem(FLAG_SESION, '1'),
   tuvoSesion: () => localStorage.getItem(FLAG_SESION) === '1',
@@ -60,8 +67,11 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, signal, timeout = TIMEOUT_MS } = {}) {
+async function request(path, { method = 'GET', body, signal, timeout = TIMEOUT_MS, auth = true } = {}) {
   const headers = {};
+  if (auth && usuarioEsperado && !(method === 'GET' && path === '/auth/me') && !['/auth/login', '/auth/register'].includes(path)) {
+    headers['X-Rumbia-User'] = usuarioEsperado;
+  }
   // FormData (subir un archivo) trae su propio Content-Type con el boundary
   // multipart; si se fija aqui a mano, el navegador no puede completarlo y la
   // peticion llega sin poder separar los campos.
@@ -127,6 +137,9 @@ async function request(path, { method = 'GET', body, signal, timeout = TIMEOUT_M
   }
 
   if (!res.ok) {
+    if (res.status === 409 && data?.message === 'La cuenta activa cambió. Actualiza la sesión antes de continuar.') {
+      window.dispatchEvent(new CustomEvent(CAMBIO_SESION));
+    }
     // Solo avisa "tu sesion vencio" si este navegador de verdad tuvo una: sin
     // eso, la llamada de arranque a /auth/me de un visitante que nunca se
     // registro (que tambien da 401, porque nunca hubo cookie) mostraria el

@@ -6,7 +6,8 @@ import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import TiraClima from '../components/TiraClima.jsx';
 import ResumenPresupuesto from '../components/ResumenPresupuesto.jsx';
-import ResumenGastosFijos from '../components/ResumenGastosFijos.jsx';
+import ResumenCotizacion from '../components/ResumenCotizacion.jsx';
+import VistaPreviaPropuesta from '../components/VistaPreviaPropuesta.jsx';
 import ListaGastos from '../components/ListaGastos.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import FormViaje from '../components/formularios/FormViaje.jsx';
@@ -178,6 +179,8 @@ export default function DetalleViaje() {
   // Resultado de sincronizar el itinerario cuando cambian las fechas del viaje.
   const [avisoItinerario, setAvisoItinerario] = useState(null);
   const [guardandoPropuesta, setGuardandoPropuesta] = useState(false);
+  const [vistaPrevia, setVistaPrevia] = useState(false);
+  const [errorPropuesta, setErrorPropuesta] = useState(null);
 
   // Tras guardar hay que refrescar el viaje y el resumen: los costos cambian juntos.
   const refrescar = useCallback(() => {
@@ -236,9 +239,12 @@ export default function DetalleViaje() {
       queda editable por si hace falta corregirlo. */
   const cambiarEstadoPropuesta = async (e) => {
     setGuardandoPropuesta(true);
+    setErrorPropuesta(null);
     try {
       await tripsApi.update(id, { estadoPropuesta: e.target.value });
       refrescar();
+    } catch (err) {
+      setErrorPropuesta(err.message);
     } finally {
       setGuardandoPropuesta(false);
     }
@@ -400,6 +406,10 @@ export default function DetalleViaje() {
         </Tarjeta>
       )}
 
+      {errorPropuesta && <Aviso tipo="error">{errorPropuesta}</Aviso>}
+      {esAgencia && <ResumenCotizacion viaje={viaje} onEditar={() => setModal({ tipo: 'viaje' })} onVistaPrevia={() => setVistaPrevia(true)} />}
+      {vistaPrevia && <VistaPreviaPropuesta viaje={viaje} itinerario={itinerario} marca={user?.agency || user?.branding} onCerrar={() => setVistaPrevia(false)} />}
+      <div id="costos-viaje" />
       <SelectorPersonas personas={paraCuantos} maximo={viaje.travelers} onCambio={setPersonas} />
 
       <div className="rejilla rejilla-detalle">
@@ -439,7 +449,7 @@ export default function DetalleViaje() {
                   </span>
 
                   <span className="numero">
-                    {formatoMoneda(escalar(datos?.cost || 0), moneda)}
+                    {datos?.provider || datos?.cost > 0 ? formatoMoneda(escalar(datos?.cost || 0), moneda) : 'Pendiente'}
                     {datos?.isEstimate && datos?.cost > 0 && (
                       <span className="tenue" style={{ fontWeight: 400 }}> est.</span>
                     )}
@@ -649,7 +659,7 @@ export default function DetalleViaje() {
             </Tarjeta>
           ))}
 
-          <ResumenGastosFijos viaje={viaje} personas={paraCuantos} />
+
 
           {resumenReq.cargando && <Esqueleto alto={280} />}
           {resumenReq.error && (
@@ -663,10 +673,7 @@ export default function DetalleViaje() {
         </div>
       </div>
 
-      <p className="tenue centrado" style={{ fontSize: '0.78rem', marginTop: 8 }}>
-        Rumbia no procesa reservas ni pagos. Los enlaces te llevan al sitio del proveedor, donde
-        completas la reserva; aquí solo guardas los datos y los costos.
-      </p>
+
 
       {/* ----------------- Modales ----------------- */}
       {modal?.tipo === 'viaje' && (

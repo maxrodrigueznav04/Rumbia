@@ -1,7 +1,8 @@
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
-import { Boton } from './ui.jsx';
+import { Aviso, Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
 import ChatFlotante from './ChatFlotante.jsx';
 import AvisoVerificarCorreo from './AvisoVerificarCorreo.jsx';
@@ -39,10 +40,18 @@ function ToggleTema() {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  const [errorSalir, setErrorSalir] = useState(null);
+  const [saliendo, setSaliendo] = useState(false);
+  const rol = user?.agency ? (String(user.agency.owner) === String(user._id) ? 'Dueño' : 'Agente') : user?.preferences?.perfilUso === 'personal' ? 'Viajero' : 'Agente independiente';
 
-  const cerrarSesion = () => {
-    logout();
-    navigate('/entrar', { replace: true });
+  const cerrarSesion = async () => {
+    setSaliendo(true);
+    setErrorSalir(null);
+    try { await logout(); navigate('/entrar', { replace: true }); }
+    catch (err) { setErrorSalir(err.message); }
+    finally { setSaliendo(false); }
   };
 
   return (
@@ -70,11 +79,12 @@ export default function Layout() {
           </nav>
 
           <div className="fila" style={{ gap: 6 }}>
-            <span className="tenue" style={{ display: 'none' }} data-nombre>
-              {user?.name}
-            </span>
+            <Link to="/perfil" className="identidad-sesion" title={user?.email}>
+              <strong>{user?.name}</strong>
+              <span>{user?.agency?.agencyName || 'Mi espacio'} · {rol}</span>
+            </Link>
             <ToggleTema />
-            <Boton variante="fantasma" chico onClick={cerrarSesion}>
+            <Boton variante="fantasma" chico onClick={cerrarSesion} cargando={saliendo}>
               Salir
             </Boton>
           </div>
@@ -83,7 +93,8 @@ export default function Layout() {
 
       <main className="contenedor pagina">
         {user && !user.emailVerified && <AvisoVerificarCorreo />}
-        <Outlet />
+        {errorSalir && <Aviso tipo="error">{errorSalir}</Aviso>}
+        <div key={location.pathname}><Outlet /></div>
       </main>
 
       <footer className="pie">

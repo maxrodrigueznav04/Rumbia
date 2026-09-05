@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import api, { sesionFlag, ApiError, SESION_EXPIRADA, TIMEOUT_IA_MS } from './client.js';
+import api, { sesionFlag, ApiError, SESION_EXPIRADA, TIMEOUT_IA_MS, fijarUsuarioSesion, CAMBIO_SESION } from './client.js';
 
 const respuesta = (body, { status = 200 } = {}) => ({
   status,
@@ -9,9 +9,28 @@ const respuesta = (body, { status = 200 } = {}) => ({
 
 beforeEach(() => {
   sesionFlag.limpiar();
+  fijarUsuarioSesion(null);
 });
 
 describe('cliente HTTP', () => {
+  it('fija la cuenta esperada en lecturas y cambios privados, pero no en la revalidación ni enlaces públicos', async () => {
+    fijarUsuarioSesion('cuenta-a');
+    const fetchMock = vi.fn().mockResolvedValue(respuesta({ data: {} }));
+    vi.stubGlobal('fetch', fetchMock);
+    await api.patch('/auth/me', { name: 'Nombre' });
+    await api.get('/trips');
+    await api.get('/auth/me');
+    await api.get('/public/itinerary/token', { auth: false });
+    expect(fetchMock.mock.calls.map((c) => c[1].headers['X-Rumbia-User'])).toEqual(['cuenta-a', 'cuenta-a', undefined, undefined]);
+  });
+  it('un conflicto de identidad solicita revalidación y no reintenta la escritura', async () => {
+    const oyente = vi.fn(); window.addEventListener(CAMBIO_SESION, oyente);
+    const fetchMock = vi.fn().mockResolvedValue(respuesta({ message: 'La cuenta activa cambió. Actualiza la sesión antes de continuar.' }, { status: 409 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(api.patch('/trips/1', { title: 'Otro' })).rejects.toMatchObject({ status: 409 });
+    expect(oyente).toHaveBeenCalledOnce(); expect(fetchMock).toHaveBeenCalledOnce();
+    window.removeEventListener(CAMBIO_SESION, oyente);
+  });
   it('devuelve directamente el data del sobre del backend', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respuesta({ success: true, data: { trips: [1, 2] } })));
     await expect(api.get('/trips')).resolves.toEqual({ trips: [1, 2] });

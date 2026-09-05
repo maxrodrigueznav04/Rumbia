@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import TarjetaAgencia from '../components/TarjetaAgencia.jsx';
@@ -14,6 +14,9 @@ const RITMOS = [
 export default function Perfil() {
   const { user, actualizarUsuario, logout } = useAuth();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const seccion = params.get('seccion') || (params.has('billing') || window.location.hash === '#plan-agencia' ? 'facturacion' : 'cuenta');
+  const esDueno = user?.agency && String(user.agency.owner) === String(user._id);
 
   // Baja de cuenta: modal aparte, con la contraseña como confirmación.
   const [bajaAbierta, setBajaAbierta] = useState(false);
@@ -29,7 +32,7 @@ export default function Perfil() {
       await authApi.deleteAccount({ password: passwordBaja });
       // La cuenta ya no existe: se limpia la sesión antes de navegar para que
       // la ruta protegida no intente rehidratarla con un token muerto.
-      logout();
+      await logout();
       navigate('/entrar', { replace: true });
     } catch (err) {
       setErrorBaja(err);
@@ -80,11 +83,15 @@ export default function Perfil() {
       <div>
         <h1 style={{ marginBottom: 4 }}>Tu perfil</h1>
         <p className="suave" style={{ margin: 0 }}>
-          La IA usa estas preferencias para personalizar los itinerarios que te propone.
+          Administra tu cuenta, las preferencias de viaje y tu agencia.
         </p>
       </div>
 
-      <Tarjeta>
+      <nav className="secciones-perfil" aria-label="Configuración">
+        {[['cuenta', 'Mi cuenta'], ...(user?.preferences?.perfilUso !== 'personal' ? [['marca', 'Marca'], ['equipo', 'Equipo'], ...(esDueno ? [['facturacion', 'Facturación']] : [])] : [])].map(([id, texto]) =>
+          <Boton key={id} variante={seccion === id ? 'primario' : 'secundario'} aria-pressed={seccion === id} onClick={() => setParams({ seccion: id })}>{texto}</Boton>)}
+      </nav>
+      {seccion === 'cuenta' && <Tarjeta>
         <form onSubmit={guardar} className="pila" noValidate>
           {estado && <Aviso tipo={estado.tipo}>{estado.mensaje}</Aviso>}
 
@@ -160,13 +167,13 @@ export default function Perfil() {
             {guardando ? 'Guardando...' : 'Guardar cambios'}
           </Boton>
         </form>
-      </Tarjeta>
+      </Tarjeta>}
 
-      {form.perfilUso === 'agencia' && (
-        <TarjetaAgencia user={user} actualizarUsuario={actualizarUsuario} />
+      {form.perfilUso === 'agencia' && seccion !== 'cuenta' && (
+        <TarjetaAgencia seccion={seccion} user={user} actualizarUsuario={actualizarUsuario} />
       )}
 
-      <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
+      {seccion === 'cuenta' && <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
         <p className="suave">
           Se borran tu cuenta y <strong>todos tus viajes, itinerarios y gastos</strong>. La
           eliminación es inmediata y no se puede deshacer: no hay papelera ni forma de recuperarlos
@@ -175,7 +182,7 @@ export default function Perfil() {
         <Boton variante="peligro" onClick={() => setBajaAbierta(true)}>
           Eliminar mi cuenta
         </Boton>
-      </Tarjeta>
+      </Tarjeta>}
 
       <Modal
         abierto={bajaAbierta}

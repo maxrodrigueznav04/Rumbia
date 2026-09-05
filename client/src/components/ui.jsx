@@ -26,9 +26,10 @@ export function Boton({ variante = 'primario', chico, ancho, cargando, children,
 }
 
 export function Campo({ label, error, ayuda, id, children, ...props }) {
+  const autoId = useId();
   // Cuando el control va como hijo (select, textarea), el name viaja en el hijo
   // y no en Campo, así que hay que leerlo de ahí para poder ligar la etiqueta.
-  const campoId = id || props.name || (isValidElement(children) ? children.props.name : undefined);
+  const campoId = id || props.name || (isValidElement(children) ? children.props.name : undefined) || autoId;
   const errorId = error ? `${campoId}-error` : undefined;
 
   // Cuando el control viene como hijo (select, textarea), hay que pasarle el id

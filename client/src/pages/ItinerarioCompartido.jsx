@@ -154,7 +154,7 @@ export default function ItinerarioCompartido() {
                 {(data.viaje.precioTotalPorPersona > 0 ||
                   data.itinerary.totalEstimatedCost > 0 ||
                   data.viaje.coreCosts?.total > 0) && (
-                  <Tarjeta titulo={data.viaje.hayMargen ? 'Precio total' : 'Costo total estimado'}>
+                  <Tarjeta titulo={`Precio propuesto · ${moneda}`}>
                     {!ocultarCosto && (
                       <div className="pila-sm">
                         <div className="linea-gasto">

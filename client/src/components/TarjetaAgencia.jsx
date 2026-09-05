@@ -94,18 +94,18 @@ export const TIERS_SELECCION = [
  * como para no meterla en un archivo que ya tiene el formulario de
  * preferencias y la baja de cuenta.
  */
-export default function TarjetaAgencia({ user, actualizarUsuario }) {
+export default function TarjetaAgencia({ user, actualizarUsuario, seccion = 'marca' }) {
   if (user?.agency) {
-    return <VistaConAgencia actualizarUsuario={actualizarUsuario} />;
+    return <VistaConAgencia seccion={seccion} actualizarUsuario={actualizarUsuario} />;
   }
-  return <VistaSinAgencia user={user} actualizarUsuario={actualizarUsuario} />;
+  return <VistaSinAgencia seccion={seccion} user={user} actualizarUsuario={actualizarUsuario} />;
 }
 
 /* ------------------------------------------------------------------ */
 /* Sin agencia: marca propia + opcion de crear o unirse                */
 /* ------------------------------------------------------------------ */
 
-function VistaSinAgencia({ user, actualizarUsuario }) {
+function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
   const [form, setForm] = useState({
     agencyName: user?.branding?.agencyName || '',
     logoUrl: user?.branding?.logoUrl || '',
@@ -167,7 +167,7 @@ function VistaSinAgencia({ user, actualizarUsuario }) {
 
   return (
     <>
-      <Tarjeta titulo="Marca en el PDF">
+      {seccion === 'marca' && <Tarjeta titulo="Marca en el PDF">
         <p className="suave" style={{ marginTop: 0 }}>
           Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando
           descargas el PDF. Déjalo vacío y sale la marca de Rumbia.
@@ -259,9 +259,9 @@ function VistaSinAgencia({ user, actualizarUsuario }) {
             </Boton>
           </div>
         </form>
-      </Tarjeta>
+      </Tarjeta>}
 
-      <UnirseOCrear actualizarUsuario={actualizarUsuario} />
+      {seccion === 'equipo' && <UnirseOCrear actualizarUsuario={actualizarUsuario} />}
     </>
   );
 }
@@ -346,7 +346,7 @@ function UnirseOCrear({ actualizarUsuario }) {
 /* Con agencia: marca de la agencia, editable solo si eres el dueño    */
 /* ------------------------------------------------------------------ */
 
-function VistaConAgencia({ actualizarUsuario }) {
+function VistaConAgencia({ actualizarUsuario, seccion }) {
   const { data, cargando, error, recargar, setData } = useFetch(
     ({ signal }) => agencyApi.obtener({ signal }),
     []
@@ -425,6 +425,7 @@ function VistaConAgencia({ actualizarUsuario }) {
       {avisoStripe && <Aviso tipo="info">{avisoStripe}</Aviso>}
       {data.esDueno ? (
         <VistaDueno
+          seccion={seccion}
           agencia={data.agency}
           miembros={data.miembros}
           actualizarUsuario={actualizarUsuario}
@@ -466,7 +467,7 @@ function AvisoCongelada({ paraDueno, yaTuvoPlan, esTrialVencido }) {
             <>
               Tus viajes y propuestas siguen a salvo en tu cuenta. Para continuar creando y editando
               itinerarios oficiales con tu logo y margen, activa tu suscripción.{' '}
-              <a href="#plan-agencia" style={{ fontWeight: 600 }}>
+              <a href="/perfil?seccion=facturacion#plan-agencia" style={{ fontWeight: 600 }}>
                 Elegir y activar plan →
               </a>
             </>
@@ -474,7 +475,7 @@ function AvisoCongelada({ paraDueno, yaTuvoPlan, esTrialVencido }) {
             <>
               Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta
               que {yaTuvoPlan ? 'reactives' : 'actives'} el plan.{' '}
-              <a href="#plan-agencia" style={{ fontWeight: 600 }}>
+              <a href="/perfil?seccion=facturacion#plan-agencia" style={{ fontWeight: 600 }}>
                 Ir a {yaTuvoPlan ? 'reactivarlo' : 'activarlo'} →
               </a>
             </>
@@ -751,6 +752,8 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
         <Boton variante="secundario" chico cargando={cargando} onClick={irAlPortal}>
           {billing.status === 'activa' ? 'Administrar plan' : 'Reactivar plan'}
         </Boton>
+      ) : billing.status === 'activa' ? (
+        <p className="suave">Tu plan está activo. No necesitas contratarlo de nuevo. Para cambiar un plan otorgado por la agencia, contacta a soporte.</p>
       ) : (
         <>
           <p className="suave" style={{ marginTop: 0, marginBottom: 16 }}>
@@ -920,7 +923,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
  * del resto de la pantalla: es lo menos urgente de ver y no tiene por que
  * bloquear ni volver a pedir todo lo demas si falla.
  */
-function ReporteAgencia() {
+export function ReporteAgencia() {
   const { data, cargando, error, recargar } = useFetch(({ signal }) => agencyApi.reporte({ signal }), []);
 
   return (
@@ -953,7 +956,7 @@ function ReporteAgencia() {
 // type="color" no acepta un valor vacio, necesita un hex de 7 caracteres si o si.
 const COLOR_RUMBIA = '#1F6F5C';
 
-function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
+function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion }) {
   const [form, setForm] = useState({
     agencyName: agencia.agencyName,
     contact: agencia.contact || '',
@@ -1077,7 +1080,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
         />
       )}
 
-      <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
+      {seccion === 'marca' && <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
         <p className="suave" style={{ marginTop: 0 }}>
           Esta marca la ven todos los agentes de tu agencia en sus PDF. Solo tú puedes editarla.
         </p>
@@ -1198,9 +1201,11 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
             </Boton>
           </div>
         </form>
-      </Tarjeta>
+      </Tarjeta>}
 
-      <PanelBilling agencia={agencia} totalAgentes={miembros.length + 1} recargar={recargar} />
+      {seccion === 'facturacion' && <PanelBilling agencia={agencia} totalAgentes={miembros.length + 1} recargar={recargar} />}
+
+      {seccion === 'equipo' && <>
 
       <Tarjeta titulo="Código de invitación">
         <p className="suave" style={{ marginTop: 0 }}>
@@ -1256,6 +1261,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar }) {
         </Boton>
       </Tarjeta>
 
+      </>}
       <ModalConfirmar
         abierto={Boolean(porEliminar)}
         onCerrar={() => setPorEliminar(null)}
