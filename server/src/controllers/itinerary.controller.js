@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { Itinerary, Trip, ItineraryTemplate, Agency } from '../models/index.js';
+import { Itinerary, Trip, ItineraryTemplate, Agency, User } from '../models/index.js';
 import { LIMITE_GENERACIONES_PERSONAL } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -8,6 +8,7 @@ import { findOwnedTrip } from './trip.controller.js';
 import { addDays, isoDay, daysBetween } from '../utils/dates.js';
 import { esAdmin } from '../utils/esAdmin.js';
 import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
+import { incrementarUsoIAMensual } from '../utils/cupoIA.js';
 
 // Independiente del limite de duracion del propio viaje (MAX_DURACION_VIAJE_DIAS
 // en Trip.js, 366 dias, pensado para logistica manual): esto tapa una sola
@@ -44,13 +45,7 @@ export function verificarCupoPersonal(user) {
 
 export async function consumirCupoPersonal(user) {
   if (user.agency || esAdmin(user)) return;
-
-  const mesActual = new Date().toISOString().slice(0, 7);
-  if (user.usoIA?.mes !== mesActual) {
-    user.usoIA = { mes: mesActual, generaciones: 0 };
-  }
-  user.usoIA.generaciones += 1;
-  await user.save();
+  await incrementarUsoIAMensual(User, { _id: user._id }, 'usoIA', 'generaciones', 'mensajesChat');
 }
 
 /** Localiza dia + actividad dentro del itinerario, o lanza 404. */

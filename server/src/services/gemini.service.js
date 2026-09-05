@@ -160,7 +160,7 @@ function normalizeTime(valor) {
 }
 
 /** Normaliza la respuesta cruda de Gemini al shape del modelo Itinerary. */
-function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
+export function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
   const days = Array.isArray(raw?.days) ? raw.days : [];
 
   return days.slice(0, expectedDays).map((day, dayIdx) => ({
@@ -171,8 +171,11 @@ function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
     title: String(day.title || `Día ${dayIdx + 1}`).slice(0, 160),
     summary: String(day.summary || '').slice(0, 600),
     activities: (Array.isArray(day.activities) ? day.activities : []).map((act, actIdx) => {
-      const lat = Number(act.lat);
-      const lng = Number(act.lng);
+      // act.lat/lng no son required en ITINERARY_SCHEMA (Gemini puede no ubicar
+      // una actividad): sin este guard, Number(null) === 0 pasaba de largo el
+      // chequeo de abajo y dejaba un pin falso en (0,0) en vez de sin pin.
+      const lat = act.lat == null ? NaN : Number(act.lat);
+      const lng = act.lng == null ? NaN : Number(act.lng);
       const hasCoords =
         Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
 
@@ -343,7 +346,7 @@ export async function generateItinerary(ctx) {
       clearTimeout(timer);
       ultimoError = err;
       const esTimeout = err.name === 'AbortError';
-      const esSaturado = err instanceof ApiError && (err.status === 503 || err.status === 429);
+      const esSaturado = err instanceof ApiError && (err.statusCode === 503 || err.statusCode === 429);
 
       if ((esTimeout || esSaturado) && !esUltimo) {
         console.warn(
