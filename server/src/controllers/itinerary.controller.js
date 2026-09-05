@@ -83,7 +83,7 @@ export function reorderByTime(day) {
 }
 
 export const getItinerary = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
 
   if (!itinerary) {
@@ -100,7 +100,7 @@ export const getItinerary = asyncHandler(async (req, res) => {
 export const generate = asyncHandler(async (req, res) => {
   requireEmailVerificado(req.user);
 
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const { extraNotes, pace, interests, force } = req.body;
 
   const existing = await Itinerary.findOne({ trip: trip._id });
@@ -227,7 +227,7 @@ export const generate = asyncHandler(async (req, res) => {
 
 /** Crea un itinerario vacio con un dia por fecha, para armarlo a mano. */
 export const createBlank = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
 
   const existing = await Itinerary.findOne({ trip: trip._id });
   if (existing) throw ApiError.conflict('Este viaje ya tiene un itinerario.');
@@ -257,7 +257,7 @@ export const createBlank = asyncHandler(async (req, res) => {
  * ids, que es justo lo que pasaria si el enlace usara el id del viaje.
  */
 export const compartir = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: trip._id }).select('+shareToken');
   if (!itinerary) throw ApiError.notFound('Este viaje todavia no tiene itinerario.');
 
@@ -302,7 +302,7 @@ export const compartir = asyncHandler(async (req, res) => {
 
 /** Revoca el enlace: a partir de aqui deja de abrir para todo el mundo. */
 export const dejarDeCompartir = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: trip._id }).select('+shareToken');
   if (!itinerary) throw ApiError.notFound('Este viaje todavia no tiene itinerario.');
 
@@ -314,7 +314,7 @@ export const dejarDeCompartir = asyncHandler(async (req, res) => {
 });
 
 export const deleteItinerary = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const deleted = await Itinerary.findOneAndDelete({ trip: req.params.id });
   if (!deleted) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -327,7 +327,7 @@ export const deleteItinerary = asyncHandler(async (req, res) => {
  * tiene agencia, queda visible para todo el equipo — ver ItineraryTemplate.js.
  */
 export const crearPlantilla = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: trip._id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario que convertir en plantilla.');
 
@@ -364,7 +364,7 @@ export const crearPlantilla = asyncHandler(async (req, res) => {
 });
 
 export const updateDay = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -383,7 +383,7 @@ export const updateDay = asyncHandler(async (req, res) => {
  * endpoint es la forma de limpiarlos cuando el usuario ya los reviso.
  */
 export const deleteDay = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -411,7 +411,7 @@ export const deleteDay = asyncHandler(async (req, res) => {
 });
 
 export const addActivity = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -428,7 +428,7 @@ export const addActivity = asyncHandler(async (req, res) => {
 });
 
 export const updateActivity = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -446,7 +446,7 @@ export const updateActivity = asyncHandler(async (req, res) => {
 });
 
 export const deleteActivity = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -460,7 +460,7 @@ export const deleteActivity = asyncHandler(async (req, res) => {
 
 /** Reordena las actividades de un dia segun la lista de ids recibida. */
 export const reorderActivities = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 
@@ -487,7 +487,7 @@ export const reorderActivities = asyncHandler(async (req, res) => {
 
 /** Mueve una actividad a otro dia (arrastrar entre columnas del timeline). */
 export const moveActivity = asyncHandler(async (req, res) => {
-  await findOwnedTrip(req.params.id, req.user._id);
+  await findOwnedTrip(req.params.id, req.user);
   const itinerary = await Itinerary.findOne({ trip: req.params.id });
   if (!itinerary) throw ApiError.notFound('Este viaje no tiene itinerario.');
 

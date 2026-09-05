@@ -46,15 +46,15 @@ export async function consumirCupoChat(user) {
  * Carga el viaje (validando que sea del usuario) si viene tripId, o null
  * para modo general: el chat es global, no siempre esta atado a un viaje.
  */
-async function resolveTrip(tripId, userId) {
+async function resolveTrip(tripId, user) {
   if (!tripId) return null;
-  return findOwnedTrip(tripId, userId);
+  return findOwnedTrip(tripId, user);
 }
 
 /** Historial de este chat (general o de un viaje), o vacio si nunca se le escribio. */
 export const getChat = asyncHandler(async (req, res) => {
   const { tripId } = req.validatedQuery;
-  const trip = await resolveTrip(tripId, req.user._id);
+  const trip = await resolveTrip(tripId, req.user);
   const chat = await TripChat.findOne({ user: req.user._id, trip: trip?._id || null });
 
   res.json({ success: true, data: { messages: chat?.messages || [] } });
@@ -65,7 +65,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   requireEmailVerificado(req.user);
 
   const { message, tripId } = req.body;
-  const trip = await resolveTrip(tripId, req.user._id);
+  const trip = await resolveTrip(tripId, req.user);
 
   verificarCupoChat(req.user); // no-op si tiene agencia (ver arriba)
 
@@ -108,7 +108,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 /** Borra el historial de este chat (general o de un viaje) para empezar de cero. */
 export const clearChat = asyncHandler(async (req, res) => {
   const { tripId } = req.validatedQuery;
-  const trip = await resolveTrip(tripId, req.user._id);
+  const trip = await resolveTrip(tripId, req.user);
   await TripChat.deleteOne({ user: req.user._id, trip: trip?._id || null });
 
   res.json({ success: true, message: 'Chat reiniciado.' });
