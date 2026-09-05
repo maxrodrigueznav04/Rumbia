@@ -710,13 +710,13 @@ Turnstile) se filtra o se sospecha comprometida:
   correos.
 - **Backup diario de MongoDB** (`.github/workflows/mongo-backup.yml`): el tier gratuito de Atlas
   (M0) no ofrece Cloud Backup ni point-in-time recovery en absoluto, así que un `mongodump` diario
-  corre gratis en GitHub Actions, se cifra (AES256 simétrico, aunque el repo ya es privado) y se
-  sube como artifact (90 días de retención). Requiere los secrets `MONGO_URI` y
-  `BACKUP_PASSPHRASE` en Settings > Secrets and variables > Actions — sin ellos el job falla
-  explícitamente en vez de saltarse el respaldo en silencio. No sustituye un backup real de un
-  cluster de pago, pero es infinitamente mejor que no tener ninguno. Nota: como los runners de
-  GitHub no tienen IP fija, esto necesita que Atlas acepte conexiones desde cualquier IP
-  (`0.0.0.0/0`) — lo mismo que Render ya necesita hoy para conectarse.
+  corre gratis en GitHub Actions, se cifra (AES256 simétrico, aunque el repo ya es privado), se
+  auto-verifica descifrándolo de vuelta antes de subirlo, y se sube como artifact (90 días de
+  retención). Falta el único paso que no se puede hacer desde el código: agregar los secrets
+  `MONGO_URI` y `BACKUP_PASSPHRASE` en Settings > Secrets and variables > Actions (sin ellos el
+  job falla explícitamente en vez de saltarse el respaldo en silencio) y correrlo una vez a mano
+  para confirmar que funciona. Guía paso a paso, con dónde conseguir cada valor y cómo restaurar
+  un backup si algún día hace falta: `docs/backup-mongo.md`.
 - Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
