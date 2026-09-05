@@ -7,20 +7,11 @@ name: Backup diario de MongoDB
 # apuntado borra algo. Si algun dia el cluster pasa a un tier de pago con
 # Cloud Backup real, este workflow deja de ser necesario.
 #
-# Requiere dos secrets en Settings > Secrets and variables > Actions:
-#   MONGO_URI          - la misma cadena de conexion que usa Render.
-#   BACKUP_PASSPHRASE  - una frase larga cualquiera, SOLO para este backup
-#                        (no reutilizar ninguna contraseña real). Sin ella
-#                        el job falla explicitamente en vez de subir un
-#                        respaldo sin cifrar.
-#
-# Importante sobre el IP access list de Atlas: los runners de GitHub Actions
-# no tienen una IP fija, asi que Atlas tiene que aceptar conexiones desde
-# cualquier IP (0.0.0.0/0) para que este job funcione -- lo mismo que Render
-# ya necesita hoy para conectarse (tampoco tiene IP fija en el plan actual).
-# Si en el futuro se restringe el access list de Atlas a IPs fijas, este job
-# se rompe y hay que resolverlo aparte (por ejemplo, corriendo el backup
-# desde un servidor con IP fija en vez de GitHub Actions).
+# Guia paso a paso para activarlo, probarlo y restaurar un respaldo si algun
+# dia hace falta: docs/backup-mongo.md. Resumen minimo: requiere los secrets
+# MONGO_URI y BACKUP_PASSPHRASE en Settings > Secrets and variables > Actions
+# -- sin ellos el job falla explicitamente en vez de saltarse el respaldo en
+# silencio.
 on:
   schedule:
     # 09:00 UTC = 03:00 en Culiacan (UTC-6): de madrugada, cuando casi no hay
@@ -86,7 +77,20 @@ jobs:
             --passphrase "$BACKUP_PASSPHRASE" \
             --output "$ARCHIVO_CIFRADO" \
             "$ARCHIVO_CRUDO"
-          rm -f "$ARCHIVO_CRUDO"
+
+          # Verificacion: se descifra de vuelta ahi mismo y se compara byte a
+          # byte contra el dump original. Sin esto, un backup roto (passphrase
+          # mal leida, corte a medio cifrado, etc.) se subiria igual como si
+          # nada, y recien se notaria el dia que de verdad hiciera falta
+          # restaurar -- el peor momento posible para descubrirlo.
+          gpg --batch --yes --decrypt --passphrase "$BACKUP_PASSPHRASE" \
+            --output "verificacion.archive.gz" "$ARCHIVO_CIFRADO"
+          if ! cmp -s "$ARCHIVO_CRUDO" "verificacion.archive.gz"; then
+            echo "::error::El respaldo cifrado no coincide con el original al descifrarlo de prueba -- no se sube."
+            rm -f "$ARCHIVO_CRUDO" "$ARCHIVO_CIFRADO" "verificacion.archive.gz"
+            exit 1
+          fi
+          rm -f "$ARCHIVO_CRUDO" "verificacion.archive.gz"
 
           echo "NOMBRE_ARCHIVO=$ARCHIVO_CIFRADO" >> "$GITHUB_ENV"
 
@@ -100,12 +104,5 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-# Como restaurar un respaldo (a mano, no automatizado a proposito -- restaurar
-# nunca deberia poder pasar sin que alguien lo decida explicitamente):
-#   1. Descargar el artifact desde la pestaña Actions de esta corrida.
-#   2. Descifrar:  gpg --batch --yes --decrypt --passphrase "LA_PASSPHRASE" \
-#                    --output rumbia.archive.gz rumbia-FECHA.archive.gz.gpg
-#   3. Restaurar:  mongorestore --uri="LA_MONGO_URI_DE_DESTINO" --gzip \
-#                    --archive=rumbia.archive.gz
-#      (--drop antes de --gzip si se quiere reemplazar todo lo que ya
-#      exista en destino, en vez de solo agregar encima)
+# Restaurar es a mano a proposito -- nunca deberia poder pasar sin que alguien
+# lo decida explicitamente. Pasos exactos en docs/backup-mongo.md.
