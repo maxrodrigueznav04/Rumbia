@@ -84,6 +84,7 @@ export const aplicar = asyncHandler(async (req, res) => {
 
   const trip = await Trip.create({
     user: req.user._id,
+    agency: req.user.agency || null,
     title,
     destination: plantilla.destination,
     // La plantilla guarda dias relativos (startDayNumber/endDayNumber); aqui

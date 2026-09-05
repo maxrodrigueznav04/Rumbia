@@ -16,7 +16,7 @@ export const getWeather = asyncHandler(async (req, res) => {
  * en el viaje para no repetir la llamada en cada visita.
  */
 export const getTripWeather = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
 
   let { lat, lng } = trip.destination || {};
 

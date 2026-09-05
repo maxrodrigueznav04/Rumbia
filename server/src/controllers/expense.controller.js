@@ -18,7 +18,7 @@ export const listExpenses = asyncHandler(async (req, res) => {
 
   let viaje = null;
   if (trip) {
-    viaje = await findOwnedTrip(trip, req.user._id); // 403 explicito en vez de lista vacia
+    viaje = await findOwnedTrip(trip, req.user); // 403 explicito en vez de lista vacia
     filter.trip = trip;
   }
   if (category) filter.category = category;
@@ -47,7 +47,7 @@ export const listExpenses = asyncHandler(async (req, res) => {
 });
 
 export const createExpense = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.body.trip, req.user._id);
+  const trip = await findOwnedTrip(req.body.trip, req.user);
 
   const expense = await Expense.create({
     ...req.body,
@@ -75,7 +75,7 @@ export const deleteExpense = asyncHandler(async (req, res) => {
 
 /** GET /api/trips/:id/expenses — atajo anidado para la vista de detalle. */
 export const listTripExpenses = asyncHandler(async (req, res) => {
-  const viaje = await findOwnedTrip(req.params.id, req.user._id);
+  const viaje = await findOwnedTrip(req.params.id, req.user);
   const expenses = await Expense.find({ trip: req.params.id }).sort({ date: -1 });
 
   // Mismo motivo que en getTripSummary: sumar en crudo mezclaba USD y MXN

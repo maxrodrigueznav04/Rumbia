@@ -135,6 +135,15 @@ const localTransportSchema = new mongoose.Schema({
 const tripSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    // Snapshot de la agencia al crear el viaje (mismo patron que
+    // Client.agency e ItineraryTemplate.agency): si el agente que lo armo
+    // sale de la agencia despues, el viaje se queda con el equipo -- no se
+    // lo lleva consigo, y el resto del equipo no pierde visibilidad de una
+    // propuesta o un cliente ya en curso. "agency: null" en un viaje
+    // personal (sin agencia) es intencional, no "no aplica": ver
+    // filtroPertenenciaTrip en trip.controller.js, mismo motivo que
+    // filtroPertenencia en client.controller.js.
+    agency: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', default: null, index: true },
     title: { type: String, required: true, trim: true, maxlength: 120 },
     destination: {
       type: placeSchema,
@@ -243,6 +252,11 @@ tripSchema.index({ user: 1, startDate: -1 });
 // (status=proximos -> endDate >= hoy, pasados -> endDate < hoy); sin este
 // indice esa consulta hace collection scan una vez que hay muchos viajes.
 tripSchema.index({ user: 1, endDate: 1 });
+// Mismos dos indices, del lado de agencia: filtroPertenenciaTrip arma un $or
+// que Mongo puede resolver con un indice por rama -- sin este, la rama
+// "agency: user.agency" de ese $or hace collection scan.
+tripSchema.index({ agency: 1, startDate: -1 });
+tripSchema.index({ agency: 1, endDate: 1 });
 
 tripSchema.virtual('durationDays').get(function durationDays() {
   if (!this.startDate || !this.endDate) return 0;

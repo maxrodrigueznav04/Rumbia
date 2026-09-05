@@ -19,7 +19,9 @@ const { getWeatherForRange, getWeatherForStops } = await import('../src/services
 const { buildRouteLines, normalizeDays } = await import('../src/services/gemini.service.js');
 const { buildTripContext } = await import('../src/services/chat.service.js');
 const { esAdmin } = await import('../src/utils/esAdmin.js');
-const { escaparRegex, CAMPOS_EDITABLES_DIRECTO } = await import('../src/controllers/trip.controller.js');
+const { escaparRegex, CAMPOS_EDITABLES_DIRECTO, filtroPertenenciaTrip } = await import(
+  '../src/controllers/trip.controller.js'
+);
 const { incrementarUsoIAMensual } = await import('../src/utils/cupoIA.js');
 const ApiError = (await import('../src/utils/ApiError.js')).default;
 const mongoose = (await import('mongoose')).default;
@@ -269,6 +271,67 @@ await check('Trip: existe un indice para el filtro "proximos"/"pasados" (user + 
     `indices declarados: ${indices.join(', ')}`
   );
   return 'indice {user:1, endDate:1} declarado';
+});
+
+await check('Trip: existen los mismos indices del lado de agencia', async () => {
+  // Mismo motivo que el indice de arriba, pero para la rama "agency: ..."
+  // del $or que arma filtroPertenenciaTrip -- sin esto, listar los viajes
+  // de una agencia grande hace collection scan.
+  const indices = Trip.schema.indexes().map(([campos]) => JSON.stringify(campos));
+  assert(indices.includes(JSON.stringify({ agency: 1, startDate: -1 })), indices.join(', '));
+  assert(indices.includes(JSON.stringify({ agency: 1, endDate: 1 })), indices.join(', '));
+  return 'indices {agency:1, startDate:-1} y {agency:1, endDate:1} declarados';
+});
+
+console.log('\n== Propiedad de un viaje: agencia comparte, no solo quien lo creo ==');
+
+// filtroPertenenciaTrip (trip.controller.js) es la pieza central del
+// hallazgo D2/ownership: antes un viaje era solo de quien lo armaba, sin
+// importar la agencia -- un agente que se iba se llevaba consigo cada
+// propuesta y cada cliente vinculado. Mismo patron ya probado y en
+// produccion para Client (filtroPertenencia) e ItineraryTemplate
+// (filtroVisible): se prueba la forma exacta del filtro, que es lo que
+// tambien usa findOwnedTrip para decidir 404/403 sin poder correr contra
+// Mongo real en este entorno (ver nota de limitacion en el PR).
+await check('filtroPertenenciaTrip: sin agencia, solo ve lo suyo (agency:null explicito)', () => {
+  const filtro = filtroPertenenciaTrip({ _id: uid, agency: null });
+  assert(JSON.stringify(filtro) === JSON.stringify({ user: uid, agency: null }), JSON.stringify(filtro));
+  return 'sin agencia: { user, agency: null }';
+});
+
+const agencyId = new mongoose.Types.ObjectId();
+
+await check('filtroPertenenciaTrip: con agencia, comparte con el equipo Y conserva lo personal previo', () => {
+  const filtro = filtroPertenenciaTrip({ _id: uid, agency: agencyId });
+  assert(
+    JSON.stringify(filtro) === JSON.stringify({ $or: [{ agency: agencyId }, { user: uid, agency: null }] }),
+    JSON.stringify(filtro)
+  );
+  return 'con agencia: $or[{agency}, {user, agency:null}] -- no pierde viajes personales de antes de unirse';
+});
+
+await check(
+  'filtroPertenenciaTrip: "agency:null" en el respaldo personal excluye viajes de OTRA agencia',
+  () => {
+    // Si el respaldo fuera solo "{ user: uid }" (sin agency:null), alguien
+    // que arma un viaje en la Agencia A, sale, y se une a la Agencia B
+    // seguiria viendo ese viaje via "user: uid" aunque ya no sea su equipo
+    // -- exactamente el bug que ya se corrigio para Client/Template.
+    const filtro = filtroPertenenciaTrip({ _id: uid, agency: agencyId });
+    const ramaPersonal = filtro.$or[1];
+    assert(ramaPersonal.agency === null, `rama personal deberia exigir agency:null, trae ${ramaPersonal.agency}`);
+    return 'la rama personal exige agency:null, no solo el user';
+  }
+);
+
+await check('Trip.agency: existe, default null, y no rompe un viaje viejo sin el campo', () => {
+  const t = new Trip({
+    user: uid, title: 'X', destination: { name: 'Y' },
+    startDate: new Date(), endDate: new Date(),
+  });
+  assert(t.agency === null, `agency=${t.agency}, deberia ser null por default`);
+  assert(Trip.schema.path('agency'), 'el path agency deberia existir en el schema');
+  return 'default null: retrocompatible con viajes creados antes de este campo';
 });
 
 await check('Itinerary rechaza hora mal formada', async () => {

@@ -81,31 +81,68 @@ async function esClientePropio(clientId, user) {
 }
 
 /**
- * Carga un viaje verificando que pertenezca al usuario autenticado.
- * Centraliza la comprobacion de propiedad para no repetirla en cada handler.
+ * Resuelve el filtro de pertenencia de un viaje: con agencia, se comparte
+ * con el equipo -- mismo criterio que filtroPertenencia (client.controller.js)
+ * y filtroVisible (templates.controller.js). Sin agencia (o para un viaje que
+ * se creo antes de tener una), solo lo ve quien lo creo.
+ *
+ * Antes un viaje era solo de quien lo armaba, sin importar la agencia: un
+ * agente que se iba (o lo sacaban) se llevaba consigo cada propuesta y cada
+ * cliente vinculado, y el resto del equipo se quedaba sin nada. Con esto, un
+ * viaje armado dentro de una agencia se queda con el equipo aunque su autor
+ * ya no este.
  */
-export async function findOwnedTrip(tripId, userId) {
+export function filtroPertenenciaTrip(user) {
+  if (user.agency) {
+    return { $or: [{ agency: user.agency }, { user: user._id, agency: null }] };
+  }
+  return { user: user._id, agency: null };
+}
+
+/**
+ * Carga un viaje verificando que pertenezca al usuario autenticado o a su
+ * agencia. Centraliza la comprobacion de propiedad para no repetirla en cada
+ * handler.
+ *
+ * Dos pasos (no un Trip.findOne con el filtro de pertenencia de una vez) a
+ * proposito: para distinguir "no existe" (404) de "existe pero no es tuyo"
+ * (403) -- ver el comentario en expense.controller.js sobre por que
+ * listExpenses quiere ese 403 explicito en vez de una lista vacia.
+ */
+export async function findOwnedTrip(tripId, user) {
   const trip = await Trip.findById(tripId);
   if (!trip) throw ApiError.notFound('Viaje no encontrado.');
-  if (String(trip.user) !== String(userId)) throw ApiError.forbidden();
+
+  const esPersonalPropio = !trip.agency && String(trip.user) === String(user._id);
+  const esDeLaAgencia = trip.agency && user.agency && String(trip.agency) === String(user.agency);
+  if (!esPersonalPropio && !esDeLaAgencia) throw ApiError.forbidden();
+
   return trip;
 }
 
 export const listTrips = asyncHandler(async (req, res) => {
   const { status, estadoPropuesta, q, page, limit } = req.validatedQuery;
-  const filter = { user: req.user._id };
   const now = new Date();
 
-  if (status === 'proximos') filter.endDate = { $gte: now };
-  else if (status === 'pasados') filter.endDate = { $lt: now };
-  else if (status) filter.status = status;
+  // $and de condiciones separadas, nunca reasignando una clave "$or" que ya
+  // trae filtroPertenenciaTrip: mismo bug que ya se corrigio en
+  // listarClientes (client.controller.js) -- filter.$or = [...] aqui pisaria
+  // por completo el $or de pertenencia en cuanto hubiera busqueda de texto,
+  // y devolveria viajes de CUALQUIER agencia que calzaran con lo buscado.
+  const condiciones = [filtroPertenenciaTrip(req.user)];
 
-  if (estadoPropuesta) filter.estadoPropuesta = estadoPropuesta;
+  if (status === 'proximos') condiciones.push({ endDate: { $gte: now } });
+  else if (status === 'pasados') condiciones.push({ endDate: { $lt: now } });
+  else if (status) condiciones.push({ status });
+
+  if (estadoPropuesta) condiciones.push({ estadoPropuesta });
 
   if (q) {
     const re = new RegExp(escaparRegex(q), 'i');
-    filter.$or = [{ title: re }, { 'destination.name': re }, { 'cliente.nombre': re }];
+    condiciones.push({ $or: [{ title: re }, { 'destination.name': re }, { 'cliente.nombre': re }] });
   }
+
+  const filter = condiciones.length > 1 ? { $and: condiciones } : condiciones[0];
 
   const [trips, total] = await Promise.all([
     Trip.find(filter)
@@ -122,17 +159,17 @@ export const listTrips = asyncHandler(async (req, res) => {
 });
 
 export const getTrip = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   await trip.populate([{ path: 'itinerary' }, { path: 'expenses', options: { sort: { date: -1 } } }]);
 
   /**
    * El cliente (CRM) solo se puebla si sigue siendo "propio" en la agencia
    * ACTUAL del usuario -- mismo chequeo que esClientePropio usa al guardar.
-   * findOwnedTrip solo confirma que el VIAJE siga siendo suyo (trip.user no
-   * cambia al salir de una agencia); sin esto, un ex-integrante que dejo el
-   * equipo (o se unio a otro) seguia pudiendo leer nombre, correo, telefono y
-   * notas de un cliente que sigue siendo del equipo del que ya no es parte,
-   * a traves de un viaje viejo que trajo consigo al irse.
+   * trip.client es una referencia aparte a la coleccion Client, con su
+   * propio ciclo de vida (esClientePropio evalua Client.agency, no
+   * Trip.agency): un cliente puede haberse creado, o desvinculado de la
+   * agencia, en un momento distinto al del propio viaje, asi que se
+   * revalida aqui aparte de que findOwnedTrip ya haya confirmado el viaje.
    */
   if (trip.client) {
     if (await esClientePropio(trip.client, req.user)) {
@@ -144,9 +181,12 @@ export const getTrip = asyncHandler(async (req, res) => {
 
   // Otras variantes del mismo prospecto (ver duplicarViaje): el raiz de la
   // familia no tiene grupoPropuesta propio, asi que el ancla es su propio id.
+  // Mismo filtro de pertenencia que el viaje principal (findOwnedTrip de
+  // arriba ya demostro que este usuario puede ver "trip"): si es de agencia,
+  // las variantes armadas por cualquier companero de equipo tambien cuentan.
   const ancla = trip.grupoPropuesta || trip._id;
   const variantes = await Trip.find({
-    user: req.user._id,
+    ...filtroPertenenciaTrip(req.user),
     _id: { $ne: trip._id },
     $or: [{ _id: ancla }, { grupoPropuesta: ancla }],
   })
@@ -161,7 +201,7 @@ export const createTrip = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Cliente no encontrado.');
   }
 
-  const payload = { ...req.body, user: req.user._id };
+  const payload = { ...req.body, user: req.user._id, agency: req.user.agency || null };
 
   // Moneda por defecto: la del perfil, si el usuario no mando una.
   if (!payload.budget?.currency) {
@@ -201,7 +241,7 @@ export const CAMPOS_EDITABLES_DIRECTO = [
 ];
 
 export const updateTrip = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
 
   const fechasPrevias = `${trip.startDate?.getTime()}-${trip.endDate?.getTime()}`;
 
@@ -268,11 +308,12 @@ export const updateTrip = asyncHandler(async (req, res) => {
  * publico del original (cada variante comparte el suyo cuando este lista).
  */
 export const duplicarViaje = asyncHandler(async (req, res) => {
-  const original = await findOwnedTrip(req.params.id, req.user._id);
+  const original = await findOwnedTrip(req.params.id, req.user);
   const itinerarioOriginal = await Itinerary.findOne({ trip: original._id });
 
   const copia = await Trip.create({
     user: req.user._id,
+    agency: req.user.agency || null,
     title: `${original.title} (copia)`,
     destination: {
       name: original.destination?.name,
@@ -341,7 +382,16 @@ export const duplicarViaje = asyncHandler(async (req, res) => {
 });
 
 export const deleteTrip = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
+
+  // Compartir visibilidad con la agencia no es lo mismo que compartir el
+  // permiso de borrar: mismo criterio que ya usa templates.controller.js
+  // (eliminar) para plantillas -- ver/editar es del equipo, pero borrar el
+  // trabajo de otro companero (aunque sea de la misma agencia) sigue siendo
+  // solo de quien lo creo.
+  if (String(trip.user) !== String(req.user._id)) {
+    throw ApiError.forbidden('Solo quien creó el viaje puede eliminarlo.');
+  }
 
   // Sin transacciones (Atlas free soporta replica set, pero no lo damos por hecho):
   // se borran los hijos primero para no dejar huerfanos si algo falla.
@@ -357,7 +407,7 @@ export const deleteTrip = asyncHandler(async (req, res) => {
 
 /** Links de salida hacia comparadores, con las fechas y el destino ya prellenados. */
 export const getBookingLinks = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
   const { section, type, lodgingIndex } = req.validatedQuery;
 
   res.json({
@@ -381,7 +431,7 @@ export const getBookingLinks = asyncHandler(async (req, res) => {
  * el total contra el presupuesto definido al crear el viaje.
  */
 export const getTripSummary = asyncHandler(async (req, res) => {
-  const trip = await findOwnedTrip(req.params.id, req.user._id);
+  const trip = await findOwnedTrip(req.params.id, req.user);
 
   const [expenses, itinerary] = await Promise.all([
     Expense.find({ trip: trip._id }),
