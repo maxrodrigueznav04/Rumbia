@@ -712,11 +712,9 @@ Turnstile) se filtra o se sospecha comprometida:
   (M0) no ofrece Cloud Backup ni point-in-time recovery en absoluto, así que un `mongodump` diario
   corre gratis en GitHub Actions, se cifra (AES256 simétrico, aunque el repo ya es privado), se
   auto-verifica descifrándolo de vuelta antes de subirlo, y se sube como artifact (90 días de
-  retención). Falta el único paso que no se puede hacer desde el código: agregar los secrets
-  `MONGO_URI` y `BACKUP_PASSPHRASE` en Settings > Secrets and variables > Actions (sin ellos el
-  job falla explícitamente en vez de saltarse el respaldo en silencio) y correrlo una vez a mano
-  para confirmar que funciona. Guía paso a paso, con dónde conseguir cada valor y cómo restaurar
-  un backup si algún día hace falta: `docs/backup-mongo.md`.
+  retención). Ya está activo y confirmado de punta a punta en producción — no es un sustituto de
+  un backup real de un cluster de pago, pero es infinitamente mejor que no tener ninguno. Cómo
+  restaurar uno si algún día hace falta: `docs/backup-mongo.md`.
 - Endurecimiento de seguridad pendiente, ninguno urgente hoy — quedan anotados para cuando haya
   tiempo de hacerlos con calma (y de probarlos, algunos tocan flujos que no conviene romper):
   - **2FA en la cuenta admin** (`ADMIN_EMAIL`): es la única cuenta sin topes de uso ni candado de
