@@ -13,7 +13,8 @@ import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
  * -- sin el, cualquier agente que no sea el dueno veria el pie de Rumbia en
  * su PDF aunque la agencia si tenga el plan que lo quita.
  */
-const AGENCIA_PUBLICA = 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf owner createdAt billing.plan';
+const AGENCIA_PUBLICA =
+  'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf owner createdAt billing.plan';
 
 /**
  * Recorta el documento de Agency a lo que puede ver un miembro que no es el
@@ -30,6 +31,7 @@ function vistaAgenciaMiembro(agencia) {
     colorAcento: agencia.colorAcento,
     fuentePdf: agencia.fuentePdf,
     densidadPdf: agencia.densidadPdf,
+    fondoPdf: agencia.fondoPdf,
     marcaBlanca: agencia.marcaBlanca,
     owner: agencia.owner,
     billing: {

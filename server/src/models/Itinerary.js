@@ -111,6 +111,7 @@ const itinerarySchema = new mongoose.Schema(
       colorAcento: { type: String, default: '' },
       fuentePdf: { type: String, default: '' },
       densidadPdf: { type: String, default: 'normal' },
+      fondoPdf: { type: String, default: '' },
       marcaBlanca: { type: Boolean, default: false },
     },
 

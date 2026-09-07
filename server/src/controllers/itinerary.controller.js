@@ -266,7 +266,7 @@ export const compartir = asyncHandler(async (req, res) => {
     // ver el comentario de marcaCompartida en Itinerary.js.
     await req.user.populate({
       path: 'agency',
-      select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf billing.plan',
+      select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf billing.plan',
     });
     const fuenteMarca = req.user.agency || req.user.branding;
     itinerary.marcaCompartida = {
@@ -276,6 +276,7 @@ export const compartir = asyncHandler(async (req, res) => {
       colorAcento: fuenteMarca?.colorAcento || '',
       fuentePdf: fuenteMarca?.fuentePdf || '',
       densidadPdf: fuenteMarca?.densidadPdf || 'normal',
+      fondoPdf: fuenteMarca?.fondoPdf || '',
       marcaBlanca: Boolean(req.user.agency?.marcaBlanca),
     };
 
