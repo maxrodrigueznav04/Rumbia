@@ -2073,15 +2073,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     --verde-300: #52a68c !important;
     --verde-100: #e8f4f0 !important;
     --verde-50: #f2f9f6 !important;
-    /* --marca-agencia (sin definir por defecto) la pone HojaImpresion.jsx
-       inline cuando la agencia tiene plan Agencia/Pro y eligio un color: si
+    /* useMarcaImpresion publica las variables de HojaImpresion.jsx en html
+       durante beforeprint y las restaura en afterprint. Tenerlas solo en el
+       contenedor hijo no permite resolverlas aqui en html/body.
+       --marca-agencia se define si la agencia tiene Agencia/Pro y color: si
        no existe, var() cae al mismo verde de siempre -- cero cambio visual
        para quien no personaliza nada. */
     --marca: var(--marca-agencia, #135f49) !important;
     --marca-600: #0f4c3a !important;
     --marca-100: #e8f4f0 !important;
     /* --fuente-agencia y --escala-pdf: mismo patron que --marca-agencia
-       arriba -- HojaImpresion.jsx los pone inline solo en plan Agencia/Pro.
+       arriba -- useMarcaImpresion los publica solo en plan Agencia/Pro.
        Sin ellos, cae exactamente en la tipografia y el tamano de siempre. */
     --fuente: var(--fuente-agencia, 'Manrope Variable', ui-sans-serif, system-ui, sans-serif) !important;
     --fuente-titulo: var(--fuente-agencia, 'Sora Variable', 'Manrope Variable', ui-sans-serif, sans-serif) !important;
@@ -2095,8 +2097,8 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     --ambar: #b45309 !important;
     --alerta: #b45309 !important;
     --alerta-bg: #fef3c7 !important;
-    /* --fondo-agencia (sin definir por defecto) la pone HojaImpresion.jsx
-       inline, con uno de los tonos curados de fondosPdf.js -- sin el, cae en
+    /* --fondo-agencia la publica useMarcaImpresion en html al imprimir,
+       con uno de los tonos curados de fondosPdf.js -- sin el, cae en
        blanco, igual que siempre. Las tarjetas de contenido (.tarjeta,
        .actividad) siguen fijas en blanco encima, asi el fondo solo tine el
        "papel", no cada bloque de texto. */
