@@ -85,11 +85,17 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
             <Insignia color="ambar">{formatoMoneda(actividad.estimatedCost, moneda)}</Insignia>
           )}
           {actividad.durationMinutes > 0 && (
-            <Insignia>
-              {actividad.durationMinutes >= 60
-                ? `${Math.round((actividad.durationMinutes / 60) * 10) / 10} h`
-                : `${actividad.durationMinutes} min`}
-            </Insignia>
+            // Envuelta para poder ocultarla solo al imprimir (ver .duracion-actividad
+            // en global.css): en el PDF ya es la cuarta etiqueta de la fila
+            // (categoria + precio + duracion + lugar) y sobra -- categoria y precio
+            // son lo que de verdad importa ahi. En pantalla, editando, si es util.
+            <span className="duracion-actividad">
+              <Insignia>
+                {actividad.durationMinutes >= 60
+                  ? `${Math.round((actividad.durationMinutes / 60) * 10) / 10} h`
+                  : `${actividad.durationMinutes} min`}
+              </Insignia>
+            </span>
           )}
           {mostrarLugar && (
             <span className="tenue" style={{ fontSize: '0.8rem' }}>
