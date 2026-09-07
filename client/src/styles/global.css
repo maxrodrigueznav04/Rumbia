@@ -2053,7 +2053,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   html,
   body {
     color-scheme: light !important;
-    --bg: #ffffff !important;
+    --bg: var(--fondo-agencia, #ffffff) !important;
     --surface: #ffffff !important;
     --surface-alt: #f8fafc !important;
     --border: #e2e8f0 !important;
@@ -2147,6 +2147,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   .rejilla-detalle {
     display: block !important;
   }
+  /* El espaciado de pantalla se sumaba a los margenes de impresion y a
+     contenedores vacios, dejando un hueco grande antes del primer dia. */
+  .pila,
+  .pila-sm {
+    gap: 0 !important;
+  }
 
   /* ---- Membrete oficial de alta gama ---- */
   .hoja-cabecera {
@@ -2157,7 +2163,7 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     padding-bottom: 12px !important;
     margin-bottom: 16px !important;
     border-bottom: 2.5px solid var(--marca) !important;
-    background: #ffffff !important;
+    background: transparent !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
@@ -2165,6 +2171,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     display: flex !important;
     align-items: center !important;
     gap: 12px !important;
+    flex: 1 1 55% !important;
+    min-width: 0 !important;
+  }
+  .hoja-marca > div {
+    min-width: 0 !important;
+    overflow-wrap: anywhere;
   }
   .hoja-marca strong {
     font-family: var(--fuente-titulo) !important;
@@ -2178,9 +2190,11 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     max-height: 48px !important;
     max-width: 160px !important;
     object-fit: contain !important;
+    flex-shrink: 0 !important;
   }
   .hoja-marca-badge {
     display: grid !important;
+    flex-shrink: 0 !important;
     place-items: center !important;
     width: 36px !important;
     height: 36px !important;
@@ -2199,7 +2213,10 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .hoja-viaje {
     text-align: right !important;
-    max-width: 55% !important;
+    flex: 0 1 40% !important;
+    min-width: 0 !important;
+    max-width: 40% !important;
+    overflow-wrap: anywhere;
   }
   .hoja-viaje strong {
     display: block !important;

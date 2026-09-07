@@ -456,7 +456,7 @@ export default function Itinerario() {
       {/* Solo se ve al imprimir; en pantalla lo oculta global.css. */}
       {itinerario && <EncabezadoImpresion marca={marca} viaje={viaje} />}
 
-      <div>
+      <div className="no-imprimir">
         <Link to={`/viajes/${id}`} className="volver">
           ← {viaje.title}
         </Link>
