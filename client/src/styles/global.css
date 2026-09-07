@@ -2223,7 +2223,10 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .tarjeta h2,
   .tarjeta h3 {
-    color: #0f172a !important;
+    /* Mismo criterio que .dia-encabezado h3: el titulo de cada seccion
+       (Vuelos, Hospedaje, Presupuesto...) es de lo mas visible del documento
+       -- dejarlo fijo en gris es lo que mas apagaba la marca de la agencia. */
+    color: var(--marca) !important;
     font-family: var(--fuente-titulo) !important;
     font-size: calc(11pt * var(--escala-pdf, 1)) !important;
     font-weight: 700 !important;
@@ -2291,7 +2294,11 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .dia-encabezado h3,
   .dia-encabezado h4 {
-    color: #0f172a !important;
+    /* Antes fijo en #0f172a sin importar la marca de la agencia -- era la
+       razon principal de que el PDF se sintiera generico pese a subir un
+       color propio: el titulo de cada dia es lo mas grande de la pagina, y
+       se quedaba siempre gris. */
+    color: var(--marca) !important;
     font-family: var(--fuente-titulo) !important;
     font-size: calc(11pt * var(--escala-pdf, 1)) !important;
     font-weight: 700 !important;
@@ -2364,10 +2371,17 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     border-color: #fde68a !important;
   }
 
-  /* ---- Tarjeta de Resumen / Cotización Final ---- */
+  /* ---- Tarjeta de Resumen / Cotización Final ----
+     Antes fija en verde (#f0fdf4/#86efac/#14532d) sin importar la marca: la
+     caja mas importante del documento -- el precio final -- se veia
+     identica en cualquier agencia. color-mix() la tiñe con --marca (soporte
+     universal en navegadores desde 2023, y esto solo corre en el print via
+     window.print() del propio navegador de quien lo abre). Sin color propio,
+     --marca cae al verde de Rumbia (ver --marca-agencia mas arriba) y el
+     resultado es casi identico al verde fijo de antes. */
   .tarjeta:has(.grande) {
-    background: #f0fdf4 !important;
-    border: 1.5px solid #86efac !important;
+    background: color-mix(in srgb, var(--marca) 8%, white) !important;
+    border: 1.5px solid color-mix(in srgb, var(--marca) 45%, white) !important;
     border-radius: 8px !important;
     padding: 14px 18px !important;
     break-inside: avoid !important;
@@ -2376,14 +2390,14 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   }
   .tarjeta:has(.grande) h2,
   .tarjeta:has(.grande) h3 {
-    color: #14532d !important;
-    border-bottom: 1px solid #bbf7d0 !important;
+    color: var(--marca) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--marca) 25%, white) !important;
   }
   .numero.grande {
     font-family: var(--fuente-titulo) !important;
     font-size: calc(16pt * var(--escala-pdf, 1)) !important;
     font-weight: 800 !important;
-    color: #14532d !important;
+    color: var(--marca) !important;
   }
 
   /* ---- Pie de página oficial ---- */
