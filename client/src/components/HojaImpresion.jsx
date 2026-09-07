@@ -1,13 +1,15 @@
 import { rangoFechas, nombreDestino } from '../utils/format.js';
 import { obtenerFuente, obtenerDensidad } from '../utils/fuentesPdf.js';
+import { obtenerFondo } from '../utils/fondosPdf.js';
 
 /**
- * Variables CSS que ponen la personalizacion de la agencia (color, tipografia
- * y densidad de texto -- solo en plan Agencia/Pro) para que todo el PDF las
- * use via var(--marca)/var(--fuente*)/var(--escala-pdf) (ver global.css). Se
- * pasa como estilo inline en el elemento que envuelve encabezado, cuerpo y
- * pie; sin marcaBlanca o sin elegir nada, no define nada y todo cae en el
- * verde/tipografia/tamano de Rumbia de siempre.
+ * Variables CSS que ponen la personalizacion de la agencia (color, tipografia,
+ * densidad de texto y fondo de pagina -- solo en plan Agencia/Pro) para que
+ * todo el PDF las use via var(--marca)/var(--fuente*)/var(--escala-pdf)/
+ * var(--fondo-agencia) (ver global.css). Se pasa como estilo inline en el
+ * elemento que envuelve encabezado, cuerpo y pie; sin marcaBlanca o sin
+ * elegir nada, no define nada y todo cae en el verde/tipografia/tamano/fondo
+ * blanco de Rumbia de siempre.
  */
 export function estiloPersonalizado(marca) {
   if (!marca?.marcaBlanca) return undefined;
@@ -20,6 +22,9 @@ export function estiloPersonalizado(marca) {
 
   const densidad = obtenerDensidad(marca.densidadPdf);
   if (densidad.escala !== 1) estilo['--escala-pdf'] = densidad.escala;
+
+  const fondo = obtenerFondo(marca.fondoPdf);
+  if (fondo.color) estilo['--fondo-agencia'] = fondo.color;
 
   return Object.keys(estilo).length ? estilo : undefined;
 }

@@ -125,7 +125,7 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
 /** Solo el dueno edita nombre, contacto y personalizacion del PDF. */
 export const actualizarAgencia = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
-  const { agencyName, contact, logoUrl, colorAcento, fuentePdf, densidadPdf } = req.body;
+  const { agencyName, contact, logoUrl, colorAcento, fuentePdf, densidadPdf, fondoPdf } = req.body;
   if (agencyName !== undefined) agencia.agencyName = agencyName;
   if (contact !== undefined) agencia.contact = contact;
   if (logoUrl !== undefined) agencia.logoUrl = logoUrl;
@@ -135,6 +135,7 @@ export const actualizarAgencia = asyncHandler(async (req, res) => {
   if (colorAcento !== undefined) agencia.colorAcento = colorAcento;
   if (fuentePdf !== undefined) agencia.fuentePdf = fuentePdf;
   if (densidadPdf !== undefined) agencia.densidadPdf = densidadPdf;
+  if (fondoPdf !== undefined) agencia.fondoPdf = fondoPdf;
   await agencia.save();
 
   res.json({ success: true, message: 'Agencia actualizada.', data: { agency: agencia } });
