@@ -23,6 +23,7 @@ import { viajeParaCliente } from '../utils/cotizacion.js';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import RevisionItinerario from '../components/RevisionItinerario.jsx';
 import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
+import useMarcaImpresion from '../hooks/useMarcaImpresion.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { revisarItinerario } from '../utils/revisionItinerario.js';
 import {
@@ -124,6 +125,7 @@ export default function Itinerario() {
   // marca gana sobre la personal (mismo criterio que el enlace compartido).
   const { user } = useAuth();
   const marca = user?.agency ?? user?.branding;
+  useMarcaImpresion(marca);
 
   // Descarga la tipografia elegida solo si hace falta (no es la de Rumbia).
   useEffect(() => {

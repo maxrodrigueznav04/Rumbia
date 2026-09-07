@@ -7,7 +7,8 @@ import { obtenerFondo } from '../utils/fondosPdf.js';
  * densidad de texto y fondo de pagina -- solo en plan Agencia/Pro) para que
  * todo el PDF las use via var(--marca)/var(--fuente*)/var(--escala-pdf)/
  * var(--fondo-agencia) (ver global.css). Se pasa como estilo inline en el
- * elemento que envuelve encabezado, cuerpo y pie; sin marcaBlanca o sin
+ * elemento que envuelve encabezado, cuerpo y pie. useMarcaImpresion tambien
+ * las publica en html durante la impresion; sin marcaBlanca o sin
  * elegir nada, no define nada y todo cae en el verde/tipografia/tamano/fondo
  * blanco de Rumbia de siempre.
  */
