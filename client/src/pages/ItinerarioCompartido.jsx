@@ -6,6 +6,7 @@ import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import { EncabezadoImpresion, PieImpresion, estiloPersonalizado, cargarFuentePdf } from '../components/HojaImpresion.jsx';
+import useMarcaImpresion from '../hooks/useMarcaImpresion.js';
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio, Aviso } from '../components/ui.jsx';
 import {
@@ -38,6 +39,7 @@ export default function ItinerarioCompartido() {
   const [aceptando, setAceptando] = useState(false);
   const [errorAceptar, setErrorAceptar] = useState(null);
   const moneda = data?.viaje?.budget?.currency || 'MXN';
+  useMarcaImpresion(data?.marca);
   const paraCuantos = data
     ? Math.min(personas ?? data.viaje.travelers, data.viaje.travelers)
     : 1;
