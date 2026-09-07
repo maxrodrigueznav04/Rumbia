@@ -20,6 +20,11 @@ export const ACCIONES_AUDITORIA = [
   'agencia.codigo_regenerado',
   'agencia.eliminada',
   'agencia.union_admin',
+  // cancelarSuscripcion (stripe.service.js) no bloquea el borrado si Stripe
+  // falla -- a proposito, ver su comentario -- pero sin esto la unica huella
+  // quedaba en console.error, que Render rota y se pierde. Con esto queda
+  // consultable para reconciliar el cobro a mano en el dashboard de Stripe.
+  'agencia.cancelacion_stripe_fallida',
 ];
 
 const auditLogSchema = new mongoose.Schema(
