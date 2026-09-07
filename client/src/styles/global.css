@@ -2337,21 +2337,33 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     line-height: 1.35 !important;
   }
 
-  /* ---- Actividades en caja editorial ---- */
+  /* ---- Actividades en caja editorial ----
+     Antes llevaban un borde completo (1px gris) MAS un borde izquierdo grueso
+     de color: con el fondo de pagina tambien pintado (fondoPdf), varias
+     tarjetas pegadas (poco margen entre ellas) con el mismo borde de color
+     se leian como una sola caja grande envolviendo todo el dia, no como
+     tarjetas separadas. Una sombra suave en vez de contorno completo, mas
+     separacion entre tarjetas, y el borde de color mas fino resuelve eso. */
   .actividad {
     display: flex !important;
     align-items: flex-start !important;
     gap: 10px !important;
     background: #ffffff !important;
     color: #1e293b !important;
-    box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
-    border-left: 3.5px solid var(--marca) !important;
-    border-radius: 6px !important;
-    padding: 8px 12px !important;
-    margin-bottom: 7px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+    border: none !important;
+    border-left: 2.5px solid var(--marca) !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 10px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+  /* Ver comentario en Itinerario.jsx: la duracion no se imprime, categoria y
+     precio ya dicen lo importante y una etiqueta menos por actividad se lee
+     mas limpio. */
+  .duracion-actividad {
+    display: none !important;
   }
   .actividad-hora {
     color: var(--marca) !important;
@@ -2378,21 +2390,24 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     margin: 0 0 5px !important;
   }
 
-  /* ---- Insignias de categoría ---- */
+  /* ---- Insignias de categoría ----
+     Radio de 999px (pastilla), no un rectangulo casi recto: es la firma
+     visual del resto de la app (ver --radio-pastilla en :root) que el PDF no
+     seguia. Sin borde propio -- el relleno de color ya las distingue del
+     fondo blanco de la tarjeta, un borde encima solo sumaba lineas. */
   .insignia {
     background: #f1f5f9 !important;
     color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 4px !important;
+    border: none !important;
+    border-radius: 999px !important;
     font-size: calc(7.5pt * var(--escala-pdf, 1)) !important;
     font-weight: 600 !important;
-    padding: 1px 6px !important;
+    padding: 2px 9px !important;
   }
   .insignia[color="ambar"],
   .insignia.ambar {
     background: #fef3c7 !important;
     color: #92400e !important;
-    border-color: #fde68a !important;
   }
 
   /* ---- Tarjeta de Resumen / Cotización Final ----
