@@ -1138,7 +1138,13 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--verde-900);
+  /* --verde-900 es el extremo oscuro de la paleta, pensado para texto sobre
+     fondo claro: en modo oscuro se vuelve aun mas oscuro (#0A1F19) y casi
+     desaparece sobre --arena-0/--arena-100. --marca es el que la hoja de
+     estilos aclara a proposito para modo oscuro (ver comentario junto a
+     @media prefers-color-scheme: dark) -- la version para PDF de esta misma
+     clase (mas abajo) ya lo usa asi, solo faltaba aqui.  */
+  color: var(--marca);
   min-width: 48px;
   padding-top: 2px;
 }
