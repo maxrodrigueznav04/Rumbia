@@ -8,10 +8,17 @@
 # la migracion de la sesion a cookie httpOnly, la API vive en api.rumbiamx.com
 # (subdominio propio, necesario para que el navegador trate la cookie como
 # propia y no "de tercero" -- ver README, seccion Seguridad).
+#
+# https://*.sentry.io en connect-src es para el reporte de errores del
+# cliente (ver config/sentry.js, VITE_SENTRY_DSN): el DSN manda a un host
+# tipo oXXXXXX.ingest.<region>.sentry.io, y el wildcard cubre cualquier
+# region sin tener que fijar una. Sin VITE_SENTRY_DSN configurado esto no se
+# usa, pero sin este permiso en la CSP el navegador bloquearia el reporte
+# aunque el DSN si estuviera bien puesto.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.rumbiamx.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.rumbiamx.com https://challenges.cloudflare.com https://*.sentry.io; frame-src https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
