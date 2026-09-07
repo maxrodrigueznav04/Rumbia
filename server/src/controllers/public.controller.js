@@ -141,7 +141,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       // sale de aqui.
       populate: {
         path: 'agency',
-        select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf billing.plan',
+        select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf billing.plan',
       },
     });
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
@@ -169,6 +169,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
     colorAcento: fuenteMarca?.colorAcento || '',
     fuentePdf: fuenteMarca?.fuentePdf || '',
     densidadPdf: fuenteMarca?.densidadPdf || 'normal',
+    fondoPdf: fuenteMarca?.fondoPdf || '',
     // Solo la agencia trae este virtual; branding personal nunca lo tiene.
     marcaBlanca: tieneSnapshot
       ? Boolean(snapshot.marcaBlanca)
