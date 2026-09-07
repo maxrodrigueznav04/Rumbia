@@ -247,7 +247,15 @@ export const salirAgencia = asyncHandler(async (req, res) => {
     });
     // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
     // que ya no existe y a la que nadie puede volver a entrar para cancelar.
-    await cancelarSuscripcion({ agencia });
+    const { ok: stripeOk, subscriptionId } = await cancelarSuscripcion({ agencia });
+    if (!stripeOk) {
+      await AuditLog.registrar({
+        agency: agencia._id,
+        actor: req.user,
+        accion: 'agencia.cancelacion_stripe_fallida',
+        detalle: `No se pudo cancelar la suscripción de Stripe (${subscriptionId}) al borrar "${agencia.agencyName}". Revisar y cancelar a mano en el dashboard de Stripe.`,
+      });
+    }
     // El dueno esta solo (otrosMiembros === 0): todo lo que quede con este
     // agency._id lo creo el mismo, nunca un companero de equipo. Sin
     // borrarlo aqui, quedaba huerfano -- apuntando a una Agency que ya no

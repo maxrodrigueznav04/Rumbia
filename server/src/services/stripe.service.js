@@ -227,16 +227,20 @@ export function resolverPlanDesdeSuscripcion(sub) {
  * "vitalicio" es pago unico: no tiene stripeSubscriptionId, no hay nada que
  * cancelar. Si Stripe falla (red, suscripcion ya cancelada del otro lado) no
  * se tira el borrado por eso -- perder el registro del usuario porque Stripe
- * tuvo un hipo seria peor que un cobro de mas que se resuelve a mano.
+ * tuvo un hipo seria peor que un cobro de mas que se resuelve a mano. Por eso
+ * regresa { ok } en vez de lanzar: el llamador decide si vale la pena dejar
+ * un rastro (ver agency.controller.js/auth.controller.js, que lo registran
+ * en AuditLog antes de borrar la agencia).
  */
 export async function cancelarSuscripcion({ agencia }) {
-  if (!stripe || !agencia?.billing?.stripeSubscriptionId) return;
+  const subscriptionId = agencia?.billing?.stripeSubscriptionId;
+  if (!stripe || !subscriptionId) return { ok: true };
   try {
-    await stripe.subscriptions.cancel(agencia.billing.stripeSubscriptionId);
+    await stripe.subscriptions.cancel(subscriptionId);
+    return { ok: true };
   } catch (err) {
-    console.error(
-      `[stripe] No se pudo cancelar la suscripcion ${agencia.billing.stripeSubscriptionId} de la agencia ${agencia._id}: ${err.message}`
-    );
+    console.error(`[stripe] No se pudo cancelar la suscripcion ${subscriptionId} de la agencia ${agencia._id}: ${err.message}`);
+    return { ok: false, subscriptionId };
   }
 }
 

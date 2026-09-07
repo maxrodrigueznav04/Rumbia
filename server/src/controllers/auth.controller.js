@@ -5,6 +5,7 @@ import Trip from '../models/Trip.js';
 import Itinerary from '../models/Itinerary.js';
 import Expense from '../models/Expense.js';
 import Agency from '../models/Agency.js';
+import AuditLog from '../models/AuditLog.js';
 import Client from '../models/Client.js';
 import TripChat from '../models/TripChat.js';
 import ItineraryTemplate from '../models/ItineraryTemplate.js';
@@ -399,7 +400,15 @@ export const deleteAccount = asyncHandler(async (req, res) => {
     await User.updateMany({ agency: agenciaPropia._id }, { agency: null });
     // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
     // que ya no existe y a la que nadie puede volver a entrar para cancelar.
-    await cancelarSuscripcion({ agencia: agenciaPropia });
+    const { ok: stripeOk, subscriptionId } = await cancelarSuscripcion({ agencia: agenciaPropia });
+    if (!stripeOk) {
+      await AuditLog.registrar({
+        agency: agenciaPropia._id,
+        actor: user,
+        accion: 'agencia.cancelacion_stripe_fallida',
+        detalle: `No se pudo cancelar la suscripción de Stripe (${subscriptionId}) al borrar la cuenta y su agencia "${agenciaPropia.agencyName}". Revisar y cancelar a mano en el dashboard de Stripe.`,
+      });
+    }
     // Si el dueño estaba SOLO, todo lo que comparte esta agencia lo creo el
     // mismo (nunca un companero): sin borrarlo aqui quedaba huerfano,
     // apuntando a una Agency que ya no existe. Con otros agentes activos NO
