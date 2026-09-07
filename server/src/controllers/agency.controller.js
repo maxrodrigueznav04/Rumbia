@@ -1,5 +1,6 @@
 import { Agency, User, Trip, AuditLog } from '../models/index.js';
 import { subirLogo as subirLogoCloudinary } from '../services/logo.service.js';
+import stripeService from '../services/stripe.service.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { esAdmin } from '../utils/esAdmin.js';
@@ -218,6 +219,9 @@ export const salirAgencia = asyncHandler(async (req, res) => {
       accion: 'agencia.eliminada',
       detalle: `"${agencia.agencyName}" se eliminó al salir el dueño sin más agentes.`,
     });
+    // Sin esto Stripe seguiria cobrando la suscripcion aunque la agencia ya
+    // no exista en Rumbia.
+    await stripeService.cancelarSuscripcion({ agencia });
     await Agency.deleteOne({ _id: agencia._id });
   }
 

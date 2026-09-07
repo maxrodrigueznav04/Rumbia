@@ -95,6 +95,28 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
   }
 }
 
+/**
+ * Cancela la suscripcion de Stripe de una agencia, si tiene una activa.
+ *
+ * Se llama siempre antes de borrar el documento de Agency: sin esto, Stripe
+ * seguiria cobrando la tarjeta del dueno cada mes aunque la agencia ya no
+ * exista en Rumbia. El plan "vitalicio" es pago unico y no tiene
+ * suscripcion que cancelar, igual que una agencia que nunca llego a pagar.
+ */
+export async function cancelarSuscripcion({ agencia }) {
+  const subscriptionId = agencia.billing?.stripeSubscriptionId;
+  if (!subscriptionId || !stripe) return;
+
+  try {
+    await stripe.subscriptions.cancel(subscriptionId);
+  } catch (err) {
+    // Ya cancelada o borrada del lado de Stripe: no es motivo para bloquear
+    // el borrado de la agencia en Rumbia.
+    if (err?.code === 'resource_missing') return;
+    throw traducirErrorStripe(err);
+  }
+}
+
 /** Enlace al Customer Portal de Stripe: ahi cambian tarjeta, cancelan o ven facturas, sin que Rumbia construya nada de eso. */
 export async function crearSesionPortal({ agencia }) {
   const s = requerirStripe();
@@ -177,4 +199,10 @@ export function construirEvento(payloadCrudo, firma) {
   return s.webhooks.constructEvent(payloadCrudo, firma, env.stripe.webhookSecret);
 }
 
-export default { crearSesionCheckout, crearSesionPortal, cambiarAgentesSuscripcion, construirEvento };
+export default {
+  crearSesionCheckout,
+  crearSesionPortal,
+  cambiarAgentesSuscripcion,
+  cancelarSuscripcion,
+  construirEvento,
+};

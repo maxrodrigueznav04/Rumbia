@@ -32,13 +32,20 @@ jobs:
         run: npm ci
 
       # "deploy" ya encadena "build": nunca publica un dist/ viejo.
-      # CLOUDFLARE_API_TOKEN es el unico secret obligatorio; si el token no
-      # alcanza a resolver la cuenta solo (mensaje "Multiple accounts
-      # found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como secret y
+      # CLOUDFLARE_API_TOKEN es el unico secret obligatorio para wrangler; si
+      # el token no alcanza a resolver la cuenta solo (mensaje "Multiple
+      # accounts found"), agrega tambien CLOUDFLARE_ACCOUNT_ID como secret y
       # descomenta la linea de abajo.
+      #
+      # VITE_API_URL y VITE_TURNSTILE_SITE_KEY las lee Vite al compilar (ver
+      # client/.env.example): sin ellas aqui, "npm run build" cae a su
+      # fallback ('/api', y sin captcha) y el sitio desplegado deja de
+      # hablarle a la API real.
       - name: Deploy a Cloudflare
         working-directory: client
         run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           # CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
