@@ -39,6 +39,13 @@ router.get('/ready', (_req, res) => {
   });
 });
 
+// TEMPORAL: solo para confirmar que SENTRY_DSN llega a Sentry despues de
+// configurarlo en Render. Un Error comun (sin isOperational) es justo lo que
+// errorHandler.js reporta como bug real -- se quita en cuanto se confirme.
+router.get('/debug-sentry', () => {
+  throw new Error('Prueba manual de Sentry -- ignorar si aparece en el dashboard.');
+});
+
 router.use('/public', publicRoutes);
 router.use('/stats', statsRoutes);
 router.use('/auth', authRoutes);
