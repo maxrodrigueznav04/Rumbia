@@ -81,6 +81,15 @@ export const FUENTES_PDF = [
 // regla por regla (ver --escala-pdf en global.css).
 export const DENSIDADES_PDF = ['compacto', 'normal', 'grande'];
 
+// Fondo de pagina del PDF (beneficio Agencia/Pro, mismo criterio que
+// fuentePdf/densidadPdf). Una paleta curada, no un color libre: el fondo
+// cubre TODA la hoja detras de las tarjetas blancas, asi que un tono mal
+// elegido (muy oscuro o saturado) se traga el documento entero -- el color
+// de acento si es libre porque solo pinta detalles chicos, este no. Los
+// valores reales de cada tono viven en client/src/utils/fondosPdf.js, mismo
+// patron que FUENTES_PDF/fuentesPdf.js.
+export const FONDOS_PDF = ['', 'azul', 'amarillo', 'morado', 'verde', 'beige', 'rosa', 'gris'];
+
 /**
  * Estado de pago de la agencia.
  *
@@ -157,6 +166,9 @@ const agencySchema = new mongoose.Schema(
     // usa si marcaBlanca es true.
     fuentePdf: { type: String, enum: FUENTES_PDF, default: '' },
     densidadPdf: { type: String, enum: DENSIDADES_PDF, default: 'normal' },
+    // Mismo criterio que fuentePdf: se guarda en cualquier plan, solo se usa
+    // si marcaBlanca es true.
+    fondoPdf: { type: String, enum: FONDOS_PDF, default: '' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     // Se comparte fuera de la app (whatsapp, correo) para que un agente se una
     // sin que el dueno tenga que invitarlo uno por uno desde un panel.

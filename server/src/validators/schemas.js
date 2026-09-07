@@ -10,7 +10,7 @@ import {
 import { ACTIVITY_CATEGORIES } from '../models/Itinerary.js';
 import { EXPENSE_CATEGORIES } from '../models/Expense.js';
 import { ORIGENES_CLICK } from '../models/ClickSalida.js';
-import { FUENTES_PDF, DENSIDADES_PDF, PLANES_AGENCIA } from '../models/Agency.js';
+import { FUENTES_PDF, DENSIDADES_PDF, FONDOS_PDF, PLANES_AGENCIA } from '../models/Agency.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido.');
 
@@ -169,6 +169,7 @@ export const updateAgencySchema = z
       .optional(),
     fuentePdf: z.enum(FUENTES_PDF).optional(),
     densidadPdf: z.enum(DENSIDADES_PDF).optional(),
+    fondoPdf: z.enum(FONDOS_PDF).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'No enviaste ningún campo a actualizar.' });
 

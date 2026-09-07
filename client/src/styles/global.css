@@ -2095,7 +2095,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
     --ambar: #b45309 !important;
     --alerta: #b45309 !important;
     --alerta-bg: #fef3c7 !important;
-    background: #ffffff !important;
+    /* --fondo-agencia (sin definir por defecto) la pone HojaImpresion.jsx
+       inline, con uno de los tonos curados de fondosPdf.js -- sin el, cae en
+       blanco, igual que siempre. Las tarjetas de contenido (.tarjeta,
+       .actividad) siguen fijas en blanco encima, asi el fondo solo tine el
+       "papel", no cada bloque de texto. */
+    background: var(--fondo-agencia, #ffffff) !important;
     color: #1e293b !important;
     font-size: calc(10pt * var(--escala-pdf, 1)) !important;
   }

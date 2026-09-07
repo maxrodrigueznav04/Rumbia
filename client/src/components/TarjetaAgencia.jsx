@@ -4,6 +4,7 @@ import { agencyApi, authApi, billingApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import Icono from './Icono.jsx';
 import { FUENTES_PDF, DENSIDADES_PDF } from '../utils/fuentesPdf.js';
+import { FONDOS_PDF } from '../utils/fondosPdf.js';
 import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, ErrorCarga } from './ui.jsx';
 
 /**
@@ -963,6 +964,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
     colorAcento: agencia.colorAcento || '',
     fuentePdf: agencia.fuentePdf || '',
     densidadPdf: agencia.densidadPdf || 'normal',
+    fondoPdf: agencia.fondoPdf || '',
   });
   const [logoUrl, setLogoUrl] = useState(agencia.logoUrl || '');
   const [estado, setEstado] = useState(null);
@@ -1198,6 +1200,40 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                 ))}
               </select>
             </Campo>
+          ) : null}
+
+          {agencia.marcaBlanca ? (
+            <div className="campo">
+              <label>Fondo del PDF</label>
+              {/* Paleta curada, sin selector de color libre a proposito: el
+                  fondo cubre toda la hoja detras de las tarjetas blancas, y
+                  un tono mal elegido se traga el documento entero. */}
+              <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
+                {FONDOS_PDF.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, fondoPdf: f.id }))}
+                    title={f.etiqueta}
+                    aria-label={f.etiqueta}
+                    aria-pressed={form.fondoPdf === f.id}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      background: f.color || '#ffffff',
+                      border:
+                        form.fondoPdf === f.id
+                          ? '3px solid var(--marca)'
+                          : '1px solid var(--border-fuerte)',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  />
+                ))}
+              </div>
+              <span className="campo-ayuda">{FONDOS_PDF.find((f) => f.id === form.fondoPdf)?.etiqueta}</span>
+            </div>
           ) : (
             <Aviso tipo="info" titulo="Personalización completa disponible en Agencia y Agencia Pro">
               Elige tu propio color de acento para el PDF y quita la mención a Rumbia del pie —{' '}
