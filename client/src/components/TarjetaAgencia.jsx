@@ -981,7 +981,13 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
     setEstado(null);
     setGuardando(true);
     try {
-      await agencyApi.actualizar(form);
+      const data = await agencyApi.actualizar(form);
+      // Sin esto, el cambio (color, fuente, nombre...) solo se veía tras
+      // cerrar sesion y volver a entrar: actualizarUsuario refresca la
+      // agencia en el contexto, que es de donde HojaImpresion.jsx y el resto
+      // de la app leen la marca, no solo esta pantalla.
+      actualizarUsuario({ agency: data.agency });
+      recargar();
       setEstado({ tipo: 'exito', mensaje: 'Agencia actualizada.' });
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
@@ -999,6 +1005,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
     try {
       const data = await agencyApi.subirLogo(archivo);
       setLogoUrl(data.agency.logoUrl);
+      actualizarUsuario({ agency: data.agency });
+      recargar();
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
@@ -1010,8 +1018,10 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
     setEstado(null);
     setSubiendoLogo(true);
     try {
-      await agencyApi.actualizar({ logoUrl: '' });
+      const data = await agencyApi.actualizar({ logoUrl: '' });
       setLogoUrl('');
+      actualizarUsuario({ agency: data.agency });
+      recargar();
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
