@@ -12,35 +12,40 @@ import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, Error
  * cobra lo decide Stripe con los Price que arma "npm run stripe:setup". Si
  * cambian ahi, hay que actualizar esto a mano para que no digan cosas
  * distintas.
+ *
+ * Inicio/Agencia/Pro tienen precio en las dos divisas que Rumbia cobra hoy
+ * (mxn/usd, ver moneda en Agency.js). Los planes legado (mensual/anual/
+ * vitalicio) solo existen para clientes que ya los tenian antes de este
+ * cambio -- se muestran igual sin importar `moneda` porque nunca tuvieron
+ * mas que una tarifa.
  */
 const PLANES = {
-  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', base: '$190 MXN/mes', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos' },
-  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', base: '$1,950 MXN/año', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)' },
-  agencia_mensual: { etiqueta: 'Agencia (Mensual)', base: '$450 MXN/mes', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos' },
-  agencia_anual: { etiqueta: 'Agencia (Anual)', base: '$4,650 MXN/año', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)' },
-  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', base: '$750 MXN/mes', agentesBase: 15, agente: '+$75 MXN/mes por agente extra (16+)', permiteExtra: true },
-  pro_anual: { etiqueta: 'Agencia Pro (Anual)', base: '$7,800 MXN/año', agentesBase: 15, agente: '+$780 MXN/año por agente extra (16+)', permiteExtra: true },
-  mensual: { etiqueta: 'Mensual (Legacy)', base: '$20 USD/mes', agente: '+$10 USD/mes por agente extra', permiteExtra: true },
-  anual: { etiqueta: 'Anual (Legacy)', base: '$200 USD/año', agente: '+$100 USD/año por agente extra', permiteExtra: true },
-  vitalicio: { etiqueta: 'De por vida (Legacy)', base: '$500 USD pago único', agente: '+$250 USD único por agente extra' },
+  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos', base: { mxn: '$190 MXN/mes', usd: '$10 USD/mes' } },
+  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)', base: { mxn: '$1,950 MXN/año', usd: '$104 USD/año' } },
+  agencia_mensual: { etiqueta: 'Agencia (Mensual)', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos', base: { mxn: '$450 MXN/mes', usd: '$25 USD/mes' } },
+  agencia_anual: { etiqueta: 'Agencia (Anual)', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)', base: { mxn: '$4,650 MXN/año', usd: '$260 USD/año' } },
+  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', agentesBase: 15, permiteExtra: true, base: { mxn: '$750 MXN/mes', usd: '$40 USD/mes' }, agente: { mxn: '+$75 MXN/mes por agente extra (16+)', usd: '+$4 USD/mes por agente extra (16+)' } },
+  pro_anual: { etiqueta: 'Agencia Pro (Anual)', agentesBase: 15, permiteExtra: true, base: { mxn: '$7,800 MXN/año', usd: '$416 USD/año' }, agente: { mxn: '+$780 MXN/año por agente extra (16+)', usd: '+$42 USD/año por agente extra (16+)' } },
+  mensual: { etiqueta: 'Mensual (Legacy)', permiteExtra: true, base: { mxn: '$20 USD/mes', usd: '$20 USD/mes' }, agente: { mxn: '+$10 USD/mes por agente extra', usd: '+$10 USD/mes por agente extra' } },
+  anual: { etiqueta: 'Anual (Legacy)', permiteExtra: true, base: { mxn: '$200 USD/año', usd: '$200 USD/año' }, agente: { mxn: '+$100 USD/año por agente extra', usd: '+$100 USD/año por agente extra' } },
+  vitalicio: { etiqueta: 'De por vida (Legacy)', base: { mxn: '$500 USD pago único', usd: '$500 USD pago único' }, agente: { mxn: '+$250 USD único por agente extra', usd: '+$250 USD único por agente extra' } },
 };
 
-// Mismo monto que pro_mensual.agente/pro_anual.agente en PLANES de arriba (y
-// que los STRIPE_PRICE_PRO_*_AGENTE reales del servidor): duplicado a
+// Mismos montos que pro_mensual.agente/pro_anual.agente en PLANES de arriba
+// (y que los STRIPE_PRICE_PRO_*_AGENTE_USD reales del servidor): duplicado a
 // proposito en vez de parsear el texto de PLANES, para no depender de que su
 // redaccion no cambie nunca.
-const PRECIO_AGENTE_EXTRA_PRO_MENSUAL = 75;
-const PRECIO_AGENTE_EXTRA_PRO_ANUAL = 780;
+const PRECIO_AGENTE_EXTRA_PRO = {
+  mxn: { mensual: 75, anual: 780 },
+  usd: { mensual: 4, anual: 42 },
+};
 
 export const TIERS_SELECCION = [
   {
     id: 'inicio',
     nombre: 'Inicio / Solo',
     capacidad: '1 a 3 agentes incluidos',
-    montoMensual: '$190',
-    montoAnual: '$1,950',
-    precioMensual: '$190 MXN',
-    precioAnual: '$1,950 MXN',
+    monto: { mxn: { mensual: '$190', anual: '$1,950' }, usd: { mensual: '$10', anual: '$104' } },
     puntos: [
       'De 1 a 3 agentes incluidos',
       '25 itinerarios inteligentes al mes',
@@ -53,10 +58,7 @@ export const TIERS_SELECCION = [
     nombre: 'Agencia',
     destacado: true,
     capacidad: '4 a 8 agentes incluidos',
-    montoMensual: '$450',
-    montoAnual: '$4,650',
-    precioMensual: '$450 MXN',
-    precioAnual: '$4,650 MXN',
+    monto: { mxn: { mensual: '$450', anual: '$4,650' }, usd: { mensual: '$25', anual: '$260' } },
     puntos: [
       'De 4 a 8 agentes incluidos',
       '150 itinerarios inteligentes al mes',
@@ -70,10 +72,7 @@ export const TIERS_SELECCION = [
     id: 'pro',
     nombre: 'Agencia Pro',
     capacidad: 'Hasta 15 agentes incluidos',
-    montoMensual: '$750',
-    montoAnual: '$7,800',
-    precioMensual: '$750 MXN',
-    precioAnual: '$7,800 MXN',
+    monto: { mxn: { mensual: '$750', anual: '$7,800' }, usd: { mensual: '$40', anual: '$416' } },
     permiteExtra: true,
     puntos: [
       'Hasta 15 agentes incluidos',
@@ -573,6 +572,7 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
  */
 function AjusteAgentesExtra({ agencia, recargar }) {
   const billing = agencia.billing || {};
+  const moneda = billing.moneda || 'mxn';
   const [valor, setValor] = useState(billing.extraAgentes ?? 0);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
@@ -614,7 +614,7 @@ function AjusteAgentesExtra({ agencia, recargar }) {
           step="1"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          ayuda={PLANES[billing.plan]?.agente}
+          ayuda={PLANES[billing.plan]?.agente?.[moneda]}
         />
         <Boton type="submit" variante="secundario" chico cargando={guardando} disabled={!cambiado}>
           Guardar cambio
@@ -648,6 +648,10 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
     if (billing.plan?.startsWith('pro')) return 'pro';
     return 'agencia';
   });
+  // Divisa: 'mxn' | 'usd'. MXN sigue siendo el default -- muchas tarjetas
+  // mexicanas (BBVA incluida) rechazan cargos en dolares, asi que nadie
+  // termina en USD sin elegirlo a proposito.
+  const [moneda, setMoneda] = useState(billing.moneda || 'mxn');
 
   const planClave = `${tier}_${frecuencia}`;
   const tierSeleccionado = TIERS_SELECCION.find((t) => t.id === tier) || TIERS_SELECCION[1];
@@ -660,11 +664,13 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   // agrega su propio renglon de Stripe -- mostrar solo el precio base del
   // tier subestimaba el cargo real en Pro con agentes extra.
   const extraAgentesNum = tier === 'pro' ? Number(extraAgentes) || 0 : 0;
-  const costoExtra = extraAgentesNum * (frecuencia === 'mensual' ? PRECIO_AGENTE_EXTRA_PRO_MENSUAL : PRECIO_AGENTE_EXTRA_PRO_ANUAL);
-  const precioBaseTexto = frecuencia === 'mensual' ? tierSeleccionado.precioMensual : tierSeleccionado.precioAnual;
+  const costoExtra = extraAgentesNum * PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia];
+  const precioBaseTexto = `${tierSeleccionado.monto[moneda][frecuencia]} ${moneda.toUpperCase()}`;
   const precioBaseNum = Number(precioBaseTexto.replace(/[^0-9]/g, ''));
   const precioActual =
-    costoExtra > 0 ? `$${(precioBaseNum + costoExtra).toLocaleString('es-MX')} MXN` : precioBaseTexto;
+    costoExtra > 0
+      ? `$${(precioBaseNum + costoExtra).toLocaleString(moneda === 'mxn' ? 'es-MX' : 'en-US')} ${moneda.toUpperCase()}`
+      : precioBaseTexto;
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -676,6 +682,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
       const data = await billingApi.checkout({
         plan: planClave,
         extraAgentes: tier === 'pro' ? Number(extraAgentes) || 0 : 0,
+        moneda,
       });
       window.location.href = data.url;
     } catch (err) {
@@ -792,11 +799,45 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
               </button>
             </div>
 
+            {/* Selector de divisa */}
+            <div>
+              <div
+                className="fila"
+                style={{
+                  background: 'var(--surface-alt)',
+                  border: '1px solid var(--border)',
+                  padding: '4px',
+                  borderRadius: 'var(--radio)',
+                  display: 'inline-flex',
+                  alignSelf: 'flex-start',
+                  gap: 4,
+                }}
+              >
+                <button
+                  type="button"
+                  className={`boton chico ${moneda === 'mxn' ? '' : 'secundario'}`}
+                  onClick={() => setMoneda('mxn')}
+                >
+                  Pesos (MXN)
+                </button>
+                <button
+                  type="button"
+                  className={`boton chico ${moneda === 'usd' ? '' : 'secundario'}`}
+                  onClick={() => setMoneda('usd')}
+                >
+                  Dólares (USD)
+                </button>
+              </div>
+              <p className="tenue" style={{ fontSize: '0.78rem', margin: '6px 0 0' }}>
+                Elige la divisa de tu tarjeta. Algunas tarjetas mexicanas rechazan cargos en dólares.
+              </p>
+            </div>
+
             {/* 3 Tarjetas visuales de selección de plan */}
             <div className="rejilla rejilla-3" style={{ gap: 14 }}>
               {TIERS_SELECCION.map((t) => {
                 const activo = tier === t.id;
-                const monto = frecuencia === 'mensual' ? t.montoMensual : t.montoAnual;
+                const monto = t.monto[moneda][frecuencia];
                 const periodo = frecuencia === 'mensual' ? '/mes' : '/año';
 
                 return (
@@ -837,7 +878,7 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                           {monto}
                         </span>
                         <span className="suave" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                          MXN {periodo}
+                          {moneda.toUpperCase()} {periodo}
                         </span>
                       </div>
 
@@ -881,7 +922,9 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                   step="1"
                   value={extraAgentes}
                   onChange={(e) => setExtraAgentes(e.target.value)}
-                  ayuda={frecuencia === 'mensual' ? '+$75 MXN/mes por cada agente extra' : '+$780 MXN/año por cada agente extra'}
+                  ayuda={`+$${PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia]} ${moneda.toUpperCase()}${
+                    frecuencia === 'mensual' ? '/mes' : '/año'
+                  } por cada agente extra`}
                 />
               </div>
             )}
