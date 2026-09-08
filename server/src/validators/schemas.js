@@ -180,6 +180,7 @@ export const joinAgencySchema = z.object({
 export const checkoutAgencySchema = z.object({
   plan: z.enum(PLANES_AGENCIA),
   extraAgentes: z.coerce.number().int().min(0).max(500).default(0),
+  moneda: z.enum(['mxn', 'usd']).default('mxn'),
 });
 
 export const cambiarAgentesSchema = z.object({

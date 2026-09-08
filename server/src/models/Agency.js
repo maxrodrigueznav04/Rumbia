@@ -105,6 +105,12 @@ const billingSchema = new mongoose.Schema(
     // Vacio en el plan vitalicio: es un pago unico, no una suscripcion.
     stripeSubscriptionId: { type: String, default: '' },
     plan: { type: String, enum: PLANES_AGENCIA, default: null },
+    // Divisa en la que se cobra la suscripcion. MXN sigue siendo el default:
+    // muchas tarjetas mexicanas (BBVA incluida) rechazan cargos en dolares,
+    // asi que nunca se convierte a nadie de MXN a USD sin que lo elija.
+    // Ver stripe.service.js / stripe-setup.mjs para el porque de precios
+    // nativos por divisa en vez de conversion automatica de Stripe.
+    moneda: { type: String, enum: ['mxn', 'usd'], default: 'mxn' },
     status: {
       type: String,
       enum: ['trial', 'pendiente', 'activa', 'congelada'],

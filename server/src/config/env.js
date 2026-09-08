@@ -96,6 +96,20 @@ export const env = {
       vitalicioBase: process.env.STRIPE_PRICE_VITALICIO_BASE || '',
       vitalicioAgente: process.env.STRIPE_PRICE_VITALICIO_AGENTE || '',
     },
+    // Mismos planes que arriba pero cobrados en dolares (ver moneda en
+    // Agency.js): solo para los tiers que se siguen vendiendo hoy
+    // (inicio/agencia/pro). Los planes legado (mensual/anual/vitalicio) no
+    // tienen equivalente en USD porque ya no se ofrecen a clientes nuevos.
+    preciosUsd: {
+      inicioMensualBase: process.env.STRIPE_PRICE_INICIO_MENSUAL_BASE_USD || '',
+      inicioAnualBase: process.env.STRIPE_PRICE_INICIO_ANUAL_BASE_USD || '',
+      agenciaMensualBase: process.env.STRIPE_PRICE_AGENCIA_MENSUAL_BASE_USD || '',
+      agenciaAnualBase: process.env.STRIPE_PRICE_AGENCIA_ANUAL_BASE_USD || '',
+      proMensualBase: process.env.STRIPE_PRICE_PRO_MENSUAL_BASE_USD || '',
+      proMensualAgente: process.env.STRIPE_PRICE_PRO_MENSUAL_AGENTE_USD || '',
+      proAnualBase: process.env.STRIPE_PRICE_PRO_ANUAL_BASE_USD || '',
+      proAnualAgente: process.env.STRIPE_PRICE_PRO_ANUAL_AGENTE_USD || '',
+    },
     enabled: Boolean(process.env.STRIPE_SECRET_KEY),
   },
   aiRateLimitPerHour: Number(process.env.AI_RATE_LIMIT_PER_HOUR || 10),

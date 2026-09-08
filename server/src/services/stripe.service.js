@@ -24,31 +24,105 @@ function requerirStripe() {
 }
 
 /**
- * Un Price de Stripe por casilla: la base de cada plan y el costo de un
- * agente extra en ese mismo plan. "vitalicio" es pago unico (mode: payment);
- * los otros dos son suscripciones que Stripe renueva solo.
+ * Un Price de Stripe por casilla y por divisa: la base de cada plan y el
+ * costo de un agente extra en ese mismo plan. "vitalicio" es pago unico
+ * (mode: payment); los otros dos son suscripciones que Stripe renueva solo.
+ *
+ * MXN sigue siendo la divisa "de siempre" y la unica con los 9 planes
+ * (incluidos los legacy mensual/anual/vitalicio, que ya no se venden a
+ * clientes nuevos). USD solo cubre los tiers vigentes -- no se convierte
+ * automaticamente a nadie: Rumbia cobra nativo en cada divisa porque muchas
+ * tarjetas mexicanas (BBVA incluida) rechazan cargos en dolares. Ver
+ * stripe-setup.mjs para el detalle de precios y el porque del lookup_key
+ * con sufijo de divisa.
  */
 const PLANES = {
-  inicio_mensual: { base: () => env.stripe.precios.inicioMensualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
-  inicio_anual: { base: () => env.stripe.precios.inicioAnualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
-  agencia_mensual: { base: () => env.stripe.precios.agenciaMensualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
-  agencia_anual: { base: () => env.stripe.precios.agenciaAnualBase, agente: () => null, permiteExtra: false, modo: 'subscription' },
-  pro_mensual: { base: () => env.stripe.precios.proMensualBase, agente: () => env.stripe.precios.proMensualAgente, permiteExtra: true, modo: 'subscription' },
-  pro_anual: { base: () => env.stripe.precios.proAnualBase, agente: () => env.stripe.precios.proAnualAgente, permiteExtra: true, modo: 'subscription' },
-  mensual: { base: () => env.stripe.precios.mensualBase, agente: () => env.stripe.precios.mensualAgente, permiteExtra: true, modo: 'subscription' },
-  anual: { base: () => env.stripe.precios.anualBase, agente: () => env.stripe.precios.anualAgente, permiteExtra: true, modo: 'subscription' },
-  vitalicio: { base: () => env.stripe.precios.vitalicioBase, agente: () => env.stripe.precios.vitalicioAgente, permiteExtra: true, modo: 'payment' },
+  inicio_mensual: {
+    permiteExtra: false,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.inicioMensualBase, agente: () => null },
+      usd: { base: () => env.stripe.preciosUsd.inicioMensualBase, agente: () => null },
+    },
+  },
+  inicio_anual: {
+    permiteExtra: false,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.inicioAnualBase, agente: () => null },
+      usd: { base: () => env.stripe.preciosUsd.inicioAnualBase, agente: () => null },
+    },
+  },
+  agencia_mensual: {
+    permiteExtra: false,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.agenciaMensualBase, agente: () => null },
+      usd: { base: () => env.stripe.preciosUsd.agenciaMensualBase, agente: () => null },
+    },
+  },
+  agencia_anual: {
+    permiteExtra: false,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.agenciaAnualBase, agente: () => null },
+      usd: { base: () => env.stripe.preciosUsd.agenciaAnualBase, agente: () => null },
+    },
+  },
+  pro_mensual: {
+    permiteExtra: true,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.proMensualBase, agente: () => env.stripe.precios.proMensualAgente },
+      usd: { base: () => env.stripe.preciosUsd.proMensualBase, agente: () => env.stripe.preciosUsd.proMensualAgente },
+    },
+  },
+  pro_anual: {
+    permiteExtra: true,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.proAnualBase, agente: () => env.stripe.precios.proAnualAgente },
+      usd: { base: () => env.stripe.preciosUsd.proAnualBase, agente: () => env.stripe.preciosUsd.proAnualAgente },
+    },
+  },
+  mensual: {
+    permiteExtra: true,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.mensualBase, agente: () => env.stripe.precios.mensualAgente },
+    },
+  },
+  anual: {
+    permiteExtra: true,
+    modo: 'subscription',
+    precios: {
+      mxn: { base: () => env.stripe.precios.anualBase, agente: () => env.stripe.precios.anualAgente },
+    },
+  },
+  vitalicio: {
+    permiteExtra: true,
+    modo: 'payment',
+    precios: {
+      mxn: { base: () => env.stripe.precios.vitalicioBase, agente: () => env.stripe.precios.vitalicioAgente },
+    },
+  },
 };
 
-function configDePlan(plan) {
+const MONEDAS = ['mxn', 'usd'];
+
+function configDePlan(plan, moneda = 'mxn') {
   const cfg = PLANES[plan];
   if (!cfg) throw ApiError.badRequest(`Plan "${plan}" no existe.`);
-  if (!cfg.base() || (cfg.permiteExtra && !cfg.agente())) {
+  const precios = cfg.precios[moneda];
+  if (!precios) {
+    throw ApiError.badRequest(`El plan "${plan}" no esta disponible en ${moneda.toUpperCase()}.`);
+  }
+  if (!precios.base() || (cfg.permiteExtra && !precios.agente())) {
     throw ApiError.serviceUnavailable(
-      `El plan "${plan}" no tiene sus Price de Stripe configurados. Corre "npm run stripe:setup" en server/ y copia las variables al .env.`
+      `El plan "${plan}" no tiene sus Price de Stripe (${moneda.toUpperCase()}) configurados. Corre "npm run stripe:setup" en server/ y copia las variables al .env.`
     );
   }
-  return cfg;
+  return { modo: cfg.modo, permiteExtra: cfg.permiteExtra, base: precios.base, agente: precios.agente };
 }
 
 /**
@@ -58,9 +132,9 @@ function configDePlan(plan) {
  * el historial de pagos y la tarjeta guardada quedan en un solo lugar aunque
  * la agencia cambie de plan mas adelante.
  */
-export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 0 }) {
+export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 0, moneda = 'mxn' }) {
   const s = requerirStripe();
-  const cfg = configDePlan(plan);
+  const cfg = configDePlan(plan, moneda);
 
   // Ya tiene un plan cobrando: otra sesion de Checkout aqui crearia una
   // SEGUNDA suscripcion en paralelo, no cambiaria la que ya existe (Stripe no
@@ -109,10 +183,10 @@ export async function crearSesionCheckout({ agencia, user, plan, extraAgentes = 
       line_items: lineItems,
       success_url: `${env.clientUrl}/perfil?billing=exito`,
       cancel_url: `${env.clientUrl}/perfil?billing=cancelado`,
-      metadata: { agencyId: String(agencia._id), plan, extraAgentes: String(extraAgentes) },
+      metadata: { agencyId: String(agencia._id), plan, extraAgentes: String(extraAgentes), moneda },
       // El modo "payment" (vitalicio) no acepta subscription_data.
       ...(cfg.modo === 'subscription'
-        ? { subscription_data: { metadata: { agencyId: String(agencia._id), plan } } }
+        ? { subscription_data: { metadata: { agencyId: String(agencia._id), plan, moneda } } }
         : {}),
     });
 
@@ -153,7 +227,7 @@ export async function crearSesionPortal({ agencia }) {
  */
 export async function cambiarAgentesSuscripcion({ agencia, plan, nuevoExtraAgentes }) {
   const s = requerirStripe();
-  const cfg = configDePlan(plan);
+  const cfg = configDePlan(plan, agencia.billing?.moneda || 'mxn');
   if (cfg.modo !== 'subscription') {
     throw ApiError.badRequest('El plan "vitalicio" es un pago único: no tiene una suscripción que ajustar.');
   }
@@ -199,20 +273,28 @@ export async function cambiarAgentesSuscripcion({ agencia, plan, nuevoExtraAgent
  * configuracion (agencia_mensual sin su propio STRIPE_PRICE_* cae al de
  * "mensual", ver env.js), se resuelve la primera que aparezca en PLANES --
  * hoy eso favorece los tiers nuevos (Inicio/Agencia/Pro) sobre los legacy.
+ *
+ * Tambien devuelve la divisa: el Price en si ya la fija (un Price de Stripe
+ * nunca cambia de divisa), asi que hace falta recorrer ambas listas de
+ * precios por plan para saber cual matcheo.
  */
 export function resolverPlanDesdeSuscripcion(sub) {
   const priceIds = (sub.items?.data || []).map((it) => it.price?.id).filter(Boolean);
   for (const [plan, cfg] of Object.entries(PLANES)) {
     if (cfg.modo !== 'subscription') continue;
-    const basePriceId = cfg.base();
-    if (!basePriceId || !priceIds.includes(basePriceId)) continue;
+    for (const moneda of MONEDAS) {
+      const precios = cfg.precios[moneda];
+      if (!precios) continue;
+      const basePriceId = precios.base();
+      if (!basePriceId || !priceIds.includes(basePriceId)) continue;
 
-    let extraAgentes = 0;
-    if (cfg.permiteExtra && cfg.agente()) {
-      const itemAgente = sub.items.data.find((it) => it.price?.id === cfg.agente());
-      extraAgentes = itemAgente?.quantity || 0;
+      let extraAgentes = 0;
+      if (cfg.permiteExtra && precios.agente()) {
+        const itemAgente = sub.items.data.find((it) => it.price?.id === precios.agente());
+        extraAgentes = itemAgente?.quantity || 0;
+      }
+      return { plan, moneda, extraAgentes };
     }
-    return { plan, extraAgentes };
   }
   return null;
 }

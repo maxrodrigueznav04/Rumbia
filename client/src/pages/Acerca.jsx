@@ -31,6 +31,19 @@ const DATOS_ESTRUCTURADOS_PRECIOS = {
 import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia } from '../components/ui.jsx';
 
+// Mismos montos que TarjetaAgencia.jsx (checkout real) y stripe-setup.mjs
+// (Price reales en Stripe): duplicado a proposito para no acoplar la pagina
+// publica al componente de facturacion del perfil, que vive detras de login.
+const PRECIOS_AGENCIA = {
+  inicio: { mxn: { mensual: '$190 MXN', anual: '$1,950 MXN' }, usd: { mensual: '$10 USD', anual: '$104 USD' } },
+  agencia: { mxn: { mensual: '$450 MXN', anual: '$4,650 MXN' }, usd: { mensual: '$25 USD', anual: '$260 USD' } },
+  pro: { mxn: { mensual: '$750 MXN', anual: '$7,800 MXN' }, usd: { mensual: '$40 USD', anual: '$416 USD' } },
+};
+const PRECIO_AGENTE_EXTRA_PRO = {
+  mxn: { mensual: '+$75 MXN/mes por agente extra (16+)', anual: '+$780 MXN/año por agente extra (16+)' },
+  usd: { mensual: '+$4 USD/mes por agente extra (16+)', anual: '+$42 USD/año por agente extra (16+)' },
+};
+
 const ORDEN_TEMA = ['sistema', 'claro', 'oscuro'];
 const ICONO_TEMA = { sistema: 'monitor', claro: 'sol', oscuro: 'luna' };
 const ETIQUETA_TEMA = { sistema: 'Tema: siguiendo al sistema', claro: 'Tema: claro', oscuro: 'Tema: oscuro' };
@@ -67,6 +80,11 @@ export default function Acerca() {
 
   // Estado para la frecuencia de cobro: 'mensual' | 'anual'
   const [frecuencia, setFrecuencia] = useState('mensual');
+
+  // Divisa en la que se muestran los planes de agencia: 'mxn' | 'usd'. MXN
+  // sigue siendo el default -- es la divisa que de verdad cobra la mayoria
+  // de las tarjetas mexicanas hoy.
+  const [moneda, setMoneda] = useState('mxn');
 
   return (
     <div className="inicio">
@@ -502,6 +520,37 @@ export default function Acerca() {
                   Pago Anual <Insignia color="verde" style={{ marginLeft: 6 }}>Ahorra 1.5 meses</Insignia>
                 </button>
               </div>
+
+              {/* Selector MXN / USD */}
+              <div
+                className="fila"
+                style={{
+                  justifyContent: 'center',
+                  background: 'var(--arena-300)',
+                  display: 'inline-flex',
+                  padding: '4px',
+                  borderRadius: 'var(--radio)',
+                  gap: 4,
+                  marginTop: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  className={`boton chico ${moneda === 'mxn' ? '' : 'fantasma'}`}
+                  onClick={() => setMoneda('mxn')}
+                  style={{ fontSize: '0.88rem' }}
+                >
+                  Pesos (MXN)
+                </button>
+                <button
+                  type="button"
+                  className={`boton chico ${moneda === 'usd' ? '' : 'fantasma'}`}
+                  onClick={() => setMoneda('usd')}
+                  style={{ fontSize: '0.88rem' }}
+                >
+                  Dólares (USD)
+                </button>
+              </div>
             </div>
 
             {/* Rejilla de los 3 planes de agencia */}
@@ -524,7 +573,7 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$190 MXN' : '$1,950 MXN'}
+                      {PRECIOS_AGENCIA.inicio[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
                       {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
@@ -585,7 +634,7 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$450 MXN' : '$4,650 MXN'}
+                      {PRECIOS_AGENCIA.agencia[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
                       {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
@@ -643,7 +692,7 @@ export default function Acerca() {
 
                   <div style={{ marginBottom: 16 }}>
                     <div className="numero grande" style={{ fontSize: '1.9rem', color: 'var(--marca)' }}>
-                      {frecuencia === 'mensual' ? '$750 MXN' : '$7,800 MXN'}
+                      {PRECIOS_AGENCIA.pro[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
                       {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
@@ -661,7 +710,7 @@ export default function Acerca() {
                   >
                     <strong>Hasta 15 agentes incluidos</strong>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.75rem' }}>
-                      +$75 MXN/mes por agente extra (16+)
+                      {PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia]}
                     </span>
                   </div>
 

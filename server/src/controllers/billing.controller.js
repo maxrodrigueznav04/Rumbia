@@ -33,13 +33,14 @@ export const obtenerBilling = asyncHandler(async (req, res) => {
 /** Solo el dueño puede activar o cambiar el plan: es su tarjeta la que se cobra. */
 export const iniciarCheckout = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
-  const { plan, extraAgentes } = req.body;
+  const { plan, extraAgentes, moneda } = req.body;
 
   const url = await stripeService.crearSesionCheckout({
     agencia,
     user: req.user,
     plan,
     extraAgentes,
+    moneda,
   });
 
   res.json({ success: true, data: { url } });
@@ -118,12 +119,13 @@ async function aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate) {
  * como OXXO/SPEI) -- ver la llamada de cada uno mas abajo.
  */
 async function activarPorCheckout(session, eventoCreatedDate) {
-  const { agencyId, plan, extraAgentes } = session.metadata || {};
+  const { agencyId, plan, extraAgentes, moneda } = session.metadata || {};
   if (!agencyId) return;
 
   await aplicarSiEsFresco(agencyId, eventoCreatedDate, {
     'billing.status': 'activa',
     'billing.plan': plan,
+    'billing.moneda': moneda || 'mxn',
     'billing.extraAgentes': Number(extraAgentes || 0),
     'billing.stripeCustomerId': session.customer,
     'billing.stripeSubscriptionId': session.mode === 'subscription' ? session.subscription : '',
@@ -222,6 +224,7 @@ export const webhook = asyncHandler(async (req, res) => {
         const resuelto = stripeService.resolverPlanDesdeSuscripcion(sub);
         if (resuelto) {
           camposUpdate['billing.plan'] = resuelto.plan;
+          camposUpdate['billing.moneda'] = resuelto.moneda;
           camposUpdate['billing.extraAgentes'] = resuelto.extraAgentes;
         }
       }
