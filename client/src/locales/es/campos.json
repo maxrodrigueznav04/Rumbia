@@ -1,0 +1,38 @@
+{
+  "destino": {
+    "label": "Destino"
+  },
+  "fechas": {
+    "salida": "Salida",
+    "regreso": "Regreso",
+    "llegada": "Llegada",
+    "atajos": "Atajos:",
+    "finDeSemana": "Fin de semana",
+    "cincoDias": "5 días",
+    "unaSemana": "Una semana",
+    "dosSemanas": "Dos semanas",
+    "dia": "día",
+    "dias": "días",
+    "noche": "noche",
+    "noches": "noches",
+    "deHospedaje": "de hospedaje"
+  },
+  "paradas": {
+    "label": "Paradas adicionales (opcional)",
+    "ayuda": "Si el viaje visita más de una ciudad, agrégalas aquí con sus propias fechas: el clima y el itinerario con IA las tomarán en cuenta.",
+    "parada": "Parada {{numero}}",
+    "quitar": "Quitar",
+    "quitarParada": "Quitar parada {{numero}}",
+    "otraCiudad": "¿Qué otra ciudad visitan?",
+    "placeholder": "Roma, Berlín, Tokio...",
+    "agregar": "+ Agregar parada"
+  },
+  "personas": {
+    "verPreciosPara": "Ver precios para",
+    "menosPersonas": "Menos personas",
+    "masPersonas": "Más personas",
+    "persona": "persona",
+    "personas": "personas",
+    "deEnElViaje": "de {{maximo}} en el viaje"
+  }
+}

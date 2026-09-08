@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Icono from './Icono.jsx';
 import { avisarClick } from '../api/index.js';
 
@@ -6,6 +7,7 @@ import { avisarClick } from '../api/index.js';
  * La app no reserva: se deja explicito para no confundir al usuario.
  */
 export default function EnlacesReserva({ enlaces = [], compacto, seccion, destino, origen }) {
+  const { t } = useTranslation('viaje');
   if (!enlaces.length) return null;
 
   const hayAfiliados = enlaces.some((l) => l.esAfiliado);
@@ -41,13 +43,13 @@ export default function EnlacesReserva({ enlaces = [], compacto, seccion, destin
             </span>
           </span>
           {l.esAfiliado && (
-            <span className="insignia" title="Si reservas aquí, Rumbia puede ganar una comisión">
-              Afiliado
+            <span className="insignia" title={t('enlacesReserva.afiliadoTitulo')}>
+              {t('enlacesReserva.afiliado')}
             </span>
           )}
           <Icono nombre="flechaSalida" tamano={15} className="flecha" />
           <span className="oculto-visual">
-            (abre en una pestaña nueva{l.esAfiliado ? ', enlace de afiliado' : ''})
+            {t('enlacesReserva.abreEnPestanaNueva', { extra: l.esAfiliado ? t('enlacesReserva.enlaceDeAfiliado') : '' })}
           </span>
         </a>
       ))}
@@ -59,8 +61,7 @@ export default function EnlacesReserva({ enlaces = [], compacto, seccion, destin
       */}
       {hayAfiliados && (
         <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.78rem' }}>
-          Los enlaces marcados como afiliado pueden generarnos una comisión si reservas. No te
-          cuesta nada extra ni cambia el precio.
+          {t('enlacesReserva.avisoAfiliados')}
         </p>
       )}
     </div>

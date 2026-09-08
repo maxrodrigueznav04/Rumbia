@@ -1,27 +1,29 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Boton, Tarjeta } from './ui.jsx';
 import { formatoMoneda } from '../utils/format.js';
 import { calcularCotizacion } from '../utils/cotizacion.js';
 
 export default function ResumenCotizacion({ viaje, onEditar, onVistaPrevia }) {
+  const { t } = useTranslation('itinerario');
   const q = calcularCotizacion(viaje);
   const precioPendiente = q.base === 0 && q.pendientes.length > 0;
   const moneda = viaje.budget?.currency || 'MXN';
   const dinero = (n) => `${formatoMoneda(n, moneda)} ${moneda}`;
-  return <Tarjeta titulo="Cotización para el cliente" className="resumen-cotizacion">
+  return <Tarjeta titulo={t('cotizacion.titulo')} className="resumen-cotizacion">
     <div className="metricas-cotizacion">
-      <div><span>Servicios capturados</span><strong>{q.servicios > 0 ? dinero(q.servicios) : 'Pendiente de confirmar'}</strong></div>
-      <div><span>Actividades sugeridas incluidas</span><strong>{viaje.itinerary ? dinero(q.actividades) : 'Sin itinerario'}</strong></div>
-      <div><span>Margen / cuota de servicio</span><strong>{dinero(q.margen)}</strong></div>
-      <div className="precio-cliente"><span>{q.pendientes.length ? 'Precio por completar' : 'Precio propuesto'} · {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}</span><strong>{precioPendiente ? 'Pendiente de cotizar' : dinero(q.total)}</strong>{!precioPendiente && <span>{dinero(q.porPersona)} por persona</span>}</div>
+      <div><span>{t('cotizacion.serviciosCapturados')}</span><strong>{q.servicios > 0 ? dinero(q.servicios) : t('cotizacion.pendienteDeConfirmar')}</strong></div>
+      <div><span>{t('cotizacion.actividadesSugeridas')}</span><strong>{viaje.itinerary ? dinero(q.actividades) : t('cotizacion.sinItinerario')}</strong></div>
+      <div><span>{t('cotizacion.margen')}</span><strong>{dinero(q.margen)}</strong></div>
+      <div className="precio-cliente"><span>{q.pendientes.length ? t('cotizacion.precioPorCompletar') : t('cotizacion.precioPropuesto')} · {viaje.travelers} {viaje.travelers === 1 ? t('cotizacion.viajero') : t('cotizacion.viajeros')}</span><strong>{precioPendiente ? t('cotizacion.pendienteDeCotizar') : dinero(q.total)}</strong>{!precioPendiente && <span>{dinero(q.porPersona)} {t('cotizacion.porPersona')}</span>}</div>
     </div>
-    <p className="suave">Este es el precio del itinerario, PDF y enlace del cliente. Las actividades son estimadas; los gastos internos se registran por separado.</p>
-    {q.pendientes.length > 0 && <p className="pendientes-cotizacion" role="status"><strong>Por confirmar:</strong> {q.pendientes.join(' · ')}. Revisa si aplican antes de entregar.</p>}
-    <nav className="pasos-propuesta" aria-label="Preparar propuesta">
-      <a href="#costos-viaje" className="boton secundario">1. Completar costos</a>
-      <Boton variante="secundario" onClick={onEditar}>2. Cliente y margen</Boton>
-      {viaje.itinerary ? <Boton onClick={onVistaPrevia}>3. Vista previa del cliente</Boton> : <Link className="boton" to={`/viajes/${viaje._id}/itinerario`}>3. Crear itinerario</Link>}
-      {viaje.itinerary && <Link className="boton secundario" to={`/viajes/${viaje._id}/itinerario?entregar=1`}>4. Preparar entrega</Link>}
+    <p className="suave">{t('cotizacion.explicacion')}</p>
+    {q.pendientes.length > 0 && <p className="pendientes-cotizacion" role="status"><strong>{t('cotizacion.porConfirmar')}</strong> {q.pendientes.map((clave) => t(`cotizacion.pendientes.${clave}`)).join(' · ')}. {t('cotizacion.revisaSiAplican')}</p>}
+    <nav className="pasos-propuesta" aria-label={t('cotizacion.pasos.aria')}>
+      <a href="#costos-viaje" className="boton secundario">{t('cotizacion.pasos.completarCostos')}</a>
+      <Boton variante="secundario" onClick={onEditar}>{t('cotizacion.pasos.clienteYMargen')}</Boton>
+      {viaje.itinerary ? <Boton onClick={onVistaPrevia}>{t('cotizacion.pasos.vistaPrevia')}</Boton> : <Link className="boton" to={`/viajes/${viaje._id}/itinerario`}>{t('cotizacion.pasos.crear')}</Link>}
+      {viaje.itinerary && <Link className="boton secundario" to={`/viajes/${viaje._id}/itinerario?entregar=1`}>{t('cotizacion.pasos.prepararEntrega')}</Link>}
     </nav>
   </Tarjeta>;
 }

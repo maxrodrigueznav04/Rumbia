@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { expensesApi } from '../api/index.js';
 import FormGasto from './formularios/FormGasto.jsx';
 import { Boton, Tarjeta, Vacio, ModalConfirmar, Insignia, Aviso } from './ui.jsx';
-import { formatoMoneda, formatoFechaCorta, humanizar } from '../utils/format.js';
+import { formatoMoneda, formatoFechaCorta, traducirDominio } from '../utils/format.js';
 
 const ICONOS = {
   comida: '🍽️',
@@ -15,6 +16,8 @@ const ICONOS = {
 };
 
 export default function ListaGastos({ viaje, gastos = [], onCambio }) {
+  const { t } = useTranslation('viaje');
+  const { t: tDominio } = useTranslation('dominio');
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
   const [porEliminar, setPorEliminar] = useState(null);
@@ -51,20 +54,19 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
       <Tarjeta
         titulo={
           <h3 className="fila" style={{ gap: 8 }}>
-            <span aria-hidden="true">🧾</span> Gastos sueltos
+            <span aria-hidden="true">🧾</span> {t('listaGastos.titulo')}
           </h3>
         }
         accion={
           <Boton chico variante="secundario" onClick={abrirNuevo}>
-            + Agregar
+            {t('listaGastos.agregar')}
           </Boton>
         }
       >
         {error && <Aviso tipo="error">{error}</Aviso>}
         {gastos.length === 0 ? (
-          <Vacio icono="🧾" titulo="Sin gastos registrados">
-            Comidas, entradas, souvenirs, propinas: lo que no cabe en transporte ni hospedaje va
-            aquí.
+          <Vacio icono="🧾" titulo={t('listaGastos.sinGastos')}>
+            {t('listaGastos.sinGastosTexto')}
           </Vacio>
         ) : (
           <>
@@ -76,8 +78,8 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
                     className="gasto-check"
                     onClick={() => alternarPagado(g)}
                     aria-pressed={g.isPaid}
-                    aria-label={g.isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
-                    title={g.isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
+                    aria-label={g.isPaid ? t('listaGastos.marcarPendiente') : t('listaGastos.marcarPagado')}
+                    title={g.isPaid ? t('listaGastos.marcarPendiente') : t('listaGastos.marcarPagado')}
                   >
                     {g.isPaid ? '✓' : ''}
                   </button>
@@ -87,7 +89,7 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
                       <span aria-hidden="true">{ICONOS[g.category]}</span> {g.description}
                     </strong>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.8rem' }}>
-                      {humanizar(g.category)} · {formatoFechaCorta(g.date)}
+                      {traducirDominio(tDominio, g.category)} · {formatoFechaCorta(g.date)}
                       {g.notes ? ` · ${g.notes}` : ''}
                     </span>
                   </span>
@@ -99,8 +101,8 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
                       variante="fantasma"
                       chico
                       onClick={() => abrirEdicion(g)}
-                      aria-label={`Editar ${g.description}`}
-                      title="Editar"
+                      aria-label={t('listaGastos.editarAria', { descripcion: g.description })}
+                      title={t('listaGastos.editar')}
                     >
                       ✎
                     </Boton>
@@ -108,8 +110,8 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
                       variante="fantasma"
                       chico
                       onClick={() => setPorEliminar(g)}
-                      aria-label={`Eliminar ${g.description}`}
-                      title="Eliminar"
+                      aria-label={t('listaGastos.eliminarAria', { descripcion: g.description })}
+                      title={t('listaGastos.eliminar')}
                     >
                       ✕
                     </Boton>
@@ -120,10 +122,10 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
 
             <div className="fila-entre" style={{ marginTop: 14 }}>
               <Insignia color={pagado === total ? 'exito' : ''}>
-                {formatoMoneda(pagado, moneda)} pagado de {formatoMoneda(total, moneda)}
+                {t('listaGastos.pagadoDeTotal', { pagado: formatoMoneda(pagado, moneda), total: formatoMoneda(total, moneda) })}
               </Insignia>
               <span className="tenue">
-                {gastos.length} {gastos.length === 1 ? 'gasto' : 'gastos'}
+                {gastos.length} {gastos.length === 1 ? t('listaGastos.gasto') : t('listaGastos.gastos')}
               </span>
             </div>
           </>
@@ -147,8 +149,8 @@ export default function ListaGastos({ viaje, gastos = [], onCambio }) {
           await expensesApi.remove(porEliminar._id);
           onCambio();
         }}
-        titulo="Eliminar gasto"
-        mensaje={`Se va a borrar "${porEliminar?.description}". Esta acción no se puede deshacer.`}
+        titulo={t('listaGastos.eliminarTitulo')}
+        mensaje={t('listaGastos.eliminarMensaje', { descripcion: porEliminar?.description })}
       />
     </>
   );

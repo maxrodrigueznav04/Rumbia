@@ -1,19 +1,22 @@
+import { useTranslation } from 'react-i18next';
 import { tripsApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
 
-const TIPOS = [
-  { valor: 'transporte-publico', texto: '🚇 Transporte público' },
-  { valor: 'app-transporte', texto: '📱 Uber / DiDi' },
-  { valor: 'renta-auto', texto: '🚗 Renta de auto' },
-  { valor: 'taxi', texto: '🚕 Taxi' },
-  { valor: 'bicicleta', texto: '🚲 Bicicleta' },
-  { valor: 'a-pie', texto: '🚶 A pie' },
-];
+const EMOJI_TIPO = {
+  'transporte-publico': '🚇',
+  'app-transporte': '📱',
+  'renta-auto': '🚗',
+  taxi: '🚕',
+  bicicleta: '🚲',
+  'a-pie': '🚶',
+};
+const TIPOS = Object.keys(EMOJI_TIPO);
 
 /** Cómo te mueves ya estando en el destino. */
 export default function FormTransporteLocal({ abierto, onCerrar, viaje, indice, onGuardado }) {
+  const { t } = useTranslation(['formularios', 'dominio']);
   const editando = indice != null;
   const datos = editando ? viaje.localTransport[indice] : {};
 
@@ -54,49 +57,49 @@ export default function FormTransporteLocal({ abierto, onCerrar, viaje, indice, 
     <Modal
       abierto={abierto}
       onCerrar={onCerrar}
-      titulo={editando ? 'Editar transporte local' : 'Agregar transporte local'}
+      titulo={editando ? t('formularios:transporteLocal.editar') : t('formularios:transporteLocal.agregar')}
       ancho={460}
     >
       <form onSubmit={guardar} className="pila" noValidate>
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
-        <Campo label="¿Cómo te vas a mover?">
+        <Campo label={t('formularios:transporteLocal.comoTeVasAMover')}>
           <select {...form.props('type')}>
-            {TIPOS.map((t) => (
-              <option key={t.valor} value={t.valor}>
-                {t.texto}
+            {TIPOS.map((valor) => (
+              <option key={valor} value={valor}>
+                {EMOJI_TIPO[valor]} {t(`dominio:${valor}`)}
               </option>
             ))}
           </select>
         </Campo>
 
         <Campo
-          label="Proveedor"
-          placeholder="DiDi, Hertz, Metro..."
-          ayuda="Opcional."
+          label={t('formularios:transporteLocal.proveedor')}
+          placeholder={t('formularios:transporteLocal.proveedorPlaceholder')}
+          ayuda={t('formularios:comun.opcional')}
           {...form.props('provider')}
         />
 
         <Campo
-          label="Costo estimado para todo el viaje"
+          label={t('formularios:transporteLocal.costoEstimado')}
           type="number"
           min="0"
           step="1"
           placeholder="0"
-          ayuda={`En ${viaje.budget?.currency || 'MXN'}.`}
+          ayuda={t('formularios:transporteLocal.costoAyuda', { moneda: viaje.budget?.currency || 'MXN' })}
           {...form.props('estimatedCost')}
         />
 
-        <Campo label="Notas">
-          <textarea placeholder="Solo para el día de la excursión..." {...form.props('notes')} />
+        <Campo label={t('formularios:comun.notas')}>
+          <textarea placeholder={t('formularios:transporteLocal.notasPlaceholder')} {...form.props('notes')} />
         </Campo>
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
-            Cancelar
+            {t('formularios:comun.cancelar')}
           </Boton>
           <Boton type="submit" cargando={form.enviando}>
-            Guardar
+            {t('formularios:comun.guardar')}
           </Boton>
         </div>
       </form>

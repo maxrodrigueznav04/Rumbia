@@ -1,0 +1,107 @@
+{
+  "resumenViaje": {
+    "tituloConPersonas": "Vuelos, hospedaje y transporte · para {{personas}} de {{total}}",
+    "titulo": "Vuelos, hospedaje y transporte",
+    "transporteIdaYVuelta": "Transporte de ida y vuelta",
+    "ida": "Ida",
+    "vuelta": "Vuelta",
+    "confirmacion": "Confirmación: {{codigo}}",
+    "hospedaje": "Hospedaje",
+    "transporteEnElDestino": "Transporte en el destino",
+    "noche": "noche",
+    "noches": "noches",
+    "estimado": "estimado",
+    "est": "est.",
+    "totalIncluido": "El total de todo esto está incluido en el costo del viaje, más abajo."
+  },
+  "resumenPresupuesto": {
+    "titulo": "Control de gastos internos",
+    "sinGastos": "Sin gastos capturados",
+    "sinGastosTexto": "Conforme registres transporte, hospedaje y gastos sueltos, aquí vas a ver el desglose.",
+    "gastosFueraDeLaSuma": "Hay gastos fuera de esta suma",
+    "gastosFueraDeLaSumaTexto": "No se pudo obtener el tipo de cambio de {{monedas}}, así que esos gastos no entran en el total. Vuelve a cargar en un momento.",
+    "total": "Total",
+    "contraTuPresupuesto": "Contra tu presupuesto",
+    "porcentajeDe": "{{porcentaje}}% de {{monto}}",
+    "tePasaste": "Te pasaste por {{monto}}.",
+    "teQuedan": "Te quedan {{monto}}.",
+    "porViajero": "Por viajero",
+    "porDia": "Por día",
+    "sugerenciaPre": "El itinerario sugiere",
+    "sugerenciaPost": "por persona en actividades ({{totalGrupo}} en total del grupo, {{cantidad}} actividad(es)). No se suma automáticamente: se cuenta cuando lo registras como gasto."
+  },
+  "resumenGastosFijos": {
+    "tituloConPersonas": "Gastos fijos y seguros · para {{personas}} de {{total}}",
+    "titulo": "Gastos fijos y seguros",
+    "sinCapturar": "Sin capturar todavía",
+    "sinCapturarTexto": "Transporte y hospedaje: lo que ya sabes que vas a pagar, sin importar cómo salga lo demás.",
+    "total": "Total",
+    "notaAlPie": "Solo lo capturado en transporte y hospedaje. No incluye comida, compras ni otros gastos sueltos — esos ya se registran aparte en Presupuesto."
+  },
+  "listaGastos": {
+    "titulo": "Gastos sueltos",
+    "agregar": "+ Agregar",
+    "sinGastos": "Sin gastos registrados",
+    "sinGastosTexto": "Comidas, entradas, souvenirs, propinas: lo que no cabe en transporte ni hospedaje va aquí.",
+    "marcarPendiente": "Marcar como pendiente",
+    "marcarPagado": "Marcar como pagado",
+    "editar": "Editar",
+    "eliminar": "Eliminar",
+    "editarAria": "Editar {{descripcion}}",
+    "eliminarAria": "Eliminar {{descripcion}}",
+    "pagadoDeTotal": "{{pagado}} pagado de {{total}}",
+    "gasto": "gasto",
+    "gastos": "gastos",
+    "eliminarTitulo": "Eliminar gasto",
+    "eliminarMensaje": "Se va a borrar \"{{descripcion}}\". Esta acción no se puede deshacer."
+  },
+  "clienteDelViaje": {
+    "titulo": "Cliente de la propuesta",
+    "sinContacto": "Sin contacto",
+    "cambiarCliente": "Cambiar cliente",
+    "buscarCliente": "Buscar cliente existente",
+    "buscarPlaceholder": "Nombre, teléfono o correo",
+    "seleccionarCliente": "Seleccionar cliente",
+    "elegeDeTuCartera": "Elige de tu cartera",
+    "sinCoincidencias": "No hay coincidencias. Puedes registrar al cliente aquí.",
+    "carteraVacia": "Tu cartera está vacía. Registra tu primer cliente aquí.",
+    "anterior": "Anterior",
+    "siguiente": "Siguiente",
+    "paginaDe": "Página {{pagina}} de {{total}}",
+    "nombreDelCliente": "Nombre del cliente o familia",
+    "telefonoOCorreo": "Teléfono o correo",
+    "guardarCliente": "Guardar cliente en la cartera",
+    "continuarSoloEsteViaje": "También puedes continuar con estos datos solo para este viaje."
+  },
+  "enlacesReserva": {
+    "afiliado": "Afiliado",
+    "afiliadoTitulo": "Si reservas aquí, Rumbia puede ganar una comisión",
+    "abreEnPestanaNueva": "(abre en una pestaña nueva{{extra}})",
+    "enlaceDeAfiliado": ", enlace de afiliado",
+    "avisoAfiliados": "Los enlaces marcados como afiliado pueden generarnos una comisión si reservas. No te cuesta nada extra ni cambia el precio."
+  },
+  "mapaDestino": {
+    "sinCoordenadas": "Aún no tenemos las coordenadas de este destino. Edítalo para ubicarlo en el mapa.",
+    "dia": "Día {{numero}}",
+    "tocaParaMover": "Toca para mover el mapa"
+  },
+  "tiraClima": {
+    "lluvia": "{{porcentaje}}% lluvia",
+    "sinPronostico": "Estimación por temporada. El pronóstico real no está disponible por ahora.",
+    "masDe5Dias": "Tu viaje está a más de 5 días: estos valores son una estimación según la temporada, no un pronóstico.",
+    "parcial": "Pronóstico real para los primeros días; los últimos {{dias}} son estimación por temporada.",
+    "completo": "Pronóstico de OpenWeatherMap."
+  },
+  "tarjetaViaje": {
+    "creadoPor": "Creado por: {{nombre}}",
+    "integranteDelEquipo": "Integrante del equipo",
+    "clientePorAsignar": " · Cliente por asignar",
+    "para": "Para {{nombre}}",
+    "dia": "día",
+    "dias": "días",
+    "viajero": "viajero",
+    "viajeros": "viajeros",
+    "porcentajeDelPresupuesto": "{{porcentaje}}% del presupuesto",
+    "capturado": "Capturado"
+  }
+}

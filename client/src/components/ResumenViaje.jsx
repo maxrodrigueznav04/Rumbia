@@ -1,5 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Tarjeta } from './ui.jsx';
-import { formatoMoneda, formatoFecha, formatoFechaHora, humanizar, porPersonas } from '../utils/format.js';
+import { formatoMoneda, formatoFecha, formatoFechaHora, traducirDominio, porPersonas } from '../utils/format.js';
 
 const ICONO_MODO = {
   avion: '✈️',
@@ -9,7 +10,7 @@ const ICONO_MODO = {
   otro: '🧭',
 };
 
-function Tramo({ etiqueta, datos, moneda, travelers, personas, ocultarDesglose }) {
+function Tramo({ etiqueta, datos, moneda, travelers, personas, ocultarDesglose, t, td }) {
   const hayDatos = datos?.provider || datos?.cost > 0 || datos?.departureAt || datos?.notes;
   if (!hayDatos) return null;
 
@@ -20,13 +21,13 @@ function Tramo({ etiqueta, datos, moneda, travelers, personas, ocultarDesglose }
           {ICONO_MODO[datos.mode] || '🧭'} {etiqueta}
         </strong>{' '}
         <span className="tenue">
-          {humanizar(datos.mode || '')}
+          {td(datos.mode || '')}
           {datos.provider ? ` · ${datos.provider}` : ''}
           {datos.departureAt ? ` · ${formatoFechaHora(datos.departureAt)}` : ''}
         </span>
         {datos.bookingRef && (
           <span className="tenue" style={{ display: 'block', fontSize: '0.8rem' }}>
-            Confirmación: {datos.bookingRef}
+            {t('resumenViaje.confirmacion', { codigo: datos.bookingRef })}
           </span>
         )}
         {datos.notes && (
@@ -39,30 +40,30 @@ function Tramo({ etiqueta, datos, moneda, travelers, personas, ocultarDesglose }
       {!ocultarDesglose && datos.cost > 0 && (
         <span className="numero">
           {formatoMoneda(porPersonas(datos.cost, travelers, personas), moneda)}
-          {datos.isEstimate && <span className="tenue" style={{ fontWeight: 400 }}> est.</span>}
+          {datos.isEstimate && <span className="tenue" style={{ fontWeight: 400 }}> {t('resumenViaje.est')}</span>}
         </span>
       )}
     </div>
   );
 }
 
-function Hospedaje({ items, moneda, travelers, personas, ocultarDesglose }) {
+function Hospedaje({ items, moneda, travelers, personas, ocultarDesglose, t, td }) {
   return (
     <div className="pila-sm">
       {items.map((l, i) => (
         <div className="linea-gasto" key={l._id || i}>
           <span className="crece" style={{ minWidth: 0 }}>
-            <strong>🏨 {l.name || humanizar(l.type)}</strong>
+            <strong>🏨 {l.name || td(l.type)}</strong>
             <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-              {humanizar(l.type)}
+              {td(l.type)}
               {l.place?.name ? ` · ${l.place.name}` : ''}
               {l.checkIn && l.checkOut ? ` · ${formatoFecha(l.checkIn)} – ${formatoFecha(l.checkOut)}` : ''}
-              {l.nights ? ` · ${l.nights} ${l.nights === 1 ? 'noche' : 'noches'}` : ''}
-              {l.isEstimate ? ' · estimado' : ''}
+              {l.nights ? ` · ${l.nights} ${l.nights === 1 ? t('resumenViaje.noche') : t('resumenViaje.noches')}` : ''}
+              {l.isEstimate ? ` · ${t('resumenViaje.estimado')}` : ''}
             </span>
             {l.bookingRef && (
               <span className="tenue" style={{ display: 'block', fontSize: '0.78rem' }}>
-                Confirmación: {l.bookingRef}
+                {t('resumenViaje.confirmacion', { codigo: l.bookingRef })}
               </span>
             )}
           </span>
@@ -75,13 +76,13 @@ function Hospedaje({ items, moneda, travelers, personas, ocultarDesglose }) {
   );
 }
 
-function TransporteLocal({ items, moneda, travelers, personas, ocultarDesglose }) {
+function TransporteLocal({ items, moneda, travelers, personas, ocultarDesglose, td }) {
   return (
     <div className="pila-sm">
       {items.map((t, i) => (
         <div className="linea-gasto" key={t._id || i}>
           <span className="crece" style={{ minWidth: 0 }}>
-            <strong>🚕 {humanizar(t.type)}</strong>
+            <strong>🚕 {td(t.type)}</strong>
             {(t.provider || t.notes) && (
               <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
                 {[t.provider, t.notes].filter(Boolean).join(' · ')}
@@ -111,6 +112,9 @@ function TransporteLocal({ items, moneda, travelers, personas, ocultarDesglose }
  * como total del grupo, así que se escalan con `porPersonas`.
  */
 export default function ResumenViaje({ viaje, personas }) {
+  const { t } = useTranslation('viaje');
+  const { t: tDominio } = useTranslation('dominio');
+  const td = (slug) => traducirDominio(tDominio, slug);
   const moneda = viaje.budget?.currency || 'MXN';
   const travelers = viaje.travelers || 1;
   const paraCuantos = personas || travelers;
@@ -133,62 +137,69 @@ export default function ResumenViaje({ viaje, personas }) {
 
   const titulo =
     !ocultarDesglose && paraCuantos !== travelers
-      ? `Vuelos, hospedaje y transporte · para ${paraCuantos} de ${travelers}`
-      : 'Vuelos, hospedaje y transporte';
+      ? t('resumenViaje.tituloConPersonas', { personas: paraCuantos, total: travelers })
+      : t('resumenViaje.titulo');
 
   return (
     <Tarjeta titulo={titulo}>
       {hayTransporte && (
         <div className="pila-sm" style={{ marginBottom: hayHospedaje || hayLocal ? 'var(--e4)' : 0 }}>
-          <span className="etiqueta">Transporte de ida y vuelta</span>
+          <span className="etiqueta">{t('resumenViaje.transporteIdaYVuelta')}</span>
           <Tramo
-            etiqueta="Ida"
+            etiqueta={t('resumenViaje.ida')}
             datos={ida}
             moneda={moneda}
             travelers={travelers}
             personas={paraCuantos}
             ocultarDesglose={ocultarDesglose}
+            t={t}
+            td={td}
           />
           <Tramo
-            etiqueta="Vuelta"
+            etiqueta={t('resumenViaje.vuelta')}
             datos={vuelta}
             moneda={moneda}
             travelers={travelers}
             personas={paraCuantos}
             ocultarDesglose={ocultarDesglose}
+            t={t}
+            td={td}
           />
         </div>
       )}
 
       {hayHospedaje && (
         <div className="pila-sm" style={{ marginBottom: hayLocal ? 'var(--e4)' : 0 }}>
-          <span className="etiqueta">Hospedaje</span>
+          <span className="etiqueta">{t('resumenViaje.hospedaje')}</span>
           <Hospedaje
             items={viaje.lodging}
             moneda={moneda}
             travelers={travelers}
             personas={paraCuantos}
             ocultarDesglose={ocultarDesglose}
+            t={t}
+            td={td}
           />
         </div>
       )}
 
       {hayLocal && (
         <div className="pila-sm">
-          <span className="etiqueta">Transporte en el destino</span>
+          <span className="etiqueta">{t('resumenViaje.transporteEnElDestino')}</span>
           <TransporteLocal
             items={viaje.localTransport}
             moneda={moneda}
             travelers={travelers}
             personas={paraCuantos}
             ocultarDesglose={ocultarDesglose}
+            td={td}
           />
         </div>
       )}
 
       {ocultarDesglose && (
         <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-          El total de todo esto está incluido en el costo del viaje, más abajo.
+          {t('resumenViaje.totalIncluido')}
         </p>
       )}
     </Tarjeta>

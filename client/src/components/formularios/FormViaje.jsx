@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { tripsApi, weatherApi } from '../../api/index.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useFormulario from '../../hooks/useFormulario.js';
@@ -10,13 +11,7 @@ import CampoDestino from '../CampoDestino.jsx';
 import CampoParadas, { paradasAPayload, payloadAParadas } from '../CampoParadas.jsx';
 import { paraInputFecha, desdeInputFecha } from '../../utils/format.js';
 
-const ESTADOS = [
-  { valor: 'borrador', texto: 'Borrador' },
-  { valor: 'planeado', texto: 'Planeado' },
-  { valor: 'aprobado', texto: 'Listo para viajar' },
-  { valor: 'en-curso', texto: 'En curso' },
-  { valor: 'completado', texto: 'Completado' },
-];
+const ESTADOS = ['borrador', 'planeado', 'aprobado', 'en-curso', 'completado'];
 
 const diasEntre = (a, b) => {
   if (!a || !b) return 0;
@@ -26,6 +21,7 @@ const diasEntre = (a, b) => {
 
 /** Edición del viaje: título, destino, fechas, viajeros, presupuesto y estado. */
 export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
+  const { t } = useTranslation(['formularios', 'dominio']);
   const { user } = useAuth();
   // Quien viaja por su cuenta no necesita cliente, margen ni ocultar precios:
   // eso es para quien arma el viaje para alguien más.
@@ -121,17 +117,17 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
   });
 
   return (
-    <Modal abierto={abierto} onCerrar={onCerrar} titulo="Editar viaje">
+    <Modal abierto={abierto} onCerrar={onCerrar} titulo={t('formularios:viaje.titulo')}>
       <form onSubmit={guardar} className="pila" noValidate>
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
-        <Campo label="Nombre del viaje" {...form.props('title')} />
+        <Campo label={t('formularios:viaje.nombreDelViaje')} {...form.props('title')} />
 
         {esAgencia && <ClienteDelViaje value={{ id: clienteId, nombre: valores.clienteNombre, contacto: valores.clienteContacto }} onChange={(c) => { setClienteId(c.id); form.fijar('clienteNombre', c.nombre); form.fijar('clienteContacto', c.contacto); }} />}
 
         <CampoDestino
-          label="Destino"
-          ayuda={destinoCambio ? 'Se volverá a ubicar en el mapa al guardar.' : undefined}
+          label={t('formularios:viaje.destino')}
+          ayuda={destinoCambio ? t('formularios:viaje.destinoAyuda') : undefined}
           name={form.props('destino').name}
           value={form.props('destino').value}
           error={form.props('destino').error}
@@ -143,7 +139,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           onSeleccionar={setLugarElegido}
         />
 
-        <Campo label="Origen" placeholder="Monterrey" {...form.props('origen')} />
+        <Campo label={t('formularios:viaje.origen')} placeholder={t('formularios:viaje.origenPlaceholder')} {...form.props('origen')} />
 
         <CampoFechas
           inicio={valores.startDate}
@@ -172,48 +168,47 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
           <Aviso tipo={seAcorta ? 'alerta' : 'info'}>
             {seAcorta ? (
               <>
-                El viaje pasa a <strong>{diasNuevos} días</strong> pero el itinerario tiene{' '}
-                {diasItinerario}. No vamos a borrar nada: los días de más se quedan y los puedes
-                quitar tú desde el itinerario.
+                {t('formularios:viaje.seAcortaPre')} <strong>{t('formularios:viaje.seAcortaDias', { dias: diasNuevos })}</strong>{' '}
+                {t('formularios:viaje.seAcortaPost', { diasItinerario })}
               </>
             ) : diasItinerario > 0 && diasNuevos > diasItinerario ? (
               <>
-                El viaje pasa a <strong>{diasNuevos} días</strong>. Se agregarán{' '}
-                {diasNuevos - diasItinerario} día(s) vacío(s) al itinerario.
+                {t('formularios:viaje.seAlargaPre')} <strong>{t('formularios:viaje.seAlargaDias', { dias: diasNuevos })}</strong>.{' '}
+                {t('formularios:viaje.seAlargaPost', { diferencia: diasNuevos - diasItinerario })}
               </>
             ) : (
               <>
-                El viaje queda de <strong>{diasNuevos} días</strong>.
+                {t('formularios:viaje.quedaDePre')} <strong>{t('formularios:viaje.quedaDeDias', { dias: diasNuevos })}</strong>.
               </>
             )}
           </Aviso>
         )}
 
         <div className="campos-2">
-          <Campo label="Viajeros" type="number" min="1" max="30" {...form.props('travelers')} />
+          <Campo label={t('formularios:viaje.viajeros')} type="number" min="1" max="30" {...form.props('travelers')} />
           <Campo
-            label="Presupuesto"
+            label={t('formularios:viaje.presupuesto')}
             type="number"
             min="0"
             step="100"
             placeholder="0"
-            ayuda={`En ${viaje.budget?.currency || 'MXN'}.`}
+            ayuda={t('formularios:viaje.presupuestoAyuda', { moneda: viaje.budget?.currency || 'MXN' })}
             {...form.props('presupuesto')}
           />
         </div>
 
-        <Campo label="Estado operativo del viaje" ayuda="La aceptación y el pago se registran en el estado de la propuesta.">
+        <Campo label={t('formularios:viaje.estadoOperativo')} ayuda={t('formularios:viaje.estadoOperativoAyuda')}>
           <select {...form.props('status')}>
-            {ESTADOS.map((e) => (
-              <option key={e.valor} value={e.valor}>
-                {e.texto}
+            {ESTADOS.map((valor) => (
+              <option key={valor} value={valor}>
+                {t(`dominio:estadoViaje.${valor}`)}
               </option>
             ))}
           </select>
         </Campo>
 
-        <Campo label="Notas">
-          <textarea placeholder="Cosas que no quieres olvidar..." {...form.props('notes')} />
+        <Campo label={t('formularios:comun.notas')}>
+          <textarea placeholder={t('formularios:viaje.notasPlaceholder')} {...form.props('notes')} />
         </Campo>
 
         <label className="campo-check">
@@ -223,33 +218,33 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
             checked={form.valores.ocultarCodigos}
             onChange={form.cambiar}
           />
-          Ocultar códigos de reservación y notas internas en el PDF y enlace compartido
+          {t('formularios:viaje.ocultarCodigos')}
         </label>
         <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
           {form.valores.ocultarCodigos
-            ? 'Quien reciba el enlace ve el vuelo, el hotel y el transporte, pero no el código de confirmación, el link de gestión ni tus notas internas.'
-            : 'Vas a compartir el código de confirmación, el link de gestión y tus notas internas de cada renglón. Actívalo solo si de verdad quieres que el cliente los tenga.'}
+            ? t('formularios:viaje.ocultarCodigosSiTexto')
+            : t('formularios:viaje.ocultarCodigosNoTexto')}
         </p>
 
         {esAgencia && (
           <>
             <div className="campos-2">
-              <Campo label="Margen o cuota de servicio">
+              <Campo label={t('formularios:viaje.margen')}>
                 <select {...form.props('margenTipo')}>
-                  <option value="fijo">Monto fijo</option>
-                  <option value="porcentaje">Porcentaje sobre el costo</option>
+                  <option value="fijo">{t('formularios:viaje.montoFijo')}</option>
+                  <option value="porcentaje">{t('formularios:viaje.porcentajeSobreCosto')}</option>
                 </select>
               </Campo>
               <Campo
-                label={valores.margenTipo === 'porcentaje' ? 'Porcentaje' : 'Monto'}
+                label={valores.margenTipo === 'porcentaje' ? t('formularios:viaje.porcentaje') : t('formularios:viaje.monto')}
                 type="number"
                 min="0"
                 step={valores.margenTipo === 'porcentaje' ? '1' : '100'}
                 placeholder="0"
                 ayuda={
                   valores.margenTipo === 'porcentaje'
-                    ? 'Se suma ese % sobre el costo total.'
-                    : `En ${viaje.budget?.currency || 'MXN'}, total del viaje.`
+                    ? t('formularios:viaje.margenPorcentajeAyuda')
+                    : t('formularios:viaje.margenMontoAyuda', { moneda: viaje.budget?.currency || 'MXN' })
                 }
                 {...form.props('margenMonto')}
               />
@@ -262,12 +257,11 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
                 checked={form.valores.ocultarDesglose}
                 onChange={form.cambiar}
               />
-              Ocultar el precio de cada renglón en el PDF y el enlace compartido
+              {t('formularios:viaje.ocultarDesglose')}
             </label>
             {form.valores.ocultarDesglose && (
               <p className="tenue" style={{ margin: '-8px 0 0', fontSize: '0.82rem' }}>
-                Tu cliente va a ver el vuelo, el hotel y el transporte que elegiste, pero no su
-                precio — solo el total del viaje. Tú lo sigues viendo completo aquí.
+                {t('formularios:viaje.ocultarDesgloseTexto')}
               </p>
             )}
           </>
@@ -275,10 +269,10 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
-            Cancelar
+            {t('formularios:comun.cancelar')}
           </Boton>
           <Boton type="submit" cargando={form.enviando}>
-            Guardar cambios
+            {t('formularios:viaje.guardarCambios')}
           </Boton>
         </div>
       </form>

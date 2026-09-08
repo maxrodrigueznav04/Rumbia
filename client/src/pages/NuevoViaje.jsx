@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { tripsApi, weatherApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton, Campo, Tarjeta, Aviso } from '../components/ui.jsx';
@@ -7,6 +8,7 @@ import ClienteDelViaje from '../components/ClienteDelViaje.jsx';
 import CampoFechas from '../components/CampoFechas.jsx';
 import CampoDestino from '../components/CampoDestino.jsx';
 import CampoParadas, { paradasAPayload } from '../components/CampoParadas.jsx';
+import { traducirDominio } from '../utils/format.js';
 
 const hoy = new Date().toISOString().slice(0, 10);
 
@@ -14,13 +16,11 @@ const ESTILOS = [
   'aventura', 'cultura', 'relax', 'gastronomia',
   'naturaleza', 'vida-nocturna', 'compras', 'familia',
 ];
-const RITMOS = [
-  { valor: 'relajado', texto: 'Relajado (3 actividades al día)' },
-  { valor: 'moderado', texto: 'Moderado (4 actividades al día)' },
-  { valor: 'intenso', texto: 'Intenso (5 actividades al día)' },
-];
+const RITMOS = ['relajado', 'moderado', 'intenso'];
 
 export default function NuevoViaje() {
+  const { t } = useTranslation('nuevoViaje');
+  const { t: tDominio } = useTranslation('dominio');
   const navigate = useNavigate();
   const { user } = useAuth();
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
@@ -109,7 +109,7 @@ export default function NuevoViaje() {
       const nombreDestino = lugarElegido?.name || form.destino.trim();
 
       const viaje = await tripsApi.create({
-        title: form.title.trim() || `Viaje a ${nombreDestino}`,
+        title: form.title.trim() || t('comoSeLlamaPlaceholder', { destino: nombreDestino }),
         destination: { name: nombreDestino, ...coords },
         additionalDestinations: paradasAPayload(paradas),
         origin: form.origen.trim() ? { name: form.origen.trim() } : undefined,
@@ -149,13 +149,11 @@ export default function NuevoViaje() {
     <div className="pila" style={{ maxWidth: 620, margin: '0 auto' }}>
       <div>
         <Link to="/viajes" className="volver">
-          ← Volver a mis viajes
+          {t('volver')}
         </Link>
-        <h1 style={{ marginTop: 8 }}>Nuevo viaje</h1>
+        <h1 style={{ marginTop: 8 }}>{t('titulo')}</h1>
         <p className="suave" style={{ margin: 0 }}>
-          {esAgencia
-            ? 'Empieza con destino, fechas y viajeros. Después completa la cotización y revisa la propuesta para tu cliente.'
-            : 'Con el destino y las fechas basta para empezar. Lo demás lo vas llenando después.'}
+          {esAgencia ? t('introAgencia') : t('introPersonal')}
         </p>
       </div>
 
@@ -164,9 +162,9 @@ export default function NuevoViaje() {
           {error && <Aviso tipo="error">{error}</Aviso>}
 
           <CampoDestino
-            label="¿A dónde vas?"
+            label={t('aDondeVas')}
             name="destino"
-            placeholder="Oaxaca de Juárez, Lisboa, Tokio..."
+            placeholder={t('aDondeVasPlaceholder')}
             value={form.destino}
             onChange={cambiar}
             onSeleccionar={setLugarElegido}
@@ -185,7 +183,7 @@ export default function NuevoViaje() {
           />
 
             <Campo
-              label="¿Cuántos viajan?"
+              label={t('cuantosViajan')}
               name="travelers"
               type="number"
               min="1"
@@ -195,18 +193,18 @@ export default function NuevoViaje() {
               error={errorDe('travelers')}
             />
           {esAgencia && <details className="opciones-formulario" open={Boolean(clienteId) || undefined}>
-            <summary>Cliente (opcional)</summary>
+            <summary>{t('clienteOpcional')}</summary>
             <ClienteDelViaje value={{ id: clienteId, nombre: clienteNombre, contacto: clienteContacto }} onChange={(c) => { setClienteId(c.id); setClienteNombre(c.nombre); setClienteContacto(c.contacto); }} />
           </details>}
-          <details className="opciones-formulario" open={detalles.some((d) => !['destination', 'startDate', 'endDate', 'travelers'].some((campo) => d.field?.startsWith(campo))) || undefined}><summary>Personalizar viaje y preferencias</summary><div className="pila">
+          <details className="opciones-formulario" open={detalles.some((d) => !['destination', 'startDate', 'endDate', 'travelers'].some((campo) => d.field?.startsWith(campo))) || undefined}><summary>{t('personalizar')}</summary><div className="pila">
           <Campo
-            label="¿Cómo se llama el viaje?"
+            label={t('comoSeLlama')}
             name="title"
-            placeholder={form.destino ? `Viaje a ${form.destino}` : 'Escapada de fin de semana'}
+            placeholder={form.destino ? t('comoSeLlamaPlaceholder', { destino: form.destino }) : t('comoSeLlamaPlaceholderDefault')}
             value={form.title}
             onChange={cambiar}
             error={errorDe('title')}
-            ayuda="Si lo dejas vacío usamos el destino."
+            ayuda={t('comoSeLlamaAyuda')}
           />
 
           <CampoParadas
@@ -217,34 +215,32 @@ export default function NuevoViaje() {
           />
 
           <Campo
-            label="¿Desde dónde sales?"
+            label={t('desdeDondeSales')}
             name="origen"
-            placeholder="Monterrey"
+            placeholder={t('desdeDondeSalesPlaceholder')}
             value={form.origen}
             onChange={cambiar}
-            ayuda="Lo usamos para armar las búsquedas de vuelos y autobuses."
+            ayuda={t('desdeDondeSalesAyuda')}
           />
 
           <div className="rejilla rejilla-2">
             <Campo
-              label="Presupuesto estimado"
+              label={t('presupuestoEstimado')}
               name="presupuesto"
               type="number"
               min="0"
               step="100"
-              placeholder="Opcional"
+              placeholder={t('opcional')}
               value={form.presupuesto}
               onChange={cambiar}
-              ayuda={`En ${user?.preferences?.currency || 'MXN'}.`}
+              ayuda={t('presupuestoAyuda', { moneda: user?.preferences?.currency || 'MXN' })}
             />
           </div>
 
           <div className="campo">
-            <label>Gustos de quien viaja (opcional)</label>
+            <label>{t('gustosDeQuienViaja')}</label>
             <p className="campo-ayuda" style={{ marginTop: 0 }}>
-              {esAgencia
-                ? 'Si no los conoces, usamos un plan equilibrado, ritmo moderado y gasto medio. Puedes personalizarlo aquí.'
-                : 'Si los dejas vacíos, usamos lo que configuraste en tu perfil.'}
+              {esAgencia ? t('gustosAyudaAgencia') : t('gustosAyudaPersonal')}
             </p>
             <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }}>
               {ESTILOS.map((valor) => {
@@ -258,7 +254,7 @@ export default function NuevoViaje() {
                     className={`insignia ${activo ? 'marca' : ''}`}
                     style={{ cursor: 'pointer', padding: '7px 12px', fontFamily: 'inherit' }}
                   >
-                    {valor.replace(/-/g, ' ')}
+                    {traducirDominio(tDominio, valor)}
                   </button>
                 );
               })}
@@ -266,22 +262,22 @@ export default function NuevoViaje() {
           </div>
 
           <div className="rejilla rejilla-2">
-            <Campo label="Ritmo de viaje">
+            <Campo label={t('ritmoDeViaje')}>
               <select value={pace} onChange={(e) => setPace(e.target.value)}>
-                <option value="">{esAgencia ? 'Equilibrado (sin preferencias del cliente)' : 'Usar el de mi perfil'}</option>
-                {RITMOS.map((r) => (
-                  <option key={r.valor} value={r.valor}>
-                    {r.texto}
+                <option value="">{esAgencia ? t('equilibrado') : t('usarDeMiPerfil')}</option>
+                {RITMOS.map((valor) => (
+                  <option key={valor} value={valor}>
+                    {t(`ritmos.${valor}`)}
                   </option>
                 ))}
               </select>
             </Campo>
-            <Campo label="Nivel de gasto">
+            <Campo label={t('nivelDeGasto')}>
               <select value={budgetLevel} onChange={(e) => setBudgetLevel(e.target.value)}>
-                <option value="">{esAgencia ? 'Equilibrado (sin preferencias del cliente)' : 'Usar el de mi perfil'}</option>
-                <option value="bajo">Bajo — mochilero, lo económico</option>
-                <option value="medio">Medio — cómodo sin excesos</option>
-                <option value="alto">Alto — sin fijarse mucho en el precio</option>
+                <option value="">{esAgencia ? t('equilibrado') : t('usarDeMiPerfil')}</option>
+                <option value="bajo">{t('nivelesGasto.bajo')}</option>
+                <option value="medio">{t('nivelesGasto.medio')}</option>
+                <option value="alto">{t('nivelesGasto.alto')}</option>
               </select>
             </Campo>
           </div>
@@ -289,10 +285,10 @@ export default function NuevoViaje() {
           </div></details>
           <div className="fila" style={{ marginTop: 4 }}>
             <Boton type="submit" cargando={enviando}>
-              {enviando ? 'Creando...' : 'Crear viaje'}
+              {enviando ? t('creando') : t('crearViaje')}
             </Boton>
             <Link to="/viajes" className="boton secundario">
-              Cancelar
+              {t('cancelar')}
             </Link>
           </div>
         </form>

@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { tripsApi, itineraryApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import FormActividad from '../components/formularios/FormActividad.jsx';
@@ -29,7 +30,7 @@ import { revisarItinerario } from '../utils/revisionItinerario.js';
 import {
   formatoMoneda,
   formatoFecha,
-  humanizar,
+  traducirDominio,
   porPersonas,
   conMargen,
   ICONOS_CATEGORIA,
@@ -42,7 +43,7 @@ const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
 // formulario, espere la generacion y hasta el final se entere del rechazo.
 const LIMITE_DIAS_IA = 30;
 
-function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd }) {
+function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd, t, td }) {
   // La IA a veces repite el título como nombre del lugar: no vale la pena mostrarlo dos veces.
   const lugar = actividad.location?.name;
   const mostrarLugar = lugar && lugar.trim().toLowerCase() !== actividad.title.trim().toLowerCase();
@@ -64,7 +65,7 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
       <button
         type="button"
         className="agarradera"
-        aria-label={`Reordenar ${actividad.title}. Usa las flechas arriba y abajo.`}
+        aria-label={t('actividad.reordenar', { titulo: actividad.title })}
         onPointerDown={dnd.onPointerDown}
         onKeyDown={dnd.onKeyDown}
       >
@@ -81,7 +82,7 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
         {actividad.description && <p>{actividad.description}</p>}
 
         <div className="fila" style={{ gap: 6 }}>
-          <Insignia>{humanizar(actividad.category)}</Insignia>
+          <Insignia>{td(actividad.category)}</Insignia>
           {!ocultarCosto && actividad.estimatedCost > 0 && (
             <Insignia color="ambar">{formatoMoneda(actividad.estimatedCost, moneda)}</Insignia>
           )}
@@ -105,17 +106,17 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
           )}
           {actividad.bookingUrl && (
             <a href={actividad.bookingUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem' }}>
-              Reservar ↗
+              {t('actividad.reservar')}
             </a>
           )}
         </div>
       </div>
 
       <div className="actividad-acciones">
-        <Boton variante="fantasma" chico onClick={onEditar} aria-label={`Editar ${actividad.title}`} title="Editar">
+        <Boton variante="fantasma" chico onClick={onEditar} aria-label={t('actividad.editarAria', { titulo: actividad.title })} title={t('actividad.editar')}>
           ✎
         </Boton>
-        <Boton variante="fantasma" chico onClick={onEliminar} aria-label={`Eliminar ${actividad.title}`} title="Eliminar">
+        <Boton variante="fantasma" chico onClick={onEliminar} aria-label={t('actividad.eliminarAria', { titulo: actividad.title })} title={t('actividad.eliminar')}>
           ✕
         </Boton>
       </div>
@@ -124,6 +125,9 @@ function Actividad({ actividad, moneda, ocultarCosto, onEditar, onEliminar, dnd 
 }
 
 export default function Itinerario() {
+  const { t } = useTranslation('itinerario');
+  const { t: tDominio } = useTranslation('dominio');
+  const td = (slug) => traducirDominio(tDominio, slug);
   const { id } = useParams();
   const [params] = useSearchParams();
   const [vistaPrevia, setVistaPrevia] = useState(params.get('entregar') === '1');
@@ -223,10 +227,13 @@ export default function Itinerario() {
   };
 
   const enlacePublico = compartir ? `${window.location.origin}/i/${compartir.token}` : null;
+  const destinoWhatsApp = viaje?.destination?.name ? t('compartirWhatsapp.aDestino', { nombre: viaje.destination.name }) : '';
   const mensajeWhatsApp = enlacePublico
-    ? `${viaje?.cliente?.nombre ? `Hola ${viaje.cliente.nombre}, te` : 'Te'} comparto tu itinerario${
-        viaje?.destination?.name ? ` a ${viaje.destination.name}` : ''
-      }: ${enlacePublico}`
+    ? t(viaje?.cliente?.nombre ? 'compartirWhatsapp.conCliente' : 'compartirWhatsapp.sinCliente', {
+        nombre: viaje?.cliente?.nombre,
+        destino: destinoWhatsApp,
+        enlace: enlacePublico,
+      })
     : '';
 
   const generarEnlace = async () => {
@@ -447,14 +454,14 @@ export default function Itinerario() {
   }
 
   if (viajeReq.error) {
-    return <ErrorCarga error={viajeReq.error} onReintentar={viajeReq.recargar} contexto="Viaje" />;
+    return <ErrorCarga error={viajeReq.error} onReintentar={viajeReq.recargar} contexto={t('contextoViaje')} />;
   }
 
   // Sin esto, si fallaba la peticion del itinerario (pero la del viaje si
   // cargaba) la pantalla mostraba "Deja que la IA arme tu plan" como si el
   // viaje de verdad no tuviera itinerario, en vez de avisar del error.
   if (itinReq.error) {
-    return <ErrorCarga error={itinReq.error} onReintentar={itinReq.recargar} contexto="Itinerario" />;
+    return <ErrorCarga error={itinReq.error} onReintentar={itinReq.recargar} contexto={t('titulo')} />;
   }
 
   return (
@@ -464,26 +471,26 @@ export default function Itinerario() {
 
       <div className="no-imprimir">
         <Link to={`/viajes/${id}`} className="volver">
-          ← {viaje.title}
+          {t('volver', { titulo: viaje.title })}
         </Link>
       </div>
 
       <header className="fila-entre no-imprimir">
         <div>
-          <h1 style={{ marginBottom: 4 }}>Itinerario</h1>
+          <h1 style={{ marginBottom: 4 }}>{t('titulo')}</h1>
           <p className="suave" style={{ margin: 0 }}>
-            {viaje.destination?.name} · {viaje.durationDays} días
-            {itinerario && ` · ${itinerario.activityCount} actividades`}
+            {viaje.destination?.name} · {viaje.durationDays} {t('diasPlural')}
+            {itinerario && ` · ${itinerario.activityCount} ${t('actividades')}`}
           </p>
         </div>
 
         {itinerario && (
           <div className="fila" style={{ gap: 8 }}>
             <Boton variante="secundario" onClick={() => window.print()}>
-              <Icono nombre="descarga" tamano={15} /> Descargar PDF
+              <Icono nombre="descarga" tamano={15} /> {t('descargarPdf')}
             </Boton>
             <Boton variante="secundario" onClick={() => setVistaPrevia(true)} cargando={trabajandoEnlace}>
-              <Icono nombre="flechaSalida" tamano={15} /> Revisar y compartir
+              <Icono nombre="flechaSalida" tamano={15} /> {t('revisarYCompartir')}
             </Boton>
             {viaje.durationDays <= LIMITE_DIAS_IA && (
               <Boton
@@ -491,11 +498,11 @@ export default function Itinerario() {
                 onClick={() => setConfirmarRegenerar(true)}
                 cargando={generando}
               >
-                <Icono nombre="chispa" tamano={15} /> Regenerar
+                <Icono nombre="chispa" tamano={15} /> {t('regenerar')}
               </Boton>
             )}
             <Boton variante="secundario" onClick={() => setPlantillaAbierta(true)}>
-              <Icono nombre="recibo" tamano={15} /> Guardar como plantilla
+              <Icono nombre="recibo" tamano={15} /> {t('guardarComoPlantilla')}
             </Boton>
           </div>
         )}
@@ -503,18 +510,17 @@ export default function Itinerario() {
 
       {vistaPrevia && itinerario && <VistaPreviaPropuesta viaje={viaje} itinerario={itinerario} marca={marca} onCerrar={() => setVistaPrevia(false)} compartiendo={trabajandoEnlace} error={errorGen?.message} onCompartir={async () => { if (await generarEnlace()) setVistaPrevia(false); }} />}
       {plantillaGuardada && (
-        <Aviso tipo="exito" titulo="Plantilla guardada">
-          Ya la puedes usar para armar el próximo viaje a este destino desde{' '}
-          <Link to="/plantillas">Plantillas</Link>.
+        <Aviso tipo="exito" titulo={t('plantillaGuardada')}>
+          {t('plantillaGuardadaTexto')}{' '}
+          <Link to="/plantillas">{t('plantillas')}</Link>.
         </Aviso>
       )}
 
       {enlacePublico && (
         <div className="no-imprimir">
-          <Aviso tipo="exito" titulo="Tu itinerario ya se puede compartir">
+          <Aviso tipo="exito" titulo={t('enlaceListo')}>
             <p style={{ margin: '2px 0 8px' }}>
-              Quien abra este enlace verá el itinerario en solo lectura. No verá tu presupuesto, tus
-              gastos ni tu cuenta.
+              {t('enlaceListoTexto')}
             </p>
             <div className="fila" style={{ gap: 8 }}>
               <input
@@ -522,10 +528,10 @@ export default function Itinerario() {
                 readOnly
                 value={enlacePublico}
                 onFocus={(e) => e.target.select()}
-                aria-label="Enlace público del itinerario"
+                aria-label={t('enlacePublicoAria')}
               />
               <Boton chico onClick={copiar}>
-                {copiado ? 'Copiado' : 'Copiar'}
+                {copiado ? t('copiado') : t('copiar')}
               </Boton>
               <a
                 className="boton secundario chico"
@@ -536,7 +542,7 @@ export default function Itinerario() {
                 WhatsApp
               </a>
               <Boton variante="peligro-texto" chico onClick={revocarEnlace} cargando={trabajandoEnlace}>
-                Dejar de compartir
+                {t('dejarDeCompartir')}
               </Boton>
             </div>
           </Aviso>
@@ -548,8 +554,8 @@ export default function Itinerario() {
           error={errorGen}
           contexto={
             errorGen.status === 429
-              ? 'Alcanzaste el límite de generaciones'
-              : 'No pudimos generar el itinerario'
+              ? t('limiteAlcanzado')
+              : t('noPudimosGenerar')
           }
         />
       )}
@@ -563,16 +569,14 @@ export default function Itinerario() {
         <Tarjeta>
           <Vacio
             icono="✨"
-            titulo="Este viaje es muy largo para generarlo con IA"
+            titulo={t('muyLargoTitulo')}
             accion={
               <div className="fila" style={{ justifyContent: 'center' }}>
-                <Boton onClick={armarEnBlanco}>Armar el itinerario yo mismo</Boton>
+                <Boton onClick={armarEnBlanco}>{t('armarloYoMismo')}</Boton>
               </div>
             }
           >
-            Por ahora la IA arma itinerarios de hasta {LIMITE_DIAS_IA} días, y este viaje dura{' '}
-            {viaje.durationDays}. Empieza el itinerario en blanco y agrega los días a mano, o acorta
-            las fechas del viaje si quieres que la IA te ayude.
+            {t('muyLargoTexto', { limite: LIMITE_DIAS_IA, dias: viaje.durationDays })}
           </Vacio>
         </Tarjeta>
       )}
@@ -581,38 +585,36 @@ export default function Itinerario() {
         <Tarjeta>
           <Vacio
             icono="✨"
-            titulo="Deja que la IA arme tu plan"
+            titulo={t('dejaQueLaIA')}
             accion={
               <div className="fila" style={{ justifyContent: 'center' }}>
                 <Boton onClick={() => generar(false)} cargando={generando}>
-                  {generando ? 'Generando...' : 'Generar itinerario'}
+                  {generando ? t('generando') : t('generarItinerario')}
                 </Boton>
                 <Boton variante="secundario" onClick={armarEnBlanco}>
-                  Armarlo yo
+                  {t('armarloYo')}
                 </Boton>
               </div>
             }
           >
-            Con tu destino, tus fechas y tus intereses, Gemini propone actividades día por día. Todo
-            queda editable: puedes cambiar, quitar o agregar lo que quieras.
+            {t('conIaTexto')}
           </Vacio>
 
           <div className="campo" style={{ marginTop: 18 }}>
-            <label htmlFor="notas">¿Algo que la IA deba tomar en cuenta? (opcional)</label>
+            <label htmlFor="notas">{t('algoQueConsiderar')}</label>
             <textarea
               id="notas"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               maxLength={500}
-              placeholder="Viajamos con un niño de 6 años, preferimos lugares poco turísticos, no comemos carne..."
+              placeholder={t('notasPlaceholder')}
             />
             <span className="campo-ayuda">{notas.length}/500</span>
           </div>
 
           {generando && (
-            <Aviso tipo="info" titulo="Generando tu itinerario">
-              Suele tardar entre 20 y 60 segundos, más mientras más días tenga el viaje. Si la IA
-              está saturada puede tardar un poco más mientras se reintenta. No cierres la pestaña.
+            <Aviso tipo="info" titulo={t('generandoTuItinerario')}>
+              {t('generandoTexto')}
             </Aviso>
           )}
         </Tarjeta>
@@ -625,8 +627,7 @@ export default function Itinerario() {
             {itinerario.generatedBy === 'ia' && (
               <div className="no-imprimir">
                 <Aviso tipo="info">
-                  Itinerario asistido con IA. Revisa horarios, precios y disponibilidad
-                  antes de darlo por hecho: la IA se puede equivocar.
+                  {t('asistidoConIaAviso')}
                 </Aviso>
               </div>
             )}
@@ -634,10 +635,8 @@ export default function Itinerario() {
             <RevisionItinerario avisos={avisosRevision} />
 
             {itinerario.days.length > viaje.durationDays && (
-              <Aviso tipo="alerta" titulo="Hay días fuera del viaje">
-                El itinerario tiene {itinerario.days.length} días pero el viaje dura{' '}
-                {viaje.durationDays}. Los días de más quedaron cuando acortaste las fechas; puedes
-                quitarlos abajo o alargar el viaje de nuevo.
+              <Aviso tipo="alerta" titulo={t('diasFueraDelViaje')}>
+                {t('diasFueraTexto', { diasItinerario: itinerario.days.length, diasViaje: viaje.durationDays })}
               </Aviso>
             )}
 
@@ -654,17 +653,17 @@ export default function Itinerario() {
                 <div className="dia-encabezado">
                   <div className="fila-entre">
                     <div className="dia-num">
-                      Día {dia.dayNumber}
+                      {t('dia', { numero: dia.dayNumber })}
                       {dia.date && ` · ${formatoFecha(dia.date, { weekday: 'long', year: undefined })}`}
                     </div>
                     {(dia.dayNumber > viaje.durationDays || itinerario.days.length > 1) && (
                       <span className="fila" style={{ gap: 6 }}>
-                        {dia.dayNumber > viaje.durationDays && <Insignia color="error">Fuera del viaje</Insignia>}
+                        {dia.dayNumber > viaje.durationDays && <Insignia color="error">{t('fueraDelViaje')}</Insignia>}
                         <Boton
                           variante="fantasma"
                           chico
                           onClick={() => setDiaPorEliminar(dia)}
-                          title="Quitar este día"
+                          title={t('quitarEsteDia')}
                         >
                           ✕
                         </Boton>
@@ -677,8 +676,8 @@ export default function Itinerario() {
                       type="button"
                       className="editar-inline"
                       onClick={() => setDiaEnEdicion(dia)}
-                      aria-label={`Editar título del día ${dia.dayNumber}`}
-                      title="Editar título y resumen"
+                      aria-label={t('editarTituloDia', { numero: dia.dayNumber })}
+                      title={t('editarTituloYResumen')}
                     >
                       ✎
                     </button>
@@ -691,7 +690,7 @@ export default function Itinerario() {
                   {!ocultarCosto && dia.estimatedCost > 0 && (
                     <div style={{ marginTop: 6 }}>
                       <Insignia color="ambar">
-                        ≈ {formatoMoneda(dia.estimatedCost, moneda)} por persona
+                        ≈ {formatoMoneda(dia.estimatedCost, moneda)} {t('porPersona')}
                       </Insignia>
                     </div>
                   )}
@@ -700,8 +699,8 @@ export default function Itinerario() {
                 {dia.activities.length === 0 ? (
                   <p className="tenue" style={{ fontSize: '0.88rem' }}>
                     {arrastre
-                      ? 'Suelta aquí para mover la actividad a este día.'
-                      : 'Día libre. Agrega actividades cuando decidas qué hacer.'}
+                      ? t('sueltaAqui')
+                      : t('diaLibre')}
                   </p>
                 ) : (
                   dia.activities.map((a, i) => (
@@ -713,6 +712,8 @@ export default function Itinerario() {
                       dnd={dndProps(dia, i, a)}
                       onEditar={() => setModal({ dia, actividad: a })}
                       onEliminar={() => setPorEliminar({ dia, actividad: a })}
+                      t={t}
+                      td={td}
                     />
                   ))
                 )}
@@ -723,40 +724,40 @@ export default function Itinerario() {
                   onClick={() => setModal({ dia })}
                   style={{ marginTop: 4 }}
                 >
-                  + Agregar actividad
+                  {t('agregarActividad')}
                 </Boton>
               </div>
             ))}
           </div>
 
           <div className="pila">
-            <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
+            <Tarjeta titulo={t('actividadesEnElMapa')} className="no-imprimir">
               <Suspense fallback={<div className="mapa" />}>
                 <MapaDestino destino={viaje.destination} pines={pines} alto={340} />
               </Suspense>
               <p className="tenue" style={{ margin: '10px 0 0', fontSize: '0.8rem' }}>
                 {pines.length > 0
-                  ? `${pines.length} de ${itinerario.activityCount} actividades tienen ubicación.`
-                  : 'Ninguna actividad trae coordenadas todavía.'}
+                  ? t('conUbicacion', { conPin: pines.length, total: itinerario.activityCount })
+                  : t('sinCoordenadas')}
               </p>
             </Tarjeta>
 
-            <Tarjeta titulo={`Precio propuesto · ${moneda}`}>
+            <Tarjeta titulo={t('precioPropuestoMoneda', { moneda })}>
               {!ocultarCosto && (
                 <div className="pila-sm">
                   <div className="linea-gasto">
-                    <span className="suave">Actividades</span>
+                    <span className="suave">{t('actividadesLinea')}</span>
                     <span className="numero">{formatoMoneda(itinerario.totalEstimatedCost, moneda)}</span>
                   </div>
                   <div className="linea-gasto">
-                    <span className="suave">Ida y vuelta, hospedaje y transporte local</span>
+                    <span className="suave">{t('idaYVueltaHospedaje')}</span>
                     <span className="numero">
                       {formatoMoneda(porPersonas(viaje.coreCosts?.total || 0, viaje.travelers, 1), moneda)}
                     </span>
                   </div>
                   {hayMargen && (
                     <div className="linea-gasto">
-                      <span className="suave">Cuota de servicio</span>
+                      <span className="suave">{t('cuotaDeServicio')}</span>
                       <span className="numero">{formatoMoneda(precioBasePorPersona - costoSinMargen, moneda)}</span>
                     </div>
                   )}
@@ -764,18 +765,17 @@ export default function Itinerario() {
               )}
 
               <div className="fila-entre" style={{ marginTop: 12 }}>
-                <span className="suave">Por persona</span>
+                <span className="suave">{t('porPersonaLinea')}</span>
                 <span className="numero grande">{formatoMoneda(precioBasePorPersona, moneda)}</span>
               </div>
               <div className="fila-entre" style={{ marginTop: 6 }}>
                 <span className="suave">
-                  {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
+                  {paraCuantos} {paraCuantos === 1 ? t('viajero') : t('viajeros')}
                 </span>
                 <span className="numero">{formatoMoneda(precioBasePorPersona * paraCuantos, moneda)}</span>
               </div>
               <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-                Actividades sugeridas, más lo estimado en transporte y hospedaje. Son
-                estimaciones orientativas de presupuesto.
+                {t('notaEstimacion')}
               </p>
             </Tarjeta>
           </div>
@@ -807,9 +807,9 @@ export default function Itinerario() {
           itinReq.recargar();
           viajeReq.recargar();
         }}
-        titulo="Quitar actividad"
-        mensaje={`Se va a quitar "${porEliminar?.actividad?.title}" del día ${porEliminar?.dia?.dayNumber}.`}
-        textoConfirmar="Quitar"
+        titulo={t('quitarActividad')}
+        mensaje={t('quitarActividadMensaje', { titulo: porEliminar?.actividad?.title, numero: porEliminar?.dia?.dayNumber })}
+        textoConfirmar={t('quitar')}
       />
 
       {diaEnEdicion && (
@@ -830,41 +830,40 @@ export default function Itinerario() {
           itinReq.recargar();
           viajeReq.recargar();
         }}
-        titulo={`Quitar el día ${diaPorEliminar?.dayNumber}`}
+        titulo={t('quitarDia', { numero: diaPorEliminar?.dayNumber })}
         mensaje={
           diaPorEliminar?.activities?.length
-            ? `Ese día tiene ${diaPorEliminar.activities.length} actividad(es) y se van a borrar con él. Los días siguientes se renumeran.`
-            : 'El día está vacío. Los días siguientes se renumeran.'
+            ? t('quitarDiaConActividades', { cantidad: diaPorEliminar.activities.length })
+            : t('quitarDiaVacio')
         }
-        textoConfirmar="Quitar día"
+        textoConfirmar={t('quitarDiaBoton')}
       />
 
       <Modal
         abierto={confirmarRegenerar}
         onCerrar={() => setConfirmarRegenerar(false)}
-        titulo="Regenerar itinerario"
+        titulo={t('regenerarTitulo')}
         ancho={440}
       >
         <p className="suave" style={{ marginTop: 0 }}>
-          La IA va a crear un plan nuevo desde cero. Se pierde el itinerario actual, incluyendo las
-          actividades que hayas editado o agregado a mano.
+          {t('regenerarTexto')}
         </p>
 
         <div className="campo">
-          <label htmlFor="notas-regenerar">¿Algo que la IA deba tomar en cuenta? (opcional)</label>
+          <label htmlFor="notas-regenerar">{t('algoQueConsiderar')}</label>
           <textarea
             id="notas-regenerar"
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
             maxLength={500}
-            placeholder="Viajamos con un niño de 6 años, preferimos lugares poco turísticos, no comemos carne..."
+            placeholder={t('notasPlaceholder')}
           />
           <span className="campo-ayuda">{notas.length}/500</span>
         </div>
 
         <div className="modal-acciones">
           <Boton variante="secundario" onClick={() => setConfirmarRegenerar(false)}>
-            Cancelar
+            {t('cancelar')}
           </Boton>
           <Boton
             variante="peligro"
@@ -874,7 +873,7 @@ export default function Itinerario() {
               setConfirmarRegenerar(false);
             }}
           >
-            Regenerar
+            {t('regenerar')}
           </Boton>
         </div>
       </Modal>
@@ -882,34 +881,33 @@ export default function Itinerario() {
       <Modal
         abierto={plantillaAbierta}
         onCerrar={() => setPlantillaAbierta(false)}
-        titulo="Guardar como plantilla"
+        titulo={t('guardarComoPlantillaTitulo')}
         ancho={440}
       >
         <form onSubmit={guardarComoPlantilla} className="pila">
           <p className="suave" style={{ marginTop: 0 }}>
-            Copia el destino y las actividades de este itinerario en una plantilla reutilizable, sin
-            fechas. La podrás aplicar a un viaje nuevo desde{' '}
-            <Link to="/plantillas">Plantillas</Link>
-            {user?.agency ? ', y la verá todo tu equipo.' : '.'}
+            {t('guardarComoPlantillaTexto')}{' '}
+            <Link to="/plantillas">{t('plantillas')}</Link>
+            {user?.agency ? t('yLoVeraTuEquipo') : t('puntoFinal')}
           </p>
 
           {errorPlantilla && <Aviso tipo="error">{errorPlantilla}</Aviso>}
 
           <Campo
-            label="Nombre de la plantilla"
+            label={t('nombreDeLaPlantilla')}
             name="nombrePlantilla"
             value={nombrePlantilla}
             onChange={(e) => setNombrePlantilla(e.target.value)}
-            placeholder={`${viaje?.destination?.name || 'Destino'} todo incluido`}
+            placeholder={t('nombrePlantillaPlaceholder', { destino: viaje?.destination?.name || t('destino') })}
             autoFocus
           />
 
           <div className="modal-acciones">
             <Boton type="button" variante="secundario" onClick={() => setPlantillaAbierta(false)}>
-              Cancelar
+              {t('cancelar')}
             </Boton>
             <Boton type="submit" cargando={guardandoPlantilla} disabled={nombrePlantilla.trim().length < 2}>
-              Guardar plantilla
+              {t('guardarPlantilla')}
             </Boton>
           </div>
         </form>

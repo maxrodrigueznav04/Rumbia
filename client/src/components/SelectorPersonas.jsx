@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Boton } from './ui.jsx';
 
 /**
@@ -14,36 +15,37 @@ import { Boton } from './ui.jsx';
  * cuantas personas se calculo lo que se esta mostrando.
  */
 export default function SelectorPersonas({ personas, maximo, onCambio }) {
+  const { t } = useTranslation('campos');
   if (!maximo || maximo <= 1) return null;
 
   return (
     <div className="selector-personas no-imprimir">
-      <span className="etiqueta">Ver precios para</span>
+      <span className="etiqueta">{t('personas.verPreciosPara')}</span>
       <div className="fila" style={{ gap: 8 }}>
         <Boton
           variante="fantasma"
           chico
           onClick={() => onCambio(Math.max(1, personas - 1))}
           disabled={personas <= 1}
-          aria-label="Menos personas"
+          aria-label={t('personas.menosPersonas')}
         >
           −
         </Boton>
         <strong>
-          {personas} {personas === 1 ? 'persona' : 'personas'}
+          {personas} {personas === 1 ? t('personas.persona') : t('personas.personas')}
         </strong>
         <Boton
           variante="fantasma"
           chico
           onClick={() => onCambio(Math.min(maximo, personas + 1))}
           disabled={personas >= maximo}
-          aria-label="Más personas"
+          aria-label={t('personas.masPersonas')}
         >
           +
         </Boton>
         {personas !== maximo && (
           <span className="tenue" style={{ fontSize: '0.8rem' }}>
-            de {maximo} en el viaje
+            {t('personas.deEnElViaje', { maximo })}
           </span>
         )}
       </div>

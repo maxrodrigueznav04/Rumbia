@@ -1,6 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Tarjeta, Vacio } from './ui.jsx';
-import { formatoMoneda, humanizar, porPersonas, COLORES_CATEGORIA } from '../utils/format.js';
+import { formatoMoneda, traducirDominio, porPersonas, COLORES_CATEGORIA } from '../utils/format.js';
 
 /**
  * Dona de transporte + hospedaje + transporte local — lo que ya se sabe que
@@ -14,6 +15,9 @@ import { formatoMoneda, humanizar, porPersonas, COLORES_CATEGORIA } from '../uti
  * que en las tarjetas de arriba.
  */
 export default function ResumenGastosFijos({ viaje, personas }) {
+  const { t } = useTranslation('viaje');
+  const { t: tDominio } = useTranslation('dominio');
+  const td = (slug) => traducirDominio(tDominio, slug);
   const moneda = viaje.budget?.currency || 'MXN';
   const travelers = viaje.travelers || 1;
   const paraCuantos = personas || travelers;
@@ -28,13 +32,15 @@ export default function ResumenGastosFijos({ viaje, personas }) {
     .filter((c) => c.valor > 0);
 
   const titulo =
-    paraCuantos !== travelers ? `Gastos fijos y seguros · para ${paraCuantos} de ${travelers}` : 'Gastos fijos y seguros';
+    paraCuantos !== travelers
+      ? t('resumenGastosFijos.tituloConPersonas', { personas: paraCuantos, total: travelers })
+      : t('resumenGastosFijos.titulo');
 
   if (categorias.length === 0) {
     return (
       <Tarjeta titulo={titulo}>
-        <Vacio icono="🔒" titulo="Sin capturar todavía">
-          Transporte y hospedaje: lo que ya sabes que vas a pagar, sin importar cómo salga lo demás.
+        <Vacio icono="🔒" titulo={t('resumenGastosFijos.sinCapturar')}>
+          {t('resumenGastosFijos.sinCapturarTexto')}
         </Vacio>
       </Tarjeta>
     );
@@ -62,7 +68,7 @@ export default function ResumenGastosFijos({ viaje, personas }) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(valor, nombre) => [formatoMoneda(valor, moneda), humanizar(nombre)]}
+                formatter={(valor, nombre) => [formatoMoneda(valor, moneda), td(nombre)]}
                 contentStyle={{
                   borderRadius: 10,
                   border: '1px solid #dcdedb',
@@ -75,7 +81,7 @@ export default function ResumenGastosFijos({ viaje, personas }) {
         </div>
 
         <div className="dona-centro">
-          <span className="etiqueta">Total</span>
+          <span className="etiqueta">{t('resumenGastosFijos.total')}</span>
           <span className="numero">{formatoMoneda(total, moneda)}</span>
         </div>
       </div>
@@ -89,7 +95,7 @@ export default function ResumenGastosFijos({ viaje, personas }) {
                 style={{ background: COLORES_CATEGORIA[c.key] || '#b8ccb3' }}
                 aria-hidden="true"
               />
-              {humanizar(c.key)}
+              {td(c.key)}
             </span>
             <span className="numero">{formatoMoneda(c.valor, moneda)}</span>
           </div>
@@ -97,8 +103,7 @@ export default function ResumenGastosFijos({ viaje, personas }) {
       </div>
 
       <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-        Solo lo capturado en transporte y hospedaje. No incluye comida, compras ni otros gastos
-        sueltos — esos ya se registran aparte en Presupuesto.
+        {t('resumenGastosFijos.notaAlPie')}
       </p>
     </Tarjeta>
   );

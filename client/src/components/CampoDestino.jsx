@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Campo } from './ui.jsx';
 import { weatherApi } from '../api/index.js';
 
@@ -12,7 +13,7 @@ import { weatherApi } from '../api/index.js';
  * evita la ambigüedad ("Guadalajara" ¿de México o de España?).
  */
 export default function CampoDestino({
-  label = 'Destino',
+  label,
   name = 'destino',
   value,
   onChange,
@@ -22,6 +23,7 @@ export default function CampoDestino({
   ayuda,
   placeholder,
 }) {
+  const { t } = useTranslation('campos');
   const [sugerencias, setSugerencias] = useState([]);
   const [mostrando, setMostrando] = useState(false);
   const [indiceActivo, setIndiceActivo] = useState(-1);
@@ -88,7 +90,7 @@ export default function CampoDestino({
   return (
     <div style={{ position: 'relative' }}>
       <Campo
-        label={label}
+        label={label ?? t('destino.label')}
         name={name}
         value={value}
         onChange={cambiar}

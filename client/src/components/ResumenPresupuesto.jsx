@@ -1,9 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Tarjeta, Vacio, Aviso } from './ui.jsx';
-import { formatoMoneda, humanizar, COLORES_CATEGORIA } from '../utils/format.js';
+import { formatoMoneda, traducirDominio, COLORES_CATEGORIA } from '../utils/format.js';
 
 /** Desglose del presupuesto: dona + lineas por categoria + barra contra el limite. */
 export default function ResumenPresupuesto({ resumen }) {
+  const { t } = useTranslation('viaje');
+  const { t: tDominio } = useTranslation('dominio');
+  const td = (slug) => traducirDominio(tDominio, slug);
   if (!resumen) return null;
 
   const { breakdown, chartData, totals, budget, currency, itineraryEstimate, conversion } = resumen;
@@ -11,9 +15,9 @@ export default function ResumenPresupuesto({ resumen }) {
 
   if (!hayGastos) {
     return (
-      <Tarjeta titulo="Control de gastos internos">
-        <Vacio icono="💰" titulo="Sin gastos capturados">
-          Conforme registres transporte, hospedaje y gastos sueltos, aquí vas a ver el desglose.
+      <Tarjeta titulo={t('resumenPresupuesto.titulo')}>
+        <Vacio icono="💰" titulo={t('resumenPresupuesto.sinGastos')}>
+          {t('resumenPresupuesto.sinGastosTexto')}
         </Vacio>
       </Tarjeta>
     );
@@ -23,11 +27,10 @@ export default function ResumenPresupuesto({ resumen }) {
   const claseBarra = budget.isOver ? 'excedido' : porcentaje > 80 ? 'alerta' : '';
 
   return (
-    <Tarjeta titulo="Control de gastos internos">
+    <Tarjeta titulo={t('resumenPresupuesto.titulo')}>
       {conversion?.sinConvertir?.length > 0 && (
-        <Aviso tipo="alerta" titulo="Hay gastos fuera de esta suma">
-          No se pudo obtener el tipo de cambio de {conversion.sinConvertir.join(', ')}, así que esos
-          gastos no entran en el total. Vuelve a cargar en un momento.
+        <Aviso tipo="alerta" titulo={t('resumenPresupuesto.gastosFueraDeLaSuma')}>
+          {t('resumenPresupuesto.gastosFueraDeLaSumaTexto', { monedas: conversion.sinConvertir.join(', ') })}
         </Aviso>
       )}
 
@@ -49,7 +52,7 @@ export default function ResumenPresupuesto({ resumen }) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(valor, nombre) => [formatoMoneda(valor, currency), humanizar(nombre)]}
+              formatter={(valor, nombre) => [formatoMoneda(valor, currency), td(nombre)]}
               contentStyle={{
                 borderRadius: 10,
                 border: '1px solid #dcdedb',
@@ -62,7 +65,7 @@ export default function ResumenPresupuesto({ resumen }) {
         </div>
 
         <div className="dona-centro">
-          <span className="etiqueta">Total</span>
+          <span className="etiqueta">{t('resumenPresupuesto.total')}</span>
           <span className="numero">{formatoMoneda(totals.total, currency)}</span>
         </div>
       </div>
@@ -76,7 +79,7 @@ export default function ResumenPresupuesto({ resumen }) {
                 style={{ background: COLORES_CATEGORIA[d.category] || '#b8ccb3' }}
                 aria-hidden="true"
               />
-              {humanizar(d.category)}
+              {td(d.category)}
             </span>
             <span className="numero">{formatoMoneda(d.value, currency)}</span>
           </div>
@@ -86,9 +89,9 @@ export default function ResumenPresupuesto({ resumen }) {
       {budget.isSet && (
         <div style={{ marginTop: 16 }}>
           <div className="fila-entre" style={{ marginBottom: 6 }}>
-            <span className="etiqueta">Contra tu presupuesto</span>
+            <span className="etiqueta">{t('resumenPresupuesto.contraTuPresupuesto')}</span>
             <span className="tenue">
-              {porcentaje}% de {formatoMoneda(budget.amount, currency)}
+              {t('resumenPresupuesto.porcentajeDe', { porcentaje, monto: formatoMoneda(budget.amount, currency) })}
             </span>
           </div>
           <div
@@ -102,29 +105,31 @@ export default function ResumenPresupuesto({ resumen }) {
           </div>
           <p className={budget.isOver ? 'campo-error' : 'tenue'} style={{ margin: '7px 0 0' }}>
             {budget.isOver
-              ? `Te pasaste por ${formatoMoneda(Math.abs(budget.remaining), currency)}.`
-              : `Te quedan ${formatoMoneda(budget.remaining, currency)}.`}
+              ? t('resumenPresupuesto.tePasaste', { monto: formatoMoneda(Math.abs(budget.remaining), currency) })
+              : t('resumenPresupuesto.teQuedan', { monto: formatoMoneda(budget.remaining, currency) })}
           </p>
         </div>
       )}
 
       <div className="rejilla rejilla-2" style={{ gap: 10, marginTop: 16 }}>
         <div className="tarjeta-plana">
-          <div className="etiqueta">Por viajero</div>
+          <div className="etiqueta">{t('resumenPresupuesto.porViajero')}</div>
           <div className="numero">{formatoMoneda(totals.perTraveler, currency)}</div>
         </div>
         <div className="tarjeta-plana">
-          <div className="etiqueta">Por día</div>
+          <div className="etiqueta">{t('resumenPresupuesto.porDia')}</div>
           <div className="numero">{formatoMoneda(totals.perDay, currency)}</div>
         </div>
       </div>
 
       {itineraryEstimate && (
         <p className="tenue" style={{ margin: '12px 0 0' }}>
-          El itinerario sugiere <strong>{formatoMoneda(itineraryEstimate.perTraveler, currency)}</strong>{' '}
-          por persona en actividades ({formatoMoneda(itineraryEstimate.allTravelers, currency)} en
-          total del grupo, {itineraryEstimate.activityCount} actividad(es)). No se suma
-          automáticamente: se cuenta cuando lo registras como gasto.
+          {t('resumenPresupuesto.sugerenciaPre')}{' '}
+          <strong>{formatoMoneda(itineraryEstimate.perTraveler, currency)}</strong>{' '}
+          {t('resumenPresupuesto.sugerenciaPost', {
+            totalGrupo: formatoMoneda(itineraryEstimate.allTravelers, currency),
+            cantidad: itineraryEstimate.activityCount,
+          })}
         </p>
       )}
     </Tarjeta>

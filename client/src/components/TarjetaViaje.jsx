@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Insignia } from './ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
@@ -19,12 +20,16 @@ import {
  * vistazo qué tanto del presupuesto ya está comprometido.
  */
 export default function TarjetaViaje({ viaje }) {
+  const { t } = useTranslation('viaje');
+  const { t: tDominio } = useTranslation('dominio');
   const { user } = useAuth();
   // El embudo de ventas (estadoPropuesta) solo le importa a quien cotiza
   // para clientes; un viajero planeando lo suyo no tiene "propuesta" que enviar.
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
   const estado = ETIQUETAS_ESTADO[viaje.status] || ETIQUETAS_ESTADO.borrador;
   const estadoPropuesta = ETIQUETAS_ESTADO_PROPUESTA[viaje.estadoPropuesta] || ETIQUETAS_ESTADO_PROPUESTA.borrador;
+  const textoEstado = tDominio(`estadoViaje.${viaje.status}`, { defaultValue: estado.texto });
+  const textoEstadoPropuesta = tDominio(`estadoPropuesta.${viaje.estadoPropuesta}`, { defaultValue: estadoPropuesta.texto });
   const esFuturo = new Date(viaje.startDate) > new Date();
   const moneda = viaje.budget?.currency || 'MXN';
 
@@ -40,18 +45,18 @@ export default function TarjetaViaje({ viaje }) {
       <div className="viaje-cuerpo">
         <div className="fila-entre" style={{ marginBottom: 'var(--e3)' }}>
           <span className="fila" style={{ gap: 6, flexWrap: 'wrap' }}>
-            <Insignia color={estado.color}>{estado.texto}</Insignia>
-            {esAgencia && <Insignia color={estadoPropuesta.color}>{estadoPropuesta.texto}</Insignia>}
+            <Insignia color={estado.color}>{textoEstado}</Insignia>
+            {esAgencia && <Insignia color={estadoPropuesta.color}>{textoEstadoPropuesta}</Insignia>}
           </span>
           {esFuturo && <span className="tenue">{tiempoRelativo(viaje.startDate)}</span>}
         </div>
 
         <h3 className="viaje-destino">{nombreDestino(viaje)}</h3>
         <p className="viaje-titulo">{viaje.title}</p>
-        {esAgencia && <p className="tenue">Creado por: {String(viaje.user?._id || viaje.user) === String(user?._id) ? user?.name : 'Integrante del equipo'}{!viaje.cliente?.nombre && ' · Cliente por asignar'}</p>}
+        {esAgencia && <p className="tenue">{t('tarjetaViaje.creadoPor', { nombre: String(viaje.user?._id || viaje.user) === String(user?._id) ? user?.name : t('tarjetaViaje.integranteDelEquipo') })}{!viaje.cliente?.nombre && t('tarjetaViaje.clientePorAsignar')}</p>}
         {viaje.cliente?.nombre && (
           <p className="tenue" style={{ margin: '2px 0 0', fontSize: '0.85rem' }}>
-            Para {viaje.cliente.nombre}
+            {t('tarjetaViaje.para', { nombre: viaje.cliente.nombre })}
           </p>
         )}
 
@@ -59,11 +64,11 @@ export default function TarjetaViaje({ viaje }) {
           <span className="viaje-fechas">{rangoFechas(viaje.startDate, viaje.endDate)}</span>
           <span aria-hidden="true">·</span>
           <span>
-            {viaje.durationDays} {viaje.durationDays === 1 ? 'día' : 'días'}
+            {viaje.durationDays} {viaje.durationDays === 1 ? t('tarjetaViaje.dia') : t('tarjetaViaje.dias')}
           </span>
           <span aria-hidden="true">·</span>
           <span>
-            {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+            {viaje.travelers} {viaje.travelers === 1 ? t('tarjetaViaje.viajero') : t('tarjetaViaje.viajeros')}
           </span>
         </div>
 
@@ -79,7 +84,7 @@ export default function TarjetaViaje({ viaje }) {
             )}
             <div className="fila-entre" style={{ marginTop: 7 }}>
               <span className="tenue">
-                {presupuesto > 0 ? `${Math.round(porcentaje)}% del presupuesto` : 'Capturado'}
+                {presupuesto > 0 ? t('tarjetaViaje.porcentajeDelPresupuesto', { porcentaje: Math.round(porcentaje) }) : t('tarjetaViaje.capturado')}
               </span>
               <span className="numero" style={{ fontSize: '0.92rem' }}>
                 {formatoMoneda(gastado, moneda)} {moneda}

@@ -14,8 +14,8 @@ describe('precio de la propuesta', () => {
     expect(calcularCotizacion({ travelers: 3, coreCosts: { total: 100 } })).toMatchObject({ porPersona: 33.33, total: 99.99 });
   });
   it('distingue secciones sin capturar de un servicio registrado de costo cero', () => {
-    expect(calcularCotizacion({ durationDays: 3 }).pendientes).toContain('Hospedaje');
-    expect(calcularCotizacion({ transport: { outbound: { provider: 'Traslado incluido', cost: 0 } } }).pendientes).not.toContain('Transporte de ida');
+    expect(calcularCotizacion({ durationDays: 3 }).pendientes).toContain('hospedaje');
+    expect(calcularCotizacion({ transport: { outbound: { provider: 'Traslado incluido', cost: 0 } } }).pendientes).not.toContain('transporteIda');
   });
   it('la vista previa respeta la ocultación de códigos sin modificar el viaje', () => {
     const original = { ocultarCodigos: true, transport: { outbound: { provider: 'Prueba', bookingRef: 'PRIVADO', notes: 'Interno', externalUrl: 'https://example.test/reserva' } }, lodging: [{ name: 'Hotel', notes: 'Interno' }] };

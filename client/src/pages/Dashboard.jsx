@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { tripsApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import useFetch from '../hooks/useFetch.js';
@@ -8,25 +9,19 @@ import TarjetaViaje from '../components/TarjetaViaje.jsx';
 import { ReporteAgencia } from '../components/TarjetaAgencia.jsx';
 import { Boton, Vacio, ErrorCarga, Esqueleto } from '../components/ui.jsx';
 import Icono from '../components/Icono.jsx';
+import { localeDeFecha } from '../utils/format.js';
 
-const FILTROS = [
-  { valor: 'proximos', texto: 'Próximos' },
-  { valor: 'pasados', texto: 'Pasados' },
-  { valor: 'borrador', texto: 'Borradores' },
-  { valor: '', texto: 'Todos' },
-];
+const FILTROS = ['proximos', 'pasados', 'borrador', ''];
+const CLAVES_FILTRO = { proximos: 'proximos', pasados: 'pasados', borrador: 'borrador', '': 'todos' };
 
 // Embudo de ventas: en que va la propuesta con el cliente, no en que va el
 // viaje en si (eso lo filtra FILTROS de arriba). Solo tiene sentido para
 // quien cotiza para clientes.
-const FILTROS_PROPUESTA = [
-  { valor: '', texto: 'Cualquier propuesta' },
-  { valor: 'borrador', texto: 'Sin enviar' },
-  { valor: 'enviada', texto: 'Enviadas' },
-  { valor: 'aceptada', texto: 'Aceptadas' },
-  { valor: 'pagada', texto: 'Pagadas' },
-  { valor: 'cancelada', texto: 'Canceladas' },
-];
+const FILTROS_PROPUESTA = ['', 'borrador', 'enviada', 'aceptada', 'pagada', 'cancelada'];
+const CLAVES_FILTRO_PROPUESTA = {
+  '': 'cualquiera', borrador: 'sinEnviar', enviada: 'enviadas',
+  aceptada: 'aceptadas', pagada: 'pagadas', cancelada: 'canceladas',
+};
 
 function EsqueletoTarjetas() {
   return (
@@ -44,6 +39,7 @@ function EsqueletoTarjetas() {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation('viajes');
   const { user } = useAuth();
   const esAgencia = user?.preferences?.perfilUso !== 'personal';
   const [filtro, setFiltro] = useState('proximos');
@@ -93,25 +89,22 @@ export default function Dashboard() {
     setPagina(n);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const nombre = user?.name?.split(' ')[0] || 'viajero';
+  const nombre = user?.name?.split(' ')[0] || t('viajes').toLowerCase();
   const buscando = consulta.length > 0;
 
   const subtitulo = () => {
-    if (cargando) return 'Cargando tus viajes...';
+    if (cargando) return t('subtitulo.cargando');
     // Se cuenta el total del filtro, no lo que cabe en esta página.
     if (buscando) {
-      return totalViajes > 0
-        ? `${totalViajes} ${totalViajes === 1 ? 'resultado' : 'resultados'} para "${consulta}".`
-        : `Sin resultados para "${consulta}".`;
+      if (totalViajes === 0) return t('subtitulo.sinResultados', { consulta });
+      return t(totalViajes === 1 ? 'subtitulo.resultadoSingular' : 'subtitulo.resultadoPlural', { total: totalViajes, consulta });
     }
     if (totalViajes > 0) {
       return esAgencia
-        ? `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje de cliente' : 'viajes de clientes'} en esta vista.`
-        : `Tienes ${totalViajes} ${totalViajes === 1 ? 'viaje' : 'viajes'} en esta vista.`;
+        ? t(totalViajes === 1 ? 'subtitulo.clienteSingular' : 'subtitulo.clientePlural', { total: totalViajes })
+        : t(totalViajes === 1 ? 'subtitulo.viajeSingular' : 'subtitulo.viajePlural', { total: totalViajes });
     }
-    return esAgencia
-      ? 'Aquí vas a ver los viajes que armes para tus clientes.'
-      : 'Aquí vas a ver todos tus viajes.';
+    return esAgencia ? t('subtitulo.vacioAgencia') : t('subtitulo.vacioPersonal');
   };
 
   return (
@@ -119,50 +112,50 @@ export default function Dashboard() {
       <header className="portada">
         <div>
           <span className="etiqueta">
-            {new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })
+            {new Intl.DateTimeFormat(localeDeFecha(), { weekday: 'long', day: 'numeric', month: 'long' })
               .format(new Date())}
           </span>
           <h1 className="portada-titulo">
-            Hola, <span className="portada-nombre">{nombre}</span>
+            {t('hola')} <span className="portada-nombre">{nombre}</span>
           </h1>
           <p className="suave" style={{ margin: 0 }}>
             {subtitulo()}
           </p>
         </div>
         <Link to="/viajes/nuevo" className="boton">
-          <Icono nombre="mas" tamano={16} /> Nuevo viaje
+          <Icono nombre="mas" tamano={16} /> {t('nuevoViaje')}
         </Link>
       </header>
 
-      {esDueno && <div className="fila" aria-label="Ámbito de trabajo">
-        <Boton variante={ambito === 'mios' ? 'primario' : 'secundario'} onClick={() => setAmbito('mios')} aria-pressed={ambito === 'mios'}>Viajes</Boton>
-        <Boton variante={ambito === 'equipo' ? 'primario' : 'secundario'} onClick={() => setAmbito('equipo')} aria-pressed={ambito === 'equipo'}>Reporte del equipo</Boton>
+      {esDueno && <div className="fila" aria-label={t('ambitoDeTrabajo')}>
+        <Boton variante={ambito === 'mios' ? 'primario' : 'secundario'} onClick={() => setAmbito('mios')} aria-pressed={ambito === 'mios'}>{t('viajes')}</Boton>
+        <Boton variante={ambito === 'equipo' ? 'primario' : 'secundario'} onClick={() => setAmbito('equipo')} aria-pressed={ambito === 'equipo'}>{t('reporteDelEquipo')}</Boton>
       </div>}
-      {ambito === 'equipo' ? <><p className="suave">Productividad de tu equipo. Los viajes de la agencia se comparten entre sus integrantes.</p><ReporteAgencia /></> : <>
-      {esAgencia && panel.error && <ErrorCarga error={panel.error} onReintentar={panel.recargar} contexto="Pendientes del día" />}
-      {esAgencia && <div className="panel-trabajo" aria-label="Pendientes del día">
+      {ambito === 'equipo' ? <><p className="suave">{t('productividadEquipo')}</p><ReporteAgencia /></> : <>
+      {esAgencia && panel.error && <ErrorCarga error={panel.error} onReintentar={panel.recargar} contexto={t('pendientesDelDia')} />}
+      {esAgencia && <div className="panel-trabajo" aria-label={t('pendientesDelDia')}>
         {[
-          ['porEnviar', 'Por preparar', 'Propuestas próximas sin enviar', () => verAtencion('borrador', 'proximos')],
-          ['seguimiento', 'Dar seguimiento', 'Propuestas enviadas', () => verAtencion('enviada', '')],
-          ['proximasSalidas', 'Próximas salidas', 'Durante los siguientes 7 días', () => verAtencion('', '', 'salidas')],
-          ['pendientes', 'Completar datos', 'Falta cliente u hospedaje', () => verAtencion('', '', 'pendientes')],
-        ].map(([key, titulo, ayuda, accion]) => <button key={key} className="tarjeta metrica-trabajo" onClick={accion}>
-          <span>{titulo}</span><strong>{panel.data?.[key] ?? '—'}</strong><small>{ayuda}</small>
+          ['porEnviar', 'porEnviarTitulo', 'porEnviarAyuda', () => verAtencion('borrador', 'proximos')],
+          ['seguimiento', 'seguimientoTitulo', 'seguimientoAyuda', () => verAtencion('enviada', '')],
+          ['proximasSalidas', 'proximasSalidasTitulo', 'proximasSalidasAyuda', () => verAtencion('', '', 'salidas')],
+          ['pendientes', 'pendientesTitulo', 'pendientesAyuda', () => verAtencion('', '', 'pendientes')],
+        ].map(([key, claveTitulo, claveAyuda, accion]) => <button key={key} className="tarjeta metrica-trabajo" onClick={accion}>
+          <span>{t(`panel.${claveTitulo}`)}</span><strong>{panel.data?.[key] ?? '—'}</strong><small>{t(`panel.${claveAyuda}`)}</small>
         </button>)}
       </div>}
-      {atencion && <div className="fila"><span>{atencion === 'salidas' ? 'Salidas en los próximos 7 días' : 'Viajes con datos pendientes'}</span><Boton chico variante="secundario" onClick={() => setAtencion('')}>Quitar filtro</Boton></div>}
+      {atencion && <div className="fila"><span>{atencion === 'salidas' ? t('salidasProximas') : t('viajesConDatosPendientes')}</span><Boton chico variante="secundario" onClick={() => setAtencion('')}>{t('quitarFiltro')}</Boton></div>}
 
       <div className="fila-entre" style={{ gap: 10, flexWrap: 'wrap' }}>
-        <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }} role="tablist" aria-label="Filtrar viajes">
-          {FILTROS.map((f) => (
+        <div className="fila" style={{ gap: 6, flexWrap: 'wrap' }} role="tablist" aria-label={t('filtrarViajes')}>
+          {FILTROS.map((valor) => (
             <button
-              key={f.valor || 'todos'}
+              key={valor || 'todos'}
               role="tab"
-              aria-selected={filtro === f.valor}
-              onClick={() => { setFiltro(f.valor); setAtencion(''); }}
-              className={`insignia ${filtro === f.valor ? 'marca' : ''}`}
+              aria-selected={filtro === valor}
+              onClick={() => { setFiltro(valor); setAtencion(''); }}
+              className={`insignia ${filtro === valor ? 'marca' : ''}`}
             >
-              {f.texto}
+              {t(`filtros.${CLAVES_FILTRO[valor]}`)}
             </button>
           ))}
 
@@ -172,12 +165,12 @@ export default function Dashboard() {
               className="filtro-propuesta"
               value={filtroPropuesta}
               onChange={(e) => setFiltroPropuesta(e.target.value)}
-              aria-label="Filtrar por estado de la propuesta"
+              aria-label={t('filtrarPorPropuesta')}
               style={{ marginLeft: 4 }}
             >
-              {FILTROS_PROPUESTA.map((f) => (
-                <option key={f.valor || 'cualquiera'} value={f.valor}>
-                  {f.texto}
+              {FILTROS_PROPUESTA.map((valor) => (
+                <option key={valor || 'cualquiera'} value={valor}>
+                  {t(`filtrosPropuesta.${CLAVES_FILTRO_PROPUESTA[valor]}`)}
                 </option>
               ))}
             </select>
@@ -192,15 +185,15 @@ export default function Dashboard() {
             type="search"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder={esAgencia ? 'Buscar por nombre, destino o cliente' : 'Buscar por nombre o destino'}
-            aria-label="Buscar viajes"
+            placeholder={esAgencia ? t('buscarConCliente') : t('buscarSinCliente')}
+            aria-label={t('buscarViajes')}
           />
           {busqueda && (
             <button
               type="button"
               className="buscador-limpiar"
               onClick={() => setBusqueda('')}
-              aria-label="Limpiar búsqueda"
+              aria-label={t('limpiarBusqueda')}
             >
               <Icono nombre="cerrar" tamano={15} />
             </button>
@@ -209,7 +202,7 @@ export default function Dashboard() {
       </div>
 
       {error && (
-        <ErrorCarga error={error} onReintentar={recargar} contexto="No pudimos cargar tus viajes" />
+        <ErrorCarga error={error} onReintentar={recargar} contexto={t('noPudimosCargar')} />
       )}
 
       {cargando && <EsqueletoTarjetas />}
@@ -219,34 +212,37 @@ export default function Dashboard() {
           icono={buscando ? '🔍' : filtro === 'pasados' ? '📸' : '🧭'}
           titulo={
             buscando
-              ? 'Nada coincide con tu búsqueda'
+              ? t('sinResultados.conBusqueda')
               : filtro === 'pasados'
-                ? 'Todavía no tienes viajes pasados'
+                ? t('sinResultados.pasados')
                 : esAgencia
-                  ? 'Aún no tienes viajes de clientes'
-                  : 'Aún no hay viajes por aquí'
+                  ? t('sinResultados.agencia')
+                  : t('sinResultados.personal')
           }
           accion={
             buscando ? (
               <Boton variante="secundario" onClick={() => setBusqueda('')}>
-                Limpiar búsqueda
+                {t('limpiarBusqueda')}
               </Boton>
             ) : (
               filtro !== 'pasados' && (
                 <Link to="/viajes/nuevo" className="boton">
-                  {esAgencia ? 'Crear el primer viaje' : 'Planear mi primer viaje'}
+                  {esAgencia ? t('crearPrimero.agencia') : t('crearPrimero.personal')}
                 </Link>
               )
             )
           }
         >
           {buscando
-            ? `Probamos con "${consulta}" en el nombre${esAgencia ? ', el destino y el cliente' : ' y el destino'} de tus viajes${filtro ? ', dentro del filtro activo' : ''}.`
+            ? t(esAgencia ? 'vacio.busquedaConCliente' : 'vacio.busquedaSinCliente', {
+                consulta,
+                filtro: filtro ? t('vacio.dentroDelFiltro') : '',
+              })
             : filtro === 'pasados'
-              ? 'Cuando termine un viaje aparecerá aquí, con su itinerario y sus gastos.'
+              ? t('vacio.pasados')
               : esAgencia
-                ? 'Crea el viaje de tu cliente con destino y fechas, y deja que la IA te arme el itinerario día por día.'
-                : 'Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día.'}
+                ? t('vacio.agencia')
+                : t('vacio.personal')}
         </Vacio>
       )}
 
@@ -259,18 +255,18 @@ export default function Dashboard() {
       )}
 
       {!cargando && totalPaginas > 1 && (
-        <nav className="paginacion" aria-label="Paginación de viajes">
+        <nav className="paginacion" aria-label={t('paginacion.aria')}>
           <Boton
             variante="secundario"
             chico
             onClick={() => irAPagina(pagina - 1)}
             disabled={pagina <= 1}
           >
-            ← Anterior
+            {t('paginacion.anterior')}
           </Boton>
 
           <span className="tenue" aria-live="polite">
-            Página {pagina} de {totalPaginas}
+            {t('paginacion.paginaDe', { pagina, total: totalPaginas })}
           </span>
 
           <Boton
@@ -279,7 +275,7 @@ export default function Dashboard() {
             onClick={() => irAPagina(pagina + 1)}
             disabled={pagina >= totalPaginas}
           >
-            Siguiente →
+            {t('paginacion.siguiente')}
           </Boton>
         </nav>
       )}

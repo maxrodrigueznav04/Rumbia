@@ -1,0 +1,41 @@
+{
+  "volver": "← Volver a mis viajes",
+  "titulo": "Nuevo viaje",
+  "introAgencia": "Empieza con destino, fechas y viajeros. Después completa la cotización y revisa la propuesta para tu cliente.",
+  "introPersonal": "Con el destino y las fechas basta para empezar. Lo demás lo vas llenando después.",
+  "aDondeVas": "¿A dónde vas?",
+  "aDondeVasPlaceholder": "Oaxaca de Juárez, Lisboa, Tokio...",
+  "cuantosViajan": "¿Cuántos viajan?",
+  "clienteOpcional": "Cliente (opcional)",
+  "personalizar": "Personalizar viaje y preferencias",
+  "comoSeLlama": "¿Cómo se llama el viaje?",
+  "comoSeLlamaPlaceholder": "Viaje a {{destino}}",
+  "comoSeLlamaPlaceholderDefault": "Escapada de fin de semana",
+  "comoSeLlamaAyuda": "Si lo dejas vacío usamos el destino.",
+  "desdeDondeSales": "¿Desde dónde sales?",
+  "desdeDondeSalesPlaceholder": "Monterrey",
+  "desdeDondeSalesAyuda": "Lo usamos para armar las búsquedas de vuelos y autobuses.",
+  "presupuestoEstimado": "Presupuesto estimado",
+  "presupuestoAyuda": "En {{moneda}}.",
+  "gustosDeQuienViaja": "Gustos de quien viaja (opcional)",
+  "gustosAyudaAgencia": "Si no los conoces, usamos un plan equilibrado, ritmo moderado y gasto medio. Puedes personalizarlo aquí.",
+  "gustosAyudaPersonal": "Si los dejas vacíos, usamos lo que configuraste en tu perfil.",
+  "ritmoDeViaje": "Ritmo de viaje",
+  "nivelDeGasto": "Nivel de gasto",
+  "equilibrado": "Equilibrado (sin preferencias del cliente)",
+  "usarDeMiPerfil": "Usar el de mi perfil",
+  "ritmos": {
+    "relajado": "Relajado (3 actividades al día)",
+    "moderado": "Moderado (4 actividades al día)",
+    "intenso": "Intenso (5 actividades al día)"
+  },
+  "nivelesGasto": {
+    "bajo": "Bajo — mochilero, lo económico",
+    "medio": "Medio — cómodo sin excesos",
+    "alto": "Alto — sin fijarse mucho en el precio"
+  },
+  "opcional": "Opcional",
+  "creando": "Creando...",
+  "crearViaje": "Crear viaje",
+  "cancelar": "Cancelar"
+}

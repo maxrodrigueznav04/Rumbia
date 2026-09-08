@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { itineraryApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
@@ -23,6 +24,7 @@ const horaValida = (v) => {
 
 /** Alta y edición de una actividad dentro de un día del itinerario. */
 export default function FormActividad({ abierto, onCerrar, tripId, dia, actividad, onGuardado }) {
+  const { t } = useTranslation(['formularios', 'dominio']);
   const editando = Boolean(actividad);
 
   const form = useFormulario(
@@ -75,48 +77,48 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
     <Modal
       abierto={abierto}
       onCerrar={onCerrar}
-      titulo={editando ? 'Editar actividad' : `Nueva actividad · Día ${dia.dayNumber}`}
+      titulo={editando ? t('formularios:actividad.editar') : t('formularios:actividad.nueva', { numero: dia.dayNumber })}
     >
       <form onSubmit={guardar} className="pila" noValidate>
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
         <Campo
-          label="¿Qué van a hacer?"
-          placeholder="Comida en el mercado de Coyoacán"
+          label={t('formularios:actividad.queVanAHacer')}
+          placeholder={t('formularios:actividad.queVanAHacerPlaceholder')}
           autoFocus
           {...form.props('title')}
         />
 
         <div className="campos-2">
-          <Campo label="Hora" type="time" ayuda="Opcional." {...form.props('time')} />
-          <Campo label="Categoría">
+          <Campo label={t('formularios:actividad.hora')} type="time" ayuda={t('formularios:comun.opcional')} {...form.props('time')} />
+          <Campo label={t('formularios:actividad.categoria')}>
             <select {...form.props('category')}>
               {CATEGORIAS.map((c) => (
                 <option key={c} value={c}>
-                  {ICONOS_CATEGORIA[c]} {c.replace(/-/g, ' ')}
+                  {ICONOS_CATEGORIA[c]} {t(`dominio:${c}`)}
                 </option>
               ))}
             </select>
           </Campo>
         </div>
 
-        <Campo label="Detalles">
+        <Campo label={t('formularios:actividad.detalles')}>
           <textarea
-            placeholder="Qué pedir, a qué hora llegar, si hay que reservar..."
+            placeholder={t('formularios:actividad.detallesPlaceholder')}
             {...form.props('description')}
           />
         </Campo>
 
         <Campo
-          label="Lugar"
-          placeholder="Mercado de Coyoacán"
-          ayuda="Opcional. Si lo pones, aparece bajo la actividad."
+          label={t('formularios:actividad.lugar')}
+          placeholder={t('formularios:actividad.lugarPlaceholder')}
+          ayuda={t('formularios:actividad.lugarAyuda')}
           {...form.props('lugar')}
         />
 
         <div className="campos-2">
           <Campo
-            label="Costo por persona"
+            label={t('formularios:actividad.costoPorPersona')}
             type="number"
             min="0"
             step="1"
@@ -124,7 +126,7 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
             {...form.props('estimatedCost')}
           />
           <Campo
-            label="Duración (minutos)"
+            label={t('formularios:actividad.duracion')}
             type="number"
             min="0"
             max="1440"
@@ -134,19 +136,19 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
         </div>
 
         <Campo
-          label="Link para reservar"
+          label={t('formularios:actividad.linkParaReservar')}
           type="url"
           placeholder="https://..."
-          ayuda="Opcional. Si la actividad necesita boleto anticipado."
+          ayuda={t('formularios:actividad.linkAyuda')}
           {...form.props('bookingUrl')}
         />
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
-            Cancelar
+            {t('formularios:comun.cancelar')}
           </Boton>
           <Boton type="submit" cargando={form.enviando}>
-            {editando ? 'Guardar cambios' : 'Agregar'}
+            {editando ? t('formularios:actividad.guardarCambios') : t('formularios:actividad.agregar')}
           </Boton>
         </div>
       </form>
