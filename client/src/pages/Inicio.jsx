@@ -1,6 +1,8 @@
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import Icono from '../components/Icono.jsx';
+import SelectorIdioma from '../components/SelectorIdioma.jsx';
 import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 
 /**
@@ -16,6 +18,7 @@ import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
  * agencias, planes, CRM, plantillas...) antes de decidirse.
  */
 export default function Inicio() {
+  const { t } = useTranslation('inicio');
   const { autenticado, cargando } = useAuth();
 
   // Con sesión no tiene sentido la portada: se va a sus viajes.
@@ -33,14 +36,15 @@ export default function Inicio() {
             Rumbia
           </span>
           <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
+            <SelectorIdioma />
             <Link to="/acerca" className="boton fantasma chico">
-              Acerca de
+              {t('comun:piePagina.acercaDe')}
             </Link>
             <Link to="/entrar" className="boton secundario chico">
-              Entrar
+              {t('comun:nav.entrar')}
             </Link>
             <Link to="/registro" className="boton chico">
-              Crear cuenta
+              {t('comun:nav.crearCuenta')}
             </Link>
           </div>
         </div>
@@ -48,41 +52,38 @@ export default function Inicio() {
 
       <section className="inicio-hero">
         <div className="contenedor">
-          <h1>Planea tu viaje completo en un solo lugar</h1>
-          <p>
-            Transporte, hospedaje, presupuesto e itinerario día por día, armado con asistencia
-            inteligente en minutos.
-          </p>
+          <h1>{t('hero.titulo')}</h1>
+          <p>{t('hero.texto')}</p>
           <div className="fila inicio-hero-acciones">
             <Link to="/registro" className="boton">
-              Comenzar gratis
+              {t('hero.comenzarGratis')}
             </Link>
             <Link to="/probar" className="boton secundario">
-              Pruébalo sin cuenta
+              {t('hero.probarloSinCuenta')}
             </Link>
           </div>
           <p className="inicio-hero-confianza">
             <Icono nombre="palomita" tamano={14} />
-            Sin tarjeta para probarlo
+            {t('hero.sinTarjeta')}
           </p>
         </div>
       </section>
 
       <section className="inicio-intro">
         <div className="contenedor">
-          <p className="inicio-eyebrow">Todo en un solo lugar</p>
+          <p className="inicio-eyebrow">{t('intro.eyebrow')}</p>
           <div className="inicio-puntos">
             {[
-              ['chispa', 'Itinerario inteligente', 'Día por día, con horarios, categorías y sugerencias locales automáticas.'],
-              ['pin', 'Mapa y clima', 'Las actividades ubicadas en el mapa y el pronóstico de tus fechas.'],
-              ['recibo', 'Presupuesto real', 'Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas.'],
-            ].map(([icono, titulo, texto]) => (
-              <div key={titulo} className="inicio-punto">
+              ['chispa', 'itinerario'],
+              ['pin', 'mapaClima'],
+              ['recibo', 'presupuesto'],
+            ].map(([icono, clave]) => (
+              <div key={clave} className="inicio-punto">
                 <span className="inicio-punto-icono">
                   <Icono nombre={icono} tamano={22} />
                 </span>
-                <h3>{titulo}</h3>
-                <p className="suave">{texto}</p>
+                <h3>{t(`intro.${clave}.titulo`)}</h3>
+                <p className="suave">{t(`intro.${clave}.texto`)}</p>
               </div>
             ))}
           </div>
@@ -91,35 +92,35 @@ export default function Inicio() {
 
       <section className="inicio-perfiles">
         <div className="contenedor">
-          <p className="inicio-eyebrow">Para cada tipo de viaje</p>
+          <p className="inicio-eyebrow">{t('perfiles.eyebrow')}</p>
           <div className="rejilla rejilla-2" style={{ gap: 'var(--e5)' }}>
             <div className="tarjeta">
               <div className="fila" style={{ gap: 8, marginBottom: 10 }}>
                 <Icono nombre="brujula" tamano={20} className="icono-seccion" />
-                <h3 style={{ margin: 0 }}>Para viajeros</h3>
+                <h3 style={{ margin: 0 }}>{t('perfiles.viajeros.titulo')}</h3>
               </div>
               <p className="suave" style={{ margin: '0 0 10px' }}>
-                Planea tus vacaciones o un viaje en grupo, gratis.
+                {t('perfiles.viajeros.texto')}
               </p>
               <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
-                <li>Itinerarios con IA, día por día</li>
-                <li>Presupuesto y gastos en un solo lugar</li>
-                <li>Clima y mapa de cada destino</li>
+                {t('perfiles.viajeros.puntos', { returnObjects: true }).map((punto) => (
+                  <li key={punto}>{punto}</li>
+                ))}
               </ul>
             </div>
 
             <div className="tarjeta">
               <div className="fila" style={{ gap: 8, marginBottom: 10 }}>
                 <Icono nombre="maleta" tamano={20} className="icono-seccion" />
-                <h3 style={{ margin: 0 }}>Para agencias</h3>
+                <h3 style={{ margin: 0 }}>{t('perfiles.agencias.titulo')}</h3>
               </div>
               <p className="suave" style={{ margin: '0 0 10px' }}>
-                Cotiza con tu marca, cobra tu margen y da seguimiento a tus clientes.
+                {t('perfiles.agencias.texto')}
               </p>
               <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
-                <li>Cotizaciones con tu logo y margen comercial</li>
-                <li>CRM de clientes y plantillas reutilizables</li>
-                <li>Seguimiento del embudo de ventas</li>
+                {t('perfiles.agencias.puntos', { returnObjects: true }).map((punto) => (
+                  <li key={punto}>{punto}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -128,35 +129,30 @@ export default function Inicio() {
 
       <section className="inicio-cierre">
         <div className="contenedor inicio-cierre-caja">
-          <h2>¿Quieres ver todo el detalle?</h2>
-          <p className="suave">
-            Planes de agencia, cómo funciona la cotización con tu marca, y todo lo demás que
-            incluye Rumbia.
-          </p>
+          <h2>{t('cierre.titulo')}</h2>
+          <p className="suave">{t('cierre.texto')}</p>
           <Link to="/acerca" className="boton secundario">
-            Ver todo lo que incluye
+            {t('cierre.boton')}
           </Link>
         </div>
       </section>
 
       <footer className="pie">
         <div className="contenedor">
+          <p className="tenue">{t('pie.aviso')}</p>
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
-          </p>
-          <p className="tenue">
-            ¿Dudas antes de empezar? Escríbenos a{' '}
-            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            {t('pie.contactoIntro')}{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> {t('pie.contactoOPor')}{' '}
             <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
-              WhatsApp
+              {t('pie.whatsapp')}
             </a>
             .
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
-            <Link to="/acerca">Acerca de</Link>
-            <Link to="/privacidad">Privacidad</Link>
-            <Link to="/cookies">Cookies y rastreo</Link>
-            <Link to="/terminos">Términos</Link>
+          <nav className="pie-enlaces" aria-label={t('pie.ariaEnlaces')}>
+            <Link to="/acerca">{t('comun:piePagina.acercaDe')}</Link>
+            <Link to="/privacidad">{t('comun:piePagina.privacidad')}</Link>
+            <Link to="/cookies">{t('comun:piePagina.cookies')}</Link>
+            <Link to="/terminos">{t('comun:piePagina.terminos')}</Link>
           </nav>
         </div>
       </footer>

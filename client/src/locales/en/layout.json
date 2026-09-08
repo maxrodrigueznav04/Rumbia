@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "misViajes": "My trips",
+    "clientes": "Clients",
+    "nuevoViaje": "New trip",
+    "plantillas": "Templates",
+    "perfil": "Profile",
+    "ariaPrincipal": "Main navigation",
+    "ariaMovil": "Mobile navigation"
+  },
+  "roles": {
+    "dueno": "Owner",
+    "agente": "Agent",
+    "viajero": "Traveler",
+    "agenteIndependiente": "Independent agent"
+  },
+  "miEspacio": "My space",
+  "salir": "Log out",
+  "pie": {
+    "aviso": "Rumbia doesn't process trip bookings or payments. Links take you to the provider's site, where you complete the booking.",
+    "contactoIntro": "Something not working, or have a question? Write to us at",
+    "contactoOPor": "or on",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Site links"
+  }
+}

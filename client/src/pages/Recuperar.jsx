@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authApi, despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
 import { reglas } from '../utils/validacion.js';
@@ -16,6 +17,7 @@ const CAPTCHA_ACTIVO = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
  * un buscador de direcciones registradas para quien quiera hacer phishing.
  */
 export default function Recuperar() {
+  const { t } = useTranslation('auth');
   useEffect(() => {
     despertarServidor();
   }, []);
@@ -40,22 +42,20 @@ export default function Recuperar() {
             </span>
             Rumbia
           </div>
-          <h1 style={{ fontSize: '1.35rem' }}>Recupera tu cuenta</h1>
-          <p>Te mandamos un enlace para elegir una contraseña nueva.</p>
+          <h1 style={{ fontSize: '1.35rem' }}>{t('recuperar.titulo')}</h1>
+          <p>{t('recuperar.texto')}</p>
         </div>
 
         {enviado ? (
           <div className="pila">
-            <Aviso tipo="exito" titulo="Revisa tu correo">
-              Si esa dirección tiene una cuenta, ya va en camino un enlace para recuperarla. Caduca
-              en 30 minutos y sirve una sola vez.
+            <Aviso tipo="exito" titulo={t('recuperar.revisaTuCorreo')}>
+              {t('recuperar.revisaTuCorreoTexto')}
             </Aviso>
             <p className="tenue" style={{ margin: 0, fontSize: '0.85rem' }}>
-              ¿No llega? Mira en spam, y comprueba que escribiste la dirección con la que te
-              registraste.
+              {t('recuperar.noLlega')}
             </p>
             <Boton variante="secundario" ancho onClick={() => setEnviado(false)}>
-              Probar con otro correo
+              {t('recuperar.probarOtroCorreo')}
             </Boton>
           </div>
         ) : (
@@ -63,7 +63,7 @@ export default function Recuperar() {
             {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
             <Campo
-              label="Email"
+              label={t('recuperar.email')}
               type="email"
               autoComplete="email"
               placeholder="tu@email.com"
@@ -79,13 +79,13 @@ export default function Recuperar() {
               cargando={form.enviando}
               disabled={CAPTCHA_ACTIVO && !turnstileToken}
             >
-              {form.enviando ? 'Enviando...' : 'Enviar enlace'}
+              {form.enviando ? t('recuperar.enviando') : t('recuperar.enviarEnlace')}
             </Boton>
           </form>
         )}
 
         <p className="auth-pie">
-          <Link to="/entrar">Volver a iniciar sesión</Link>
+          <Link to="/entrar">{t('recuperar.volverAIniciar')}</Link>
         </p>
       </div>
     </div>

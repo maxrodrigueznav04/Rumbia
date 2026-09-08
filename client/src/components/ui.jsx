@@ -1,4 +1,5 @@
 import { cloneElement, isValidElement, useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fuerzaPassword } from '../utils/validacion.js';
 import Icono from './Icono.jsx';
 
@@ -66,6 +67,7 @@ export function Campo({ label, error, ayuda, id, children, ...props }) {
  * es la razón principal por la que la gente elige contraseñas cortas.
  */
 export function CampoPassword({ label, error, ayuda, medidor, name = 'password', ...props }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const fuerza = medidor ? fuerzaPassword(props.value || '') : null;
   const errorId = error ? `${name}-error` : undefined;
@@ -87,8 +89,8 @@ export function CampoPassword({ label, error, ayuda, medidor, name = 'password',
           type="button"
           className="campo-boton"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          title={visible ? 'Ocultar' : 'Mostrar'}
+          aria-label={visible ? t('comun:campoPassword.ocultarContrasena') : t('comun:campoPassword.mostrarContrasena')}
+          title={visible ? t('comun:campoPassword.ocultar') : t('comun:campoPassword.mostrar')}
         >
           <Icono nombre={visible ? 'ojoTachado' : 'ojo'} tamano={17} />
         </button>
@@ -123,6 +125,7 @@ export function CampoPassword({ label, error, ayuda, medidor, name = 'password',
  * atrás y devuelve el foco al elemento que lo abrió.
  */
 export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
+  const { t } = useTranslation();
   const cajaRef = useRef(null);
   const focoPrevio = useRef(null);
   const onCerrarRef = useRef(onCerrar);
@@ -173,7 +176,7 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
             className="boton fantasma chico"
             onClick={onCerrar}
             data-cerrar
-            aria-label="Cerrar"
+            aria-label={t('comun:modal.cerrar')}
           >
             <Icono nombre="cerrar" tamano={16} />
           </button>
@@ -185,7 +188,8 @@ export function Modal({ abierto, onCerrar, titulo, children, ancho = 520 }) {
 }
 
 /** Confirmación destructiva sin usar window.confirm (que no se puede estilizar). */
-export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje, textoConfirmar = 'Eliminar' }) {
+export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje, textoConfirmar }) {
+  const { t } = useTranslation();
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -205,7 +209,7 @@ export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje
       // Sin esto, un fallo (red, 404 porque ya se borro en otra pestana, 500)
       // solo apagaba el spinner sin decir nada: el modal se quedaba abierto
       // sin ninguna pista de que la accion no se completo.
-      setError(err.message || 'No se pudo completar la acción.');
+      setError(err.message || t('comun:error.accionFallida'));
     } finally {
       setProcesando(false);
     }
@@ -217,10 +221,10 @@ export function ModalConfirmar({ abierto, onCerrar, onConfirmar, titulo, mensaje
       {error && <Aviso tipo="error">{error}</Aviso>}
       <div className="modal-acciones">
         <Boton variante="secundario" onClick={onCerrar}>
-          Cancelar
+          {t('comun:botones.cancelar')}
         </Boton>
         <Boton variante="peligro" onClick={confirmar} cargando={procesando}>
-          {textoConfirmar}
+          {textoConfirmar || t('comun:botones.eliminar')}
         </Boton>
       </div>
     </Modal>
@@ -258,11 +262,12 @@ export function Aviso({ tipo = 'info', titulo, children }) {
   );
 }
 
-export function Cargando({ texto = 'Cargando...' }) {
+export function Cargando({ texto }) {
+  const { t } = useTranslation();
   return (
     <div className="cargando">
       <span className="spinner" />
-      <span>{texto}</span>
+      <span>{texto || t('comun:cargando')}</span>
     </div>
   );
 }
@@ -289,12 +294,13 @@ export function Vacio({ icono = '🧭', titulo, children, accion }) {
  * con un boton para reintentar cuando aplica.
  */
 export function ErrorCarga({ error, onReintentar, contexto }) {
+  const { t } = useTranslation();
   const esRed = error?.status === 0;
   const esServicio = error?.status === 503;
 
   return (
-    <Aviso tipo={esServicio ? 'alerta' : 'error'} titulo={contexto || 'Algo salió mal'}>
-      <p style={{ margin: '2px 0 0' }}>{error?.message || 'Error inesperado.'}</p>
+    <Aviso tipo={esServicio ? 'alerta' : 'error'} titulo={contexto || t('comun:error.algoSalioMal')}>
+      <p style={{ margin: '2px 0 0' }}>{error?.message || t('comun:error.inesperado')}</p>
       {Array.isArray(error?.details) && error.details.length > 0 && (
         <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
           {error.details.map((d, i) => (
@@ -305,7 +311,7 @@ export function ErrorCarga({ error, onReintentar, contexto }) {
       {onReintentar && (
         <div style={{ marginTop: 10 }}>
           <Boton variante="secundario" chico onClick={onReintentar}>
-            {esRed ? 'Reintentar conexión' : 'Reintentar'}
+            {esRed ? t('comun:botones.reintentarConexion') : t('comun:botones.reintentar')}
           </Boton>
         </div>
       )}

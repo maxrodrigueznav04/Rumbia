@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "titulo": "About",
+    "descripcion": "What Rumbia is, how it helps travelers and agencies plan full trips, and what it costs."
+  },
+  "nav": {
+    "irAMisViajes": "Go to my trips"
+  },
+  "hero": {
+    "insignia": "The modern travel platform",
+    "titulo": "Plan extraordinary trips with clarity, control, and professionalism",
+    "texto": "From your next personal getaway to commercial client management for travel agencies. Forget chaotic spreadsheets, scattered notes, and endless quotes.",
+    "crearViaje": "Create a new trip",
+    "comenzarGratis": "Start for free",
+    "probarSinCuenta": "Try the generator without an account"
+  },
+  "dosMundos": {
+    "etiqueta": "Usage models",
+    "titulo": "Designed for travelers, built for agencies",
+    "texto": "Two experiences, perfectly tailored. Learn what each profile can do and its conditions:",
+    "viajeros": {
+      "titulo": "For Travelers",
+      "insignia": "100% Free",
+      "texto": "Ideal for planning your vacation, a couples getaway, or a group trip with friends:",
+      "puntos": [
+        { "fuerte": "Live cost calculation", "texto": "Add up transportation, lodging, meals, and miscellaneous expenses in one unified budget." },
+        { "fuerte": "Assisted itineraries", "texto": "Day-by-day activity proposals tailored to your interests and preferred pace." },
+        { "fuerte": "Weather and maps", "texto": "Weather forecast and visualization of your destinations, right on your phone." },
+        { "fuerte": "Direct booking links", "texto": "Jump to Skyscanner, Booking, or Airbnb with your dates and destination pre-filled." }
+      ],
+      "limites": {
+        "titulo": "Personal plan limits",
+        "itinerarios": "5 smart itineraries per month",
+        "itinerariosNota": "(resets on the 1st).",
+        "chat": "60 virtual assistant queries per month.",
+        "sinLimite": "Saved trips, notes, expenses, and manual calculations with no limit at all."
+      }
+    },
+    "agencias": {
+      "titulo": "For Agencies",
+      "insignia": "From $10 USD/mo",
+      "texto": "Professional-grade tools to build quotes, close clients, and operate as a team:",
+      "puntos": [
+        { "fuerte": "Automatic commercial margins", "texto": "Apply fixed or percentage commissions and calculate your profit automatically." },
+        { "fuerte": "PDF with your own brand", "texto": "Upload your logo, name, and contact info; they print on the client's official letterhead." },
+        { "fuerte": "Commercial privacy in quotes", "texto": "Choose whether to show the breakdown or just the final price per person, and whether the client sees confirmation codes and internal notes for each booking." },
+        { "fuerte": "1-click variants", "texto": "Duplicate proposals to present options (e.g. Economy vs. Premium) without redoing the work." },
+        { "fuerte": "Sales funnel tracking", "texto": "Every proposal moves from sent to accepted to paid; your client can accept it with one click from the same link you share, and we email you the moment they do." }
+      ],
+      "resumen": {
+        "titulo": "Inicio, Agencia, and Pro plans",
+        "texto": "1 to 15 agents · Up to 500 smart itineraries · Annual savings",
+        "verPlanes": "See plans ↓"
+      }
+    }
+  },
+  "simulador": {
+    "etiqueta": "Interactive simulator",
+    "titulo": "This is what a proposal looks like for your client",
+    "texto": "Try the switch to see how the view changes between the internal breakdown and the client-facing quote:",
+    "soloTotal": "Total Price Only (Client)",
+    "desgloseCompleto": "Full Breakdown (Internal)",
+    "demo": {
+      "agencia": "Southbound Travel Boutique",
+      "contacto": "contact@southboundtravel.com · Tel. (55) 8421-9900",
+      "insignia": "Commercial Proposal",
+      "cliente": "Client: The Gonzalez Family (2 travelers)",
+      "vuelos": "Round-trip flights (CDMX ➔ Oaxaca)",
+      "hotel": "Casa Santo Origen Hotel (4 nights)",
+      "transporte": "Local transportation and private transfers",
+      "actividades": "Guided activities and tastings",
+      "cuotaServicio": "Service and agency management fee (+15%)",
+      "incluye": "Includes round-trip flights, 4 nights of boutique lodging, private transfers, cultural tours, and personalized assistance throughout the itinerary.",
+      "tarifaPreferencial": "Preferential closed rate, taxes included",
+      "precioFinal": "Final price per person",
+      "totalViaje": "Total trip (2 people): $2,450 USD"
+    },
+    "ayuda": "💡 In Rumbia you can switch between modes with a single toggle in the trip's settings."
+  },
+  "planes": {
+    "etiqueta": "Commercial transparency",
+    "titulo": "Transparent plans for Agencies",
+    "texto": "Choose the billing frequency that best fits your operation. No forced contracts, no hidden fees:",
+    "pagoMensual": "Monthly",
+    "pagoAnual": "Annual",
+    "ahorra": "Save 1.5 months",
+    "pesos": "Pesos (MXN)",
+    "dolares": "Dollars (USD)",
+    "alMes": "per month",
+    "alAnio": "per year (10.5 months)",
+    "inicio": {
+      "nombre": "Inicio / Solo",
+      "texto": "For independent advisors and small teams just getting started.",
+      "agentes": "1 to 3 agents included",
+      "puntos": [
+        "**25 smart itineraries** per month",
+        "60 virtual assistant queries per month",
+        "Unlimited manual trips and expenses",
+        "Automatic flight and hotel calculations",
+        "Currency conversion and weather forecast",
+        "PDF with the advisor's contact info",
+        "Interactive WhatsApp link"
+      ],
+      "elegir": "Choose Inicio"
+    },
+    "agencia": {
+      "nombre": "Agencia",
+      "masPopular": "Most Popular",
+      "texto": "For growing travel agencies looking to standardize their sales.",
+      "agentes": "4 to 8 agents included",
+      "puntos": [
+        "**150 smart itineraries** per month",
+        "**Unlimited virtual chat assistant**",
+        "**Logo, letterhead, and your own accent color** on the PDF",
+        "**Customizable typography and text size** on the PDF",
+        "**White label** (no Rumbia footer)",
+        "**Automatic commercial margin** (% or fixed amount)",
+        "**Hide price breakdown** (closed price to the client)",
+        "**Monthly productivity report** per agent",
+        "**Duplicate proposals** in 1 click",
+        "Shared pool of **shared templates**"
+      ],
+      "elegir": "Choose Agencia"
+    },
+    "pro": {
+      "nombre": "Agencia Pro",
+      "texto": "For established agencies with high volume and an extended team.",
+      "agentes": "Up to 15 agents included",
+      "puntos": [
+        "**500 smart itineraries** per month",
+        "**Everything in the Agencia plan** (white label and custom color included)",
+        "**Priority support** directly via WhatsApp",
+        "Unlimited virtual chat assistant",
+        "Advanced sales and quotes reports"
+      ],
+      "elegir": "Choose Agencia Pro"
+    },
+    "avisoStripe": "🔒 Payments processed 100% securely and encrypted by Stripe. Cancel or change plans anytime."
+  },
+  "finanzas": {
+    "calculos": {
+      "titulo": "Live Calculations and Currencies",
+      "texto": "Rumbia adds up and converts your costs automatically, in real time:",
+      "puntos": [
+        { "fuerte": "Flights, trains, and cars", "texto": "Capture departures, arrivals, and booking confirmation codes." },
+        { "fuerte": "Lodging per stop", "texto": "Assign hotels to each city with automatic per-night calculation." },
+        { "fuerte": "Multi-currency", "texto": "Record in dollars, euros, or local currency; the app unifies the total." },
+        { "fuerte": "Per-person selector", "texto": "See how much the trip costs per individual traveler or for the whole group." }
+      ]
+    },
+    "stripe": {
+      "titulo": "Secure Payments with Stripe",
+      "texto": "Absolute financial transparency, no surprises:",
+      "puntos": [
+        { "fuerte": "The only charge from Rumbia", "texto": "The agency subscription, handled securely through Stripe (PCI Level 1)." },
+        { "fuerte": "Zero fees for travelers", "texto": "We don't charge extra fees for planning your trip." },
+        { "fuerte": "Direct bookings", "texto": "Links take you to official providers (Booking, Skyscanner, Airbnb) where you or your client pay with no middleman." }
+      ]
+    }
+  },
+  "ia": {
+    "titulo": "Smart Assistance and Total Organization",
+    "texto": "Smart technology and advanced algorithms to optimize every step of your trip.",
+    "itinerarios": { "titulo": "Smart itineraries", "texto": "Generate day-by-day routes with suggested activities, times, map coordinates, and estimated costs." },
+    "edicion": { "titulo": "Drag-and-drop editing", "texto": "Reorder and move activities between days with a mouse or touch gestures on mobile. Fully adjustable to your taste." },
+    "chatbot": { "titulo": "Contextual chatbot", "texto": "A floating assistant that knows your trip's details: ask it about routes, weather, or suggestions and get an instant answer, backed by general AI knowledge — it doesn't do a live lookup with providers, so confirm prices and availability on a real comparison site." }
+  },
+  "crm": {
+    "titulo": "Organize your work, don't repeat it",
+    "texto": "For when it's no longer just one trip, but several clients and proposals at once.",
+    "clientes": { "titulo": "Clients (basic CRM)", "texto": "Save each client's contact info and notes, link them to their trips and quotes, and find them again when they come back to you." },
+    "plantillas": { "titulo": "Reusable templates", "texto": "Build a template itinerary once (\"Cancun all-inclusive\", \"Europe route\") and apply it to each new client instead of starting from scratch." },
+    "multiDestino": { "titulo": "Multi-destination trips", "texto": "Add extra stops to a single trip, each with its own dates, weather, and itinerary." }
+  },
+  "cta": {
+    "titulo": "Start planning with Rumbia today",
+    "texto": "Try an AI-generated itinerary for free, no account needed, or sign up for full control of your trips and quotes.",
+    "irAMisViajes": "Go to my trips",
+    "crearCuentaGratis": "Create a free account",
+    "generarSinCuenta": "Generate an itinerary without an account"
+  },
+  "pie": {
+    "aviso": "Rumbia doesn't process trip bookings or payments. Links take you to the provider's site.",
+    "contactoIntro": "Questions, something not working, or want to talk to us? Write to us at",
+    "contactoOPor": "or on",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Site links"
+  }
+}

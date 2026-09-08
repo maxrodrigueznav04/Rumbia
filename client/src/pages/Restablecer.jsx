@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
@@ -15,6 +16,7 @@ import { Boton, CampoPassword, Aviso } from '../components/ui.jsx';
  * panel sin dejarlo restablecer nada.
  */
 export default function Restablecer() {
+  const { t } = useTranslation('auth');
   const { token } = useParams();
   const { restablecer } = useAuth();
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ export default function Restablecer() {
     {
       password: reglas.password,
       repetir: (valor, todos) =>
-        valor === todos.password ? null : 'Las dos contraseñas no coinciden.',
+        valor === todos.password ? null : t('restablecer.noCoinciden'),
     }
   );
 
@@ -47,8 +49,8 @@ export default function Restablecer() {
             </span>
             Rumbia
           </div>
-          <h1 style={{ fontSize: '1.35rem' }}>Elige una contraseña nueva</h1>
-          <p>Al guardarla entras directo, y se cierran las demás sesiones.</p>
+          <h1 style={{ fontSize: '1.35rem' }}>{t('restablecer.titulo')}</h1>
+          <p>{t('restablecer.texto')}</p>
         </div>
 
         <form onSubmit={guardar} className="pila" noValidate>
@@ -58,34 +60,34 @@ export default function Restablecer() {
               {form.errorServidor.status === 400 && (
                 <>
                   {' '}
-                  <Link to="/recuperar">Pedir un enlace nuevo</Link>.
+                  <Link to="/recuperar">{t('restablecer.pedirEnlaceNuevo')}</Link>.
                 </>
               )}
             </Aviso>
           )}
 
           <CampoPassword
-            label="Contraseña nueva"
+            label={t('restablecer.contrasenaNueva')}
             autoComplete="new-password"
-            placeholder="Al menos 8 caracteres"
+            placeholder={t('restablecer.alMenos8')}
             autoFocus
             {...form.props('password')}
           />
 
           <CampoPassword
-            label="Repítela"
+            label={t('restablecer.repitela')}
             autoComplete="new-password"
             placeholder="••••••••"
             {...form.props('repetir')}
           />
 
           <Boton type="submit" ancho cargando={form.enviando}>
-            {form.enviando ? 'Guardando...' : 'Guardar y entrar'}
+            {form.enviando ? t('restablecer.guardando') : t('restablecer.guardarYEntrar')}
           </Boton>
         </form>
 
         <p className="auth-pie">
-          <Link to="/entrar">Volver a iniciar sesión</Link>
+          <Link to="/entrar">{t('restablecer.volverAIniciar')}</Link>
         </p>
       </div>
     </div>

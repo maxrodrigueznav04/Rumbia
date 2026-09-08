@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "titulo": "Plan your entire trip in one place",
+    "texto": "Transportation, lodging, budget, and a day-by-day itinerary, built with smart assistance in minutes.",
+    "comenzarGratis": "Start for free",
+    "probarloSinCuenta": "Try it without an account",
+    "sinTarjeta": "No card required to try it"
+  },
+  "intro": {
+    "eyebrow": "Everything in one place",
+    "itinerario": { "titulo": "Smart itinerary", "texto": "Day by day, with times, categories, and automatic local suggestions." },
+    "mapaClima": { "titulo": "Map and weather", "texto": "Activities placed on the map and the forecast for your dates." },
+    "presupuesto": { "titulo": "Real budget", "texto": "Transportation, lodging, and miscellaneous expenses in one total, with currencies converted." }
+  },
+  "perfiles": {
+    "eyebrow": "For every kind of trip",
+    "viajeros": {
+      "titulo": "For travelers",
+      "texto": "Plan your vacation or a group trip, for free.",
+      "puntos": ["AI itineraries, day by day", "Budget and expenses in one place", "Weather and map for each destination"]
+    },
+    "agencias": {
+      "titulo": "For agencies",
+      "texto": "Quote with your own brand, charge your margin, and follow up with your clients.",
+      "puntos": ["Quotes with your logo and commercial margin", "Client CRM and reusable templates", "Sales funnel tracking"]
+    }
+  },
+  "cierre": {
+    "titulo": "Want to see all the details?",
+    "texto": "Agency plans, how quoting with your own brand works, and everything else Rumbia includes.",
+    "boton": "See everything included"
+  },
+  "pie": {
+    "aviso": "Rumbia doesn't process trip bookings or payments. Links take you to the provider's site.",
+    "contactoIntro": "Questions before you start? Write to us at",
+    "contactoOPor": "or on",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Site links"
+  }
+}
