@@ -55,6 +55,8 @@ regenerar; el mapa ubica las actividades que traen coordenadas.
 | Divisas | Frankfurter (tasas del Banco Central Europeo, sin API key) |
 | Validación | Zod en el borde de la API |
 | Cobros | Stripe (Checkout + Customer Portal + webhooks) |
+| Monitoreo de errores | Sentry (cliente y servidor), apagado por default sin DSN |
+| CI/CD | GitHub Actions: pruebas + build en cada push, deploy automático a Cloudflare Workers tras CI verde en `main`, Dependabot semanal |
 
 Todo el stack corre en tiers gratuitos, salvo el backend en producción (Render, plan Starter en
 vez del gratuito, para evitar el cold-start de cara al lanzamiento público).
@@ -117,7 +119,26 @@ vez del gratuito, para evitar el cold-start de cara al lanzamiento público).
   Los planes Agencia y Agencia Pro suman **marca blanca de verdad**: el pie deja de mencionar a
   Rumbia, y se puede elegir un color de acento propio que reemplaza el verde de Rumbia en toda la
   hoja (insignia, marcadores de día, actividades) — una sola variable CSS (`--marca`) hace que todo
-  el documento lo respete, sin tocar reja por reja.
+  el documento lo respete, sin tocar reja por reja. Encima de eso, un catálogo curado de fondos de
+  página (pasteles claros que no se comen el texto) y de tipografías (`fondosPdf.js` /
+  `fuentesPdf.js`), estas últimas cargadas como chunk aparte por Vite solo si alguien las elige,
+  para no descargarlas todas de más.
+- **Clientes (CRM ligero).** Cartera de viajeros/familias frecuentes por cuenta o, si el agente
+  pertenece a una agencia, compartida con todo el equipo — nombre, contacto, notas y etiquetas,
+  buscable por texto. Un viaje se puede vincular a un cliente del CRM (`Trip.client`) además de al
+  contacto suelto que ya traía (`Trip.cliente`, para quien no quiere llevar cartera). Si alguien
+  sale de la agencia, los clientes que registró se quedan con el equipo, no se los lleva.
+- **Cotización con margen para el cliente.** Sobre el costo real capturado (transporte + hospedaje
+  + actividades del itinerario), el agente define una cuota de servicio fija o por porcentaje
+  (`Trip.margen`) y ve una vista previa exacta de lo que verá el cliente antes de compartirla:
+  precio total, por persona, y qué falta por confirmar. Dos controles independientes de qué se
+  expone al entregar: `ocultarDesglose` (el cliente ve el total, no el precio de cada renglón — para
+  paquete cerrado) y `ocultarCodigos` (oculta referencias de reservación, notas internas y enlaces
+  de gestión; empieza activado por default).
+- **Control de concurrencia en generación con IA.** Además del límite por hora, un semáforo en
+  memoria (`concurrencyLimit.js`) topa cuántas generaciones corren a la vez en la instancia; lo que
+  se pasa de ese tope espera en cola hasta 12 s y, si no hay hueco, responde 503 con
+  `Retry-After` en vez de acumularse hasta agotar memoria o timeouts.
 - **Agencias.** Varios agentes, cada uno con su propia cuenta y sus propios viajes, pueden
   compartir la misma marca en el PDF sin compartir contraseña. Quien crea la agencia administra
   el nombre, el logo y el contacto, y comparte un código de invitación fuera de la app (whatsapp,
@@ -229,6 +250,9 @@ Llena `server/.env`:
 | `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | no* | [Cloudinary](https://cloudinary.com), plan gratis (25 GB/mes). Los tres valores están juntos en el Dashboard. Sin ellos el botón de subir logo responde con un aviso claro; el campo de URL manual sigue funcionando igual. |
 | `STRIPE_SECRET_KEY` `STRIPE_WEBHOOK_SECRET` | no* | Cobro a agencias. La primera sale de la [consola de Stripe](https://dashboard.stripe.com/apikeys); la segunda, de crear el endpoint del webhook ahí mismo. Sin ellas `/agency/billing` responde con un aviso claro; el resto de la app no se entera. |
 | `STRIPE_PRICE_*` | no* | El Price de cada tier (Inicio, Agencia, Agencia Pro, mensual y anual) y el de agente extra donde aplica. Los crea `npm run stripe:setup` en `server`, que imprime todas las líneas listas para pegar aquí. |
+| `TURNSTILE_SECRET_KEY` | no* | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile), gratis. Protege registro y recuperación contra bots. Sin ella el captcha queda desactivado, sin bloquear nada (ver "Pendientes conocidos"). |
+| `SENTRY_DSN` | no | [Sentry](https://sentry.io), gratis. Sin ella el monitoreo de errores queda apagado y el servidor corre igual. |
+| `AI_MAX_CONCURRENT` `AI_MAX_QUEUE` `AI_QUEUE_WAIT_MS` | no | Tope de generaciones con IA corriendo a la vez en la instancia (3 por defecto), tamaño de la cola de espera (6) y cuánto espera cada una antes de responder 503 (12000 ms). |
 
 Para generar el secreto:
 
@@ -310,10 +334,16 @@ npm run test:clima
 
 ## Deploy
 
-El backend corre en Render (tier gratuito) y el frontend en Cloudflare Workers (tier gratuito,
-con la CLI de `wrangler`, sin pasar por GitHub). El orden importa: el backend tiene que existir
-primero para saber a qué URL apunta el frontend, y el frontend tiene que existir para configurar
-`CLIENT_URL` en el backend.
+El backend corre en Render (tier gratuito) y el frontend en Cloudflare Workers (tier gratuito, con
+la CLI de `wrangler`). El orden importa: el backend tiene que existir primero para saber a qué URL
+apunta el frontend, y el frontend tiene que existir para configurar `CLIENT_URL` en el backend.
+
+Para la primera puesta en marcha el deploy del frontend se hace a mano, como se describe abajo.
+Una vez que existe, cada push a `main` que pasa CI dispara
+[`deploy-client.yml`](.github/workflows/deploy-client.yml): reconstruye el cliente con las
+variables `VITE_*` puestas como secrets de GitHub Actions y corre `wrangler deploy` sobre el commit
+exacto que CI aprobó (no el `HEAD` que haya para cuando arranca el job). Si CI falla, no se
+despliega nada.
 
 ### 0. Subir el repo a GitHub
 
@@ -377,8 +407,10 @@ app funciona igual, solo que nadie puede pagarte.
 
 ### 3. Frontend en Cloudflare Workers
 
-A diferencia de Render, esto no se conecta a GitHub: el build se hace en tu máquina y
-`wrangler deploy` sube el resultado directo a Cloudflare.
+Para esta primera vez el build se hace en tu máquina y `wrangler deploy` sube el resultado directo
+a Cloudflare, sin pasar por GitHub. Los siguientes deploys sí quedan automatizados por CI (ver
+arriba); esto solo hace falta una vez, para tener el proyecto creado en Cloudflare y confirmar que
+todo funciona antes de dejarlo en manos del workflow.
 
 **Antes de seguir, pon la API en un subdominio propio** (ej. `api.tudominio.com`), no en el
 `.onrender.com` crudo: la sesión vive en una cookie `httpOnly` (ver Seguridad), y una cookie que
@@ -441,15 +473,16 @@ en un proyecto de portafolio con el tier gratuito.
 planeador-viajes-ia/
 ├── server/
 │   ├── src/
-│   │   ├── config/        env.js (valida variables al arrancar), db.js
-│   │   ├── models/        User, Trip, Itinerary, Expense, ClickSalida, Agency,
+│   │   ├── config/        env.js (valida variables al arrancar), db.js, sentry.js
+│   │   ├── models/        User, Trip, Itinerary, Expense, Client, ClickSalida, Agency,
 │   │   │                  ItineraryTemplate, TripChat, AuditLog
 │   │   ├── validators/    esquemas de Zod por endpoint
-│   │   ├── middleware/    auth (JWT), validate, errorHandler, rateLimiters, billing, subirLogo, turnstile
+│   │   ├── middleware/    auth (JWT), validate, errorHandler, rateLimiters, concurrencyLimit,
+│   │   │                  billing, subirLogo, turnstile
 │   │   ├── services/      gemini, chat, weather, exchange, bookingLinks, affiliates,
 │   │   │                  email (Resend), logo (Cloudinary), stripe, turnstile
 │   │   ├── controllers/   lógica de cada recurso
-│   │   ├── routes/        auth, trip (+ itinerary anidado), expense, weather, agency
+│   │   ├── routes/        auth, trip (+ itinerary anidado), expense, client, weather, agency
 │   │   │                  (+ billing anidado), templates, chat, public, stats
 │   │   ├── app.js         middleware y montaje de rutas
 │   │   └── server.js      arranque y apagado ordenado
@@ -458,11 +491,13 @@ planeador-viajes-ia/
     └── src/
         ├── api/           cliente fetch + un módulo por recurso
         ├── context/       AuthContext
-        ├── components/    kit de UI, layout, chat flotante, mapa, gráfica, clima
+        ├── components/    kit de UI, layout, chat flotante, mapa, gráfica, clima,
+        │                  cotización y vista previa de propuesta al cliente
         ├── pages/         Inicio, Acerca, Entrar, Registro, Recuperar, Restablecer, Dashboard,
-        │                  NuevoViaje, DetalleViaje, Itinerario, ItinerarioCompartido, Perfil,
-        │                  Plantillas, Privacidad, Cookies, Terminos
+        │                  NuevoViaje, DetalleViaje, Itinerario, ItinerarioCompartido, Clientes,
+        │                  Perfil, Plantillas, Privacidad, Cookies, Terminos
         ├── hooks/         useFetch (carga, error, cancelación), useTema
+        ├── config/        sentry.js (monitoreo de errores, opt-in)
         └── styles/        global.css con los tokens de diseño
 ```
 
@@ -487,6 +522,10 @@ Guarda el `promptContext` con el que se generó, para poder auditar el resultado
 
 **Expense** — gastos sueltos (comida, entradas, compras) ligados a un viaje. Se mantienen separados
 de los costos capturados en el Trip para que el resumen no los cuente dos veces.
+
+**Client** — cliente del CRM ligero: nombre, contacto, notas y etiquetas. Pertenece a un `user` y,
+si ese usuario está en una agencia, también a la `agency` (para que el equipo comparta cartera). Un
+`Trip` puede referenciarlo opcionalmente vía `Trip.client`.
 
 **Agency** — la marca que comparten varios agentes sin compartir cuenta ni contraseña: nombre,
 logo, contacto, un `colorAcento` opcional (hex) para el PDF, y un `inviteCode` de 32 caracteres hex
@@ -595,6 +634,8 @@ cliente que nunca llegó a usarlos.
 | `PATCH` | `…/activities/:activityId/move` | Mueve la actividad a otro día. |
 | `GET` `POST` | `/api/expenses` | Lista y crea gastos. |
 | `PATCH` `DELETE` | `/api/expenses/:id` | Edita y elimina. |
+| `GET` `POST` | `/api/clients` | Lista (filtra por texto y etiqueta) y crea clientes del CRM. |
+| `GET` `PATCH` `DELETE` | `/api/clients/:id` | Detalle, edición y borrado de un cliente. |
 | `GET` | `/api/weather` · `/api/weather/geocode` · `/api/weather/geocode/sugerencias` | Clima por coordenadas y búsqueda de lugares. |
 | `GET` `POST` `PATCH` | `/api/agency` | Ver, crear y editar la agencia (marca, logo, contacto). |
 | `POST` | `/api/agency/logo` | Sube el logo de la agencia (Cloudinary). |
