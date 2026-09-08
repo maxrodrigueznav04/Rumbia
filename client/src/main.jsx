@@ -15,6 +15,17 @@ import { initSentry, instalarListenersGlobales } from './config/sentry.js';
 initSentry();
 instalarListenersGlobales();
 
+// Un deploy nuevo borra los chunks de la build anterior (MapaDestino.jsx y
+// cualquier otra ruta con code-splitting). Si alguien tenia la pestana
+// abierta desde antes del deploy y navega a una pantalla que carga un chunk
+// que ya no existe, el import() falla con "Failed to fetch dynamically
+// imported module" -- Vite emite este evento especificamente para ese caso.
+// Recargar la pagina trae el index.html nuevo, que ya apunta a los chunks
+// correctos: no hace falta que la persona entienda el error ni recargue a mano.
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
