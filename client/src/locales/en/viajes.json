@@ -1,0 +1,79 @@
+{
+  "filtros": {
+    "proximos": "Upcoming",
+    "pasados": "Past",
+    "borrador": "Drafts",
+    "todos": "All"
+  },
+  "filtrosPropuesta": {
+    "cualquiera": "Any proposal",
+    "sinEnviar": "Not sent",
+    "enviadas": "Sent",
+    "aceptadas": "Accepted",
+    "pagadas": "Paid",
+    "canceladas": "Cancelled"
+  },
+  "hola": "Hi,",
+  "nuevoViaje": "New trip",
+  "viajes": "Trips",
+  "reporteDelEquipo": "Team report",
+  "productividadEquipo": "Your team's productivity. Agency trips are shared among its members.",
+  "ambitoDeTrabajo": "Work scope",
+  "pendientesDelDia": "Today's pending items",
+  "noPudimosCargar": "We couldn't load your trips",
+  "panel": {
+    "porEnviarTitulo": "To prepare",
+    "porEnviarAyuda": "Upcoming proposals not yet sent",
+    "seguimientoTitulo": "Follow up",
+    "seguimientoAyuda": "Sent proposals",
+    "proximasSalidasTitulo": "Upcoming departures",
+    "proximasSalidasAyuda": "In the next 7 days",
+    "pendientesTitulo": "Complete details",
+    "pendientesAyuda": "Missing client or lodging"
+  },
+  "salidasProximas": "Departures in the next 7 days",
+  "viajesConDatosPendientes": "Trips with pending details",
+  "quitarFiltro": "Remove filter",
+  "filtrarViajes": "Filter trips",
+  "filtrarPorPropuesta": "Filter by proposal status",
+  "buscarConCliente": "Search by name, destination, or client",
+  "buscarSinCliente": "Search by name or destination",
+  "buscarViajes": "Search trips",
+  "limpiarBusqueda": "Clear search",
+  "sinResultados": {
+    "conBusqueda": "Nothing matches your search",
+    "pasados": "You don't have any past trips yet",
+    "agencia": "You don't have any client trips yet",
+    "personal": "No trips here yet"
+  },
+  "crearPrimero": {
+    "agencia": "Create the first trip",
+    "personal": "Plan my first trip"
+  },
+  "vacio": {
+    "busquedaConCliente": "We tried \"{{consulta}}\" in the name, destination, and client of your trips{{filtro}}.",
+    "busquedaSinCliente": "We tried \"{{consulta}}\" in the name and destination of your trips{{filtro}}.",
+    "dentroDelFiltro": ", within the active filter",
+    "pasados": "Once a trip ends, it'll show up here with its itinerary and expenses.",
+    "agencia": "Create your client's trip with a destination and dates, and let the AI build the day-by-day itinerary.",
+    "personal": "Create a trip with a destination and dates, and let the AI build the day-by-day itinerary."
+  },
+  "paginacion": {
+    "aria": "Trip pagination",
+    "anterior": "← Previous",
+    "siguiente": "Next →",
+    "paginaDe": "Page {{pagina}} of {{total}}"
+  },
+  "subtitulo": {
+    "cargando": "Loading your trips...",
+    "resultadoSingular": "{{total}} result for \"{{consulta}}\".",
+    "resultadoPlural": "{{total}} results for \"{{consulta}}\".",
+    "sinResultados": "No results for \"{{consulta}}\".",
+    "clienteSingular": "You have {{total}} client trip in this view.",
+    "clientePlural": "You have {{total}} client trips in this view.",
+    "viajeSingular": "You have {{total}} trip in this view.",
+    "viajePlural": "You have {{total}} trips in this view.",
+    "vacioAgencia": "Here you'll see the trips you build for your clients.",
+    "vacioPersonal": "Here you'll see all your trips."
+  }
+}

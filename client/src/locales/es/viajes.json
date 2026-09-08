@@ -1,0 +1,79 @@
+{
+  "filtros": {
+    "proximos": "Próximos",
+    "pasados": "Pasados",
+    "borrador": "Borradores",
+    "todos": "Todos"
+  },
+  "filtrosPropuesta": {
+    "cualquiera": "Cualquier propuesta",
+    "sinEnviar": "Sin enviar",
+    "enviadas": "Enviadas",
+    "aceptadas": "Aceptadas",
+    "pagadas": "Pagadas",
+    "canceladas": "Canceladas"
+  },
+  "hola": "Hola,",
+  "nuevoViaje": "Nuevo viaje",
+  "viajes": "Viajes",
+  "reporteDelEquipo": "Reporte del equipo",
+  "productividadEquipo": "Productividad de tu equipo. Los viajes de la agencia se comparten entre sus integrantes.",
+  "ambitoDeTrabajo": "Ámbito de trabajo",
+  "pendientesDelDia": "Pendientes del día",
+  "noPudimosCargar": "No pudimos cargar tus viajes",
+  "panel": {
+    "porEnviarTitulo": "Por preparar",
+    "porEnviarAyuda": "Propuestas próximas sin enviar",
+    "seguimientoTitulo": "Dar seguimiento",
+    "seguimientoAyuda": "Propuestas enviadas",
+    "proximasSalidasTitulo": "Próximas salidas",
+    "proximasSalidasAyuda": "Durante los siguientes 7 días",
+    "pendientesTitulo": "Completar datos",
+    "pendientesAyuda": "Falta cliente u hospedaje"
+  },
+  "salidasProximas": "Salidas en los próximos 7 días",
+  "viajesConDatosPendientes": "Viajes con datos pendientes",
+  "quitarFiltro": "Quitar filtro",
+  "filtrarViajes": "Filtrar viajes",
+  "filtrarPorPropuesta": "Filtrar por estado de la propuesta",
+  "buscarConCliente": "Buscar por nombre, destino o cliente",
+  "buscarSinCliente": "Buscar por nombre o destino",
+  "buscarViajes": "Buscar viajes",
+  "limpiarBusqueda": "Limpiar búsqueda",
+  "sinResultados": {
+    "conBusqueda": "Nada coincide con tu búsqueda",
+    "pasados": "Todavía no tienes viajes pasados",
+    "agencia": "Aún no tienes viajes de clientes",
+    "personal": "Aún no hay viajes por aquí"
+  },
+  "crearPrimero": {
+    "agencia": "Crear el primer viaje",
+    "personal": "Planear mi primer viaje"
+  },
+  "vacio": {
+    "busquedaConCliente": "Probamos con \"{{consulta}}\" en el nombre, el destino y el cliente de tus viajes{{filtro}}.",
+    "busquedaSinCliente": "Probamos con \"{{consulta}}\" en el nombre y el destino de tus viajes{{filtro}}.",
+    "dentroDelFiltro": ", dentro del filtro activo",
+    "pasados": "Cuando termine un viaje aparecerá aquí, con su itinerario y sus gastos.",
+    "agencia": "Crea el viaje de tu cliente con destino y fechas, y deja que la IA te arme el itinerario día por día.",
+    "personal": "Crea un viaje con destino y fechas, y deja que la IA te arme el itinerario día por día."
+  },
+  "paginacion": {
+    "aria": "Paginación de viajes",
+    "anterior": "← Anterior",
+    "siguiente": "Siguiente →",
+    "paginaDe": "Página {{pagina}} de {{total}}"
+  },
+  "subtitulo": {
+    "cargando": "Cargando tus viajes...",
+    "resultadoSingular": "{{total}} resultado para \"{{consulta}}\".",
+    "resultadoPlural": "{{total}} resultados para \"{{consulta}}\".",
+    "sinResultados": "Sin resultados para \"{{consulta}}\".",
+    "clienteSingular": "Tienes {{total}} viaje de cliente en esta vista.",
+    "clientePlural": "Tienes {{total}} viajes de clientes en esta vista.",
+    "viajeSingular": "Tienes {{total}} viaje en esta vista.",
+    "viajePlural": "Tienes {{total}} viajes en esta vista.",
+    "vacioAgencia": "Aquí vas a ver los viajes que armes para tus clientes.",
+    "vacioPersonal": "Aquí vas a ver todos tus viajes."
+  }
+}

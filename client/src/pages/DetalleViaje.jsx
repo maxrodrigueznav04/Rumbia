@@ -1,5 +1,6 @@
 import { Fragment, Suspense, lazy, useCallback, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { tripsApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import useFetch from '../hooks/useFetch.js';
@@ -31,7 +32,7 @@ import {
   formatoFecha,
   rangoFechas,
   tiempoRelativo,
-  humanizar,
+  traducirDominio,
   porPersonas,
   ciudadDeHospedaje,
   ETIQUETAS_ESTADO,
@@ -64,6 +65,7 @@ function SeccionGasto({
   destino,
   errorEnlaces,
   onReintentarEnlaces,
+  t,
 }) {
   return (
     <Tarjeta
@@ -89,7 +91,7 @@ function SeccionGasto({
       {enlaces?.length > 0 && (
         <details className="enlaces-desplegable">
           <summary>
-            <span className="etiqueta">Buscar y reservar</span>
+            <span className="etiqueta">{t('buscarYReservar')}</span>
             <span className="tenue">({enlaces.length})</span>
             <Icono nombre="chevronAbajo" tamano={16} className="chevron" />
           </summary>
@@ -102,10 +104,10 @@ function SeccionGasto({
           aviso ni forma de reintentar. */}
       {!enlaces?.length && errorEnlaces && (
         <p className="tenue fila" style={{ margin: '10px 0 0', gap: 6, fontSize: '0.85rem' }}>
-          No se pudieron cargar los enlaces de reserva.
+          {t('noPudimosCargarEnlaces')}
           {onReintentarEnlaces && (
             <Boton variante="fantasma" chico onClick={onReintentarEnlaces}>
-              Reintentar
+              {t('reintentar')}
             </Boton>
           )}
         </p>
@@ -121,7 +123,7 @@ function SeccionGasto({
  * lodgingIndex — pero solo al abrirse, para no disparar N peticiones al
  * cargar la pantalla si hay N hospedajes.
  */
-function EnlacesHospedaje({ tripId, indice, destino }) {
+function EnlacesHospedaje({ tripId, indice, destino, t }) {
   const [estado, setEstado] = useState({ cargando: false, enlaces: null, error: false });
 
   const alAbrirCerrar = async (e) => {
@@ -138,17 +140,17 @@ function EnlacesHospedaje({ tripId, indice, destino }) {
   return (
     <details className="enlaces-desplegable" onToggle={alAbrirCerrar}>
       <summary>
-        <span className="etiqueta">Buscar y reservar este hospedaje</span>
+        <span className="etiqueta">{t('buscarYReservarEsteHospedaje')}</span>
         <Icono nombre="chevronAbajo" tamano={16} className="chevron" />
       </summary>
       {estado.cargando && (
         <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.85rem' }}>
-          Cargando enlaces…
+          {t('cargandoEnlaces')}
         </p>
       )}
       {estado.error && (
         <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.85rem' }}>
-          No se pudieron cargar los enlaces.
+          {t('noPudimosCargarEnlacesCorto')}
         </p>
       )}
       {estado.enlaces && (
@@ -159,6 +161,9 @@ function EnlacesHospedaje({ tripId, indice, destino }) {
 }
 
 export default function DetalleViaje() {
+  const { t } = useTranslation('detalleViaje');
+  const { t: tDominio } = useTranslation('dominio');
+  const td = (slug) => traducirDominio(tDominio, slug);
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -204,12 +209,12 @@ export default function DetalleViaje() {
     return (
       <div className="pila">
         <Link to="/viajes" className="volver">
-          ← Mis viajes
+          {t('misViajes')}
         </Link>
         <ErrorCarga
           error={viajeReq.error}
           onReintentar={viajeReq.recargar}
-          contexto="No pudimos cargar este viaje"
+          contexto={t('noPudimosCargarViaje')}
         />
       </div>
     );
@@ -218,6 +223,7 @@ export default function DetalleViaje() {
   const viaje = viajeReq.data.trip;
   const variantes = viajeReq.data.variantes || [];
   const estado = ETIQUETAS_ESTADO[viaje.status] || ETIQUETAS_ESTADO.borrador;
+  const textoEstado = tDominio(`estadoViaje.${viaje.status}`, { defaultValue: estado.texto });
   const moneda = viaje.budget?.currency || 'MXN';
   const enlaces = enlacesReq.data?.links || {};
   const itinerario = viaje.itinerary;
@@ -259,7 +265,7 @@ export default function DetalleViaje() {
       const res = await tripsApi.duplicar(id);
       navigate(`/viajes/${res.trip._id}`);
     } catch (err) {
-      setErrorDuplicar(err.message || 'No se pudo duplicar el viaje.');
+      setErrorDuplicar(err.message || t('noSePudoDuplicar'));
     } finally {
       setDuplicando(false);
     }
@@ -294,28 +300,28 @@ export default function DetalleViaje() {
           <path d="M15 9l-1.5 4.5L9 15l1.5-4.5z" fill="#FBF6EC" stroke="none" />
         </svg>
         <Link to="/viajes" className="volver">
-          ← Mis viajes
+          {t('misViajes')}
         </Link>
       </div>
 
       <header className="tarjeta tarjeta-encabezado fila-entre">
         <div>
           <div className="fila" style={{ gap: 8, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Insignia color={estado.color}>{estado.texto}</Insignia>
+            <Insignia color={estado.color}>{textoEstado}</Insignia>
             {esAgencia && (
               <label className="tenue fila" style={{ gap: 6, fontSize: '0.85rem', alignItems: 'center' }}>
-                Propuesta:
+                {t('propuesta')}
                 <select
                   value={viaje.estadoPropuesta || 'borrador'}
                   onChange={cambiarEstadoPropuesta}
                   disabled={guardandoPropuesta}
-                  aria-label="Estado de la propuesta"
-                  title="Lo marcas tú a mano: es para tu seguimiento, no un comprobante de pago."
+                  aria-label={t('estadoDeLaPropuesta')}
+                  title={t('loMarcasTuAMano')}
                   style={{ padding: '3px 6px', fontSize: '0.85rem' }}
                 >
-                  {Object.entries(ETIQUETAS_ESTADO_PROPUESTA).map(([valor, info]) => (
+                  {Object.keys(ETIQUETAS_ESTADO_PROPUESTA).map((valor) => (
                     <option key={valor} value={valor}>
-                      {info.texto}
+                      {tDominio(`estadoPropuesta.${valor}`, { defaultValue: ETIQUETAS_ESTADO_PROPUESTA[valor].texto })}
                     </option>
                   ))}
                 </select>
@@ -326,16 +332,16 @@ export default function DetalleViaje() {
           <h1 style={{ marginBottom: 4 }}>{viaje.title}</h1>
           {viaje.client ? (
             <p className="suave" style={{ margin: '0 0 4px', fontSize: '0.92rem' }}>
-              Cliente CRM: <strong>{viaje.client.nombre}</strong>
+              {t('clienteCrm')} <strong>{viaje.client.nombre}</strong>
               {viaje.client.telefono ? ` · ${viaje.client.telefono}` : viaje.client.email ? ` · ${viaje.client.email}` : ''}
               {' · '}
               <Link to="/clientes" style={{ color: 'var(--marca)', fontWeight: 500, fontSize: '0.82rem' }}>
-                Ver en CRM →
+                {t('verEnCrm')}
               </Link>
             </p>
           ) : esAgencia && viaje.cliente?.nombre ? (
             <p className="suave" style={{ margin: '0 0 2px' }}>
-              Para <strong>{viaje.cliente.nombre}</strong>
+              {t('para')} <strong>{viaje.cliente.nombre}</strong>
               {viaje.cliente.contacto ? ` · ${viaje.cliente.contacto}` : ''}
             </p>
           ) : null}
@@ -343,30 +349,30 @@ export default function DetalleViaje() {
             <Icono nombre="pin" tamano={15} />{' '}
             {viaje.destination?.name}
             {viaje.destination?.country ? `, ${viaje.destination.country}` : ''} ·{' '}
-            {rangoFechas(viaje.startDate, viaje.endDate)} · {viaje.durationDays} días ·{' '}
-            {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+            {rangoFechas(viaje.startDate, viaje.endDate)} · {viaje.durationDays} {t('dias')} ·{' '}
+            {viaje.travelers} {viaje.travelers === 1 ? t('viajero') : t('viajeros')}
           </p>
           {viaje.createdAt && (
             <p className="tenue" style={{ margin: '4px 0 0', fontSize: '0.8rem' }}>
-              Creado el {formatoFecha(viaje.createdAt)}
+              {t('creadoEl', { fecha: formatoFecha(viaje.createdAt) })}
             </p>
           )}
         </div>
 
         <div className="fila">
           <Link to={`/viajes/${id}/itinerario`} className="boton">
-            {itinerario ? 'Ver itinerario' : 'Crear itinerario'}
+            {itinerario ? t('verItinerario') : t('crearItinerario')}
           </Link>
           <Boton variante="secundario" chico onClick={() => setModal({ tipo: 'viaje' })}>
-            <Icono nombre="lapiz" tamano={15} /> Editar
+            <Icono nombre="lapiz" tamano={15} /> {t('editar')}
           </Boton>
           {esAgencia && (
             <Boton variante="secundario" chico onClick={duplicarViaje} cargando={duplicando}>
-              Duplicar
+              {t('duplicar')}
             </Boton>
           )}
           <Boton variante="peligro-texto" chico onClick={() => setConfirmar('viaje')}>
-            Eliminar
+            {t('eliminar')}
           </Boton>
         </div>
       </header>
@@ -374,22 +380,22 @@ export default function DetalleViaje() {
       {errorDuplicar && <Aviso tipo="error">{errorDuplicar}</Aviso>}
 
       {avisoItinerario && (
-        <Aviso tipo={avisoItinerario.diasSobrantes > 0 ? 'alerta' : 'info'} titulo="Itinerario ajustado">
-          {avisoItinerario.diasAgregados > 0 &&
-            `Se agregaron ${avisoItinerario.diasAgregados} día(s) vacío(s). `}
+        <Aviso tipo={avisoItinerario.diasSobrantes > 0 ? 'alerta' : 'info'} titulo={t('itinerarioAjustado')}>
+          {avisoItinerario.diasAgregados > 0 && t('diasAgregados', { cantidad: avisoItinerario.diasAgregados })}
           {avisoItinerario.diasSobrantes > 0
-            ? `Hay ${avisoItinerario.diasSobrantes} día(s) que ya quedan fuera del viaje, con ${avisoItinerario.actividadesEnSobrantes} actividad(es). No se borraron: revísalos en el itinerario.`
-            : 'Las fechas de cada día se actualizaron.'}
+            ? t('diasSobrantes', { cantidad: avisoItinerario.diasSobrantes, actividades: avisoItinerario.actividadesEnSobrantes })
+            : t('fechasActualizadas')}
         </Aviso>
       )}
 
       {esAgencia && variantes.length > 0 && (
         <Tarjeta
-          titulo={viaje.cliente?.nombre ? `Otras opciones para ${viaje.cliente.nombre}` : 'Otras opciones para este cliente'}
+          titulo={viaje.cliente?.nombre ? t('otrasOpcionesPara', { nombre: viaje.cliente.nombre }) : t('otrasOpciones')}
         >
           <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
             {variantes.map((v) => {
               const estadoV = ETIQUETAS_ESTADO[v.status] || ETIQUETAS_ESTADO.borrador;
+              const textoEstadoV = tDominio(`estadoViaje.${v.status}`, { defaultValue: estadoV.texto });
               return (
                 <Link
                   key={v._id}
@@ -398,7 +404,7 @@ export default function DetalleViaje() {
                   style={{ gap: 8, textDecoration: 'none' }}
                 >
                   {v.title}
-                  <Insignia color={estadoV.color}>{estadoV.texto}</Insignia>
+                  <Insignia color={estadoV.color}>{textoEstadoV}</Insignia>
                 </Link>
               );
             })}
@@ -418,19 +424,20 @@ export default function DetalleViaje() {
           <SeccionGasto
             seccion="transporte"
             destino={viaje.destination?.name}
-            titulo="Transporte de ida y vuelta"
+            titulo={t('secciones.transporte')}
             icono={ICONO_MODO[ida?.mode] || 'avion'}
             monto={escalar((ida?.cost || 0) + (vuelta?.cost || 0))}
             moneda={moneda}
             enlaces={enlaces.transporte}
             errorEnlaces={enlacesReq.error}
             onReintentarEnlaces={enlacesReq.recargar}
-            vacio="Aún no registras cómo llegas ni cómo regresas."
+            vacio={t('secciones.transporteVacio')}
+            t={t}
           >
             <div className="pila-sm">
               {[
-                { etiqueta: 'Ida', tramo: 'outbound', datos: ida },
-                { etiqueta: 'Vuelta', tramo: 'inbound', datos: vuelta },
+                { etiqueta: t('secciones.ida'), tramo: 'outbound', datos: ida },
+                { etiqueta: t('secciones.vuelta'), tramo: 'inbound', datos: vuelta },
               ].map(({ etiqueta, tramo, datos }) => (
                 <div className="linea-gasto" key={tramo}>
                   <span className="crece" style={{ minWidth: 0 }}>
@@ -438,20 +445,20 @@ export default function DetalleViaje() {
                     <span className="tenue">
                       {datos?.provider || datos?.cost > 0 ? (
                         <>
-                          {humanizar(datos?.mode || '')}
+                          {td(datos?.mode || '')}
                           {datos?.provider ? ` · ${datos.provider}` : ''}
                           {datos?.bookingRef ? ` · ${datos.bookingRef}` : ''}
                         </>
                       ) : (
-                        'sin capturar'
+                        t('secciones.sinCapturar')
                       )}
                     </span>
                   </span>
 
                   <span className="numero">
-                    {datos?.provider || datos?.cost > 0 ? formatoMoneda(escalar(datos?.cost || 0), moneda) : 'Pendiente'}
+                    {datos?.provider || datos?.cost > 0 ? formatoMoneda(escalar(datos?.cost || 0), moneda) : t('secciones.pendiente')}
                     {datos?.isEstimate && datos?.cost > 0 && (
-                      <span className="tenue" style={{ fontWeight: 400 }}> est.</span>
+                      <span className="tenue" style={{ fontWeight: 400 }}> {t('secciones.est')}</span>
                     )}
                   </span>
 
@@ -459,7 +466,7 @@ export default function DetalleViaje() {
                     variante="fantasma"
                     chico
                     onClick={() => setModal({ tipo: 'transporte', tramo })}
-                    aria-label={`Editar transporte de ${etiqueta.toLowerCase()}`}
+                    aria-label={t('secciones.editarTransporteDe', { etiqueta: etiqueta.toLowerCase() })}
                   >
                     <Icono nombre={datos?.cost > 0 || datos?.provider ? 'lapiz' : 'mas'} tamano={15} />
                   </Boton>
@@ -468,7 +475,7 @@ export default function DetalleViaje() {
             </div>
             {!hayTransporte && (
               <p className="tenue" style={{ margin: '10px 0 0', fontSize: '0.85rem' }}>
-                Busca en los comparadores de abajo y regresa a capturar el costo.
+                {t('secciones.buscaEnComparadores')}
               </p>
             )}
           </SeccionGasto>
@@ -476,7 +483,7 @@ export default function DetalleViaje() {
           <SeccionGasto
             seccion="hospedaje"
             destino={viaje.destination?.name}
-            titulo="Hospedaje"
+            titulo={t('secciones.hospedaje')}
             icono="cama"
             monto={escalar(viaje.coreCosts?.lodging)}
             moneda={moneda}
@@ -485,10 +492,11 @@ export default function DetalleViaje() {
             onReintentarEnlaces={enlacesReq.recargar}
             accion={
               <Boton chico variante="secundario" onClick={() => setModal({ tipo: 'hospedaje' })}>
-                + Agregar
+                {t('secciones.agregar')}
               </Boton>
             }
-            vacio={`Necesitas ${viaje.nightsCount} ${viaje.nightsCount === 1 ? 'noche' : 'noches'}. Busca opciones y registra el costo aquí.`}
+            vacio={t('secciones.necesitasNoches', { cantidad: viaje.nightsCount, unidad: viaje.nightsCount === 1 ? t('secciones.noche') : t('secciones.noches') })}
+            t={t}
           >
             {viaje.lodging?.length > 0 && (
               <div className="pila-sm">
@@ -496,16 +504,16 @@ export default function DetalleViaje() {
                   <Fragment key={l._id || i}>
                     <div className="linea-gasto">
                       <span className="crece" style={{ minWidth: 0 }}>
-                        <strong>{l.name || humanizar(l.type)}</strong>
+                        <strong>{l.name || td(l.type)}</strong>
                         {viaje.additionalDestinations?.length > 0 && (
                           <span style={{ marginLeft: 8 }}>
                             <Insignia color="cielo">{ciudadDeHospedaje(viaje, l)}</Insignia>
                           </span>
                         )}
                         <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-                          {humanizar(l.type)} · {l.nights} {l.nights === 1 ? 'noche' : 'noches'}
-                          {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} por noche` : ''}
-                          {l.isEstimate ? ' · estimado' : ''}
+                          {td(l.type)} · {l.nights} {l.nights === 1 ? t('secciones.noche') : t('secciones.noches')}
+                          {l.perNight > 0 ? ` · ${formatoMoneda(l.perNight, moneda)} ${t('secciones.porNoche')}` : ''}
+                          {l.isEstimate ? ` · ${t('secciones.estimado')}` : ''}
                         </span>
                       </span>
                       <span className="numero">{formatoMoneda(escalar(l.subtotal), moneda)}</span>
@@ -514,15 +522,15 @@ export default function DetalleViaje() {
                           variante="fantasma"
                           chico
                           onClick={() => setModal({ tipo: 'hospedaje', indice: i })}
-                          aria-label="Editar hospedaje"
+                          aria-label={t('secciones.editarHospedaje')}
                         >
                           <Icono nombre="lapiz" tamano={14} />
                         </Boton>
                         <Boton
                           variante="fantasma"
                           chico
-                          onClick={() => setConfirmar({ campo: 'lodging', indice: i, nombre: l.name || humanizar(l.type) })}
-                          aria-label="Eliminar hospedaje"
+                          onClick={() => setConfirmar({ campo: 'lodging', indice: i, nombre: l.name || td(l.type) })}
+                          aria-label={t('secciones.eliminarHospedaje')}
                         >
                           <Icono nombre="cerrar" tamano={14} />
                         </Boton>
@@ -531,7 +539,7 @@ export default function DetalleViaje() {
                     {/* Con 2+ hospedajes el bloque general de arriba (lodging[0])
                         ya no basta para saber donde reservar cada uno. */}
                     {viaje.lodging.length > 1 && (
-                      <EnlacesHospedaje tripId={id} indice={i} destino={ciudadDeHospedaje(viaje, l)} />
+                      <EnlacesHospedaje tripId={id} indice={i} destino={ciudadDeHospedaje(viaje, l)} t={t} />
                     )}
                   </Fragment>
                 ))}
@@ -542,7 +550,7 @@ export default function DetalleViaje() {
           <SeccionGasto
             seccion="transporte-local"
             destino={viaje.destination?.name}
-            titulo="Transporte en el destino"
+            titulo={t('secciones.transporteLocal')}
             icono="auto"
             monto={escalar(viaje.coreCosts?.localTransport)}
             moneda={moneda}
@@ -555,38 +563,39 @@ export default function DetalleViaje() {
                 variante="secundario"
                 onClick={() => setModal({ tipo: 'transporte-local' })}
               >
-                + Agregar
+                {t('secciones.agregar')}
               </Boton>
             }
-            vacio="¿Cómo te vas a mover allá? Renta de auto, apps, taxi o transporte público."
+            vacio={t('secciones.transporteLocalVacio')}
+            t={t}
           >
             {viaje.localTransport?.length > 0 && (
               <div className="pila-sm">
-                {viaje.localTransport.map((t, i) => (
-                  <div className="linea-gasto" key={t._id || i}>
+                {viaje.localTransport.map((tr, i) => (
+                  <div className="linea-gasto" key={tr._id || i}>
                     <span className="crece" style={{ minWidth: 0 }}>
-                      <strong>{humanizar(t.type)}</strong>
-                      {(t.provider || t.notes) && (
+                      <strong>{td(tr.type)}</strong>
+                      {(tr.provider || tr.notes) && (
                         <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-                          {[t.provider, t.notes].filter(Boolean).join(' · ')}
+                          {[tr.provider, tr.notes].filter(Boolean).join(' · ')}
                         </span>
                       )}
                     </span>
-                    <span className="numero">{formatoMoneda(escalar(t.estimatedCost), moneda)}</span>
+                    <span className="numero">{formatoMoneda(escalar(tr.estimatedCost), moneda)}</span>
                     <span className="fila" style={{ gap: 0, flexWrap: 'nowrap' }}>
                       <Boton
                         variante="fantasma"
                         chico
                         onClick={() => setModal({ tipo: 'transporte-local', indice: i })}
-                        aria-label="Editar transporte local"
+                        aria-label={t('secciones.editarTransporteLocal')}
                       >
                         <Icono nombre="lapiz" tamano={14} />
                       </Boton>
                       <Boton
                         variante="fantasma"
                         chico
-                        onClick={() => setConfirmar({ campo: 'localTransport', indice: i, nombre: humanizar(t.type) })}
-                        aria-label="Eliminar transporte local"
+                        onClick={() => setConfirmar({ campo: 'localTransport', indice: i, nombre: td(tr.type) })}
+                        aria-label={t('secciones.eliminarTransporteLocal')}
                       >
                         <Icono nombre="cerrar" tamano={14} />
                       </Boton>
@@ -600,27 +609,26 @@ export default function DetalleViaje() {
           <ListaGastos viaje={viaje} gastos={gastos} onCambio={refrescar} />
 
           <Tarjeta
-            titulo="Itinerario"
+            titulo={t('secciones.itinerario')}
             accion={
               <Link to={`/viajes/${id}/itinerario`} className="boton secundario chico">
-                {itinerario ? 'Abrir' : 'Crear'}
+                {itinerario ? t('secciones.abrir') : t('secciones.crear')}
               </Link>
             }
           >
             {itinerario ? (
               <div className="fila" style={{ gap: 8 }}>
                 <Insignia color="marca">
-                  {itinerario.days?.length} {itinerario.days?.length === 1 ? 'día' : 'días'}
+                  {itinerario.days?.length} {itinerario.days?.length === 1 ? t('secciones.dia') : t('dias')}
                 </Insignia>
-                <Insignia>{itinerario.activityCount} actividades</Insignia>
+                <Insignia>{itinerario.activityCount} {t('secciones.actividades')}</Insignia>
                 <Insignia color={itinerario.generatedBy === 'ia' ? 'cielo' : ''}>
-                  {itinerario.generatedBy === 'ia' ? <><Icono nombre="chispa" tamano={14} /> Asistido con IA</> : 'Armado a mano'}
+                  {itinerario.generatedBy === 'ia' ? <><Icono nombre="chispa" tamano={14} /> {t('secciones.asistidoConIA')}</> : t('secciones.armadoAMano')}
                 </Insignia>
               </div>
             ) : (
-              <Vacio icono={<Icono nombre="chispa" tamano={28} />} titulo="Sin itinerario todavía">
-                Genera un plan día por día según tus fechas e intereses, o ármalo paso a paso tú
-                mismo.
+              <Vacio icono={<Icono nombre="chispa" tamano={28} />} titulo={t('secciones.sinItinerario')}>
+                {t('secciones.sinItinerarioTexto')}
               </Vacio>
             )}
           </Tarjeta>
@@ -628,7 +636,7 @@ export default function DetalleViaje() {
 
         {/* ----------------- Columna lateral ----------------- */}
         <div className="pila">
-          <Tarjeta titulo="Dónde queda">
+          <Tarjeta titulo={t('secciones.dondeQueda')}>
             <Suspense fallback={<div className="mapa" />}>
               <MapaDestino
                 destino={viaje.destination}
@@ -637,21 +645,21 @@ export default function DetalleViaje() {
             </Suspense>
           </Tarjeta>
 
-          <Tarjeta titulo="Clima durante el viaje">
-            {climaReq.cargando && <Cargando texto="Consultando el clima..." />}
+          <Tarjeta titulo={t('secciones.climaDuranteElViaje')}>
+            {climaReq.cargando && <Cargando texto={t('secciones.consultandoClima')} />}
             {climaReq.error && (
               <p className="tenue" style={{ margin: 0 }}>
-                No pudimos traer el clima ahora. {climaReq.error.message}
+                {t('secciones.noPudimosTraerClima')} {climaReq.error.message}
               </p>
             )}
             {climaReq.data && <TiraClima clima={climaReq.data} />}
           </Tarjeta>
 
           {climaReq.data?.paradas?.map((parada, i) => (
-            <Tarjeta key={i} titulo={`Clima en ${parada.place?.name || 'la parada'}`}>
+            <Tarjeta key={i} titulo={t('secciones.climaEnParada', { lugar: parada.place?.name || t('secciones.laParada') })}>
               {parada.error ? (
                 <p className="tenue" style={{ margin: 0 }}>
-                  No pudimos traer el clima de esta parada. {parada.error}
+                  {t('secciones.noPudimosTraerClimaParada')} {parada.error}
                 </p>
               ) : (
                 <TiraClima clima={parada} />
@@ -666,7 +674,7 @@ export default function DetalleViaje() {
             <ErrorCarga
               error={resumenReq.error}
               onReintentar={resumenReq.recargar}
-              contexto="Presupuesto"
+              contexto={t('secciones.presupuesto')}
             />
           )}
           {resumenReq.data && <ResumenPresupuesto resumen={resumenReq.data} />}
@@ -721,16 +729,16 @@ export default function DetalleViaje() {
         abierto={confirmar === 'viaje'}
         onCerrar={() => setConfirmar(null)}
         onConfirmar={eliminarViaje}
-        titulo="Eliminar viaje"
-        mensaje={`Se va a borrar "${viaje.title}" junto con su itinerario y sus gastos. Esta acción no se puede deshacer.`}
+        titulo={t('eliminarViajeTitulo')}
+        mensaje={t('eliminarViajeMensaje', { titulo: viaje.title })}
       />
 
       <ModalConfirmar
         abierto={Boolean(confirmar?.campo)}
         onCerrar={() => setConfirmar(null)}
         onConfirmar={() => quitarDeLista(confirmar.campo, confirmar.indice)}
-        titulo="Eliminar"
-        mensaje={`Se va a quitar "${confirmar?.nombre}" del viaje.`}
+        titulo={t('eliminar')}
+        mensaje={t('eliminarMensaje', { nombre: confirmar?.nombre })}
       />
     </div>
   );

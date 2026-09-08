@@ -34,7 +34,11 @@ const fechaISO = (valor) => {
 /**
  * @param {object} itinerario - itinerario.days con activities (time, durationMinutes, category, title)
  * @param {object} clima - { days: [{ date, precipitationChance }] }, como lo devuelve /trips/:id/weather
- * @returns {Array<{id: string, tipo: 'solape'|'hueco'|'clima', dia: number, mensaje: string}>}
+ * @returns {Array<{id: string, tipo: 'solape'|'hueco'|'clima', dia: number, datos: object}>}
+ *   `datos` trae los valores para interpolar en la traduccion (ver
+ *   RevisionItinerario.jsx / locales/*​/itinerario.json#revision) -- este
+ *   modulo no es un componente y no puede llamar al hook de traduccion, asi
+ *   que no arma el texto final el mismo.
  */
 export function revisarItinerario(itinerario, clima) {
   if (!itinerario?.days?.length) return [];
@@ -66,7 +70,7 @@ export function revisarItinerario(itinerario, clima) {
           id: `solape-${dia.dayNumber}-${i}`,
           tipo: 'solape',
           dia: dia.dayNumber,
-          mensaje: `Día ${dia.dayNumber}: "${masLargo.title}" termina hasta las ${formatoHora(masLargo.fin)}, pero "${cur.title}" empieza a las ${cur.time} — se encima.`,
+          datos: { tituloA: masLargo.title, finA: formatoHora(masLargo.fin), tituloB: cur.title, horaB: cur.time },
         });
       } else {
         const hueco = cur.inicio - masLargo.fin;
@@ -75,7 +79,7 @@ export function revisarItinerario(itinerario, clima) {
             id: `hueco-${dia.dayNumber}-${i}`,
             tipo: 'hueco',
             dia: dia.dayNumber,
-            mensaje: `Día ${dia.dayNumber}: quedan ${(hueco / 60).toFixed(1)} horas libres entre "${masLargo.title}" y "${cur.title}".`,
+            datos: { horas: (hueco / 60).toFixed(1), tituloA: masLargo.title, tituloB: cur.title },
           });
         }
       }
@@ -92,7 +96,7 @@ export function revisarItinerario(itinerario, clima) {
           id: `clima-${dia.dayNumber}-${act._id || act.title}`,
           tipo: 'clima',
           dia: dia.dayNumber,
-          mensaje: `Día ${dia.dayNumber}: ${climaDia.precipitationChance}% de probabilidad de lluvia y "${act.title}" es al aire libre.`,
+          datos: { probabilidad: climaDia.precipitationChance, titulo: act.title },
         });
       }
     }

@@ -1,0 +1,38 @@
+{
+  "destino": {
+    "label": "Destination"
+  },
+  "fechas": {
+    "salida": "Departure",
+    "regreso": "Return",
+    "llegada": "Arrival",
+    "atajos": "Shortcuts:",
+    "finDeSemana": "Weekend",
+    "cincoDias": "5 days",
+    "unaSemana": "One week",
+    "dosSemanas": "Two weeks",
+    "dia": "day",
+    "dias": "days",
+    "noche": "night",
+    "noches": "nights",
+    "deHospedaje": "of lodging"
+  },
+  "paradas": {
+    "label": "Additional stops (optional)",
+    "ayuda": "If the trip visits more than one city, add them here with their own dates: the weather and the AI itinerary will take them into account.",
+    "parada": "Stop {{numero}}",
+    "quitar": "Remove",
+    "quitarParada": "Remove stop {{numero}}",
+    "otraCiudad": "What other city are you visiting?",
+    "placeholder": "Rome, Berlin, Tokyo...",
+    "agregar": "+ Add stop"
+  },
+  "personas": {
+    "verPreciosPara": "See prices for",
+    "menosPersonas": "Fewer people",
+    "masPersonas": "More people",
+    "persona": "person",
+    "personas": "people",
+    "deEnElViaje": "of {{maximo}} on the trip"
+  }
+}

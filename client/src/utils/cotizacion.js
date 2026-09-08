@@ -11,13 +11,16 @@ export function calcularCotizacion(viaje, itinerario = viaje?.itinerary) {
   const base = servicios + actividades;
   const porPersona = redondear(conMargen(base / viajeros, viaje?.margen, viajeros));
   const total = redondear(porPersona * viajeros);
+  // Claves estables, no texto: quien las muestra (ResumenCotizacion.jsx,
+  // VistaPreviaPropuesta.jsx) las traduce con t('itinerario:pendientes.*') --
+  // este modulo no es un componente y no puede llamar al hook de traduccion.
   const pendientes = [];
-  for (const [tramo, nombre] of [['outbound', 'Transporte de ida'], ['inbound', 'Transporte de vuelta']]) {
+  for (const [tramo, clave] of [['outbound', 'transporteIda'], ['inbound', 'transporteVuelta']]) {
     const datos = viaje?.transport?.[tramo];
-    if (!datos?.provider && !datos?.bookingRef && !(datos?.cost > 0)) pendientes.push(nombre);
+    if (!datos?.provider && !datos?.bookingRef && !(datos?.cost > 0)) pendientes.push(clave);
   }
-  if ((viaje?.durationDays || 1) > 1 && !viaje?.lodging?.length) pendientes.push('Hospedaje');
-  if (!itinerario) pendientes.push('Itinerario');
+  if ((viaje?.durationDays || 1) > 1 && !viaje?.lodging?.length) pendientes.push('hospedaje');
+  if (!itinerario) pendientes.push('itinerario');
   return { servicios, actividades, base, margen: redondear(conMargen(base / viajeros, viaje?.margen, viajeros) * viajeros - base), porPersona, total, pendientes };
 }
 

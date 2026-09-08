@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { tripsApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { reglas } from '../../utils/validacion.js';
@@ -10,21 +11,23 @@ import {
   formatoMoneda,
 } from '../../utils/format.js';
 
-const TIPOS = [
-  { valor: 'hotel', texto: '🏨 Hotel' },
-  { valor: 'airbnb', texto: '🏠 Airbnb' },
-  { valor: 'hostal', texto: '🛏️ Hostal' },
-  { valor: 'cabana', texto: '🌲 Cabaña' },
-  { valor: 'casa-amigos', texto: '👋 Casa de amigos' },
-  { valor: 'camping', texto: '⛺ Camping' },
-  { valor: 'otro', texto: '📍 Otro' },
-];
+const EMOJI_TIPO = {
+  hotel: '🏨',
+  airbnb: '🏠',
+  hostal: '🛏️',
+  cabana: '🌲',
+  'casa-amigos': '👋',
+  camping: '⛺',
+  otro: '📍',
+};
+const TIPOS = Object.keys(EMOJI_TIPO);
 
 /**
  * Alta y edición de un hospedaje. El backend reemplaza el arreglo completo,
  * así que aquí se reconstruye con el elemento nuevo o editado.
  */
 export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuardado }) {
+  const { t } = useTranslation(['formularios', 'dominio']);
   const editando = indice != null;
   const datos = editando ? viaje.lodging[indice] : {};
   const moneda = viaje.budget?.currency || 'MXN';
@@ -120,37 +123,37 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
     <Modal
       abierto={abierto}
       onCerrar={onCerrar}
-      titulo={editando ? 'Editar hospedaje' : 'Agregar hospedaje'}
+      titulo={editando ? t('formularios:hospedaje.editar') : t('formularios:hospedaje.agregar')}
     >
       <form onSubmit={guardar} className="pila" noValidate>
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
-        <Campo label="Tipo">
+        <Campo label={t('formularios:hospedaje.tipo')}>
           <select {...form.props('type')}>
-            {TIPOS.map((t) => (
-              <option key={t.valor} value={t.valor}>
-                {t.texto}
+            {TIPOS.map((valor) => (
+              <option key={valor} value={valor}>
+                {EMOJI_TIPO[valor]} {t(`dominio:${valor}`)}
               </option>
             ))}
           </select>
         </Campo>
 
-        <Campo label="Nombre del lugar" placeholder="Hotel Casa Antigua" {...form.props('name')} />
+        <Campo label={t('formularios:hospedaje.nombreDelLugar')} placeholder={t('formularios:hospedaje.nombreDelLugarPlaceholder')} {...form.props('name')} />
 
         <Campo
-          label="Zona o dirección"
-          placeholder="Centro histórico"
-          ayuda="Opcional, para ubicarlo."
+          label={t('formularios:hospedaje.zonaODireccion')}
+          placeholder={t('formularios:hospedaje.zonaODireccionPlaceholder')}
+          ayuda={t('formularios:hospedaje.zonaODireccionAyuda')}
           {...form.props('lugar')}
         />
 
         {paradas.length > 0 && (
-          <Campo label="¿Para qué ciudad es?">
+          <Campo label={t('formularios:hospedaje.paraQueCiudad')}>
             <select name="destinationIndex" value={valores.destinationIndex} onChange={cambiarCiudad}>
-              <option value={0}>{viaje.destination?.name || 'Destino principal'}</option>
+              <option value={0}>{viaje.destination?.name || t('formularios:hospedaje.destinoPrincipal')}</option>
               {paradas.map((p, i) => (
                 <option key={i} value={i + 1}>
-                  {p.place?.name || `Parada ${i + 1}`}
+                  {p.place?.name || t('formularios:hospedaje.parada', { numero: i + 1 })}
                 </option>
               ))}
             </select>
@@ -159,13 +162,13 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
 
         <div className="campos-2">
           <Campo
-            label="Llegada"
+            label={t('formularios:hospedaje.llegada')}
             type="date"
             onClick={(e) => e.currentTarget.showPicker?.()}
             {...form.props('checkIn')}
           />
           <Campo
-            label="Salida"
+            label={t('formularios:hospedaje.salida')}
             type="date"
             min={valores.checkIn || undefined}
             onClick={(e) => e.currentTarget.showPicker?.()}
@@ -175,20 +178,20 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
 
         <div className="campos-2">
           <Campo
-            label="Costo total de la estancia"
+            label={t('formularios:hospedaje.costoTotal')}
             type="number"
             min="0"
             step="1"
             placeholder="0"
-            ayuda={`En ${moneda}, por las noches completas.`}
+            ayuda={t('formularios:hospedaje.costoTotalAyuda', { moneda })}
             {...form.props('totalCost')}
           />
           <Campo
-            label="Noches"
+            label={t('formularios:hospedaje.noches')}
             type="number"
             min="0"
             step="1"
-            ayuda="Se calcula solo con las fechas."
+            ayuda={t('formularios:hospedaje.nochesAyuda')}
             {...form.props('nights')}
           />
         </div>
@@ -196,20 +199,20 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
         {subtotal > 0 && (
           <div className="tarjeta-plana fila-entre">
             <span className="etiqueta">
-              {porNoche > 0 ? `≈ ${formatoMoneda(porNoche, moneda)} por noche` : 'Total'}
+              {porNoche > 0 ? t('formularios:hospedaje.porNoche', { monto: formatoMoneda(porNoche, moneda) }) : t('formularios:hospedaje.total')}
             </span>
             <span className="numero">{formatoMoneda(subtotal, moneda)}</span>
           </div>
         )}
 
         <Campo
-          label="Clave de reservación"
-          placeholder="Opcional"
+          label={t('formularios:hospedaje.claveReservacion')}
+          placeholder={t('formularios:hospedaje.claveReservacionPlaceholder')}
           {...form.props('bookingRef')}
         />
 
-        <Campo label="Notas">
-          <textarea placeholder="Desayuno incluido, hora de check-in..." {...form.props('notes')} />
+        <Campo label={t('formularios:comun.notas')}>
+          <textarea placeholder={t('formularios:hospedaje.notasPlaceholder')} {...form.props('notes')} />
         </Campo>
 
         <label className="campo-check">
@@ -219,15 +222,15 @@ export default function FormHospedaje({ abierto, onCerrar, viaje, indice, onGuar
             checked={form.valores.isEstimate}
             onChange={form.cambiar}
           />
-          Es un estimado, todavía no lo reservo
+          {t('formularios:comun.esEstimado')}
         </label>
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
-            Cancelar
+            {t('formularios:comun.cancelar')}
           </Boton>
           <Boton type="submit" cargando={form.enviando}>
-            Guardar
+            {t('formularios:comun.guardar')}
           </Boton>
         </div>
       </form>

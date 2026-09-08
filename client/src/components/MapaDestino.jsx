@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -102,6 +103,7 @@ const ES_TACTIL =
   typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
 export default function MapaDestino({ destino, destinosExtra = [], pines = [], alto }) {
+  const { t } = useTranslation('viaje');
   const [interactivo, setInteractivo] = useState(!ES_TACTIL);
 
   const tieneDestino = Number.isFinite(destino?.lat) && Number.isFinite(destino?.lng);
@@ -118,7 +120,7 @@ export default function MapaDestino({ destino, destinosExtra = [], pines = [], a
             🗺️
           </div>
           <p className="tenue" style={{ margin: '6px 0 0', maxWidth: '30ch' }}>
-            Aún no tenemos las coordenadas de este destino. Edítalo para ubicarlo en el mapa.
+            {t('mapaDestino.sinCoordenadas')}
           </p>
         </div>
       </div>
@@ -161,7 +163,7 @@ export default function MapaDestino({ destino, destinosExtra = [], pines = [], a
               {p.dayNumber && (
                 <>
                   <br />
-                  <span style={{ color: '#6b706b' }}>Día {p.dayNumber}</span>
+                  <span style={{ color: '#6b706b' }}>{t('mapaDestino.dia', { numero: p.dayNumber })}</span>
                 </>
               )}
             </Popup>
@@ -174,7 +176,7 @@ export default function MapaDestino({ destino, destinosExtra = [], pines = [], a
 
       {ES_TACTIL && !interactivo && (
         <button type="button" className="mapa-bloqueo" onClick={() => setInteractivo(true)}>
-          <span>Toca para mover el mapa</span>
+          <span>{t('mapaDestino.tocaParaMover')}</span>
         </button>
       )}
     </div>

@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import i18n from '../i18n.js';
+
+// jsdom trae navigator.language en ingles por default: sin esto,
+// i18next-browser-languagedetector detectaba "en" en las pruebas y las que
+// esperan meses en español (rangoFechas, etc) fallaban por el entorno, no
+// por el codigo. Las pruebas asumen español salvo que digan lo contrario.
+i18n.changeLanguage('es');
 
 afterEach(() => {
   cleanup();

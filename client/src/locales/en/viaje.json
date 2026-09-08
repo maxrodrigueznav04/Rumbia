@@ -1,0 +1,107 @@
+{
+  "resumenViaje": {
+    "tituloConPersonas": "Flights, lodging, and transportation · for {{personas}} of {{total}}",
+    "titulo": "Flights, lodging, and transportation",
+    "transporteIdaYVuelta": "Round-trip transportation",
+    "ida": "Outbound",
+    "vuelta": "Return",
+    "confirmacion": "Confirmation: {{codigo}}",
+    "hospedaje": "Lodging",
+    "transporteEnElDestino": "Transportation at the destination",
+    "noche": "night",
+    "noches": "nights",
+    "estimado": "estimated",
+    "est": "est.",
+    "totalIncluido": "The total of all this is included in the trip's cost, further below."
+  },
+  "resumenPresupuesto": {
+    "titulo": "Internal expense tracking",
+    "sinGastos": "No expenses captured",
+    "sinGastosTexto": "As you record transportation, lodging, and miscellaneous expenses, you'll see the breakdown here.",
+    "gastosFueraDeLaSuma": "There are expenses outside this total",
+    "gastosFueraDeLaSumaTexto": "We couldn't get the exchange rate for {{monedas}}, so those expenses aren't included in the total. Try reloading in a moment.",
+    "total": "Total",
+    "contraTuPresupuesto": "Against your budget",
+    "porcentajeDe": "{{porcentaje}}% of {{monto}}",
+    "tePasaste": "You went over by {{monto}}.",
+    "teQuedan": "You have {{monto}} left.",
+    "porViajero": "Per traveler",
+    "porDia": "Per day",
+    "sugerenciaPre": "The itinerary suggests",
+    "sugerenciaPost": "per person in activities ({{totalGrupo}} total for the group, {{cantidad}} activity/activities). This isn't added automatically: it counts once you record it as an expense."
+  },
+  "resumenGastosFijos": {
+    "tituloConPersonas": "Fixed & secured expenses · for {{personas}} of {{total}}",
+    "titulo": "Fixed & secured expenses",
+    "sinCapturar": "Nothing captured yet",
+    "sinCapturarTexto": "Transportation and lodging: what you already know you're going to pay, no matter how the rest turns out.",
+    "total": "Total",
+    "notaAlPie": "Only what's captured in transportation and lodging. Doesn't include food, shopping, or other miscellaneous expenses — those are already tracked separately in Budget."
+  },
+  "listaGastos": {
+    "titulo": "Miscellaneous expenses",
+    "agregar": "+ Add",
+    "sinGastos": "No expenses recorded",
+    "sinGastosTexto": "Meals, tickets, souvenirs, tips: whatever doesn't fit under transportation or lodging goes here.",
+    "marcarPendiente": "Mark as pending",
+    "marcarPagado": "Mark as paid",
+    "editar": "Edit",
+    "eliminar": "Delete",
+    "editarAria": "Edit {{descripcion}}",
+    "eliminarAria": "Delete {{descripcion}}",
+    "pagadoDeTotal": "{{pagado}} paid out of {{total}}",
+    "gasto": "expense",
+    "gastos": "expenses",
+    "eliminarTitulo": "Delete expense",
+    "eliminarMensaje": "\"{{descripcion}}\" will be deleted. This action cannot be undone."
+  },
+  "clienteDelViaje": {
+    "titulo": "Client for this proposal",
+    "sinContacto": "No contact info",
+    "cambiarCliente": "Change client",
+    "buscarCliente": "Search existing client",
+    "buscarPlaceholder": "Name, phone, or email",
+    "seleccionarCliente": "Select client",
+    "elegeDeTuCartera": "Choose from your client list",
+    "sinCoincidencias": "No matches. You can register the client here.",
+    "carteraVacia": "Your client list is empty. Register your first client here.",
+    "anterior": "Previous",
+    "siguiente": "Next",
+    "paginaDe": "Page {{pagina}} of {{total}}",
+    "nombreDelCliente": "Client or family name",
+    "telefonoOCorreo": "Phone or email",
+    "guardarCliente": "Save client to your list",
+    "continuarSoloEsteViaje": "You can also continue with this info just for this trip."
+  },
+  "enlacesReserva": {
+    "afiliado": "Affiliate",
+    "afiliadoTitulo": "If you book here, Rumbia may earn a commission",
+    "abreEnPestanaNueva": "(opens in a new tab{{extra}})",
+    "enlaceDeAfiliado": ", affiliate link",
+    "avisoAfiliados": "Links marked as affiliate may earn us a commission if you book. It doesn't cost you anything extra or change the price."
+  },
+  "mapaDestino": {
+    "sinCoordenadas": "We don't have coordinates for this destination yet. Edit it to place it on the map.",
+    "dia": "Day {{numero}}",
+    "tocaParaMover": "Tap to move the map"
+  },
+  "tiraClima": {
+    "lluvia": "{{porcentaje}}% rain",
+    "sinPronostico": "Seasonal estimate. The real forecast isn't available right now.",
+    "masDe5Dias": "Your trip is more than 5 days out: these values are a seasonal estimate, not a forecast.",
+    "parcial": "Real forecast for the first days; the last {{dias}} are a seasonal estimate.",
+    "completo": "Forecast from OpenWeatherMap."
+  },
+  "tarjetaViaje": {
+    "creadoPor": "Created by: {{nombre}}",
+    "integranteDelEquipo": "Team member",
+    "clientePorAsignar": " · Client to be assigned",
+    "para": "For {{nombre}}",
+    "dia": "day",
+    "dias": "days",
+    "viajero": "traveler",
+    "viajeros": "travelers",
+    "porcentajeDelPresupuesto": "{{porcentaje}}% of budget",
+    "capturado": "Captured"
+  }
+}

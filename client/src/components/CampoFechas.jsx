@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Campo } from './ui.jsx';
 
 const HOY = new Date().toISOString().slice(0, 10);
@@ -15,11 +16,13 @@ const diasEntre = (a, b) => {
   return Number.isNaN(ms) ? 0 : Math.round(ms / 86400000) + 1;
 };
 
-const ATAJOS_DEFAULT = [
-  { texto: 'Fin de semana', noches: 2 },
-  { texto: '5 días', noches: 4 },
-  { texto: 'Una semana', noches: 6 },
-  { texto: 'Dos semanas', noches: 13 },
+// Claves, no texto: el texto sale de campos.json via t() adentro del
+// componente (un arreglo modulo-level no puede llamar al hook).
+const CLAVES_ATAJOS_DEFAULT = [
+  { clave: 'finDeSemana', noches: 2 },
+  { clave: 'cincoDias', noches: 4 },
+  { clave: 'unaSemana', noches: 6 },
+  { clave: 'dosSemanas', noches: 13 },
 ];
 
 /**
@@ -40,13 +43,16 @@ export default function CampoFechas({
   errorInicio,
   errorFin,
   minimo = HOY,
-  etiquetaInicio = 'Salida',
-  etiquetaFin = 'Regreso',
+  etiquetaInicio,
+  etiquetaFin,
   // Sobrescribible para quien tenga un tope de dias mas corto que la cuenta
   // registrada (ver Probar.jsx, MAX_DIAS_INVITADO=7 del lado del servidor):
   // sin esto, "Dos semanas" aqui y el rechazo del servidor se contradecian.
-  atajos = ATAJOS_DEFAULT,
+  // Acepta { clave, noches } (se traduce con campos.json) o, para quien ya
+  // arma el texto a mano (Probar.jsx), { texto, noches } tal cual.
+  atajos = CLAVES_ATAJOS_DEFAULT,
 }) {
+  const { t } = useTranslation('campos');
   const dias = diasEntre(inicio, fin);
   const noches = Math.max(0, dias - 1);
 
@@ -76,7 +82,7 @@ export default function CampoFechas({
     <div className="pila-sm">
       <div className="campos-2">
         <Campo
-          label={etiquetaInicio}
+          label={etiquetaInicio ?? t('fechas.salida')}
           name="startDate"
           type="date"
           min={minimo}
@@ -86,7 +92,7 @@ export default function CampoFechas({
           error={errorInicio}
         />
         <Campo
-          label={etiquetaFin}
+          label={etiquetaFin ?? t('fechas.regreso')}
           name="endDate"
           type="date"
           min={inicio || minimo}
@@ -99,16 +105,16 @@ export default function CampoFechas({
 
       <div className="fila" style={{ gap: 6 }}>
         <span className="campo-ayuda" style={{ marginRight: 2 }}>
-          Atajos:
+          {t('fechas.atajos')}
         </span>
         {atajos.map((a) => (
           <button
-            key={a.texto}
+            key={a.clave || a.texto}
             type="button"
             className={`insignia ${noches === a.noches ? 'marca' : ''}`}
             onClick={() => aplicarAtajo(a.noches)}
           >
-            {a.texto}
+            {a.clave ? t(`fechas.${a.clave}`) : a.texto}
           </button>
         ))}
       </div>
@@ -116,9 +122,9 @@ export default function CampoFechas({
       {dias > 0 && (
         <p className="campo-ayuda" style={{ margin: 0 }}>
           <strong>
-            {dias} {dias === 1 ? 'día' : 'días'}
+            {dias} {dias === 1 ? t('fechas.dia') : t('fechas.dias')}
           </strong>{' '}
-          · {noches} {noches === 1 ? 'noche' : 'noches'} de hospedaje
+          · {noches} {noches === 1 ? t('fechas.noche') : t('fechas.noches')} {t('fechas.deHospedaje')}
         </p>
       )}
     </div>

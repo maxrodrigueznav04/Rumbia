@@ -1,0 +1,41 @@
+{
+  "volver": "← Back to my trips",
+  "titulo": "New trip",
+  "introAgencia": "Start with destination, dates, and travelers. Then fill in the quote and review the proposal for your client.",
+  "introPersonal": "The destination and dates are enough to get started. You can fill in the rest later.",
+  "aDondeVas": "Where are you going?",
+  "aDondeVasPlaceholder": "Oaxaca de Juárez, Lisbon, Tokyo...",
+  "cuantosViajan": "How many are traveling?",
+  "clienteOpcional": "Client (optional)",
+  "personalizar": "Customize trip and preferences",
+  "comoSeLlama": "What's the trip called?",
+  "comoSeLlamaPlaceholder": "Trip to {{destino}}",
+  "comoSeLlamaPlaceholderDefault": "Weekend getaway",
+  "comoSeLlamaAyuda": "If you leave it blank, we'll use the destination.",
+  "desdeDondeSales": "Where are you leaving from?",
+  "desdeDondeSalesPlaceholder": "Chicago",
+  "desdeDondeSalesAyuda": "We use this to build flight and bus searches.",
+  "presupuestoEstimado": "Estimated budget",
+  "presupuestoAyuda": "In {{moneda}}.",
+  "gustosDeQuienViaja": "Traveler's interests (optional)",
+  "gustosAyudaAgencia": "If you don't know them, we use a balanced plan, moderate pace, and medium spending. You can customize it here.",
+  "gustosAyudaPersonal": "If you leave these blank, we use what you set up in your profile.",
+  "ritmoDeViaje": "Trip pace",
+  "nivelDeGasto": "Spending level",
+  "equilibrado": "Balanced (no client preferences)",
+  "usarDeMiPerfil": "Use my profile's setting",
+  "ritmos": {
+    "relajado": "Relaxed (3 activities per day)",
+    "moderado": "Moderate (4 activities per day)",
+    "intenso": "Intense (5 activities per day)"
+  },
+  "nivelesGasto": {
+    "bajo": "Low — budget traveler, economical",
+    "medio": "Medium — comfortable without excess",
+    "alto": "High — not too worried about price"
+  },
+  "opcional": "Optional",
+  "creando": "Creating...",
+  "crearViaje": "Create trip",
+  "cancelar": "Cancel"
+}

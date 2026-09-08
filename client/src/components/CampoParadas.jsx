@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import CampoDestino from './CampoDestino.jsx';
 import CampoFechas from './CampoFechas.jsx';
 import { Boton } from './ui.jsx';
@@ -18,6 +19,7 @@ export const paradaVacia = () => ({ destino: '', lugarElegido: null, startDate: 
  * espera el backend (additionalDestinations) al enviar el formulario.
  */
 export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) {
+  const { t } = useTranslation('campos');
   // Actualizador funcional a proposito: CampoDestino dispara onChange y
   // onSeleccionar seguidos al elegir una sugerencia (uno pone el texto, el
   // otro las coordenadas), los dos dentro del mismo evento de click. Con un
@@ -34,10 +36,9 @@ export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) 
 
   return (
     <div className="campo">
-      <label>Paradas adicionales (opcional)</label>
+      <label>{t('paradas.label')}</label>
       <p className="campo-ayuda" style={{ marginTop: 0 }}>
-        Si el viaje visita más de una ciudad, agrégalas aquí con sus propias fechas: el clima y el
-        itinerario con IA las tomarán en cuenta.
+        {t('paradas.ayuda')}
       </p>
 
       <div className="pila-sm">
@@ -49,22 +50,22 @@ export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) 
           return (
             <div key={i} className="tarjeta" style={{ padding: 'var(--e3)' }}>
               <div className="fila-entre" style={{ marginBottom: 'var(--e2)' }}>
-                <strong style={{ fontSize: '0.9rem' }}>Parada {i + 1}</strong>
+                <strong style={{ fontSize: '0.9rem' }}>{t('paradas.parada', { numero: i + 1 })}</strong>
                 <button
                   type="button"
                   className="boton fantasma chico"
                   onClick={() => quitar(i)}
-                  aria-label={`Quitar parada ${i + 1}`}
+                  aria-label={t('paradas.quitarParada', { numero: i + 1 })}
                 >
-                  Quitar
+                  {t('paradas.quitar')}
                 </button>
               </div>
 
               <div className="pila-sm">
                 <CampoDestino
-                  label="¿Qué otra ciudad visitan?"
+                  label={t('paradas.otraCiudad')}
                   name={`parada-${i}`}
-                  placeholder="Roma, Berlín, Tokio..."
+                  placeholder={t('paradas.placeholder')}
                   value={parada.destino}
                   onChange={(e) => actualizar(i, { destino: e.target.value, lugarElegido: null })}
                   onSeleccionar={(lugar) => actualizar(i, { lugarElegido: lugar })}
@@ -74,8 +75,8 @@ export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) 
                   inicio={parada.startDate}
                   fin={parada.endDate}
                   minimo={tripStart || undefined}
-                  etiquetaInicio="Llegada"
-                  etiquetaFin="Salida"
+                  etiquetaInicio={t('fechas.llegada')}
+                  etiquetaFin={t('fechas.salida')}
                   onCambio={({ inicio, fin }) => actualizar(i, { startDate: inicio, endDate: fin })}
                   errorFin={errorFechas}
                 />
@@ -86,7 +87,7 @@ export default function CampoParadas({ paradas, onCambio, tripStart, tripEnd }) 
       </div>
 
       <Boton type="button" variante="secundario" chico onClick={agregar} style={{ marginTop: 'var(--e2)' }}>
-        + Agregar parada
+        {t('paradas.agregar')}
       </Boton>
     </div>
   );

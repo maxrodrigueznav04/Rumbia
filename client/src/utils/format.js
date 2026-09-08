@@ -1,16 +1,31 @@
-/** Formateo consistente de dinero y fechas en toda la app (es-MX). */
+/**
+ * Formateo consistente de dinero y fechas en toda la app, en el locale del
+ * idioma elegido (es-MX o en-US) -- lee i18n directo (no el hook useTranslation)
+ * porque estas son funciones normales, no componentes, y se llaman desde
+ * lugares que no pueden usar hooks (utils/cotizacion.js, formatters de
+ * Recharts, etc). i18n.js ya esta inicializado para cuando cualquiera de
+ * estas corre (main.jsx lo importa antes que nada, y en pruebas lo fuerza
+ * test/setup.js).
+ */
+import i18n from '../i18n.js';
+
+export const localeActual = () => (i18n.resolvedLanguage === 'en' ? 'en-US' : 'es-MX');
+// Alias mas explicito para llamadas sueltas a Intl.DateTimeFormat fuera de
+// este archivo (Dashboard.jsx), donde "localeActual" sin contexto es ambiguo.
+export const localeDeFecha = localeActual;
 
 export function formatoMoneda(monto, moneda = 'MXN') {
   const n = Number(monto) || 0;
+  const locale = localeActual();
   try {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: moneda,
       maximumFractionDigits: n % 1 === 0 ? 0 : 2,
     }).format(n);
   } catch {
     // Codigo de moneda desconocido: no romper la vista por un dato malo.
-    return `${n.toLocaleString('es-MX')} ${moneda}`;
+    return `${n.toLocaleString(locale)} ${moneda}`;
   }
 }
 
@@ -23,7 +38,7 @@ const parse = (valor) => {
 export function formatoFecha(valor, opciones = {}) {
   const d = parse(valor);
   if (!d) return '';
-  return new Intl.DateTimeFormat('es-MX', {
+  return new Intl.DateTimeFormat(localeActual(), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -36,7 +51,7 @@ export function formatoFecha(valor, opciones = {}) {
 export function formatoFechaHora(valor) {
   const d = parse(valor);
   if (!d) return '';
-  return new Intl.DateTimeFormat('es-MX', {
+  return new Intl.DateTimeFormat(localeActual(), {
     day: 'numeric',
     month: 'short',
     hour: 'numeric',
@@ -63,7 +78,7 @@ export function rangoFechas(inicio, fin) {
   const mismoMes = mismoAnio && a.getUTCMonth() === b.getUTCMonth();
 
   if (mismoMes) {
-    const dia = new Intl.DateTimeFormat('es-MX', { day: 'numeric', timeZone: 'UTC' });
+    const dia = new Intl.DateTimeFormat(localeActual(), { day: 'numeric', timeZone: 'UTC' });
     return `${dia.format(a)} – ${formatoFecha(b)}`;
   }
   if (mismoAnio) {
@@ -85,7 +100,7 @@ export function tiempoRelativo(valor) {
   const objetivoUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 
   const dias = Math.round((objetivoUTC - hoyUTC) / 86400000);
-  const rtf = new Intl.RelativeTimeFormat('es-MX', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(localeActual(), { numeric: 'auto' });
 
   if (Math.abs(dias) < 30) return rtf.format(dias, 'day');
   if (Math.abs(dias) < 365) return rtf.format(Math.round(dias / 30), 'month');
@@ -181,6 +196,20 @@ export function ciudadDeHospedaje({ destination, additionalDestinations } = {}, 
 export function humanizar(slug = '') {
   const texto = String(slug).replace(/-/g, ' ');
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * Traduce un slug del dominio (categoria de actividad/gasto, tipo de
+ * hospedaje o transporte, estilo de viaje, ritmo, nivel de presupuesto...)
+ * usando locales/*​/dominio.json. Los slugs vienen del backend en español
+ * (ver TRIP_STATUSES/OUTBOUND_MODES/etc en server/src/models/Trip.js), asi
+ * que sin traduccion cae al mismo "slug -> Título Legible" de humanizar().
+ * Necesita el `t` de useTranslation('dominio') porque esto no es un
+ * componente y no puede llamar al hook.
+ */
+export function traducirDominio(t, slug = '') {
+  if (!slug) return '';
+  return t(slug, { defaultValue: humanizar(slug) });
 }
 
 export const ETIQUETAS_ESTADO = {

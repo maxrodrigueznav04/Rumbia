@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { itineraryApi } from '../../api/index.js';
 import useFormulario from '../../hooks/useFormulario.js';
 import { Boton, Campo, Modal, Aviso } from '../ui.jsx';
 
 /** Título y resumen de un día del itinerario. */
 export default function FormDia({ abierto, onCerrar, tripId, dia, onGuardado }) {
+  const { t } = useTranslation('formularios');
   const form = useFormulario({
     title: dia.title || '',
     summary: dia.summary || '',
@@ -19,20 +21,20 @@ export default function FormDia({ abierto, onCerrar, tripId, dia, onGuardado }) 
   });
 
   return (
-    <Modal abierto={abierto} onCerrar={onCerrar} titulo={`Día ${dia.dayNumber}`} ancho={460}>
+    <Modal abierto={abierto} onCerrar={onCerrar} titulo={t('dia.titulo', { numero: dia.dayNumber })} ancho={460}>
       <form onSubmit={guardar} className="pila" noValidate>
         {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
         <Campo
-          label="Título del día"
-          placeholder="Centro histórico y mercados"
+          label={t('dia.tituloDelDia')}
+          placeholder={t('dia.tituloPlaceholder')}
           autoFocus
           {...form.props('title')}
         />
 
-        <Campo label="Resumen">
+        <Campo label={t('dia.resumen')}>
           <textarea
-            placeholder="De qué va el día, a grandes rasgos."
+            placeholder={t('dia.resumenPlaceholder')}
             maxLength={600}
             {...form.props('summary')}
           />
@@ -40,10 +42,10 @@ export default function FormDia({ abierto, onCerrar, tripId, dia, onGuardado }) 
 
         <div className="modal-acciones">
           <Boton variante="secundario" type="button" onClick={onCerrar}>
-            Cancelar
+            {t('comun.cancelar')}
           </Boton>
           <Boton type="submit" cargando={form.enviando}>
-            Guardar
+            {t('comun.guardar')}
           </Boton>
         </div>
       </form>

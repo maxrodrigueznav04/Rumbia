@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { formatoDiaSemana } from '../utils/format.js';
 import Icono from './Icono.jsx';
 
@@ -14,6 +15,7 @@ const iconoDe = (dia) => (dia.icon ? ICONOS[dia.icon.slice(0, 2)] || 'nube' : 'n
 
 /** Tira horizontal con el clima de cada dia del viaje. */
 export default function TiraClima({ clima }) {
+  const { t } = useTranslation('viaje');
   if (!clima?.days?.length) return null;
 
   const { days, meta } = clima;
@@ -36,7 +38,7 @@ export default function TiraClima({ clima }) {
             </div>
             <div className="cond">
               {d.precipitationChance !== null && d.precipitationChance > 20
-                ? `${d.precipitationChance}% lluvia`
+                ? t('tiraClima.lluvia', { porcentaje: d.precipitationChance })
                 : d.condition}
             </div>
           </div>
@@ -45,12 +47,12 @@ export default function TiraClima({ clima }) {
 
       <p className="tenue" style={{ margin: '8px 0 0', fontSize: '0.78rem' }}>
         {!meta?.configured
-          ? 'Estimación por temporada. El pronóstico real no está disponible por ahora.'
+          ? t('tiraClima.sinPronostico')
           : todoEstimado
-            ? 'Tu viaje está a más de 5 días: estos valores son una estimación según la temporada, no un pronóstico.'
+            ? t('tiraClima.masDe5Dias')
             : meta?.estimatedDays > 0
-              ? `Pronóstico real para los primeros días; los últimos ${meta.estimatedDays} son estimación por temporada.`
-              : 'Pronóstico de OpenWeatherMap.'}
+              ? t('tiraClima.parcial', { dias: meta.estimatedDays })
+              : t('tiraClima.completo')}
       </p>
     </div>
   );

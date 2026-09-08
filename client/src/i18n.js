@@ -12,6 +12,22 @@ import authEs from './locales/es/auth.json';
 import authEn from './locales/en/auth.json';
 import layoutEs from './locales/es/layout.json';
 import layoutEn from './locales/en/layout.json';
+import dominioEs from './locales/es/dominio.json';
+import dominioEn from './locales/en/dominio.json';
+import camposEs from './locales/es/campos.json';
+import camposEn from './locales/en/campos.json';
+import formulariosEs from './locales/es/formularios.json';
+import formulariosEn from './locales/en/formularios.json';
+import viajeEs from './locales/es/viaje.json';
+import viajeEn from './locales/en/viaje.json';
+import viajesEs from './locales/es/viajes.json';
+import viajesEn from './locales/en/viajes.json';
+import nuevoViajeEs from './locales/es/nuevoViaje.json';
+import nuevoViajeEn from './locales/en/nuevoViaje.json';
+import itinerarioEs from './locales/es/itinerario.json';
+import itinerarioEn from './locales/en/itinerario.json';
+import detalleViajeEs from './locales/es/detalleViaje.json';
+import detalleViajeEn from './locales/en/detalleViaje.json';
 
 export const IDIOMAS = ['es', 'en'];
 
@@ -26,12 +42,23 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      es: { comun: comunEs, inicio: inicioEs, acerca: acercaEs, auth: authEs, layout: layoutEs },
-      en: { comun: comunEn, inicio: inicioEn, acerca: acercaEn, auth: authEn, layout: layoutEn },
+      es: {
+        comun: comunEs, inicio: inicioEs, acerca: acercaEs, auth: authEs, layout: layoutEs,
+        dominio: dominioEs, campos: camposEs, formularios: formulariosEs, viaje: viajeEs,
+        viajes: viajesEs, nuevoViaje: nuevoViajeEs, itinerario: itinerarioEs, detalleViaje: detalleViajeEs,
+      },
+      en: {
+        comun: comunEn, inicio: inicioEn, acerca: acercaEn, auth: authEn, layout: layoutEn,
+        dominio: dominioEn, campos: camposEn, formularios: formulariosEn, viaje: viajeEn,
+        viajes: viajesEn, nuevoViaje: nuevoViajeEn, itinerario: itinerarioEn, detalleViaje: detalleViajeEn,
+      },
     },
     fallbackLng: 'es',
     supportedLngs: IDIOMAS,
-    ns: ['comun', 'inicio', 'acerca', 'auth', 'layout'],
+    ns: [
+      'comun', 'inicio', 'acerca', 'auth', 'layout', 'dominio', 'campos',
+      'formularios', 'viaje', 'viajes', 'nuevoViaje', 'itinerario', 'detalleViaje',
+    ],
     defaultNS: 'comun',
     interpolation: { escapeValue: false },
     detection: {
