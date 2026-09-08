@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
 import { Aviso, Boton } from './ui.jsx';
 import Icono from './Icono.jsx';
 import ChatFlotante from './ChatFlotante.jsx';
 import AvisoVerificarCorreo from './AvisoVerificarCorreo.jsx';
+import SelectorIdioma from './SelectorIdioma.jsx';
 import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 
-const enlaces = [
-  { to: '/viajes', texto: 'Mis viajes', icono: 'maleta' },
-  { to: '/clientes', texto: 'Clientes', icono: 'persona' },
-  { to: '/viajes/nuevo', texto: 'Nuevo viaje', icono: 'mas' },
-  { to: '/plantillas', texto: 'Plantillas', icono: 'recibo' },
-  { to: '/perfil', texto: 'Perfil', icono: 'persona' },
+// Las claves (to/icono) son fijas; el texto se resuelve con t() adentro del
+// componente -- un arreglo modulo-level no puede llamar al hook de traduccion.
+const ENLACES = [
+  { to: '/viajes', clave: 'misViajes', icono: 'maleta' },
+  { to: '/clientes', clave: 'clientes', icono: 'persona' },
+  { to: '/viajes/nuevo', clave: 'nuevoViaje', icono: 'mas' },
+  { to: '/plantillas', clave: 'plantillas', icono: 'recibo' },
+  { to: '/perfil', clave: 'perfil', icono: 'persona' },
 ];
 
 const ORDEN_TEMA = ['sistema', 'claro', 'oscuro'];
@@ -39,13 +43,16 @@ function ToggleTema() {
 }
 
 export default function Layout() {
+  const { t } = useTranslation('layout');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   const [errorSalir, setErrorSalir] = useState(null);
   const [saliendo, setSaliendo] = useState(false);
-  const rol = user?.agency ? (String(user.agency.owner) === String(user._id) ? 'Dueño' : 'Agente') : user?.preferences?.perfilUso === 'personal' ? 'Viajero' : 'Agente independiente';
+  const rol = user?.agency
+    ? (String(user.agency.owner) === String(user._id) ? t('roles.dueno') : t('roles.agente'))
+    : user?.preferences?.perfilUso === 'personal' ? t('roles.viajero') : t('roles.agenteIndependiente');
 
   const cerrarSesion = async () => {
     setSaliendo(true);
@@ -66,15 +73,15 @@ export default function Layout() {
             Rumbia
           </Link>
 
-          <nav className="nav-links" aria-label="Navegacion principal">
-            {enlaces.map((e) => (
+          <nav className="nav-links" aria-label={t('nav.ariaPrincipal')}>
+            {ENLACES.map((e) => (
               <NavLink
                 key={e.to}
                 to={e.to}
                 end={e.to === '/viajes'}
                 className={({ isActive }) => `nav-link ${isActive ? 'activo' : ''}`}
               >
-                {e.texto}
+                {t(`nav.${e.clave}`)}
               </NavLink>
             ))}
           </nav>
@@ -82,11 +89,12 @@ export default function Layout() {
           <div className="fila" style={{ gap: 6 }}>
             <Link to="/perfil" className="identidad-sesion" title={user?.email}>
               <strong>{user?.name}</strong>
-              <span>{user?.agency?.agencyName || 'Mi espacio'} · {rol}</span>
+              <span>{user?.agency?.agencyName || t('miEspacio')} · {rol}</span>
             </Link>
+            <SelectorIdioma />
             <ToggleTema />
             <Boton variante="fantasma" chico onClick={cerrarSesion} cargando={saliendo}>
-              Salir
+              {t('salir')}
             </Boton>
           </div>
         </div>
@@ -100,30 +108,27 @@ export default function Layout() {
 
       <footer className="pie">
         <div className="contenedor">
+          <p className="tenue">{t('pie.aviso')}</p>
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor,
-            donde completas la reserva.
-          </p>
-          <p className="tenue">
-            ¿Algo no funciona o tienes una duda? Escríbenos a{' '}
-            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            {t('pie.contactoIntro')}{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> {t('pie.contactoOPor')}{' '}
             <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
-              WhatsApp
+              {t('pie.whatsapp')}
             </a>
             .
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
-            <Link to="/acerca">Acerca de</Link>
-            <Link to="/privacidad">Privacidad</Link>
-            <Link to="/cookies">Cookies y rastreo</Link>
-            <Link to="/terminos">Términos</Link>
+          <nav className="pie-enlaces" aria-label={t('pie.ariaEnlaces')}>
+            <Link to="/acerca">{t('comun:piePagina.acercaDe')}</Link>
+            <Link to="/privacidad">{t('comun:piePagina.privacidad')}</Link>
+            <Link to="/cookies">{t('comun:piePagina.cookies')}</Link>
+            <Link to="/terminos">{t('comun:piePagina.terminos')}</Link>
           </nav>
         </div>
       </footer>
 
       {/* Navegacion inferior: el patron que la gente espera en el celular. */}
-      <nav className="tabbar" aria-label="Navegacion movil">
-        {enlaces.map((e) => (
+      <nav className="tabbar" aria-label={t('nav.ariaMovil')}>
+        {ENLACES.map((e) => (
           <NavLink
             key={e.to}
             to={e.to}
@@ -131,7 +136,7 @@ export default function Layout() {
             className={({ isActive }) => (isActive ? 'activo' : '')}
           >
             <Icono nombre={e.icono} tamano={20} />
-            {e.texto}
+            {t(`nav.${e.clave}`)}
           </NavLink>
         ))}
       </nav>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTema } from '../hooks/useTema.js';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
@@ -12,6 +13,11 @@ import { CORREO_SOPORTE, ENLACE_WHATSAPP } from '../config/contacto.js';
 // necesidad. Precios mensuales (los que se ven por default al entrar), no
 // los de los tres planes en las dos frecuencias -- Google solo quiere UNA
 // oferta representativa por producto, no las seis combinaciones.
+//
+// Se queda en español a proposito, sin importar el idioma elegido en
+// pantalla: es el dato que Google indexa para /acerca, y esa URL es la
+// version en español del sitio (la version en ingles todavia no tiene su
+// propia ruta/hreflang -- ver Fase 2 del plan de traduccion).
 const DATOS_ESTRUCTURADOS_PRECIOS = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -29,6 +35,8 @@ const DATOS_ESTRUCTURADOS_PRECIOS = {
   ],
 };
 import Icono from '../components/Icono.jsx';
+import TextoConEnfasis from '../components/TextoConEnfasis.jsx';
+import SelectorIdioma from '../components/SelectorIdioma.jsx';
 import { Boton, Tarjeta, Insignia } from '../components/ui.jsx';
 
 // Mismos montos que TarjetaAgencia.jsx (checkout real) y stripe-setup.mjs
@@ -66,11 +74,11 @@ function ToggleTema() {
 }
 
 export default function Acerca() {
+  const { t } = useTranslation('acerca');
   const { autenticado } = useAuth();
   useMetaPagina({
-    titulo: 'Acerca de',
-    descripcion:
-      'Qué es Rumbia, cómo ayuda a viajeros y agencias a planear viajes completos, y cuánto cuesta.',
+    titulo: t('meta.titulo'),
+    descripcion: t('meta.descripcion'),
     ruta: '/acerca',
   });
   useJsonLd('jsonld-precios-acerca', DATOS_ESTRUCTURADOS_PRECIOS);
@@ -86,6 +94,14 @@ export default function Acerca() {
   // de las tarjetas mexicanas hoy.
   const [moneda, setMoneda] = useState('mxn');
 
+  const puntosViajeros = t('dosMundos.viajeros.puntos', { returnObjects: true });
+  const puntosAgencias = t('dosMundos.agencias.puntos', { returnObjects: true });
+  const puntosInicio = t('planes.inicio.puntos', { returnObjects: true });
+  const puntosAgencia = t('planes.agencia.puntos', { returnObjects: true });
+  const puntosPro = t('planes.pro.puntos', { returnObjects: true });
+  const puntosCalculos = t('finanzas.calculos.puntos', { returnObjects: true });
+  const puntosStripe = t('finanzas.stripe.puntos', { returnObjects: true });
+
   return (
     <div className="inicio">
       {/* Encabezado superior */}
@@ -98,18 +114,19 @@ export default function Acerca() {
             Rumbia
           </Link>
           <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
+            <SelectorIdioma />
             <ToggleTema />
             {autenticado ? (
               <Link to="/viajes" className="boton chico">
-                Ir a mis viajes
+                {t('nav.irAMisViajes')}
               </Link>
             ) : (
               <>
                 <Link to="/entrar" className="boton secundario chico">
-                  Entrar
+                  {t('comun:nav.entrar')}
                 </Link>
                 <Link to="/registro" className="boton chico">
-                  Crear cuenta
+                  {t('comun:nav.crearCuenta')}
                 </Link>
               </>
             )}
@@ -121,24 +138,20 @@ export default function Acerca() {
       <section className="inicio-hero">
         <div className="contenedor" style={{ maxWidth: 860, textAlign: 'center', margin: '0 auto' }}>
           <div style={{ marginBottom: 14 }}>
-            <Insignia color="marca">La plataforma moderna de viajes</Insignia>
+            <Insignia color="marca">{t('hero.insignia')}</Insignia>
           </div>
-          <h1 style={{ fontSize: '2.5rem', lineHeight: 1.18, marginBottom: 16 }}>
-            Planea viajes extraordinarios con claridad, control y profesionalismo
-          </h1>
+          <h1 style={{ fontSize: '2.5rem', lineHeight: 1.18, marginBottom: 16 }}>{t('hero.titulo')}</h1>
           <p style={{ fontSize: '1.18rem', lineHeight: 1.6, maxWidth: 720, margin: '0 auto 28px' }}>
-            Desde tu próxima escapada personal hasta la gestión comercial de clientes para agencias
-            de viajes. Olvídate de las hojas de cálculo caóticas, notas dispersas y cotizaciones
-            interminables.
+            {t('hero.texto')}
           </p>
           <div className="fila" style={{ justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             <Link to={autenticado ? '/viajes/nuevo' : '/registro'} className="boton">
               <Icono nombre="chispa" tamano={16} />{' '}
-              {autenticado ? 'Crear un nuevo viaje' : 'Comenzar gratis'}
+              {autenticado ? t('hero.crearViaje') : t('hero.comenzarGratis')}
             </Link>
             {!autenticado && (
               <Link to="/probar" className="boton secundario">
-                Probar generador sin cuenta
+                {t('hero.probarSinCuenta')}
               </Link>
             )}
           </div>
@@ -151,12 +164,10 @@ export default function Acerca() {
           {/* 1. SECCIÓN: Dos mundos (Personal vs Agencia) con Límites y Planes Claros */}
           <section>
             <div style={{ textAlign: 'center', marginBottom: 'var(--e5)' }}>
-              <span className="etiqueta">Modelos de uso</span>
-              <h2 style={{ fontSize: '1.9rem', marginTop: 4 }}>
-                Diseñado para viajeros y construido para agencias
-              </h2>
+              <span className="etiqueta">{t('dosMundos.etiqueta')}</span>
+              <h2 style={{ fontSize: '1.9rem', marginTop: 4 }}>{t('dosMundos.titulo')}</h2>
               <p className="suave" style={{ maxWidth: 660, margin: '6px auto 0' }}>
-                Dos experiencias perfectamente adaptadas. Conoce las capacidades y condiciones de cada perfil:
+                {t('dosMundos.texto')}
               </p>
             </div>
 
@@ -175,31 +186,21 @@ export default function Acerca() {
                   <div className="fila-entre" style={{ marginBottom: 12 }}>
                     <div className="fila" style={{ gap: 8 }}>
                       <Icono nombre="brujula" tamano={22} className="icono-seccion" />
-                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Para Viajeros</h3>
+                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{t('dosMundos.viajeros.titulo')}</h3>
                     </div>
-                    <Insignia color="verde">100% Gratuito</Insignia>
+                    <Insignia color="verde">{t('dosMundos.viajeros.insignia')}</Insignia>
                   </div>
 
                   <p className="suave" style={{ fontSize: '0.94rem', margin: '0 0 16px' }}>
-                    Ideal para planear tus vacaciones, escapadas en pareja o viajes en grupo con amigos:
+                    {t('dosMundos.viajeros.texto')}
                   </p>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: '0 0 20px', fontSize: '0.92rem' }}>
-                    <li>
-                      <strong>Cálculo en vivo de costos:</strong> Suma transporte, hospedaje, comidas y
-                      gastos sueltos en un presupuesto unificado.
-                    </li>
-                    <li>
-                      <strong>Itinerarios asistidos:</strong> Propuestas de actividades día por día
-                      adaptadas a tus intereses y ritmo preferido.
-                    </li>
-                    <li>
-                      <strong>Clima y mapas:</strong> Pronóstico meteorológico y visualización de tus destinos directo en el celular.
-                    </li>
-                    <li>
-                      <strong>Enlaces directos de reserva:</strong> Sal a Skyscanner, Booking o Airbnb
-                      con tus fechas y destino prellenados.
-                    </li>
+                    {puntosViajeros.map((p) => (
+                      <li key={p.fuerte}>
+                        <strong>{p.fuerte}:</strong> {p.texto}
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
@@ -214,17 +215,18 @@ export default function Acerca() {
                 >
                   <div className="fila" style={{ gap: 6, marginBottom: 4 }}>
                     <Icono nombre="info" tamano={15} />
-                    <strong style={{ fontSize: '0.85rem' }}>Límites del plan personal</strong>
+                    <strong style={{ fontSize: '0.85rem' }}>{t('dosMundos.viajeros.limites.titulo')}</strong>
                   </div>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: 'var(--texto-suave)' }}>
                     <li>
-                      <strong>5 itinerarios inteligentes por mes</strong> (recarga cada día 1).
+                      <strong>{t('dosMundos.viajeros.limites.itinerarios')}</strong>{' '}
+                      {t('dosMundos.viajeros.limites.itinerariosNota')}
                     </li>
                     <li>
-                      <strong>60 consultas al asistente virtual por mes</strong>.
+                      <strong>{t('dosMundos.viajeros.limites.chat')}</strong>
                     </li>
                     <li>
-                      <em>Viajes guardados, notas, gastos y cálculos manuales sin ningún límite.</em>
+                      <em>{t('dosMundos.viajeros.limites.sinLimite')}</em>
                     </li>
                   </ul>
                 </div>
@@ -244,38 +246,21 @@ export default function Acerca() {
                   <div className="fila-entre" style={{ marginBottom: 12 }}>
                     <div className="fila" style={{ gap: 8 }}>
                       <Icono nombre="maleta" tamano={22} className="icono-seccion" />
-                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Para Agencias</h3>
+                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{t('dosMundos.agencias.titulo')}</h3>
                     </div>
-                    <Insignia color="marca">Desde $190 MXN/mes</Insignia>
+                    <Insignia color="marca">{t('dosMundos.agencias.insignia')}</Insignia>
                   </div>
 
                   <p className="suave" style={{ fontSize: '0.94rem', margin: '0 0 16px' }}>
-                    Herramientas de nivel profesional para armar cotizaciones, cerrar clientes y operar en equipo:
+                    {t('dosMundos.agencias.texto')}
                   </p>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: '0 0 20px', fontSize: '0.92rem' }}>
-                    <li>
-                      <strong>Márgenes comerciales automáticos:</strong> Aplica comisiones fijas o
-                      porcentuales y calcula tu ganancia en automático.
-                    </li>
-                    <li>
-                      <strong>PDF con tu propia marca:</strong> Sube tu logo, nombre y contacto; se
-                      imprimen en el membrete oficial del cliente.
-                    </li>
-                    <li>
-                      <strong>Privacidad comercial en cotizaciones:</strong> Elige si muestras el
-                      desglose o solo el precio total cerrado por persona, y si el cliente ve o no
-                      los códigos de confirmación y notas internas de cada reservación.
-                    </li>
-                    <li>
-                      <strong>Variantes en 1 clic:</strong> Duplica propuestas para presentar opciones
-                      (ej. Económica vs. Premium) sin retrabajo.
-                    </li>
-                    <li>
-                      <strong>Seguimiento de tu embudo de ventas:</strong> Cada propuesta pasa de
-                      enviada a aceptada a pagada; tu cliente puede aceptarla con un clic desde el
-                      mismo enlace que le compartes, y te avisamos por correo en cuanto lo hace.
-                    </li>
+                    {puntosAgencias.map((p) => (
+                      <li key={p.fuerte}>
+                        <strong>{p.fuerte}:</strong> {p.texto}
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
@@ -291,10 +276,10 @@ export default function Acerca() {
                   <div className="fila-entre" style={{ alignItems: 'center' }}>
                     <div>
                       <strong style={{ fontSize: '0.85rem', display: 'block' }}>
-                        Planes Inicio, Agencia y Pro
+                        {t('dosMundos.agencias.resumen.titulo')}
                       </strong>
                       <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                        De 1 a 15 agentes · Hasta 500 itinerarios inteligentes · Ahorro anual
+                        {t('dosMundos.agencias.resumen.texto')}
                       </span>
                     </div>
                     <a
@@ -302,7 +287,7 @@ export default function Acerca() {
                       className="boton chico secundario"
                       style={{ fontSize: '0.8rem', padding: '4px 10px' }}
                     >
-                      Ver planes ↓
+                      {t('dosMundos.agencias.resumen.verPlanes')}
                     </a>
                   </div>
                 </div>
@@ -318,14 +303,12 @@ export default function Acerca() {
                   <div className="fila" style={{ gap: 8 }}>
                     <Icono nombre="ojo" tamano={20} className="icono-seccion" />
                     <span className="etiqueta" style={{ margin: 0 }}>
-                      Simulador interactivo
+                      {t('simulador.etiqueta')}
                     </span>
                   </div>
-                  <h3 style={{ margin: '4px 0 0', fontSize: '1.35rem' }}>
-                    Así se ve una propuesta para tu cliente
-                  </h3>
+                  <h3 style={{ margin: '4px 0 0', fontSize: '1.35rem' }}>{t('simulador.titulo')}</h3>
                   <p className="suave" style={{ margin: 0, fontSize: '0.92rem' }}>
-                    Prueba el interruptor para ver cómo cambia la vista entre el desglose interno y la cotización para el cliente:
+                    {t('simulador.texto')}
                   </p>
                 </div>
 
@@ -337,7 +320,7 @@ export default function Acerca() {
                     onClick={() => setModoDesglose('total')}
                     style={{ fontSize: '0.82rem' }}
                   >
-                    Solo Precio Total (Cliente)
+                    {t('simulador.soloTotal')}
                   </button>
                   <button
                     type="button"
@@ -345,7 +328,7 @@ export default function Acerca() {
                     onClick={() => setModoDesglose('desglose')}
                     style={{ fontSize: '0.82rem' }}
                   >
-                    Desglose Completo (Interno)
+                    {t('simulador.desgloseCompleto')}
                   </button>
                 </div>
               </div>
@@ -389,18 +372,16 @@ export default function Acerca() {
                       VS
                     </div>
                     <div>
-                      <strong style={{ fontSize: '1.05rem', display: 'block' }}>
-                        Viajes del Sur Boutique
-                      </strong>
+                      <strong style={{ fontSize: '1.05rem', display: 'block' }}>{t('simulador.demo.agencia')}</strong>
                       <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                        contacto@viajesdelsur.mx · Tel. (55) 8421-9900
+                        {t('simulador.demo.contacto')}
                       </span>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <Insignia color="marca">Propuesta Comercial</Insignia>
+                    <Insignia color="marca">{t('simulador.demo.insignia')}</Insignia>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.78rem', marginTop: 3 }}>
-                      Cliente: Familia González (2 viajeros)
+                      {t('simulador.demo.cliente')}
                     </span>
                   </div>
                 </div>
@@ -409,19 +390,19 @@ export default function Acerca() {
                 {modoDesglose === 'desglose' ? (
                   <div className="pila-sm">
                     <div className="fila-entre" style={{ padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
-                      <span className="suave">Vuelos redondos (CDMX ➔ Oaxaca)</span>
+                      <span className="suave">{t('simulador.demo.vuelos')}</span>
                       <span className="numero">$9,600 MXN</span>
                     </div>
                     <div className="fila-entre" style={{ padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
-                      <span className="suave">Hotel Casa Santo Origen (4 noches)</span>
+                      <span className="suave">{t('simulador.demo.hotel')}</span>
                       <span className="numero">$18,400 MXN</span>
                     </div>
                     <div className="fila-entre" style={{ padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
-                      <span className="suave">Transporte local y traslados privados</span>
+                      <span className="suave">{t('simulador.demo.transporte')}</span>
                       <span className="numero">$3,200 MXN</span>
                     </div>
                     <div className="fila-entre" style={{ padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
-                      <span className="suave">Actividades guiadas y catas</span>
+                      <span className="suave">{t('simulador.demo.actividades')}</span>
                       <span className="numero">$5,400 MXN</span>
                     </div>
                     <div
@@ -432,18 +413,17 @@ export default function Acerca() {
                         fontWeight: 600,
                       }}
                     >
-                      <span>Cuota de servicio y gestión de agencia (+15%)</span>
+                      <span>{t('simulador.demo.cuotaServicio')}</span>
                       <span className="numero">+$5,490 MXN</span>
                     </div>
                   </div>
                 ) : (
                   <div style={{ padding: '10px 0', textAlign: 'center' }}>
                     <p className="suave" style={{ margin: '0 0 10px', fontSize: '0.92rem' }}>
-                      Incluye vuelos redondos, 4 noches de hospedaje boutique, traslados privados, tours
-                      culturales y asistencia personalizada durante todo el itinerario.
+                      {t('simulador.demo.incluye')}
                     </p>
                     <span className="insignia" style={{ fontSize: '0.8rem' }}>
-                      Tarifa preferencial cerrada con impuestos incluidos
+                      {t('simulador.demo.tarifaPreferencial')}
                     </span>
                   </div>
                 )}
@@ -460,10 +440,10 @@ export default function Acerca() {
                 >
                   <div>
                     <span className="etiqueta" style={{ margin: 0 }}>
-                      Precio final por persona
+                      {t('simulador.demo.precioFinal')}
                     </span>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.82rem' }}>
-                      Total del viaje (2 personas): $42,090 MXN
+                      {t('simulador.demo.totalViaje')}
                     </span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -475,7 +455,7 @@ export default function Acerca() {
               </div>
 
               <p className="tenue centrado" style={{ margin: '14px 0 0', fontSize: '0.82rem' }}>
-                💡 En Rumbia puedes cambiar de un modo a otro con un solo interruptor en la configuración del viaje.
+                {t('simulador.ayuda')}
               </p>
             </Tarjeta>
           </section>
@@ -483,12 +463,10 @@ export default function Acerca() {
           {/* 3. SECCIÓN: Planes Detallados de Agencia con Selector de Frecuencia */}
           <section id="planes-agencia">
             <div style={{ textAlign: 'center', marginBottom: 'var(--e4)' }}>
-              <span className="etiqueta">Transparencia comercial</span>
-              <h2 style={{ fontSize: '1.8rem', marginTop: 4 }}>
-                Planes transparentes para Agencias
-              </h2>
+              <span className="etiqueta">{t('planes.etiqueta')}</span>
+              <h2 style={{ fontSize: '1.8rem', marginTop: 4 }}>{t('planes.titulo')}</h2>
               <p className="suave" style={{ maxWidth: 640, margin: '6px auto 18px' }}>
-                Elige la modalidad de pago que mejor se ajuste a tu operación. Sin contratos forzosos ni comisiones ocultas:
+                {t('planes.texto')}
               </p>
 
               {/* Selector Mensual / Anual */}
@@ -509,7 +487,7 @@ export default function Acerca() {
                   onClick={() => setFrecuencia('mensual')}
                   style={{ fontSize: '0.88rem' }}
                 >
-                  Pago Mensual
+                  {t('planes.pagoMensual')}
                 </button>
                 <button
                   type="button"
@@ -517,7 +495,7 @@ export default function Acerca() {
                   onClick={() => setFrecuencia('anual')}
                   style={{ fontSize: '0.88rem' }}
                 >
-                  Pago Anual <Insignia color="verde" style={{ marginLeft: 6 }}>Ahorra 1.5 meses</Insignia>
+                  {t('planes.pagoAnual')} <Insignia color="verde" style={{ marginLeft: 6 }}>{t('planes.ahorra')}</Insignia>
                 </button>
               </div>
 
@@ -540,7 +518,7 @@ export default function Acerca() {
                   onClick={() => setMoneda('mxn')}
                   style={{ fontSize: '0.88rem' }}
                 >
-                  Pesos (MXN)
+                  {t('planes.pesos')}
                 </button>
                 <button
                   type="button"
@@ -548,7 +526,7 @@ export default function Acerca() {
                   onClick={() => setMoneda('usd')}
                   style={{ fontSize: '0.88rem' }}
                 >
-                  Dólares (USD)
+                  {t('planes.dolares')}
                 </button>
               </div>
             </div>
@@ -566,9 +544,9 @@ export default function Acerca() {
                 }}
               >
                 <div>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '1.25rem' }}>Inicio / Solo</h3>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1.25rem' }}>{t('planes.inicio.nombre')}</h3>
                   <p className="suave" style={{ fontSize: '0.85rem', margin: '0 0 16px' }}>
-                    Para asesores independientes y pequeños equipos que inician.
+                    {t('planes.inicio.texto')}
                   </p>
 
                   <div style={{ marginBottom: 16 }}>
@@ -576,7 +554,7 @@ export default function Acerca() {
                       {PRECIOS_AGENCIA.inicio[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
+                      {frecuencia === 'mensual' ? t('planes.alMes') : t('planes.alAnio')}
                     </span>
                   </div>
 
@@ -589,23 +567,19 @@ export default function Acerca() {
                       fontSize: '0.85rem',
                     }}
                   >
-                    <strong>De 1 a 3 agentes incluidos</strong>
+                    <strong>{t('planes.inicio.agentes')}</strong>
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>25 itinerarios inteligentes</strong> al mes</li>
-                    <li>60 consultas al asistente virtual por mes</li>
-                    <li>Viajes y gastos manuales ilimitados</li>
-                    <li>Cálculos automáticos de vuelos y hoteles</li>
-                    <li>Conversión de divisas y pronóstico del clima</li>
-                    <li>PDF con datos de contacto del asesor</li>
-                    <li>Enlace interactivo vía WhatsApp</li>
+                    {puntosInicio.map((p) => (
+                      <li key={p}><TextoConEnfasis texto={p} /></li>
+                    ))}
                   </ul>
                 </div>
 
                 <div style={{ marginTop: 24 }}>
                   <Link to="/registro" className="boton secundario ancho chico">
-                    Elegir Inicio
+                    {t('planes.inicio.elegir')}
                   </Link>
                 </div>
               </div>
@@ -625,11 +599,11 @@ export default function Acerca() {
               >
                 <div>
                   <div className="fila-entre" style={{ marginBottom: 6 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Agencia</h3>
-                    <Insignia color="marca">Más Popular</Insignia>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{t('planes.agencia.nombre')}</h3>
+                    <Insignia color="marca">{t('planes.agencia.masPopular')}</Insignia>
                   </div>
                   <p className="suave" style={{ fontSize: '0.85rem', margin: '0 0 16px' }}>
-                    Para agencias de viajes en crecimiento que buscan estandarizar sus ventas.
+                    {t('planes.agencia.texto')}
                   </p>
 
                   <div style={{ marginBottom: 16 }}>
@@ -637,7 +611,7 @@ export default function Acerca() {
                       {PRECIOS_AGENCIA.agencia[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
+                      {frecuencia === 'mensual' ? t('planes.alMes') : t('planes.alAnio')}
                     </span>
                   </div>
 
@@ -650,26 +624,19 @@ export default function Acerca() {
                       fontSize: '0.85rem',
                     }}
                   >
-                    <strong>De 4 a 8 agentes incluidos</strong>
+                    <strong>{t('planes.agencia.agentes')}</strong>
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>150 itinerarios inteligentes</strong> al mes</li>
-                    <li><strong>Asistente virtual de chat ilimitado</strong></li>
-                    <li><strong>Logo, membrete y color de acento propio</strong> en el PDF</li>
-                    <li><strong>Tipografía y tamaño de texto</strong> personalizables en el PDF</li>
-                    <li><strong>Marca blanca</strong> (sin pie de Rumbia)</li>
-                    <li><strong>Margen comercial automático</strong> (% o monto fijo)</li>
-                    <li><strong>Ocultar desglose de precios</strong> (precio cerrado al cliente)</li>
-                    <li><strong>Reporte mensual de productividad</strong> por agente</li>
-                    <li><strong>Duplicar propuestas</strong> en 1 clic</li>
-                    <li>Banco común de <strong>plantillas compartidas</strong></li>
+                    {puntosAgencia.map((p) => (
+                      <li key={p}><TextoConEnfasis texto={p} /></li>
+                    ))}
                   </ul>
                 </div>
 
                 <div style={{ marginTop: 24 }}>
                   <Link to="/registro" className="boton ancho chico">
-                    Elegir Agencia
+                    {t('planes.agencia.elegir')}
                   </Link>
                 </div>
               </div>
@@ -685,9 +652,9 @@ export default function Acerca() {
                 }}
               >
                 <div>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '1.25rem' }}>Agencia Pro</h3>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1.25rem' }}>{t('planes.pro.nombre')}</h3>
                   <p className="suave" style={{ fontSize: '0.85rem', margin: '0 0 16px' }}>
-                    Para agencias consolidadas con alto volumen y equipo extendido.
+                    {t('planes.pro.texto')}
                   </p>
 
                   <div style={{ marginBottom: 16 }}>
@@ -695,7 +662,7 @@ export default function Acerca() {
                       {PRECIOS_AGENCIA.pro[moneda][frecuencia]}
                     </div>
                     <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                      {frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)'}
+                      {frecuencia === 'mensual' ? t('planes.alMes') : t('planes.alAnio')}
                     </span>
                   </div>
 
@@ -708,31 +675,29 @@ export default function Acerca() {
                       fontSize: '0.85rem',
                     }}
                   >
-                    <strong>Hasta 15 agentes incluidos</strong>
+                    <strong>{t('planes.pro.agentes')}</strong>
                     <span className="tenue" style={{ display: 'block', fontSize: '0.75rem' }}>
                       {PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia]}
                     </span>
                   </div>
 
                   <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.88rem' }}>
-                    <li><strong>500 itinerarios inteligentes</strong> al mes</li>
-                    <li><strong>Todo lo del plan Agencia</strong> (marca blanca y color propio incluidos)</li>
-                    <li><strong>Soporte prioritario</strong> directo vía WhatsApp</li>
-                    <li>Asistente virtual de chat ilimitado</li>
-                    <li>Reportes avanzados de ventas y cotizaciones</li>
+                    {puntosPro.map((p) => (
+                      <li key={p}><TextoConEnfasis texto={p} /></li>
+                    ))}
                   </ul>
                 </div>
 
                 <div style={{ marginTop: 24 }}>
                   <Link to="/registro" className="boton secundario ancho chico">
-                    Elegir Agencia Pro
+                    {t('planes.pro.elegir')}
                   </Link>
                 </div>
               </div>
             </div>
 
             <p className="tenue centrado" style={{ margin: '20px 0 0', fontSize: '0.85rem' }}>
-              🔒 Pagos procesados de forma 100% segura y encriptada por Stripe. Cancela o cambia de plan en cualquier momento.
+              {t('planes.avisoStripe')}
             </p>
           </section>
 
@@ -743,26 +708,19 @@ export default function Acerca() {
                 titulo={
                   <div className="fila" style={{ gap: 8 }}>
                     <Icono nombre="recibo" tamano={22} className="icono-seccion" />
-                    <span>Cálculos en Vivo y Divisas</span>
+                    <span>{t('finanzas.calculos.titulo')}</span>
                   </div>
                 }
               >
                 <p className="suave" style={{ margin: '0 0 12px' }}>
-                  Rumbia suma y convierte tus costos automáticamente en tiempo real:
+                  {t('finanzas.calculos.texto')}
                 </p>
                 <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
-                  <li>
-                    <strong>Vuelos, trenes y autos:</strong> Captura salidas, llegadas y claves de reserva.
-                  </li>
-                  <li>
-                    <strong>Hospedaje por parada:</strong> Asigna hoteles a cada ciudad con cálculo automático por noche.
-                  </li>
-                  <li>
-                    <strong>Multi-divisa:</strong> Registra en dólares, euros o moneda local; la app unifica el total.
-                  </li>
-                  <li>
-                    <strong>Selector por persona:</strong> Mira cuánto cuesta el viaje por viajero individual o para el grupo.
-                  </li>
+                  {puntosCalculos.map((p) => (
+                    <li key={p.fuerte}>
+                      <strong>{p.fuerte}:</strong> {p.texto}
+                    </li>
+                  ))}
                 </ul>
               </Tarjeta>
 
@@ -770,23 +728,19 @@ export default function Acerca() {
                 titulo={
                   <div className="fila" style={{ gap: 8 }}>
                     <Icono nombre="palomita" tamano={22} className="icono-seccion" />
-                    <span>Pagos Seguros con Stripe</span>
+                    <span>{t('finanzas.stripe.titulo')}</span>
                   </div>
                 }
               >
                 <p className="suave" style={{ margin: '0 0 12px' }}>
-                  Transparencia financiera absoluta y sin sorpresas:
+                  {t('finanzas.stripe.texto')}
                 </p>
                 <ul className="pila-sm" style={{ paddingLeft: 18, margin: 0, fontSize: '0.92rem' }}>
-                  <li>
-                    <strong>El único cobro en Rumbia:</strong> La suscripción de agencia, gestionada de forma cifrada mediante <strong>Stripe (PCI Nivel 1)</strong>.
-                  </li>
-                  <li>
-                    <strong>Cero comisiones a viajeros:</strong> No cobramos tarifas extras por planear tu viaje.
-                  </li>
-                  <li>
-                    <strong>Reservas directas:</strong> Los enlaces te llevan a proveedores oficiales (Booking, Skyscanner, Airbnb) donde tú o tu cliente pagan sin intermediarios.
-                  </li>
+                  {puntosStripe.map((p) => (
+                    <li key={p.fuerte}>
+                      <strong>{p.fuerte}:</strong> {p.texto}
+                    </li>
+                  ))}
                 </ul>
               </Tarjeta>
             </div>
@@ -799,11 +753,9 @@ export default function Acerca() {
                 <div className="fila" style={{ gap: 10 }}>
                   <Icono nombre="chispa" tamano={24} className="icono-seccion" />
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.35rem' }}>
-                      Asistencia Inteligente y Organización Total
-                    </h3>
+                    <h3 style={{ margin: 0, fontSize: '1.35rem' }}>{t('ia.titulo')}</h3>
                     <p className="suave" style={{ margin: '3px 0 0', fontSize: '0.92rem' }}>
-                      Tecnología inteligente y algoritmos avanzados para optimizar cada paso de tu viaje.
+                      {t('ia.texto')}
                     </p>
                   </div>
                 </div>
@@ -813,33 +765,30 @@ export default function Acerca() {
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="chispa" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Itinerarios inteligentes</h4>
+                    <h4 style={{ margin: 0 }}>{t('ia.itinerarios.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Genera rutas día por día con actividades sugeridas, horarios, coordenadas para mapas y costos estimados.
+                    {t('ia.itinerarios.texto')}
                   </p>
                 </div>
 
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="arrastrar" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Edición drag-and-drop</h4>
+                    <h4 style={{ margin: 0 }}>{t('ia.edicion.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Reordena y mueve actividades entre días con ratón o gestos táctiles en móvil. Ajuste total a tu gusto.
+                    {t('ia.edicion.texto')}
                   </p>
                 </div>
 
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="buscar" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Chatbot contextual</h4>
+                    <h4 style={{ margin: 0 }}>{t('ia.chatbot.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Asistente flotante que conoce los detalles de tu viaje: pregúntale rutas, clima o
-                    sugerencias y te responde al instante, con conocimiento general de IA — no es una
-                    consulta en vivo a proveedores, así que confirma precios y disponibilidad en un
-                    comparador real.
+                    {t('ia.chatbot.texto')}
                   </p>
                 </div>
               </div>
@@ -853,12 +802,9 @@ export default function Acerca() {
                 <div className="fila" style={{ gap: 10 }}>
                   <Icono nombre="persona" tamano={24} className="icono-seccion" />
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.35rem' }}>
-                      Organiza tu trabajo, no lo repitas
-                    </h3>
+                    <h3 style={{ margin: 0, fontSize: '1.35rem' }}>{t('crm.titulo')}</h3>
                     <p className="suave" style={{ margin: '3px 0 0', fontSize: '0.92rem' }}>
-                      Para cuando ya no se trata de un viaje suelto, sino de varios clientes y
-                      propuestas al mismo tiempo.
+                      {t('crm.texto')}
                     </p>
                   </div>
                 </div>
@@ -868,33 +814,30 @@ export default function Acerca() {
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="persona" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Clientes (CRM básico)</h4>
+                    <h4 style={{ margin: 0 }}>{t('crm.clientes.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Guarda contacto y notas de cada cliente, vincúlalo a sus viajes y cotizaciones,
-                    y búscalo cuando vuelva a pedirte algo.
+                    {t('crm.clientes.texto')}
                   </p>
                 </div>
 
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="calendario" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Plantillas reutilizables</h4>
+                    <h4 style={{ margin: 0 }}>{t('crm.plantillas.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Arma un itinerario tipo una vez ("Cancún todo incluido", "Ruta por Europa") y
-                    aplícalo a cada cliente nuevo en vez de empezar de cero.
+                    {t('crm.plantillas.texto')}
                   </p>
                 </div>
 
                 <div className="tarjeta-plana">
                   <div className="fila" style={{ gap: 6, marginBottom: 6 }}>
                     <Icono nombre="pin" tamano={17} />
-                    <h4 style={{ margin: 0 }}>Viajes multi-destino</h4>
+                    <h4 style={{ margin: 0 }}>{t('crm.multiDestino.titulo')}</h4>
                   </div>
                   <p className="tenue" style={{ fontSize: '0.88rem', margin: 0 }}>
-                    Suma paradas adicionales a un mismo viaje, cada una con sus fechas, clima e
-                    itinerario propio.
+                    {t('crm.multiDestino.texto')}
                   </p>
                 </div>
               </div>
@@ -904,19 +847,17 @@ export default function Acerca() {
           {/* CTA Final */}
           <section style={{ textAlign: 'center', padding: 'var(--e4) 0 var(--e2)' }}>
             <Tarjeta className="centrado" style={{ padding: 'var(--e6) var(--e4)' }}>
-              <h2 style={{ fontSize: '2.1rem', marginBottom: 10 }}>
-                Comienza a planear con Rumbia hoy mismo
-              </h2>
+              <h2 style={{ fontSize: '2.1rem', marginBottom: 10 }}>{t('cta.titulo')}</h2>
               <p className="suave" style={{ maxWidth: 580, margin: '0 auto 24px', fontSize: '1.05rem' }}>
-                Prueba un itinerario generado por IA gratis y sin crear cuenta, o regístrate para tener control total de tus viajes y cotizaciones.
+                {t('cta.texto')}
               </p>
               <div className="fila" style={{ justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <Link to={autenticado ? '/viajes' : '/registro'} className="boton">
-                  {autenticado ? 'Ir a mis viajes' : 'Crear cuenta gratis'}
+                  {autenticado ? t('cta.irAMisViajes') : t('cta.crearCuentaGratis')}
                 </Link>
                 {!autenticado && (
                   <Link to="/probar" className="boton secundario">
-                    Generar itinerario sin cuenta
+                    {t('cta.generarSinCuenta')}
                   </Link>
                 )}
               </div>
@@ -928,22 +869,20 @@ export default function Acerca() {
       {/* Pie de página */}
       <footer className="pie">
         <div className="contenedor">
+          <p className="tenue">{t('pie.aviso')}</p>
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
-          </p>
-          <p className="tenue">
-            ¿Dudas, algo no funciona, o quieres hablar con nosotros? Escríbenos a{' '}
-            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> o por{' '}
+            {t('pie.contactoIntro')}{' '}
+            <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a> {t('pie.contactoOPor')}{' '}
             <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
-              WhatsApp
+              {t('pie.whatsapp')}
             </a>
             .
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
-            <Link to="/acerca">Acerca de</Link>
-            <Link to="/privacidad">Privacidad</Link>
-            <Link to="/cookies">Cookies y rastreo</Link>
-            <Link to="/terminos">Términos</Link>
+          <nav className="pie-enlaces" aria-label={t('pie.ariaEnlaces')}>
+            <Link to="/acerca">{t('comun:piePagina.acercaDe')}</Link>
+            <Link to="/privacidad">{t('comun:piePagina.privacidad')}</Link>
+            <Link to="/cookies">{t('comun:piePagina.cookies')}</Link>
+            <Link to="/terminos">{t('comun:piePagina.terminos')}</Link>
           </nav>
         </div>
       </footer>

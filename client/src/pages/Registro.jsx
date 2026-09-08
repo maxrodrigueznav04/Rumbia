@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
@@ -14,9 +15,10 @@ import Captcha from '../components/Captcha.jsx';
 const CAPTCHA_ACTIVO = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 
 export default function Registro() {
+  const { t } = useTranslation('auth');
   useMetaPagina({
-    titulo: 'Crea tu cuenta',
-    descripcion: 'Regístrate gratis en Rumbia y empieza a planear viajes con itinerarios, cotizaciones y presupuesto en un solo lugar.',
+    titulo: t('registro.meta.titulo'),
+    descripcion: t('registro.meta.descripcion'),
     ruta: '/registro',
   });
 
@@ -76,12 +78,10 @@ export default function Registro() {
             Rumbia
           </div>
           <h1 style={{ fontSize: '1.35rem' }}>
-            {perfilUso === 'agencia' ? 'Arma propuestas para tus clientes' : 'Planea tu próximo viaje'}
+            {perfilUso === 'agencia' ? t('registro.tituloAgencia') : t('registro.tituloPersonal')}
           </h1>
           <p>
-            {perfilUso === 'agencia'
-              ? 'Cliente, margen y tu marca en cada itinerario que armes.'
-              : 'Transporte, hospedaje e itinerario en un solo lugar.'}
+            {perfilUso === 'agencia' ? t('registro.textoAgencia') : t('registro.textoPersonal')}
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export default function Registro() {
           {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
           <div className="campo">
-            <label>¿Cómo vas a usar Rumbia?</label>
+            <label>{t('registro.comoVasAUsar')}</label>
             <div className="selector-perfil-uso">
               <button
                 type="button"
@@ -111,8 +111,8 @@ export default function Registro() {
                 className={`opcion-perfil-uso ${perfilUso === 'agencia' ? 'activo' : ''}`}
                 onClick={() => setPerfilUso('agencia')}
               >
-                <strong>Soy agencia o agente</strong>
-                <span className="tenue">Armo viajes para clientes: cliente, margen, propuestas</span>
+                <strong>{t('registro.soyAgencia')}</strong>
+                <span className="tenue">{t('registro.soyAgenciaTexto')}</span>
               </button>
               <button
                 type="button"
@@ -120,23 +120,23 @@ export default function Registro() {
                 className={`opcion-perfil-uso ${perfilUso === 'personal' ? 'activo' : ''}`}
                 onClick={() => setPerfilUso('personal')}
               >
-                <strong>Viajo por mi cuenta</strong>
-                <span className="tenue">Planeo mis propios viajes, sin nada de agencia</span>
+                <strong>{t('registro.viajoPorMiCuenta')}</strong>
+                <span className="tenue">{t('registro.viajoPorMiCuentaTexto')}</span>
               </button>
             </div>
-            <span className="campo-ayuda">Lo puedes cambiar después desde tu perfil.</span>
+            <span className="campo-ayuda">{t('registro.cambiarDespues')}</span>
           </div>
 
           <Campo
-            label="Nombre"
+            label={t('registro.nombre')}
             autoComplete="name"
-            placeholder="¿Cómo te llamas?"
+            placeholder={t('registro.comoTeLlamas')}
             autoFocus
             {...form.props('name')}
           />
 
           <Campo
-            label="Email"
+            label={t('registro.email')}
             type="email"
             autoComplete="email"
             placeholder="tu@email.com"
@@ -144,11 +144,11 @@ export default function Registro() {
           />
 
           <CampoPassword
-            label="Contraseña"
+            label={t('registro.contrasena')}
             autoComplete="new-password"
-            placeholder="Mínimo 8 caracteres"
+            placeholder={t('registro.minimo8')}
             medidor
-            ayuda="Mínimo 8 caracteres. Una frase larga es más segura que símbolos raros."
+            ayuda={t('registro.minimo8Ayuda')}
             {...form.props('password')}
           />
 
@@ -160,20 +160,20 @@ export default function Registro() {
             cargando={form.enviando}
             disabled={CAPTCHA_ACTIVO && !turnstileToken}
           >
-            {form.enviando ? 'Creando cuenta...' : 'Crear cuenta'}
+            {form.enviando ? t('registro.creandoCuenta') : t('registro.crearCuenta')}
           </Boton>
 
           {/* Antes de dar sus datos, el usuario tiene que poder leer qué se
               hace con ellos: por eso el enlace va junto al botón, no en el pie. */}
           <p className="tenue legal-nota">
-            Al crear tu cuenta aceptas los <Link to="/terminos">términos y condiciones</Link>, la{' '}
-            <Link to="/privacidad">política de privacidad</Link> y el{' '}
-            <Link to="/cookies">aviso de cookies</Link>.
+            {t('registro.aceptasIntro')} <Link to="/terminos">{t('registro.terminosCondiciones')}</Link>,{' '}
+            {t('registro.la')} <Link to="/privacidad">{t('registro.politicaPrivacidad')}</Link>{' '}
+            {t('registro.yEl')} <Link to="/cookies">{t('registro.avisoCookies')}</Link>.
           </p>
         </form>
 
         <p className="auth-pie">
-          ¿Ya tienes cuenta? <Link to="/entrar">Entra aquí</Link>
+          {t('registro.yaTienesCuenta')} <Link to="/entrar">{t('registro.entraAqui')}</Link>
         </p>
       </div>
     </div>

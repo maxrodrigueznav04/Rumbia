@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "titulo": "Planea tu viaje completo en un solo lugar",
+    "texto": "Transporte, hospedaje, presupuesto e itinerario día por día, armado con asistencia inteligente en minutos.",
+    "comenzarGratis": "Comenzar gratis",
+    "probarloSinCuenta": "Pruébalo sin cuenta",
+    "sinTarjeta": "Sin tarjeta para probarlo"
+  },
+  "intro": {
+    "eyebrow": "Todo en un solo lugar",
+    "itinerario": { "titulo": "Itinerario inteligente", "texto": "Día por día, con horarios, categorías y sugerencias locales automáticas." },
+    "mapaClima": { "titulo": "Mapa y clima", "texto": "Las actividades ubicadas en el mapa y el pronóstico de tus fechas." },
+    "presupuesto": { "titulo": "Presupuesto real", "texto": "Transporte, hospedaje y gastos sueltos en un solo total, con divisas convertidas." }
+  },
+  "perfiles": {
+    "eyebrow": "Para cada tipo de viaje",
+    "viajeros": {
+      "titulo": "Para viajeros",
+      "texto": "Planea tus vacaciones o un viaje en grupo, gratis.",
+      "puntos": ["Itinerarios con IA, día por día", "Presupuesto y gastos en un solo lugar", "Clima y mapa de cada destino"]
+    },
+    "agencias": {
+      "titulo": "Para agencias",
+      "texto": "Cotiza con tu marca, cobra tu margen y da seguimiento a tus clientes.",
+      "puntos": ["Cotizaciones con tu logo y margen comercial", "CRM de clientes y plantillas reutilizables", "Seguimiento del embudo de ventas"]
+    }
+  },
+  "cierre": {
+    "titulo": "¿Quieres ver todo el detalle?",
+    "texto": "Planes de agencia, cómo funciona la cotización con tu marca, y todo lo demás que incluye Rumbia.",
+    "boton": "Ver todo lo que incluye"
+  },
+  "pie": {
+    "aviso": "Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.",
+    "contactoIntro": "¿Dudas antes de empezar? Escríbenos a",
+    "contactoOPor": "o por",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Enlaces del sitio"
+  }
+}

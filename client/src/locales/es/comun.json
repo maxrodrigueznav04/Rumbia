@@ -1,0 +1,35 @@
+{
+  "marca": "Rumbia",
+  "nav": {
+    "acercaDe": "Acerca de",
+    "entrar": "Entrar",
+    "crearCuenta": "Crear cuenta"
+  },
+  "botones": {
+    "cancelar": "Cancelar",
+    "eliminar": "Eliminar",
+    "reintentar": "Reintentar",
+    "reintentarConexion": "Reintentar conexión"
+  },
+  "campoPassword": {
+    "mostrar": "Mostrar",
+    "ocultar": "Ocultar",
+    "mostrarContrasena": "Mostrar contraseña",
+    "ocultarContrasena": "Ocultar contraseña"
+  },
+  "modal": {
+    "cerrar": "Cerrar"
+  },
+  "cargando": "Cargando...",
+  "error": {
+    "accionFallida": "No se pudo completar la acción.",
+    "algoSalioMal": "Algo salió mal",
+    "inesperado": "Error inesperado."
+  },
+  "piePagina": {
+    "acercaDe": "Acerca de",
+    "privacidad": "Privacidad",
+    "cookies": "Cookies y rastreo",
+    "terminos": "Términos"
+  }
+}

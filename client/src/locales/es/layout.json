@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "misViajes": "Mis viajes",
+    "clientes": "Clientes",
+    "nuevoViaje": "Nuevo viaje",
+    "plantillas": "Plantillas",
+    "perfil": "Perfil",
+    "ariaPrincipal": "Navegación principal",
+    "ariaMovil": "Navegación móvil"
+  },
+  "roles": {
+    "dueno": "Dueño",
+    "agente": "Agente",
+    "viajero": "Viajero",
+    "agenteIndependiente": "Agente independiente"
+  },
+  "miEspacio": "Mi espacio",
+  "salir": "Salir",
+  "pie": {
+    "aviso": "Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor, donde completas la reserva.",
+    "contactoIntro": "¿Algo no funciona o tienes una duda? Escríbenos a",
+    "contactoOPor": "o por",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Enlaces del sitio"
+  }
+}

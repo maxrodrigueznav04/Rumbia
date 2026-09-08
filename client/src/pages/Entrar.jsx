@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { despertarServidor } from '../api/index.js';
 import useFormulario from '../hooks/useFormulario.js';
@@ -8,9 +9,10 @@ import { reglas } from '../utils/validacion.js';
 import { Boton, Campo, CampoPassword, Aviso } from '../components/ui.jsx';
 
 export default function Entrar() {
+  const { t } = useTranslation('auth');
   useMetaPagina({
-    titulo: 'Inicia sesión',
-    descripcion: 'Entra a tu cuenta de Rumbia para seguir planeando tus viajes.',
+    titulo: t('entrar.meta.titulo'),
+    descripcion: t('entrar.meta.descripcion'),
     ruta: '/entrar',
   });
 
@@ -45,18 +47,18 @@ export default function Entrar() {
             </span>
             Rumbia
           </div>
-          <h1 style={{ fontSize: '1.35rem' }}>Bienvenido de vuelta</h1>
-          <p>Tus viajes te están esperando.</p>
+          <h1 style={{ fontSize: '1.35rem' }}>{t('entrar.titulo')}</h1>
+          <p>{t('entrar.texto')}</p>
         </div>
 
         <form onSubmit={entrar} className="pila" noValidate>
           {sesionExpirada && !form.errorServidor && (
-            <Aviso tipo="alerta">Tu sesión expiró por seguridad. Entra de nuevo para continuar.</Aviso>
+            <Aviso tipo="alerta">{t('entrar.sesionExpirada')}</Aviso>
           )}
           {form.errorServidor && <Aviso tipo="error">{form.errorServidor.mensaje}</Aviso>}
 
           <Campo
-            label="Email"
+            label={t('entrar.email')}
             type="email"
             autoComplete="email"
             placeholder="tu@email.com"
@@ -65,27 +67,27 @@ export default function Entrar() {
           />
 
           <CampoPassword
-            label="Contraseña"
+            label={t('entrar.contrasena')}
             autoComplete="current-password"
             placeholder="••••••••"
             {...form.props('password')}
           />
 
           <Boton type="submit" ancho cargando={form.enviando}>
-            {form.enviando ? 'Entrando...' : 'Entrar'}
+            {form.enviando ? t('entrar.entrando') : t('entrar.entrar')}
           </Boton>
         </form>
 
         <p className="auth-pie" style={{ marginBottom: 0 }}>
-          <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
+          <Link to="/recuperar">{t('entrar.olvidasteContrasena')}</Link>
         </p>
 
         <p className="auth-pie">
-          ¿No tienes cuenta? <Link to="/registro">Crea una gratis</Link>
+          {t('entrar.noTienesCuenta')} <Link to="/registro">{t('entrar.creaUnaGratis')}</Link>
         </p>
 
         <div className="demo-caja">
-          <strong>Cuenta de demostración</strong>
+          <strong>{t('entrar.cuentaDemo')}</strong>
           <div style={{ marginTop: 4 }}>
             <code>demo@rumbo.app</code> / <code>demo1234</code>
           </div>
@@ -99,7 +101,7 @@ export default function Entrar() {
               form.fijar('password', 'demo1234');
             }}
           >
-            Llenar con la cuenta demo
+            {t('entrar.llenarDemo')}
           </Boton>
         </div>
       </div>

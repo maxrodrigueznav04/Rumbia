@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Aviso, Cargando } from '../components/ui.jsx';
@@ -13,6 +14,7 @@ import { Aviso, Cargando } from '../components/ui.jsx';
  * abrirlo desde el teléfono sin haber iniciado sesión ahí).
  */
 export default function VerificarCorreo() {
+  const { t } = useTranslation('auth');
   const { token } = useParams();
   const { actualizarUsuario } = useAuth();
   const [estado, setEstado] = useState('cargando'); // cargando | exito | error
@@ -56,19 +58,16 @@ export default function VerificarCorreo() {
             </span>
             Rumbia
           </div>
-          <h1 style={{ fontSize: '1.35rem' }}>Verificar tu correo</h1>
+          <h1 style={{ fontSize: '1.35rem' }}>{t('verificarCorreo.titulo')}</h1>
         </div>
 
-        {estado === 'cargando' && <Cargando texto="Verificando..." />}
+        {estado === 'cargando' && <Cargando texto={t('verificarCorreo.verificando')} />}
 
         {estado === 'exito' && (
           <>
-            <Aviso tipo="exito">
-              Tu correo quedó verificado. Ya puedes generar itinerarios con IA, usar el chat y crear
-              una agencia.
-            </Aviso>
+            <Aviso tipo="exito">{t('verificarCorreo.exito')}</Aviso>
             <p className="auth-pie">
-              <Link to="/viajes">Ir a mis viajes</Link>
+              <Link to="/viajes">{t('verificarCorreo.irAMisViajes')}</Link>
             </p>
           </>
         )}
@@ -77,8 +76,8 @@ export default function VerificarCorreo() {
           <>
             <Aviso tipo="error">{mensaje}</Aviso>
             <p className="auth-pie">
-              Inicia sesión y pide un enlace nuevo desde el aviso en la parte de arriba, o{' '}
-              <Link to="/entrar">vuelve a iniciar sesión</Link>.
+              {t('verificarCorreo.errorIntro')}{' '}
+              <Link to="/entrar">{t('verificarCorreo.volverAIniciar')}</Link>.
             </p>
           </>
         )}

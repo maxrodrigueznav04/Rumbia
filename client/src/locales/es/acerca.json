@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "titulo": "Acerca de",
+    "descripcion": "Qué es Rumbia, cómo ayuda a viajeros y agencias a planear viajes completos, y cuánto cuesta."
+  },
+  "nav": {
+    "irAMisViajes": "Ir a mis viajes"
+  },
+  "hero": {
+    "insignia": "La plataforma moderna de viajes",
+    "titulo": "Planea viajes extraordinarios con claridad, control y profesionalismo",
+    "texto": "Desde tu próxima escapada personal hasta la gestión comercial de clientes para agencias de viajes. Olvídate de las hojas de cálculo caóticas, notas dispersas y cotizaciones interminables.",
+    "crearViaje": "Crear un nuevo viaje",
+    "comenzarGratis": "Comenzar gratis",
+    "probarSinCuenta": "Probar generador sin cuenta"
+  },
+  "dosMundos": {
+    "etiqueta": "Modelos de uso",
+    "titulo": "Diseñado para viajeros y construido para agencias",
+    "texto": "Dos experiencias perfectamente adaptadas. Conoce las capacidades y condiciones de cada perfil:",
+    "viajeros": {
+      "titulo": "Para Viajeros",
+      "insignia": "100% Gratuito",
+      "texto": "Ideal para planear tus vacaciones, escapadas en pareja o viajes en grupo con amigos:",
+      "puntos": [
+        { "fuerte": "Cálculo en vivo de costos", "texto": "Suma transporte, hospedaje, comidas y gastos sueltos en un presupuesto unificado." },
+        { "fuerte": "Itinerarios asistidos", "texto": "Propuestas de actividades día por día adaptadas a tus intereses y ritmo preferido." },
+        { "fuerte": "Clima y mapas", "texto": "Pronóstico meteorológico y visualización de tus destinos directo en el celular." },
+        { "fuerte": "Enlaces directos de reserva", "texto": "Sal a Skyscanner, Booking o Airbnb con tus fechas y destino prellenados." }
+      ],
+      "limites": {
+        "titulo": "Límites del plan personal",
+        "itinerarios": "5 itinerarios inteligentes por mes",
+        "itinerariosNota": "(recarga cada día 1).",
+        "chat": "60 consultas al asistente virtual por mes.",
+        "sinLimite": "Viajes guardados, notas, gastos y cálculos manuales sin ningún límite."
+      }
+    },
+    "agencias": {
+      "titulo": "Para Agencias",
+      "insignia": "Desde $190 MXN/mes",
+      "texto": "Herramientas de nivel profesional para armar cotizaciones, cerrar clientes y operar en equipo:",
+      "puntos": [
+        { "fuerte": "Márgenes comerciales automáticos", "texto": "Aplica comisiones fijas o porcentuales y calcula tu ganancia en automático." },
+        { "fuerte": "PDF con tu propia marca", "texto": "Sube tu logo, nombre y contacto; se imprimen en el membrete oficial del cliente." },
+        { "fuerte": "Privacidad comercial en cotizaciones", "texto": "Elige si muestras el desglose o solo el precio total cerrado por persona, y si el cliente ve o no los códigos de confirmación y notas internas de cada reservación." },
+        { "fuerte": "Variantes en 1 clic", "texto": "Duplica propuestas para presentar opciones (ej. Económica vs. Premium) sin retrabajo." },
+        { "fuerte": "Seguimiento de tu embudo de ventas", "texto": "Cada propuesta pasa de enviada a aceptada a pagada; tu cliente puede aceptarla con un clic desde el mismo enlace que le compartes, y te avisamos por correo en cuanto lo hace." }
+      ],
+      "resumen": {
+        "titulo": "Planes Inicio, Agencia y Pro",
+        "texto": "De 1 a 15 agentes · Hasta 500 itinerarios inteligentes · Ahorro anual",
+        "verPlanes": "Ver planes ↓"
+      }
+    }
+  },
+  "simulador": {
+    "etiqueta": "Simulador interactivo",
+    "titulo": "Así se ve una propuesta para tu cliente",
+    "texto": "Prueba el interruptor para ver cómo cambia la vista entre el desglose interno y la cotización para el cliente:",
+    "soloTotal": "Solo Precio Total (Cliente)",
+    "desgloseCompleto": "Desglose Completo (Interno)",
+    "demo": {
+      "agencia": "Viajes del Sur Boutique",
+      "contacto": "contacto@viajesdelsur.mx · Tel. (55) 8421-9900",
+      "insignia": "Propuesta Comercial",
+      "cliente": "Cliente: Familia González (2 viajeros)",
+      "vuelos": "Vuelos redondos (CDMX ➔ Oaxaca)",
+      "hotel": "Hotel Casa Santo Origen (4 noches)",
+      "transporte": "Transporte local y traslados privados",
+      "actividades": "Actividades guiadas y catas",
+      "cuotaServicio": "Cuota de servicio y gestión de agencia (+15%)",
+      "incluye": "Incluye vuelos redondos, 4 noches de hospedaje boutique, traslados privados, tours culturales y asistencia personalizada durante todo el itinerario.",
+      "tarifaPreferencial": "Tarifa preferencial cerrada con impuestos incluidos",
+      "precioFinal": "Precio final por persona",
+      "totalViaje": "Total del viaje (2 personas): $42,090 MXN"
+    },
+    "ayuda": "💡 En Rumbia puedes cambiar de un modo a otro con un solo interruptor en la configuración del viaje."
+  },
+  "planes": {
+    "etiqueta": "Transparencia comercial",
+    "titulo": "Planes transparentes para Agencias",
+    "texto": "Elige la modalidad de pago que mejor se ajuste a tu operación. Sin contratos forzosos ni comisiones ocultas:",
+    "pagoMensual": "Pago Mensual",
+    "pagoAnual": "Pago Anual",
+    "ahorra": "Ahorra 1.5 meses",
+    "pesos": "Pesos (MXN)",
+    "dolares": "Dólares (USD)",
+    "alMes": "al mes",
+    "alAnio": "al año (10.5 meses)",
+    "inicio": {
+      "nombre": "Inicio / Solo",
+      "texto": "Para asesores independientes y pequeños equipos que inician.",
+      "agentes": "De 1 a 3 agentes incluidos",
+      "puntos": [
+        "**25 itinerarios inteligentes** al mes",
+        "60 consultas al asistente virtual por mes",
+        "Viajes y gastos manuales ilimitados",
+        "Cálculos automáticos de vuelos y hoteles",
+        "Conversión de divisas y pronóstico del clima",
+        "PDF con datos de contacto del asesor",
+        "Enlace interactivo vía WhatsApp"
+      ],
+      "elegir": "Elegir Inicio"
+    },
+    "agencia": {
+      "nombre": "Agencia",
+      "masPopular": "Más Popular",
+      "texto": "Para agencias de viajes en crecimiento que buscan estandarizar sus ventas.",
+      "agentes": "De 4 a 8 agentes incluidos",
+      "puntos": [
+        "**150 itinerarios inteligentes** al mes",
+        "**Asistente virtual de chat ilimitado**",
+        "**Logo, membrete y color de acento propio** en el PDF",
+        "**Tipografía y tamaño de texto** personalizables en el PDF",
+        "**Marca blanca** (sin pie de Rumbia)",
+        "**Margen comercial automático** (% o monto fijo)",
+        "**Ocultar desglose de precios** (precio cerrado al cliente)",
+        "**Reporte mensual de productividad** por agente",
+        "**Duplicar propuestas** en 1 clic",
+        "Banco común de **plantillas compartidas**"
+      ],
+      "elegir": "Elegir Agencia"
+    },
+    "pro": {
+      "nombre": "Agencia Pro",
+      "texto": "Para agencias consolidadas con alto volumen y equipo extendido.",
+      "agentes": "Hasta 15 agentes incluidos",
+      "puntos": [
+        "**500 itinerarios inteligentes** al mes",
+        "**Todo lo del plan Agencia** (marca blanca y color propio incluidos)",
+        "**Soporte prioritario** directo vía WhatsApp",
+        "Asistente virtual de chat ilimitado",
+        "Reportes avanzados de ventas y cotizaciones"
+      ],
+      "elegir": "Elegir Agencia Pro"
+    },
+    "avisoStripe": "🔒 Pagos procesados de forma 100% segura y encriptada por Stripe. Cancela o cambia de plan en cualquier momento."
+  },
+  "finanzas": {
+    "calculos": {
+      "titulo": "Cálculos en Vivo y Divisas",
+      "texto": "Rumbia suma y convierte tus costos automáticamente en tiempo real:",
+      "puntos": [
+        { "fuerte": "Vuelos, trenes y autos", "texto": "Captura salidas, llegadas y claves de reserva." },
+        { "fuerte": "Hospedaje por parada", "texto": "Asigna hoteles a cada ciudad con cálculo automático por noche." },
+        { "fuerte": "Multi-divisa", "texto": "Registra en dólares, euros o moneda local; la app unifica el total." },
+        { "fuerte": "Selector por persona", "texto": "Mira cuánto cuesta el viaje por viajero individual o para el grupo." }
+      ]
+    },
+    "stripe": {
+      "titulo": "Pagos Seguros con Stripe",
+      "texto": "Transparencia financiera absoluta y sin sorpresas:",
+      "puntos": [
+        { "fuerte": "El único cobro en Rumbia", "texto": "La suscripción de agencia, gestionada de forma cifrada mediante Stripe (PCI Nivel 1)." },
+        { "fuerte": "Cero comisiones a viajeros", "texto": "No cobramos tarifas extras por planear tu viaje." },
+        { "fuerte": "Reservas directas", "texto": "Los enlaces te llevan a proveedores oficiales (Booking, Skyscanner, Airbnb) donde tú o tu cliente pagan sin intermediarios." }
+      ]
+    }
+  },
+  "ia": {
+    "titulo": "Asistencia Inteligente y Organización Total",
+    "texto": "Tecnología inteligente y algoritmos avanzados para optimizar cada paso de tu viaje.",
+    "itinerarios": { "titulo": "Itinerarios inteligentes", "texto": "Genera rutas día por día con actividades sugeridas, horarios, coordenadas para mapas y costos estimados." },
+    "edicion": { "titulo": "Edición drag-and-drop", "texto": "Reordena y mueve actividades entre días con ratón o gestos táctiles en móvil. Ajuste total a tu gusto." },
+    "chatbot": { "titulo": "Chatbot contextual", "texto": "Asistente flotante que conoce los detalles de tu viaje: pregúntale rutas, clima o sugerencias y te responde al instante, con conocimiento general de IA — no es una consulta en vivo a proveedores, así que confirma precios y disponibilidad en un comparador real." }
+  },
+  "crm": {
+    "titulo": "Organiza tu trabajo, no lo repitas",
+    "texto": "Para cuando ya no se trata de un viaje suelto, sino de varios clientes y propuestas al mismo tiempo.",
+    "clientes": { "titulo": "Clientes (CRM básico)", "texto": "Guarda contacto y notas de cada cliente, vincúlalo a sus viajes y cotizaciones, y búscalo cuando vuelva a pedirte algo." },
+    "plantillas": { "titulo": "Plantillas reutilizables", "texto": "Arma un itinerario tipo una vez (\"Cancún todo incluido\", \"Ruta por Europa\") y aplícalo a cada cliente nuevo en vez de empezar de cero." },
+    "multiDestino": { "titulo": "Viajes multi-destino", "texto": "Suma paradas adicionales a un mismo viaje, cada una con sus fechas, clima e itinerario propio." }
+  },
+  "cta": {
+    "titulo": "Comienza a planear con Rumbia hoy mismo",
+    "texto": "Prueba un itinerario generado por IA gratis y sin crear cuenta, o regístrate para tener control total de tus viajes y cotizaciones.",
+    "irAMisViajes": "Ir a mis viajes",
+    "crearCuentaGratis": "Crear cuenta gratis",
+    "generarSinCuenta": "Generar itinerario sin cuenta"
+  },
+  "pie": {
+    "aviso": "Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.",
+    "contactoIntro": "¿Dudas, algo no funciona, o quieres hablar con nosotros? Escríbenos a",
+    "contactoOPor": "o por",
+    "whatsapp": "WhatsApp",
+    "ariaEnlaces": "Enlaces del sitio"
+  }
+}
