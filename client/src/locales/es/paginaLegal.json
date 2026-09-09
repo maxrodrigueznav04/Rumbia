@@ -1,0 +1,11 @@
+{
+  "volverAMisViajes": "Volver a mis viajes",
+  "irAEntrar": "Ir a entrar",
+  "etiqueta": "Documento legal",
+  "ultimaActualizacion": "Última actualización: {{fecha}}",
+  "faltanDatos": {
+    "titulo": "Falta completar los datos de contacto",
+    "texto": "Este documento todavía trae marcadores en el nombre del responsable, el domicilio o el correo de contacto. Hay que sustituirlos en <code>client/src/config/legal.js</code> antes de publicarlo."
+  },
+  "enlacesDelSitio": "Enlaces del sitio"
+}

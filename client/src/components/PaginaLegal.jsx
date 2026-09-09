@@ -1,7 +1,9 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Aviso } from './ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
+import { formatoFecha } from '../utils/format.js';
 import { ULTIMA_ACTUALIZACION, FALTAN_DATOS } from '../config/legal.js';
 
 /**
@@ -12,6 +14,7 @@ import { ULTIMA_ACTUALIZACION, FALTAN_DATOS } from '../config/legal.js';
  * Por eso traen su propio encabezado en lugar de la navegación de la app.
  */
 export default function PaginaLegal({ titulo, entrada, children }) {
+  const { t } = useTranslation(['paginaLegal', 'comun']);
   const { autenticado } = useAuth();
   const { pathname } = useLocation();
   useMetaPagina({ titulo, descripcion: entrada, ruta: pathname });
@@ -27,21 +30,21 @@ export default function PaginaLegal({ titulo, entrada, children }) {
             Rumbia
           </Link>
           <Link to={autenticado ? '/viajes' : '/entrar'} className="volver">
-            {autenticado ? 'Volver a mis viajes' : 'Ir a entrar'}
+            {autenticado ? t('paginaLegal:volverAMisViajes') : t('paginaLegal:irAEntrar')}
           </Link>
         </div>
       </header>
 
       <main className="contenedor legal-cuerpo">
-        <span className="etiqueta">Documento legal</span>
+        <span className="etiqueta">{t('paginaLegal:etiqueta')}</span>
         <h1>{titulo}</h1>
-        <p className="tenue">Última actualización: {ULTIMA_ACTUALIZACION}</p>
+        <p className="tenue">
+          {t('paginaLegal:ultimaActualizacion', { fecha: formatoFecha(ULTIMA_ACTUALIZACION, { month: 'long' }) })}
+        </p>
 
         {FALTAN_DATOS && (
-          <Aviso tipo="alerta" titulo="Falta completar los datos de contacto">
-            Este documento todavía trae marcadores en el nombre del responsable, el domicilio o el
-            correo de contacto. Hay que sustituirlos en <code>client/src/config/legal.js</code>{' '}
-            antes de publicarlo.
+          <Aviso tipo="alerta" titulo={t('paginaLegal:faltanDatos.titulo')}>
+            <span dangerouslySetInnerHTML={{ __html: t('paginaLegal:faltanDatos.texto') }} />
           </Aviso>
         )}
 
@@ -49,11 +52,11 @@ export default function PaginaLegal({ titulo, entrada, children }) {
 
         <div className="prosa">{children}</div>
 
-        <nav className="legal-pie" aria-label="Enlaces del sitio">
-          <NavLink to="/acerca">Acerca de</NavLink>
-          <NavLink to="/privacidad">Política de privacidad</NavLink>
-          <NavLink to="/cookies">Cookies y rastreo</NavLink>
-          <NavLink to="/terminos">Términos y condiciones</NavLink>
+        <nav className="legal-pie" aria-label={t('paginaLegal:enlacesDelSitio')}>
+          <NavLink to="/acerca">{t('comun:piePagina.acercaDe')}</NavLink>
+          <NavLink to="/privacidad">{t('comun:piePagina.privacidad')}</NavLink>
+          <NavLink to="/cookies">{t('comun:piePagina.cookies')}</NavLink>
+          <NavLink to="/terminos">{t('comun:piePagina.terminos')}</NavLink>
         </nav>
       </main>
     </div>

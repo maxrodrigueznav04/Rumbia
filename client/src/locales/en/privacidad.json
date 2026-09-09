@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "titulo": "Privacy Policy",
+    "entrada": "Rumbia stores your trip information so we can plan it with you. This page explains what data is stored, who it's shared with, and how you can ask for it to be deleted. It's written to be understood, not to cover ourselves legally."
+  },
+  "resumen": {
+    "titulo": "The essentials, in three lines",
+    "puntos": [
+      "Your data is used to give you the service. It's never sold or used for advertising.",
+      "Rumbia doesn't charge commissions on your bookings; booking takes you to the official providers.",
+      "Agency subscription charges are processed securely through Stripe (PCI Level 1)."
+    ]
+  },
+  "s1": {
+    "titulo": "1. Who is responsible for your data",
+    "p1": "The party responsible for processing the personal data we collect is <strong>{{responsable}}</strong>, located at <strong>{{domicilio}}</strong>. For anything related to this policy you can write to <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong>.",
+    "p2": "Rumbia is a trip planning and quoting platform: it centralizes the information for your routes and proposals. <strong>It doesn't sell flights or lodging directly, doesn't process booking payments, and doesn't charge travel commissions to the user. Agency subscriptions are managed securely through Stripe.</strong>"
+  },
+  "s2": {
+    "titulo": "2. What data we collect",
+    "intro": "Only what you type into the app, plus what any server logs while operating.",
+    "cuenta": {
+      "titulo": "Your account data",
+      "items": [
+        "<strong>Name and email</strong>, to identify you and let you log in.",
+        "<strong>Password</strong>. It's never stored as-is: only its bcrypt hash is stored, and it's flagged in the database so it never appears in API responses. Not even we can read it.",
+        "<strong>Date of your last login.</strong>"
+      ]
+    },
+    "preferencias": {
+      "titulo": "Your travel preferences",
+      "items": [
+        "Travel styles you choose (up to five), preferred pace, and spending level.",
+        "Home city and the currency you work in."
+      ],
+      "nota": "These preferences exist so the itinerary the AI generates matches what you like. They're never used to segment you or show you ads."
+    },
+    "viajes": {
+      "titulo": "The trips you create",
+      "items": [
+        "Title, origin and destination (place name and its coordinates), dates, number of travelers, and trip status.",
+        "Budget and currency.",
+        "Outbound and return transportation: mode, airline or carrier, schedule, cost, and the booking reference if you choose to save it.",
+        "Lodging: name, area, check-in and check-out dates, number of nights, and total cost.",
+        "Local transportation at the destination and any notes you write in any of these sections."
+      ]
+    },
+    "itinerariosGastos": {
+      "titulo": "Itineraries and expenses",
+      "items": [
+        "The itinerary's days and activities: title, description, category, place with its coordinates, estimated cost, and duration.",
+        "The expenses you record: category, description, amount, currency, date, whether it's already paid, and your notes."
+      ]
+    },
+    "medicionEnlaces": {
+      "titulo": "Measuring outbound links",
+      "p1": "When you click a booking link, we record the fact that it was clicked, to know which providers work well for people. Only <strong>the provider's name, the section, the trip's destination, and the date</strong> are stored.",
+      "p2": "<strong>That record is anonymous and can't be linked to you:</strong> we don't store your user, your IP address, your browser, or any cookie or identifier. There's no way to reconstruct who clicked what from it. It's kept for 180 days and then deleted automatically."
+    },
+    "datosTecnicos": {
+      "titulo": "Technical data",
+      "p1": "Rumbia doesn't use Google Analytics or any third-party analytics tool: the measurement above is our own and lives in our database. The services hosting the app (Render and Cloudflare) automatically log technical data typical of any web server — such as IP address, browser, and the date and time of each request — to operate and detect abuse. That logging is done by them under their own policies."
+    }
+  },
+  "s3": {
+    "titulo": "3. What we use your data for",
+    "p1": "To provide the service you signed up for, and nothing else. Specifically: keeping your session open, saving and showing you your trips, generating AI-assisted itineraries from what you entered, calculating your budget, showing you the destination's estimated weather, and building the search links to providers.",
+    "p2": "<strong>We don't sell your data, we don't rent it out, and we don't use it for</strong> targeted advertising. We also don't build commercial profiles of you."
+  },
+  "s4": {
+    "titulo": "4. Who it's shared with",
+    "intro": "Rumbia relies on third-party services to work. Here's exactly what each one receives:",
+    "gemini": {
+      "titulo": "Google (Gemini) — itinerary generation and the assistant chat",
+      "p1": "When you ask to generate an itinerary, the <strong>destination, dates, number of days and travelers, your interests, pace, budget or spending level, and any extra notes you wrote</strong> are sent to the Gemini API for that generation.",
+      "p2": "The virtual assistant chat (built for the agent, not your end client) also sends the <strong>trip title and a summary of what's already captured</strong> (destination, dates, lodging, transportation) as context, plus the <strong>text of each message you write</strong> in the conversation.",
+      "p3": "<strong>Your name, email, or any account identifier are never sent.</strong> Keep in mind, though, that both the extra notes and the chat messages are free text: whatever you write there gets sent as-is, so avoid putting personal data (yours or your clients') you don't want to share — not even in the trip title."
+    },
+    "clima": {
+      "titulo": "OpenWeatherMap — destination weather",
+      "p1": "Receives the <strong>destination's name or its coordinates</strong> to return the forecast. It receives nothing that identifies you."
+    },
+    "stripe": {
+      "titulo": "Stripe — agency billing and subscriptions",
+      "p1": "For agency accounts with paid plans, charges are handled securely through <strong>Stripe (PCI Level 1 certified)</strong>. Rumbia never stores or has access to full card numbers or security codes (CVC)."
+    },
+    "infra": {
+      "titulo": "MongoDB Atlas, Render, and Cloudflare — infrastructure",
+      "p1": "The database is hosted on MongoDB Atlas; the API runs on Render and the interface on Cloudflare Workers. They store and process information on our behalf so the app can run."
+    },
+    "resend": {
+      "titulo": "Resend — account emails",
+      "p1": "When you request a password reset, confirm your email when signing up, or when your client accepts a proposal you shared, the email is sent through Resend. It receives your <strong>email address and your name</strong>, solely to deliver that message."
+    },
+    "cloudinary": {
+      "titulo": "Cloudinary — your brand's or agency's logo",
+      "p1": "If you upload a logo (personal or for your agency) to show on your PDFs, the image is stored on Cloudinary. It receives no other data about you — only the file you uploaded."
+    },
+    "clientesCrm": {
+      "titulo": "Clients you enter (basic CRM)",
+      "p1": "If you use the clients section to keep track of who you're building a trip for, you store <strong>name, email, phone, source, and notes</strong> for that person — not your own account, but a third party you're providing the service to. That data isn't shared with Gemini, OpenWeatherMap, or any of the providers that build booking links: it lives only in Rumbia, visible to you (and, if you belong to an agency, to your team). For that data, you or your agency decides what gets stored and why — Rumbia acts as the data processor, not the controller of your clients' data."
+    },
+    "registroAgencia": {
+      "titulo": "Agency sensitive-action log",
+      "p1": "If you belong to an agency, certain actions (removing an agent, regenerating the invite code, deleting the agency) get logged with who did it, when, and what happened — including your <strong>name and email</strong> as the person who did it. Only your own agency's owner can see it, and it's kept for one year."
+    },
+    "afiliados": {
+      "titulo": "Booking links and affiliate programs",
+      "p1": "Rumbia builds search links to providers like Skyscanner, Google Flights, Kayak, Rome2Rio, Busbud, Booking.com, Airbnb, Hostelworld, DiscoverCars, Uber, DiDi, and Moovit. Those links carry only <strong>trip data in their address: origin, destination, dates, and number of travelers</strong>.",
+      "p2": "<strong>Your name, email, or user identifier never travel in those addresses.</strong>",
+      "p3": "Rumbia may participate in affiliate programs, which means some of those links could carry an affiliate identifier. If you make a booking after clicking, the provider may pay us a commission, <strong>at no extra cost to you</strong>. That identifier signals which site you came from, not who you are. When a link does carry that identifier, it's marked as such on screen; the details of what happens when you click are in the <a href=\"/cookies\">cookies and tracking notice</a>."
+    }
+  },
+  "s5": {
+    "titulo": "5. How long data is kept and how it's deleted",
+    "p1": "Your data is kept for as long as your account exists. There's no automatic deletion by age.",
+    "items": [
+      "<strong>Deleting a trip</strong> also deletes, in the same operation, its full itinerary and all associated expenses. Deletion is immediate and irreversible: there's no trash bin.",
+      "<strong>Deleting an activity or a day</strong> from the itinerary removes it from the database.",
+      "<strong>To delete your entire account</strong>, go to <em>Profile</em> and use \"Delete my account.\" We ask for your password to confirm. Your account and all your trips, itineraries, and expenses are deleted immediately: no copy remains and there's no way to recover them. If you'd rather request it in writing, you can also write to <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong>."
+    ],
+    "notaBackup": "After deletion, data may remain for a limited time in our database provider's backup copies until those are rotated out."
+  },
+  "s6": {
+    "titulo": "6. Your data protection rights",
+    "p1": "Under Mexico's Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP), you have the right to:",
+    "items": [
+      "<strong>Access:</strong> know what data of yours we have and what we use it for.",
+      "<strong>Rectification:</strong> correct it if it's wrong or incomplete. You can edit your name and preferences yourself from <em>Profile</em>. To correct your email, write to us at <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong> from the account you registered with.",
+      "<strong>Cancellation:</strong> ask for it to be deleted. You can do this yourself from <em>Profile → Delete my account</em>.",
+      "<strong>Objection:</strong> ask us to stop using it for a specific purpose."
+    ],
+    "p2": "To exercise any of these, write to <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong> from the email you registered with, stating which right you want to exercise. We'll reply to the address you write from."
+  },
+  "s7": {
+    "titulo": "7. How we protect your information",
+    "p1": "These are the measures the app applies today:",
+    "items": [
+      "Passwords are stored as a bcrypt hash, never as readable text.",
+      "The session uses a signed JWT token with an expiration date.",
+      "All traffic between your browser, the API, and the database travels over HTTPS.",
+      "The API only accepts requests from the app's domain and limits the number of login attempts and AI generations.",
+      "Every request checks that the trip you're asking for is actually yours before returning it."
+    ],
+    "p2": "The session token is stored in an <code>httpOnly</code> cookie: not even this app's own code can read its contents — only the browser uses it to talk to our server. Even so, someone with physical access to your unlocked device could use the session you left open. Log out if you're using a shared computer.",
+    "p3": "No system is completely foolproof, and we can't guarantee absolute security."
+  },
+  "s8": {
+    "titulo": "8. Minors",
+    "p1": "Rumbia isn't directed at anyone under 18, and we don't knowingly collect data from minors. If we detect an account belonging to a minor, we'll delete it. If you're a parent or guardian and believe a minor in your care created an account, write to us at <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong> and we'll delete it."
+  },
+  "s9": {
+    "titulo": "9. Changes to this policy",
+    "p1": "If the way we handle data changes, we'll update this page and the \"last updated\" date shown above. When the change is significant — for example, if a new third party is added that receives data — we'll also notify you within the app. We recommend checking back from time to time."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "titulo": "Cookies y rastreo",
+    "entrada": "Resumen corto: Rumbia usa una sola cookie propia, técnica y necesaria para mantener tu sesión iniciada — nada de rastreo ni publicidad. Pero los sitios de reserva a los que te mandamos sí usan las suyas, y eso conviene que lo sepas antes de dar clic."
+  },
+  "resumen": {
+    "titulo": "Lo esencial, en tres líneas",
+    "puntos": [
+      "La única cookie que instalamos es la de tu sesión — ninguna de analítica ni publicidad.",
+      "Es técnica y necesaria: por eso no hace falta pedirte consentimiento para ella.",
+      "Al salir por un enlace de reserva entras a las reglas del proveedor, no a las nuestras."
+    ]
+  },
+  "s1": {
+    "titulo": "1. La única cookie que instalamos: la de tu sesión",
+    "p1": "Rumbia coloca una sola cookie propia, <code>rumbia_token</code>, para mantener tu sesión iniciada sin que tengas que escribir tu contraseña en cada pantalla. Es una cookie <strong>técnica y estrictamente necesaria</strong>: no rastrea tu actividad, no identifica tus visitas a otros sitios y no se usa para publicidad. Además es <code>httpOnly</code>, lo que significa que ni siquiera el propio código de esta aplicación puede leer su contenido — solo la usa el navegador, en automático, para hablar con nuestro servidor.",
+    "p2": "Por ser de ese tipo (esencial para que el servicio funcione), la mayoría de las leyes de privacidad no exige pedir tu consentimiento para ella — por eso no verás en esta aplicación un banner de cookies. Tampoco usamos Google Analytics, píxeles de redes sociales ni ninguna herramienta de publicidad.",
+    "p3": "Sí contamos los clics en los enlaces de reserva, con una medición propia y <strong>sin cookies ni identificadores</strong>: se registra el proveedor, la sección y el destino, nunca quién pulsó. El detalle está en la <a href=\"/privacidad\">política de privacidad</a>."
+  },
+  "s2": {
+    "titulo": "2. Qué más guardamos en tu navegador y por qué",
+    "p1": "Aparte de la cookie de sesión, guardamos dos datos sueltos en el <strong>almacenamiento local</strong> (<code>localStorage</code>) de tu navegador:",
+    "items": [
+      "<code>rumbia_tuvo_sesion</code> — no es un dato sensible ni sirve para identificarte: solo recuerda que este navegador inició sesión alguna vez, para poder avisarte \"tu sesión expiró\" en vez de mandarte al login sin explicación. Por sí solo no permite entrar a ningún lado.",
+      "<code>rumbia-tema</code> — si elegiste modo claro u oscuro a mano (en vez de seguir el de tu sistema), para recordarlo en tu próxima visita. No dice nada de ti, solo la preferencia."
+    ],
+    "p2": "A diferencia de la cookie de sesión, estos datos <strong>no se envían solos</strong> con cada petición ni pueden ser leídos por otros sitios: solo los usa esta aplicación, en tu propio navegador.",
+    "p3": "<strong>Cómo eliminarlos:</strong> al cerrar sesión desde el menú, se borran al instante (y la cookie de sesión se cancela también del lado del servidor). También puedes borrarlos desde tu navegador, en las opciones de \"borrar datos del sitio\". Si lo haces, simplemente tendrás que volver a iniciar sesión."
+  },
+  "s3": {
+    "titulo": "3. Los enlaces de reserva sí llevan a sitios que rastrean",
+    "p1": "Rumbia no vende vuelos ni hospedaje. Lo que hace es armar el enlace de búsqueda ya lleno con los datos de tu viaje y mandarte al sitio del proveedor —Skyscanner, Booking.com, Airbnb, Kayak, Rome2Rio, Busbud, Hostelworld, DiscoverCars, Uber, DiDi, Moovit y similares.",
+    "p2": "<strong>Al hacer clic en uno de esos enlaces sales de Rumbia y entras a un sitio de terceros, con sus propias reglas de privacidad y sus propias cookies.</strong> Esos sitios pueden colocar cookies de sesión, de preferencias, de análisis y de publicidad en tu navegador. Eso ocurre fuera de nuestro control y no tenemos forma de verlo, desactivarlo ni consultarlo.",
+    "p3": "Si quieres saber qué hace cada uno con tus datos, revisa la política de privacidad del proveedor en cuestión antes de continuar."
+  },
+  "s4": {
+    "titulo": "4. Programas de afiliados",
+    "p1": "Rumbia podrá participar en programas de afiliados. En la práctica esto significa que algunos de los enlaces de reserva podrían llevar un identificador que indica que la visita vino de Rumbia. Cuando eso pase, el enlace se marca como \"Afiliado\" en pantalla.",
+    "intro": "Cuando das clic en uno de esos enlaces:",
+    "items": [
+      "La red de afiliados puede colocar una cookie en tu navegador para reconocer que llegaste desde aquí, normalmente durante un periodo limitado.",
+      "Si terminas reservando, el proveedor puede pagarnos una comisión. <strong>Nunca supone un costo extra para ti</strong>, ni cambia el precio que te ofrecen.",
+      "Ese identificador dice de dónde vienes, <strong>no quién eres</strong>: en la dirección del enlace solo viajan datos del viaje (origen, destino, fechas y número de viajeros), nunca tu nombre, tu correo ni tu identificador de cuenta."
+    ],
+    "p2": "Las cookies que coloque la red de afiliados o el proveedor las controlas desde tu navegador, igual que las de cualquier otro sitio: puedes bloquear cookies de terceros o borrarlas cuando quieras. Bloquearlas no afecta el funcionamiento de Rumbia."
+  },
+  "s5": {
+    "titulo": "5. Preguntas",
+    "p1": "Si algo de esto no queda claro o quieres saber exactamente qué se envía en un enlace concreto, escríbenos a <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong>. También puedes revisar la <a href=\"/privacidad\">política de privacidad</a>, donde está el detalle de qué datos se guardan y con quién se comparten."
+  }
+}

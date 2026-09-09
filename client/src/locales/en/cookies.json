@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "titulo": "Cookies & Tracking",
+    "entrada": "Short version: Rumbia uses a single cookie of its own, technical and necessary to keep you logged in — no tracking, no ads. But the booking sites we send you to do use their own, and it's worth knowing before you click."
+  },
+  "resumen": {
+    "titulo": "The essentials, in three lines",
+    "puntos": [
+      "The only cookie we set is your session one — none for analytics or advertising.",
+      "It's technical and necessary: that's why we don't need to ask your consent for it.",
+      "Clicking a booking link takes you into the provider's rules, not ours."
+    ]
+  },
+  "s1": {
+    "titulo": "1. The only cookie we set: your session",
+    "p1": "Rumbia sets a single cookie of its own, <code>rumbia_token</code>, to keep you logged in without typing your password on every screen. It's a <strong>technical, strictly necessary</strong> cookie: it doesn't track your activity, doesn't identify your visits to other sites, and isn't used for advertising. It's also <code>httpOnly</code>, meaning not even this app's own code can read its contents — only the browser uses it, automatically, to talk to our server.",
+    "p2": "Because it's that type (essential for the service to work), most privacy laws don't require asking your consent for it — that's why you won't see a cookie banner in this app. We also don't use Google Analytics, social media pixels, or any advertising tool.",
+    "p3": "We do count clicks on booking links, with our own measurement and <strong>no cookies or identifiers</strong>: we log the provider, the section, and the destination, never who clicked. The details are in the <a href=\"/privacidad\">privacy policy</a>."
+  },
+  "s2": {
+    "titulo": "2. What else we store in your browser, and why",
+    "p1": "Besides the session cookie, we store two loose pieces of data in your browser's <strong>local storage</strong> (<code>localStorage</code>):",
+    "items": [
+      "<code>rumbia_tuvo_sesion</code> — not sensitive data and can't identify you: it just remembers that this browser has logged in before, so we can tell you \"your session expired\" instead of sending you to the login with no explanation. On its own it doesn't let anyone into anything.",
+      "<code>rumbia-tema</code> — if you picked light or dark mode by hand (instead of following your system's), to remember it on your next visit. It says nothing about you, just the preference."
+    ],
+    "p2": "Unlike the session cookie, this data <strong>isn't sent automatically</strong> with every request and can't be read by other sites: only this app uses it, in your own browser.",
+    "p3": "<strong>How to delete them:</strong> logging out from the menu clears them instantly (and the session cookie is also canceled on the server side). You can also delete them from your browser's \"clear site data\" options. If you do, you'll simply need to log in again."
+  },
+  "s3": {
+    "titulo": "3. Booking links do lead to sites that track",
+    "p1": "Rumbia doesn't sell flights or lodging. What it does is build the search link already filled with your trip's data and send you to the provider's site —Skyscanner, Booking.com, Airbnb, Kayak, Rome2Rio, Busbud, Hostelworld, DiscoverCars, Uber, DiDi, Moovit, and similar.",
+    "p2": "<strong>Clicking one of those links takes you out of Rumbia and into a third-party site, with its own privacy rules and its own cookies.</strong> Those sites may set session, preference, analytics, and advertising cookies in your browser. That happens outside our control, and we have no way to see it, disable it, or query it.",
+    "p3": "If you want to know what each one does with your data, check that provider's own privacy policy before continuing."
+  },
+  "s4": {
+    "titulo": "4. Affiliate programs",
+    "p1": "Rumbia may participate in affiliate programs. In practice this means some booking links could carry an identifier showing the visit came from Rumbia. When that happens, the link is marked \"Affiliate\" on screen.",
+    "intro": "When you click one of those links:",
+    "items": [
+      "The affiliate network may set a cookie in your browser to recognize that you arrived from here, usually for a limited period.",
+      "If you end up booking, the provider may pay us a commission. <strong>It's never an extra cost to you</strong>, nor does it change the price you're offered.",
+      "That identifier says where you came from, <strong>not who you are</strong>: only trip data travels in the link's address (origin, destination, dates, and number of travelers) — never your name, email, or account identifier."
+    ],
+    "p2": "You control the cookies the affiliate network or provider sets, same as with any other site: you can block third-party cookies or delete them whenever you want. Blocking them doesn't affect how Rumbia works."
+  },
+  "s5": {
+    "titulo": "5. Questions",
+    "p1": "If any of this isn't clear, or you want to know exactly what's sent in a specific link, write to us at <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong>. You can also check the <a href=\"/privacidad\">privacy policy</a>, which has the details of what data is stored and who it's shared with."
+  }
+}
