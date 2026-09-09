@@ -2043,7 +2043,12 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 
 @media print {
   @page {
-    size: A4 portrait;
+    /* Medidas explicitas de A4 (210mm x 297mm) en vez de la palabra clave
+       "A4 portrait": algunos motores de impresion (sobre todo en iOS/macOS)
+       ignoran o interpretan mal el orden size+orientation y terminan
+       imprimiendo horizontal pese al portrait pedido. Con el ancho y el
+       alto explicitos no hay ambiguedad posible sobre la orientacion. */
+    size: 210mm 297mm;
     margin: 12mm 12mm 14mm 12mm;
   }
 
