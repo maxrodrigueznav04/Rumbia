@@ -363,7 +363,7 @@ export const aceptarPropuesta = asyncHandler(async (req, res) => {
     { _id: itinerary.trip, estadoPropuesta: { $in: ['borrador', 'enviada'] } },
     { $set: { estadoPropuesta: 'aceptada', aceptacion } },
     { new: true }
-  ).populate({ path: 'user', select: 'name email' });
+  ).populate({ path: 'user', select: 'name email preferences.idioma' });
 
   if (!trip) {
     // No hizo match: o ya estaba aceptada (posible incluso por una peticion
@@ -390,6 +390,7 @@ export const aceptarPropuesta = asyncHandler(async (req, res) => {
       nombre: trip.user.name,
       viaje: trip.title,
       enlace,
+      idioma: trip.user.preferences?.idioma,
     });
     enviarCorreo({ para: trip.user.email, asunto, html, texto });
   }

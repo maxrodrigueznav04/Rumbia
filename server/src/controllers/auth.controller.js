@@ -46,13 +46,14 @@ const HASH_SENUELO = bcrypt.hashSync('nadie-tiene-esta-contrasena', 12);
  * tanto register() como resendVerification() -- reenviar no es mas que
  * repetir esto con un token fresco, sin reinventar nada.
  */
-async function enviarVerificacionEmail(user) {
+async function enviarVerificacionEmail(user, idioma) {
   const token = crypto.randomBytes(32).toString('hex');
   const enlace = `${env.clientUrl}/verificar-correo/${token}`;
   const { asunto, html, texto } = correoVerificacion({
     nombre: user.name,
     enlace,
     horas: VERIFICAR_MINUTOS / 60,
+    idioma,
   });
 
   const salio = await enviarCorreo({ para: user.email, asunto, html, texto });
@@ -96,13 +97,13 @@ export const register = asyncHandler(async (req, res) => {
     name,
     email,
     password,
-    ...(perfilUso ? { preferences: { perfilUso } } : {}),
+    preferences: { ...(perfilUso ? { perfilUso } : {}), idioma: req.idioma },
     // Unico lugar que lo pone en false a proposito (ver el default en
     // User.js): toda cuenta NUEVA nace sin verificar.
     emailVerified: false,
   });
 
-  await enviarVerificacionEmail(user);
+  await enviarVerificacionEmail(user, req.idioma);
 
   setAuthCookie(res, user._id);
   res.status(201).json({
@@ -145,7 +146,7 @@ export const resendVerification = asyncHandler(async (req, res) => {
     return res.json({ success: true, message: 'Tu correo ya está verificado.' });
   }
 
-  await enviarVerificacionEmail(req.user);
+  await enviarVerificacionEmail(req.user, req.idioma);
   res.json({ success: true, message: 'Te enviamos un correo nuevo para verificar tu cuenta.' });
 });
 
@@ -257,6 +258,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     nombre: user.name,
     enlace,
     minutos: RESET_MINUTOS,
+    idioma: req.idioma,
   });
 
   const salio = await enviarCorreo({ para: user.email, asunto, html, texto });

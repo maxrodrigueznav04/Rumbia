@@ -75,10 +75,34 @@ export async function enviarCorreo({ para, asunto, html, texto }) {
 }
 
 /** Correo de recuperacion de contrasena. */
-export function correoRecuperacion({ nombre, enlace, minutos }) {
-  const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';
+export function correoRecuperacion({ nombre, enlace, minutos, idioma = 'es' }) {
+  const en = idioma === 'en';
+  const saludo = nombre ? `${en ? 'Hi' : 'Hola'} ${esc(nombre)}` : en ? 'Hi' : 'Hola';
+  const saludoPlano = nombre ? `${en ? 'Hi' : 'Hola'} ${nombre}` : en ? 'Hi' : 'Hola';
 
-  const html = `
+  const html = en
+    ? `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
+  <h1 style="font-size:19px;margin:0 0 12px">${saludo}, forgot your password?</h1>
+  <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
+    Click the button to choose a new one. The link works once and expires in ${minutos} minutes.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${esc(enlace)}" style="display:inline-block;background:#1F6F5C;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px">
+      Choose a new password
+    </a>
+  </p>
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0 0 8px">
+    If the button doesn't work, copy this address into your browser:
+  </p>
+  <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0 0 24px">${esc(enlace)}</p>
+  <hr style="border:none;border-top:1px solid #EFE6D3;margin:24px 0">
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0">
+    If you didn't request this, you can ignore this email: your password stays the same and no one has accessed your account.
+  </p>
+</div>`.trim()
+    : `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
   <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
   <h1 style="font-size:19px;margin:0 0 12px">${saludo}, ¿olvidaste tu contraseña?</h1>
@@ -100,26 +124,67 @@ export function correoRecuperacion({ nombre, enlace, minutos }) {
   </p>
 </div>`.trim();
 
-  const texto = [
-    `${nombre ? `Hola ${nombre}` : 'Hola'}, ¿olvidaste tu contraseña?`,
-    '',
-    `Abre esta dirección para elegir una nueva. Sirve una sola vez y caduca en ${minutos} minutos:`,
-    enlace,
-    '',
-    'Si no pediste esto, ignora el correo: tu contraseña sigue igual.',
-    '',
-    'Rumbia',
-  ].join('\n');
+  const texto = en
+    ? [
+        `${saludoPlano}, forgot your password?`,
+        '',
+        `Open this address to choose a new one. It works once and expires in ${minutos} minutes:`,
+        enlace,
+        '',
+        "If you didn't request this, ignore the email: your password stays the same.",
+        '',
+        'Rumbia',
+      ].join('\n')
+    : [
+        `${saludoPlano}, ¿olvidaste tu contraseña?`,
+        '',
+        `Abre esta dirección para elegir una nueva. Sirve una sola vez y caduca en ${minutos} minutos:`,
+        enlace,
+        '',
+        'Si no pediste esto, ignora el correo: tu contraseña sigue igual.',
+        '',
+        'Rumbia',
+      ].join('\n');
 
-  return { asunto: 'Recupera tu contraseña de Rumbia', html, texto };
+  return { asunto: en ? 'Reset your Rumbia password' : 'Recupera tu contraseña de Rumbia', html, texto };
 }
 
 /** Correo de verificacion de cuenta nueva. */
-export function correoVerificacion({ nombre, enlace, horas }) {
-  const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';
-  const plazo = horas === 24 ? '24 horas' : `${horas} horas`;
+export function correoVerificacion({ nombre, enlace, horas, idioma = 'es' }) {
+  const en = idioma === 'en';
+  const saludo = nombre ? `${en ? 'Hi' : 'Hola'} ${esc(nombre)}` : en ? 'Hi' : 'Hola';
+  const saludoPlano = nombre ? `${en ? 'Hi' : 'Hola'} ${nombre}` : en ? 'Hi' : 'Hola';
+  const plazo = en
+    ? horas === 24
+      ? '24 hours'
+      : `${horas} hours`
+    : horas === 24
+      ? '24 horas'
+      : `${horas} horas`;
 
-  const html = `
+  const html = en
+    ? `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
+  <h1 style="font-size:19px;margin:0 0 12px">${saludo}, confirm your email</h1>
+  <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
+    Click the button to activate your account. The link expires in ${plazo}.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${esc(enlace)}" style="display:inline-block;background:#1F6F5C;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px">
+      Confirm my email
+    </a>
+  </p>
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0 0 8px">
+    If the button doesn't work, copy this address into your browser:
+  </p>
+  <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0 0 24px">${esc(enlace)}</p>
+  <hr style="border:none;border-top:1px solid #EFE6D3;margin:24px 0">
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0">
+    If you didn't create an account on Rumbia, you can ignore this email.
+  </p>
+</div>`.trim()
+    : `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
   <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
   <h1 style="font-size:19px;margin:0 0 12px">${saludo}, confirma tu correo</h1>
@@ -141,25 +206,56 @@ export function correoVerificacion({ nombre, enlace, horas }) {
   </p>
 </div>`.trim();
 
-  const texto = [
-    `${nombre ? `Hola ${nombre}` : 'Hola'}, confirma tu correo`,
-    '',
-    `Abre esta dirección para activar tu cuenta. Caduca en ${plazo}:`,
-    enlace,
-    '',
-    'Si no creaste una cuenta en Rumbia, ignora este correo.',
-    '',
-    'Rumbia',
-  ].join('\n');
+  const texto = en
+    ? [
+        `${saludoPlano}, confirm your email`,
+        '',
+        `Open this address to activate your account. Expires in ${plazo}:`,
+        enlace,
+        '',
+        "If you didn't create an account on Rumbia, ignore this email.",
+        '',
+        'Rumbia',
+      ].join('\n')
+    : [
+        `${saludoPlano}, confirma tu correo`,
+        '',
+        `Abre esta dirección para activar tu cuenta. Caduca en ${plazo}:`,
+        enlace,
+        '',
+        'Si no creaste una cuenta en Rumbia, ignora este correo.',
+        '',
+        'Rumbia',
+      ].join('\n');
 
-  return { asunto: 'Confirma tu correo en Rumbia', html, texto };
+  return { asunto: en ? 'Confirm your email on Rumbia' : 'Confirma tu correo en Rumbia', html, texto };
 }
 
 /** Aviso al agente/dueño del viaje cuando el cliente acepta la propuesta desde el enlace público. */
-export function correoPropuestaAceptada({ nombre, viaje, enlace }) {
-  const saludo = nombre ? `Hola ${esc(nombre)}` : 'Hola';
+export function correoPropuestaAceptada({ nombre, viaje, enlace, idioma = 'es' }) {
+  const en = idioma === 'en';
+  const saludo = nombre ? `${en ? 'Hi' : 'Hola'} ${esc(nombre)}` : en ? 'Hi' : 'Hola';
+  const saludoPlano = nombre ? `${en ? 'Hi' : 'Hola'} ${nombre}` : en ? 'Hi' : 'Hola';
 
-  const html = `
+  const html = en
+    ? `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
+  <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
+  <h1 style="font-size:19px;margin:0 0 12px">${saludo}, your client accepted a proposal!</h1>
+  <p style="font-size:15px;line-height:1.55;color:#3A433C;margin:0 0 20px">
+    They clicked "Accept" on the link you shared for <strong>${esc(viaje)}</strong>.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${esc(enlace)}" style="display:inline-block;background:#1F6F5C;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px">
+      View the trip on Rumbia
+    </a>
+  </p>
+  <p style="font-size:13px;line-height:1.55;color:#59635A;margin:0 0 8px">
+    If the button doesn't work, copy this address into your browser:
+  </p>
+  <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0">${esc(enlace)}</p>
+</div>`.trim()
+    : `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#16231D">
   <div style="font-size:20px;font-weight:700;color:#123D32;margin-bottom:24px">Rumbia</div>
   <h1 style="font-size:19px;margin:0 0 12px">${saludo}, ¡tu cliente aceptó una propuesta!</h1>
@@ -177,16 +273,31 @@ export function correoPropuestaAceptada({ nombre, viaje, enlace }) {
   <p style="font-size:12px;color:#59635A;word-break:break-all;margin:0">${esc(enlace)}</p>
 </div>`.trim();
 
-  const texto = [
-    `${nombre ? `Hola ${nombre}` : 'Hola'}, ¡tu cliente aceptó una propuesta!`,
-    '',
-    `Le dio clic a "Aceptar" en el enlace que compartiste de ${viaje}.`,
-    '',
-    'Ve el viaje en Rumbia:',
-    enlace,
-    '',
-    'Rumbia',
-  ].join('\n');
+  const texto = en
+    ? [
+        `${saludoPlano}, your client accepted a proposal!`,
+        '',
+        `They clicked "Accept" on the link you shared for ${viaje}.`,
+        '',
+        'View the trip on Rumbia:',
+        enlace,
+        '',
+        'Rumbia',
+      ].join('\n')
+    : [
+        `${saludoPlano}, ¡tu cliente aceptó una propuesta!`,
+        '',
+        `Le dio clic a "Aceptar" en el enlace que compartiste de ${viaje}.`,
+        '',
+        'Ve el viaje en Rumbia:',
+        enlace,
+        '',
+        'Rumbia',
+      ].join('\n');
 
-  return { asunto: `${viaje} · el cliente aceptó la propuesta`, html, texto };
+  return {
+    asunto: en ? `${viaje} · your client accepted the proposal` : `${viaje} · el cliente aceptó la propuesta`,
+    html,
+    texto,
+  };
 }
