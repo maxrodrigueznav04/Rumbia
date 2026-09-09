@@ -15,11 +15,13 @@ export const CONTACTO_PRIVACIDAD = 'contacto@rumbiamx.com';
 export const DOMICILIO = 'Villa Lagunas 2965-1, Villas del Río Elite, 80050, Culiacán, Sinaloa, México';
 
 /**
- * Fecha que se muestra en el encabezado. La política dice que se actualiza
- * cuando cambia el tratamiento de los datos, así que hay que moverla cuando se
- * edite el contenido, no cuando se toque el estilo.
+ * Fecha que se muestra en el encabezado, en formato ISO para poder pasarla
+ * por formatoFecha() y que salga en el idioma elegido (5 de septiembre de
+ * 2026 / September 5, 2026) en vez de un string fijo en español. La política
+ * dice que se actualiza cuando cambia el tratamiento de los datos, así que
+ * hay que moverla cuando se edite el contenido, no cuando se toque el estilo.
  */
-export const ULTIMA_ACTUALIZACION = '5 de septiembre de 2026';
+export const ULTIMA_ACTUALIZACION = '2026-09-05';
 
 /**
  * Detecta los marcadores sin sustituir para avisar en pantalla. Cubre tanto el

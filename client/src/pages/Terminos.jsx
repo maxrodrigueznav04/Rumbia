@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Tarjeta } from '../components/ui.jsx';
 import PaginaLegal from '../components/PaginaLegal.jsx';
 import { RESPONSABLE, CONTACTO_PRIVACIDAD } from '../config/legal.js';
@@ -10,174 +11,79 @@ import { ENLACE_WHATSAPP } from '../config/contacto.js';
  * y que pueden causar un problema real —que la IA se equivoca, y que reservar
  * ocurre fuera de Rumbia—, para que nadie llegue al aeropuerto creyendo que
  * tenía un vuelo comprado.
+ *
+ * Mismo criterio que Privacidad.jsx sobre dangerouslySetInnerHTML: es texto
+ * legal 100% estático, sin entrada de usuario de por medio.
  */
 export default function Terminos() {
+  const { t } = useTranslation('terminos');
+  const html = (key, params) => ({ __html: t(key, params) });
+  const contacto = { contacto: CONTACTO_PRIVACIDAD, whatsapp: ENLACE_WHATSAPP };
+
   return (
-    <PaginaLegal
-      titulo="Términos y condiciones"
-      entrada="Qué puedes esperar de Rumbia, qué no, y bajo qué reglas se usa. Está escrito para que se entienda a la primera."
-    >
-      <Tarjeta titulo="Lo esencial, en tres líneas">
+    <PaginaLegal titulo={t('meta.titulo')} entrada={t('meta.entrada')}>
+      <Tarjeta titulo={t('resumen.titulo')}>
         <ul>
-          <li>Rumbia organiza y estima. No vende, no reserva boletos y no cobra comisiones a los viajeros.</li>
-          <li>Las sugerencias y estimaciones son orientativas: verifica siempre horarios, precios y disponibilidad.</li>
-          <li>Uso personal gratuito, con planes de suscripción profesionales para agencias de viaje.</li>
+          {t('resumen.puntos', { returnObjects: true }).map((punto, i) => (
+            <li key={i}>{punto}</li>
+          ))}
         </ul>
       </Tarjeta>
 
-      <h2>1. Qué es Rumbia</h2>
-      <p>
-        Rumbia es una plataforma tecnológica para planear viajes: guarda la información de tus rutas,
-        ofrece asistencia inteligente para estructurar itinerarios día por día, estima costos y te
-        conecta con proveedores oficiales de transporte y alojamiento.
-      </p>
-      <p>
-        <strong>Rumbia no es una agencia de viajes operadora ni intermediaria turística directa.</strong> No vende vuelos,
-        hospedaje ni actividades directamente; no procesa pagos de reservaciones ni emite boletos. Los
-        enlaces de reserva te llevan al sitio del proveedor con tu búsqueda prellenada.
-      </p>
-      <p>
-        Para agencias de viaje y asesores independientes, Rumbia ofrece herramientas avanzadas de cotización,
-        membretes oficiales y exportación de propuestas en PDF bajo suscripción mensual o anual.
-      </p>
-      <p>El servicio lo ofrece {RESPONSABLE}.</p>
+      <h2>{t('s1.titulo')}</h2>
+      <p>{t('s1.p1')}</p>
+      <p dangerouslySetInnerHTML={html('s1.p2')} />
+      <p>{t('s1.p3')}</p>
+      <p>{t('s1.p4', { responsable: RESPONSABLE })}</p>
 
-      <h2>2. Las sugerencias y estimaciones son orientativas</h2>
-      <p>
-        Los itinerarios y notas del asistente se elaboran mediante modelos inteligentes de lenguaje.
-        Dado que las tarifas, horarios, días de apertura y políticas de viaje cambian de forma constante,
-        la información generada puede contener variaciones respecto a la realidad.
-      </p>
-      <p>
-        <strong>Verifica siempre con la fuente oficial o el proveedor correspondiente</strong> antes de
-        realizar pagos o tomar decisiones de viaje. Los costos mostrados son referencias estimadas para
-        ayudarte a presupuestar.
-      </p>
-      <p>
-        Lo mismo aplica al clima: cuando tu viaje está a más de cinco días, lo que se muestra es una
-        estimación estacional histórica, y la aplicación lo indica en pantalla.
-      </p>
+      <h2>{t('s2.titulo')}</h2>
+      <p>{t('s2.p1')}</p>
+      <p dangerouslySetInnerHTML={html('s2.p2')} />
+      <p>{t('s2.p3')}</p>
 
-      <h2>3. Reservar ocurre fuera de Rumbia</h2>
-      <p>
-        Los enlaces de búsqueda te llevan al sitio del proveedor con tus datos ya prellenados. A
-        partir de ese clic <strong>sales de Rumbia</strong>: el precio, la disponibilidad, las
-        condiciones de cancelación y el contrato son del proveedor, y con él tienes que resolver
-        cualquier problema con tu reserva.
-      </p>
-      <p>
-        Algunos de esos enlaces pueden ser de afiliado, es decir, generarnos una comisión si
-        reservas. <strong>Nunca supone un costo extra para ti</strong> ni cambia el precio que te
-        ofrecen, y los enlaces afectados se marcan como tales. El detalle está en el{' '}
-        <a href="/cookies">aviso de cookies y rastreo</a>.
-      </p>
+      <h2>{t('s3.titulo')}</h2>
+      <p dangerouslySetInnerHTML={html('s3.p1')} />
+      <p dangerouslySetInnerHTML={html('s3.p2')} />
 
-      <h2>4. Tu cuenta</h2>
+      <h2>{t('s4.titulo')}</h2>
       <ul>
-        <li>Necesitas ser mayor de 18 años para crear una cuenta.</li>
-        <li>Los datos que des al registrarte deben ser reales, y tu contraseña es tu responsabilidad. Avísanos si crees que alguien más entró a tu cuenta.</li>
-        <li>El contenido que capturas —viajes, notas, gastos— es tuyo. Solo se usa para prestarte el servicio, como explica la <a href="/privacidad">política de privacidad</a>.</li>
-        <li>Puedes eliminar tu cuenta cuando quieras desde <em>Perfil</em>. Al hacerlo se borran también todos tus viajes, itinerarios y gastos, sin posibilidad de recuperarlos.</li>
+        {t('s4.items', { returnObjects: true }).map((item, i) => (
+          <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
+        ))}
       </ul>
 
-      <h2>5. Uso aceptable y licencia para agencias</h2>
-      <p>Al usar Rumbia te comprometes a:</p>
+      <h2>{t('s5.titulo')}</h2>
+      <p>{t('s5.intro')}</p>
       <ul>
-        <li>Hacer un uso responsable de las herramientas sin automatizar peticiones abusivas ni intentar vulnerar los límites de uso.</li>
-        <li>No intentar acceder a datos de otras personas ni a partes del sistema para las que no tienes autorización.</li>
-        <li>No revender ni redistribuir el software o código de Rumbia.</li>
+        {t('s5.items', { returnObjects: true }).map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
       </ul>
-      <p>
-        <strong>Licencia comercial para agencias:</strong> Las agencias y agentes de viaje con una suscripción activa
-        tienen licencia comercial expresa para utilizar Rumbia como cotizador profesional, personalizar propuestas
-        con su membrete y marca comercial, y entregar itinerarios en PDF a sus clientes finales.
-      </p>
-      <p>
-        Existen cuotas y límites mensuales de uso según el plan contratado o el nivel personal gratuito.
-        Estos límites protegen la estabilidad del servicio y se recargan el primer día de cada mes.
-      </p>
+      <p dangerouslySetInnerHTML={html('s5.p1')} />
+      <p>{t('s5.p2')}</p>
 
-      <h2>6. Planes, facturación y cancelaciones</h2>
-      <p>
-        <strong>Plan personal:</strong> El uso personal de Rumbia para planear tus propios viajes es gratuito,
-        con cuotas mensuales recargables para el uso del asistente inteligente, sin límite en viajes manuales ni notas.
-      </p>
-      <p>
-        <strong>Suscripciones de agencia:</strong> Los planes para agencias (Inicio, Agencia y Agencia Pro) se
-        facturan en pesos mexicanos (MXN) de forma periódica (mensual o anual) mediante <strong>Stripe</strong>.
-        Puedes cancelar tu suscripción o cambiar de plan en cualquier momento desde el panel de facturación; el servicio
-        permanecerá activo hasta el final del ciclo ya pagado y no se realizarán cargos posteriores.
-      </p>
-      <p>
-        <strong>Política de reembolsos:</strong> Los cobros de suscripción ya procesados no son reembolsables.
-        Al cancelar, el servicio sigue activo hasta el final del periodo que ya pagaste y no se te vuelve a
-        cobrar, pero no se devuelve el importe de ese periodo en curso. La única excepción es un error de
-        cobro de nuestra parte (por ejemplo, un cargo duplicado o por un monto distinto al de tu plan): en
-        ese caso, escríbenos a{' '}
-        <strong>
-          <a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a>
-        </strong>{' '}
-        y lo corregimos. Nada de esto limita los derechos que la legislación mexicana de protección al
-        consumidor te reconozca.
-      </p>
-      <p>
-        Hacemos lo posible por mantener Rumbia funcionando sin contratiempos, apoyados en proveedores serios
-        (Cloudflare, Render y MongoDB Atlas), pero como cualquier aplicación en internet no podemos garantizar
-        que esté disponible el 100% del tiempo ni completamente libre de errores. Tampoco respondemos por
-        interrupciones de servicios de terceros de los que dependemos, como el clima o los mapas.
-      </p>
-      <p>
-        Te recomendamos conservar por tu cuenta la información importante de tu viaje: claves de
-        reservación, comprobantes y horarios confirmados.
-      </p>
+      <h2>{t('s6.titulo')}</h2>
+      <p dangerouslySetInnerHTML={html('s6.p1')} />
+      <p dangerouslySetInnerHTML={html('s6.p2')} />
+      <p dangerouslySetInnerHTML={html('s6.p3', contacto)} />
+      <p>{t('s6.p4')}</p>
+      <p>{t('s6.p5')}</p>
 
-      <h2>7. Responsabilidad</h2>
-      <p>
-        En la medida que la ley lo permita, no somos responsables de pérdidas derivadas de decisiones
-        que tomes con base en la información de la aplicación, de errores u omisiones de los
-        contenidos generados por IA, ni de fallos, cambios de precio o incumplimientos de los
-        proveedores con los que reserves.
-      </p>
-      <p>
-        Nada en estos términos limita los derechos que te reconoce la legislación de protección al
-        consumidor.
-      </p>
+      <h2>{t('s7.titulo')}</h2>
+      <p>{t('s7.p1')}</p>
+      <p>{t('s7.p2')}</p>
 
-      <h2>8. Propiedad</h2>
-      <p>
-        El nombre, el diseño y el código de Rumbia pertenecen a su autor. El contenido de tus viajes
-        te pertenece a ti; al usarlo en la aplicación solo nos autorizas a procesarlo para prestarte
-        el servicio.
-      </p>
+      <h2>{t('s8.titulo')}</h2>
+      <p>{t('s8.p1')}</p>
 
-      <h2>9. Terminación</h2>
-      <p>
-        Puedes dejar de usar Rumbia cuando quieras y eliminar tu cuenta desde <em>Perfil</em>.
-        Podemos suspender una cuenta que incumpla estos términos, especialmente si pone en riesgo el
-        servicio para los demás.
-      </p>
+      <h2>{t('s9.titulo')}</h2>
+      <p dangerouslySetInnerHTML={html('s9.p1')} />
 
-      <h2>10. Cambios a estos términos</h2>
-      <p>
-        Si cambian, se actualizará esta página y la fecha que aparece arriba. Cuando el cambio sea
-        importante se avisará también dentro de la aplicación.
-      </p>
+      <h2>{t('s10.titulo')}</h2>
+      <p>{t('s10.p1')}</p>
 
-      <h2>11. Ley aplicable y contacto</h2>
-      <p>
-        Estos términos se rigen por la legislación mexicana. Para cualquier duda, aclaración o
-        reclamación puedes escribir a{' '}
-        <strong>
-          <a href={`mailto:${CONTACTO_PRIVACIDAD}`}>{CONTACTO_PRIVACIDAD}</a>
-        </strong>{' '}
-        o por{' '}
-        <strong>
-          <a href={ENLACE_WHATSAPP} target="_blank" rel="noopener noreferrer">
-            WhatsApp
-          </a>
-        </strong>
-        .
-      </p>
+      <h2>{t('s11.titulo')}</h2>
+      <p dangerouslySetInnerHTML={html('s11.p1', contacto)} />
     </PaginaLegal>
   );
 }

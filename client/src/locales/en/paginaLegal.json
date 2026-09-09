@@ -1,0 +1,11 @@
+{
+  "volverAMisViajes": "Back to my trips",
+  "irAEntrar": "Log in",
+  "etiqueta": "Legal document",
+  "ultimaActualizacion": "Last updated: {{fecha}}",
+  "faltanDatos": {
+    "titulo": "Contact details still need to be filled in",
+    "texto": "This document still has placeholder markers for the responsible party's name, address, or contact email. They need to be replaced in <code>client/src/config/legal.js</code> before publishing."
+  },
+  "enlacesDelSitio": "Site links"
+}

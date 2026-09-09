@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "titulo": "Terms and Conditions",
+    "entrada": "What you can expect from Rumbia, what you can't, and the rules it's used under. Written to be understood the first time."
+  },
+  "resumen": {
+    "titulo": "The essentials, in three lines",
+    "puntos": [
+      "Rumbia organizes and estimates. It doesn't sell, doesn't book tickets, and doesn't charge travelers commissions.",
+      "Suggestions and estimates are guidance only: always verify schedules, prices, and availability.",
+      "Free for personal use, with professional subscription plans for travel agencies."
+    ]
+  },
+  "s1": {
+    "titulo": "1. What Rumbia is",
+    "p1": "Rumbia is a technology platform for planning trips: it stores your route information, offers AI assistance to structure day-by-day itineraries, estimates costs, and connects you with official transportation and lodging providers.",
+    "p2": "<strong>Rumbia is not a tour operator or a direct travel intermediary.</strong> It doesn't sell flights, lodging, or activities directly; it doesn't process booking payments or issue tickets. Booking links take you to the provider's site with your search pre-filled.",
+    "p3": "For travel agencies and independent advisors, Rumbia offers advanced quoting tools, official letterheads, and PDF proposal exports under a monthly or annual subscription.",
+    "p4": "The service is offered by {{responsable}}."
+  },
+  "s2": {
+    "titulo": "2. Suggestions and estimates are guidance only",
+    "p1": "Itineraries and the assistant's notes are produced using AI language models. Because fares, schedules, opening days, and travel policies change constantly, the generated information may vary from reality.",
+    "p2": "<strong>Always verify with the official source or the relevant provider</strong> before making payments or travel decisions. The costs shown are estimated references to help you budget.",
+    "p3": "The same applies to weather: when your trip is more than five days out, what's shown is a historical seasonal estimate, and the app indicates this on screen."
+  },
+  "s3": {
+    "titulo": "3. Booking happens outside Rumbia",
+    "p1": "Search links take you to the provider's site with your data already pre-filled. From that click on, <strong>you leave Rumbia</strong>: the price, availability, cancellation terms, and contract belong to the provider, and you need to resolve any issue with your booking directly with them.",
+    "p2": "Some of those links may be affiliate links, meaning they generate a commission for us if you book. <strong>It's never an extra cost to you</strong> nor does it change the price you're offered, and affected links are marked as such. The details are in the <a href=\"/cookies\">cookies and tracking notice</a>."
+  },
+  "s4": {
+    "titulo": "4. Your account",
+    "items": [
+      "You need to be 18 or older to create an account.",
+      "The information you give when signing up must be real, and your password is your responsibility. Let us know if you think someone else accessed your account.",
+      "The content you enter — trips, notes, expenses — is yours. It's only used to provide you the service, as explained in the <a href=\"/privacidad\">privacy policy</a>.",
+      "You can delete your account anytime from <em>Profile</em>. Doing so also deletes all your trips, itineraries, and expenses, with no way to recover them."
+    ]
+  },
+  "s5": {
+    "titulo": "5. Acceptable use and license for agencies",
+    "intro": "By using Rumbia, you agree to:",
+    "items": [
+      "Make responsible use of the tools, without automating abusive requests or trying to bypass usage limits.",
+      "Not attempt to access other people's data or parts of the system you're not authorized for.",
+      "Not resell or redistribute Rumbia's software or code."
+    ],
+    "p1": "<strong>Commercial license for agencies:</strong> Travel agencies and agents with an active subscription have an express commercial license to use Rumbia as a professional quoting tool, customize proposals with their letterhead and commercial brand, and deliver PDF itineraries to their end clients.",
+    "p2": "There are monthly usage quotas and limits depending on the plan you're on or the free personal tier. These limits protect the service's stability and reset on the first day of each month."
+  },
+  "s6": {
+    "titulo": "6. Plans, billing, and cancellations",
+    "p1": "<strong>Personal plan:</strong> Personal use of Rumbia to plan your own trips is free, with rechargeable monthly quotas for using the AI assistant, and no limit on manual trips or notes.",
+    "p2": "<strong>Agency subscriptions:</strong> Agency plans (Inicio, Agencia, and Agencia Pro) are billed in Mexican pesos (MXN) on a recurring basis (monthly or annual) through <strong>Stripe</strong>. You can cancel your subscription or change plans anytime from the billing panel; the service stays active until the end of the period you already paid for, and no further charges are made.",
+    "p3": "<strong>Refund policy:</strong> Subscription charges already processed are non-refundable. When you cancel, the service stays active until the end of the period you already paid for and you won't be charged again, but the amount for that current period isn't refunded. The only exception is a billing error on our part (for example, a duplicate charge or one for a different amount than your plan): in that case, write to us at <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong> and we'll correct it. None of this limits the rights that Mexican consumer protection law grants you.",
+    "p4": "We do our best to keep Rumbia running smoothly, relying on serious providers (Cloudflare, Render, and MongoDB Atlas), but like any internet application we can't guarantee it will be available 100% of the time or completely error-free. We're also not responsible for interruptions in third-party services we depend on, such as weather or maps.",
+    "p5": "We recommend keeping your own copy of your trip's important information: booking references, receipts, and confirmed schedules."
+  },
+  "s7": {
+    "titulo": "7. Liability",
+    "p1": "To the extent the law allows, we're not liable for losses arising from decisions you make based on the app's information, from errors or omissions in AI-generated content, or from failures, price changes, or breaches by the providers you book with.",
+    "p2": "Nothing in these terms limits the rights that consumer protection law grants you."
+  },
+  "s8": {
+    "titulo": "8. Ownership",
+    "p1": "Rumbia's name, design, and code belong to its author. The content of your trips belongs to you; using it in the app only authorizes us to process it to provide you the service."
+  },
+  "s9": {
+    "titulo": "9. Termination",
+    "p1": "You can stop using Rumbia whenever you want and delete your account from <em>Profile</em>. We may suspend an account that breaches these terms, especially if it puts the service at risk for others."
+  },
+  "s10": {
+    "titulo": "10. Changes to these terms",
+    "p1": "If they change, this page and the date shown above will be updated. When the change is significant, we'll also notify you within the app."
+  },
+  "s11": {
+    "titulo": "11. Governing law and contact",
+    "p1": "These terms are governed by Mexican law. For any question, clarification, or complaint you can write to <strong><a href=\"mailto:{{contacto}}\">{{contacto}}</a></strong> or via <strong><a href=\"{{whatsapp}}\" target=\"_blank\" rel=\"noopener noreferrer\">WhatsApp</a></strong>."
+  }
+}
