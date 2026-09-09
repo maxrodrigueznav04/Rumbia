@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES, PERFIL_USO } from '../models/User.js';
+import { TRAVEL_STYLES, BUDGET_LEVELS, TRIP_PACES, PERFIL_USO, IDIOMAS } from '../models/User.js';
 import {
   TRIP_STATUSES,
   ESTADOS_PROPUESTA,
@@ -117,6 +117,7 @@ export const updateProfileSchema = z
         homeCity: z.string().trim().max(120).optional(),
         currency: currency.optional(),
         perfilUso: z.enum(PERFIL_USO).optional(),
+        idioma: z.enum(IDIOMAS).optional(),
       })
       .optional(),
     branding: z

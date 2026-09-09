@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { rangoFechas, nombreDestino } from '../utils/format.js';
 import { obtenerFuente, obtenerDensidad } from '../utils/fuentesPdf.js';
 import { obtenerFondo } from '../utils/fondosPdf.js';
@@ -53,6 +54,7 @@ export function cargarFuentePdf(marca) {
  * lo correcto para alguien que viaja por su cuenta.
  */
 export function EncabezadoImpresion({ marca, viaje }) {
+  const { t } = useTranslation('impresion');
   const nombre = marca?.agencyName?.trim();
 
   return (
@@ -75,7 +77,7 @@ export function EncabezadoImpresion({ marca, viaje }) {
         <strong>{viaje.title}</strong>
         <span>
           {nombreDestino(viaje)} · {rangoFechas(viaje.startDate, viaje.endDate)} ·{' '}
-          {viaje.travelers} {viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+          {viaje.travelers} {viaje.travelers === 1 ? t('viajero') : t('viajeros')}
         </span>
       </div>
     </header>
@@ -83,6 +85,7 @@ export function EncabezadoImpresion({ marca, viaje }) {
 }
 
 export function PieImpresion({ marca }) {
+  const { t } = useTranslation('impresion');
   const nombre = marca?.agencyName?.trim();
   // Beneficio de los planes Agencia y Agencia Pro (ver Agency.js): el pie
   // deja de mencionar a Rumbia. Uso personal y el plan Inicio se quedan con
@@ -92,15 +95,14 @@ export function PieImpresion({ marca }) {
   return (
     <footer className="hoja-pie">
       <p>
-        Los costos son estimaciones para orientar el presupuesto, no precios en firme, y pueden
-        cambiar según la temporada y la disponibilidad.
+        {t('avisoCostos')}
       </p>
       <p>
         {marcaBlanca
-          ? `${nombre} · Propuesta de viaje.`
+          ? t('creditoMarcaBlanca', { nombre })
           : nombre
-            ? `${nombre} · Propuesta preparada con Rumbia.`
-            : 'Itinerario preparado con Rumbia.'}
+            ? t('creditoConNombre', { nombre })
+            : t('creditoRumbia')}
       </p>
     </footer>
   );

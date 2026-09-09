@@ -19,6 +19,13 @@ export const TRIP_PACES = ['relajado', 'moderado', 'intenso'];
 // alguien que arma su propio viaje. Ver Layout/FormViaje/DetalleViaje.
 export const PERFIL_USO = ['personal', 'agencia'];
 
+// Idioma de la UI que la persona eligio en el selector (client/src/components/
+// SelectorIdioma.jsx), guardado ademas de en localStorage: sin esto no hay
+// forma de saber en que idioma escribirle un correo transaccional que dispara
+// OTRA persona (ej. correoPropuestaAceptada, que lo manda quien acepta la
+// propuesta, no el dueno del viaje que lo recibe).
+export const IDIOMAS = ['es', 'en'];
+
 // Cupo de generaciones con IA al mes para quien no pertenece a ninguna
 // agencia (uso personal, siempre gratis). Sin este tope, "uso personal" era
 // indistinguible de correr una operacion de agencia a volumen sin pagar.
@@ -46,6 +53,7 @@ const preferencesSchema = new mongoose.Schema(
     homeCity: { type: String, trim: true, maxlength: 120, default: '' },
     currency: { type: String, uppercase: true, minlength: 3, maxlength: 3, default: 'MXN' },
     perfilUso: { type: String, enum: PERFIL_USO, default: 'agencia' },
+    idioma: { type: String, enum: IDIOMAS, default: 'es' },
   },
   { _id: false }
 );
