@@ -154,6 +154,7 @@ export const generate = asyncHandler(async (req, res) => {
     budgetAmount: trip.budget?.amount || 0,
     currency: trip.budget?.currency || req.user.preferences?.currency || 'MXN',
     extraNotes,
+    idioma: req.idioma,
   };
 
   const result = await callGemini(context);

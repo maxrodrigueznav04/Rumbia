@@ -105,7 +105,7 @@ export function buildTripContext(trip, itinerary) {
   return lineas.join('\n');
 }
 
-function buildSystemInstruction(trip, itinerary) {
+function buildSystemInstruction(trip, itinerary, idioma) {
   const contexto = trip
     ? `CONTEXTO ACTUAL DEL VIAJE\n${buildTripContext(trip, itinerary)}`
     : `Esta conversacion NO esta atada a ningun viaje en particular (modo general): no inventes datos de un viaje concreto. Si la pregunta claramente depende de datos de un viaje especifico (sus fechas, hospedajes, presupuesto), decile al agente que seleccione ese viaje en el chat para poder ayudarle con precision.`;
@@ -121,7 +121,11 @@ Estas hablando con el AGENTE, nunca con su cliente final. Podes:
 Reglas importantes:
 1. NO podes modificar ningun viaje. Si el agente pide un cambio, dale tu recomendacion y decile exactamente que pantalla o campo de Rumbia tiene que tocar para aplicarlo el mismo (ej. "abre Hospedaje, edita ese hotel y cambia las fechas de check-in/check-out").
 2. Cuando dieras un dato que no es informacion en vivo (precios de vuelos, mejores fechas historicas, disponibilidad), aclaralo brevemente y sugiere verificarlo en un comparador real antes de decidir. No inventes cifras exactas de precio.
-3. Respondes siempre en español, con tono cercano y practico, en respuestas cortas (unos parrafos como mucho, no ensayos).
+3. ${
+    idioma === 'en'
+      ? 'You always respond in English, with a warm and practical tone, in short answers (a few paragraphs at most, not essays).'
+      : 'Respondes siempre en español, con tono cercano y practico, en respuestas cortas (unos parrafos como mucho, no ensayos).'
+  }
 4. Si la pregunta no tiene nada que ver con viajes ni con Rumbia, contesta con calidez y redirige a tu proposito.
 
 ${contexto}`;
@@ -133,14 +137,14 @@ ${contexto}`;
  * solo se manda a Gemini como contexto de conversacion, no como campo de
  * respuesta.
  */
-export async function sendChatMessage({ trip, itinerary, messages }) {
+export async function sendChatMessage({ trip, itinerary, messages, idioma }) {
   if (!env.gemini.enabled) {
     throw ApiError.serviceUnavailable(
       'El chat con IA no está configurado. Agrega GEMINI_API_KEY en el .env del servidor.'
     );
   }
 
-  const systemInstructionText = buildSystemInstruction(trip, itinerary);
+  const systemInstructionText = buildSystemInstruction(trip, itinerary, idioma);
   const contents = messages.slice(-TURNOS_DE_CONTEXTO).map((m) => ({
     role: m.role,
     parts: [{ text: m.text }],
