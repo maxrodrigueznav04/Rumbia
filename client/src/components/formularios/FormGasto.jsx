@@ -31,8 +31,8 @@ export default function FormGasto({ abierto, onCerrar, viaje, gasto, onGuardado 
       notes: gasto?.notes || '',
     },
     {
-      description: reglas.requerido('La descripción'),
-      amount: (v) => (v === '' || v == null ? 'Escribe el monto.' : reglas.numeroPositivo(v)),
+      description: reglas.requerido(t('formularios:comun.etiquetaDescripcion')),
+      amount: (v) => (v === '' || v == null ? t('formularios:comun.escribeElMonto') : reglas.numeroPositivo(v)),
     }
   );
 

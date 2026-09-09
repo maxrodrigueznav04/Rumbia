@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { publicApi, despertarServidor } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
@@ -7,18 +8,9 @@ import CampoFechas from '../components/CampoFechas.jsx';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
 import Icono from '../components/Icono.jsx';
 import { Boton, Campo, Tarjeta, Aviso, Insignia } from '../components/ui.jsx';
-import { formatoFecha, humanizar, ICONOS_CATEGORIA } from '../utils/format.js';
+import { formatoFecha, traducirDominio, ICONOS_CATEGORIA } from '../utils/format.js';
 
 const ESTILOS = ['aventura', 'cultura', 'relax', 'gastronomia', 'naturaleza', 'vida-nocturna'];
-
-// Sin cuenta, el servidor limita a 7 dias (MAX_DIAS_INVITADO en
-// public.controller.js): sin este recorte, el atajo "Dos semanas" del
-// selector normal proponia algo que el servidor iba a rechazar despues.
-const ATAJOS_INVITADO = [
-  { texto: 'Fin de semana', noches: 2 },
-  { texto: '5 días', noches: 4 },
-  { texto: 'Una semana', noches: 6 },
-];
 
 // Guarda lo que escribió (no el itinerario generado, que sigue sin
 // persistir en ningún lado) para que Registro.jsx pueda prellenar el
@@ -54,12 +46,24 @@ const hoyMas = (dias) => {
  * que puede dar una idea equivocada.
  */
 export default function Probar() {
+  const { t } = useTranslation('probar');
+  const { t: tDominio } = useTranslation('dominio');
+  const { t: tComun } = useTranslation('comun');
   const { autenticado, cargando } = useAuth();
   useMetaPagina({
-    titulo: 'Prueba gratis sin cuenta',
-    descripcion: 'Genera un itinerario de muestra con IA para cualquier destino, sin crear cuenta.',
+    titulo: t('meta.titulo'),
+    descripcion: t('meta.descripcion'),
     ruta: '/probar',
   });
+
+  // Sin cuenta, el servidor limita a 7 dias (MAX_DIAS_INVITADO en
+  // public.controller.js): sin este recorte, el atajo "Dos semanas" del
+  // selector normal proponia algo que el servidor iba a rechazar despues.
+  const ATAJOS_INVITADO = [
+    { texto: t('atajos.finDeSemana'), noches: 2 },
+    { texto: t('atajos.cincoDias'), noches: 4 },
+    { texto: t('atajos.unaSemana'), noches: 6 },
+  ];
 
   const [destino, setDestino] = useState('');
   const [fechas, setFechas] = useState({ inicio: hoyMas(30), fin: hoyMas(33) });
@@ -86,7 +90,7 @@ export default function Probar() {
   const generar = async (e) => {
     e.preventDefault();
     if (destino.trim().length < 2) {
-      setError({ message: 'Escribe a dónde quieres ir.' });
+      setError({ message: t('errorDestino') });
       return;
     }
     setError(null);
@@ -124,19 +128,19 @@ export default function Probar() {
           </Link>
           <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
             <Link to="/acerca" className="boton fantasma chico">
-              Acerca de
+              {tComun('nav.acercaDe')}
             </Link>
             {autenticado ? (
               <Link to="/viajes" className="boton chico">
-                Ir a mis viajes
+                {t('nav.irAMisViajes')}
               </Link>
             ) : (
               <>
                 <Link to="/entrar" className="boton secundario chico">
-                  Entrar
+                  {tComun('nav.entrar')}
                 </Link>
                 <Link to="/registro" className="boton chico">
-                  Crear cuenta
+                  {tComun('nav.crearCuenta')}
                 </Link>
               </>
             )}
@@ -146,20 +150,19 @@ export default function Probar() {
 
       <main className="contenedor inicio-cuerpo" style={{ paddingTop: 'var(--e6)' }}>
         <div className="inicio-probar-encabezado">
-          <h1 style={{ fontSize: 'clamp(1.6rem, 1.3rem + 1vw, 2rem)' }}>Prueba el generador, sin cuenta</h1>
+          <h1 style={{ fontSize: 'clamp(1.6rem, 1.3rem + 1vw, 2rem)' }}>{t('encabezado.titulo')}</h1>
           <p className="suave">
-            Es una muestra simplificada: escribe a dónde vas y arma un itinerario en segundos. No
-            calcula presupuesto ni clima, y no se guarda nada —{' '}
-            <Link to="/registro">crea una cuenta gratis</Link> para eso y para el resto de lo que
-            hace Rumbia.
+            {t('encabezado.textoPre')}
+            <Link to="/registro">{t('encabezado.crearCuentaGratis')}</Link>
+            {t('encabezado.textoPost')}
           </p>
         </div>
 
-        <Tarjeta titulo="Arma un itinerario ahora" className="inicio-form">
+        <Tarjeta titulo={t('form.tituloTarjeta')} className="inicio-form">
           <form onSubmit={generar} className="pila" noValidate>
             <Campo
-              label="¿A dónde vas?"
-              placeholder="Oaxaca, Ciudad de México, Cancún..."
+              label={t('form.aDondeVas')}
+              placeholder={t('form.aDondeVasPlaceholder')}
               value={destino}
               onChange={(e) => setDestino(e.target.value)}
             />
@@ -172,7 +175,7 @@ export default function Probar() {
             />
 
             <Campo
-              label="¿Cuántos viajan?"
+              label={t('form.cuantosViajan')}
               type="number"
               min="1"
               max="20"
@@ -181,7 +184,7 @@ export default function Probar() {
             />
 
             <div className="campo">
-              <label>¿Qué te interesa? (hasta 5)</label>
+              <label>{t('form.queTeInteresa')}</label>
               <div className="fila" style={{ gap: 6 }}>
                 {ESTILOS.map((v) => (
                   <button
@@ -191,7 +194,7 @@ export default function Probar() {
                     aria-pressed={estilos.includes(v)}
                     onClick={() => alternar(v)}
                   >
-                    {humanizar(v)}
+                    {traducirDominio(tDominio, v)}
                   </button>
                 ))}
               </div>
@@ -200,26 +203,29 @@ export default function Probar() {
             {error && <Aviso tipo="error">{error.message}</Aviso>}
 
             <Boton type="submit" ancho cargando={generando}>
-              {generando ? 'Armando tu itinerario...' : 'Generar itinerario gratis'}
+              {generando ? t('form.generando') : t('form.generarGratis')}
             </Boton>
             <p className="tenue centrado" style={{ margin: 0, fontSize: '0.8rem' }}>
-              Tarda entre 20 y 60 segundos. No se guarda nada hasta que tú quieras.
+              {t('form.ayudaTiempo')}
             </p>
           </form>
         </Tarjeta>
 
         {resultado && (
           <div className="pila" style={{ marginTop: 'var(--e6)' }}>
-            <Aviso tipo="exito" titulo="Listo, este es tu itinerario">
-              Es una muestra: no se guardó en ningún lado.{' '}
-              <Link to="/registro">Crea una cuenta gratis</Link> para guardarlo, editarlo, sumarle
-              presupuesto y ver el clima del destino.
+            <Aviso tipo="exito" titulo={t('resultado.avisoTitulo')}>
+              {t('resultado.avisoPre')}
+              <Link to="/registro">{t('resultado.crearCuentaGratis')}</Link>
+              {t('resultado.avisoPost')}
             </Aviso>
 
             {resultado.itinerary.summary && <p className="suave">{resultado.itinerary.summary}</p>}
 
             {resultado.itinerary.days.map((dia) => (
-              <Tarjeta key={dia.dayNumber} titulo={`Día ${dia.dayNumber} · ${formatoFecha(dia.date)}`}>
+              <Tarjeta
+                key={dia.dayNumber}
+                titulo={t('resultado.dia', { numero: dia.dayNumber, fecha: formatoFecha(dia.date) })}
+              >
                 {dia.title && <h4 style={{ marginTop: 0 }}>{dia.title}</h4>}
                 <div className="pila-sm">
                   {dia.activities.map((a, i) => (
@@ -232,9 +238,9 @@ export default function Probar() {
                         </h4>
                         {a.description && <p>{a.description}</p>}
                         <div className="fila" style={{ gap: 6 }}>
-                          <Insignia>{humanizar(a.category)}</Insignia>
+                          <Insignia>{traducirDominio(tDominio, a.category)}</Insignia>
                           {a.estimatedCost > 0 && (
-                            <Insignia color="ambar">≈ ${a.estimatedCost} por persona</Insignia>
+                            <Insignia color="ambar">≈ ${a.estimatedCost} {t('resultado.porPersona')}</Insignia>
                           )}
                         </div>
                       </div>
@@ -244,14 +250,13 @@ export default function Probar() {
               </Tarjeta>
             ))}
 
-            <Tarjeta titulo="Buscar y reservar">
+            <Tarjeta titulo={t('resultado.buscarYReservar.titulo')}>
               <p className="suave">
-                Rumbia no reserva ni cobra: estos enlaces te llevan al sitio del proveedor con tu
-                búsqueda ya prellenada.
+                {t('resultado.buscarYReservar.texto')}
               </p>
               {Object.entries(resultado.links).map(([seccion, enlaces]) => (
                 <div key={seccion} style={{ marginBottom: 'var(--e4)' }}>
-                  <span className="etiqueta">{humanizar(seccion)}</span>
+                  <span className="etiqueta">{traducirDominio(tDominio, seccion)}</span>
                   <div style={{ marginTop: 8 }}>
                     <EnlacesReserva enlaces={enlaces} seccion={seccion} destino={destino.trim()} origen="invitado" />
                   </div>
@@ -260,13 +265,12 @@ export default function Probar() {
             </Tarjeta>
 
             <Tarjeta className="centrado">
-              <h3>¿Te sirve? Guárdalo antes de que se pierda</h3>
+              <h3>{t('resultado.ctaFinal.titulo')}</h3>
               <p className="suave">
-                Con una cuenta gratis puedes editarlo, mover actividades, sumar tus gastos y llevar
-                el control del presupuesto.
+                {t('resultado.ctaFinal.texto')}
               </p>
               <Link to="/registro" className="boton">
-                Crear cuenta gratis
+                {t('resultado.ctaFinal.boton')}
               </Link>
             </Tarjeta>
           </div>
@@ -276,13 +280,13 @@ export default function Probar() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
+            {t('pie.aviso')}
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
-            <Link to="/acerca">Acerca de</Link>
-            <Link to="/privacidad">Privacidad</Link>
-            <Link to="/cookies">Cookies y rastreo</Link>
-            <Link to="/terminos">Términos</Link>
+          <nav className="pie-enlaces" aria-label={t('pie.ariaEnlaces')}>
+            <Link to="/acerca">{tComun('piePagina.acercaDe')}</Link>
+            <Link to="/privacidad">{tComun('piePagina.privacidad')}</Link>
+            <Link to="/cookies">{tComun('piePagina.cookies')}</Link>
+            <Link to="/terminos">{tComun('piePagina.terminos')}</Link>
           </nav>
         </div>
       </footer>

@@ -17,15 +17,15 @@ const CATEGORIAS = [
   'otro',
 ];
 
-const horaValida = (v) => {
-  if (!v) return null; // la hora es opcional
-  return /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? null : 'Usa formato de 24 horas, ej. 14:30.';
-};
-
 /** Alta y edición de una actividad dentro de un día del itinerario. */
 export default function FormActividad({ abierto, onCerrar, tripId, dia, actividad, onGuardado }) {
   const { t } = useTranslation(['formularios', 'dominio']);
   const editando = Boolean(actividad);
+
+  const horaValida = (v) => {
+    if (!v) return null; // la hora es opcional
+    return /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? null : t('formularios:comun.formatoHora');
+  };
 
   const form = useFormulario(
     {
@@ -39,7 +39,7 @@ export default function FormActividad({ abierto, onCerrar, tripId, dia, activida
       bookingUrl: actividad?.bookingUrl || '',
     },
     {
-      title: reglas.requerido('El título'),
+      title: reglas.requerido(t('formularios:comun.etiquetaTitulo')),
       time: horaValida,
       estimatedCost: reglas.numeroPositivo,
       bookingUrl: reglas.urlOpcional,

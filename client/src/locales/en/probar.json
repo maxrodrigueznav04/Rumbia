@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "titulo": "Try it free, no account",
+    "descripcion": "Generate a sample AI itinerary for any destination, no account needed."
+  },
+  "nav": {
+    "irAMisViajes": "Go to my trips"
+  },
+  "encabezado": {
+    "titulo": "Try the generator, no account needed",
+    "textoPre": "It's a simplified sample: write where you're going and build an itinerary in seconds. It doesn't calculate budget or weather, and nothing gets saved — ",
+    "crearCuentaGratis": "create a free account",
+    "textoPost": " for that and the rest of what Rumbia does."
+  },
+  "form": {
+    "tituloTarjeta": "Build an itinerary now",
+    "aDondeVas": "Where are you going?",
+    "aDondeVasPlaceholder": "Oaxaca, Mexico City, Cancún...",
+    "cuantosViajan": "How many are traveling?",
+    "queTeInteresa": "What are you interested in? (up to 5)",
+    "generando": "Building your itinerary...",
+    "generarGratis": "Generate free itinerary",
+    "ayudaTiempo": "Takes 20 to 60 seconds. Nothing is saved until you want it to be."
+  },
+  "atajos": {
+    "finDeSemana": "Weekend",
+    "cincoDias": "5 days",
+    "unaSemana": "One week"
+  },
+  "errorDestino": "Write where you want to go.",
+  "resultado": {
+    "avisoTitulo": "Done, here's your itinerary",
+    "avisoPre": "It's a sample: it wasn't saved anywhere. ",
+    "crearCuentaGratis": "Create a free account",
+    "avisoPost": " to save it, edit it, add a budget, and see the destination's weather.",
+    "dia": "Day {{numero}} · {{fecha}}",
+    "porPersona": "per person",
+    "buscarYReservar": {
+      "titulo": "Search and book",
+      "texto": "Rumbia doesn't book or charge anything: these links take you to the provider's site with your search already filled in."
+    },
+    "ctaFinal": {
+      "titulo": "Like it? Save it before it's gone",
+      "texto": "With a free account you can edit it, move activities around, add your expenses, and keep track of your budget.",
+      "boton": "Create free account"
+    }
+  },
+  "pie": {
+    "aviso": "Rumbia doesn't process trip bookings or payments. Links take you to the provider's site.",
+    "ariaEnlaces": "Site links"
+  }
+}

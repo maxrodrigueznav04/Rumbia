@@ -1,0 +1,33 @@
+{
+  "nombre": {
+    "vacio": "Escribe tu nombre.",
+    "corto": "Debe tener al menos 2 caracteres.",
+    "largo": "Máximo 80 caracteres."
+  },
+  "email": {
+    "vacio": "Escribe tu email.",
+    "invalido": "Ese email no se ve bien."
+  },
+  "password": {
+    "vacio": "Escribe una contraseña.",
+    "corta": "Faltan {{cantidad}} caracteres (mínimo 8).",
+    "larga": "Máximo 72 caracteres."
+  },
+  "passwordLogin": "Escribe tu contraseña.",
+  "requerido": "{{etiqueta}} es obligatorio.",
+  "numero": {
+    "invalido": "Debe ser un número.",
+    "negativo": "No puede ser negativo."
+  },
+  "paradaEnRango": {
+    "antesDeLlegada": "La salida de la parada no puede ser antes de la llegada.",
+    "fueraDelViaje": "Las fechas de la parada deben caer dentro de las fechas del viaje."
+  },
+  "urlInvalida": "Debe ser una URL completa (https://...).",
+  "fuerzaPassword": {
+    "muyDebil": { "etiqueta": "Muy débil", "consejo": "Alárgala: junta tres o cuatro palabras." },
+    "debil": { "etiqueta": "Débil", "consejo": "Con 12 caracteres o más mejora bastante." },
+    "buena": { "etiqueta": "Buena", "consejo": "" },
+    "muyBuena": { "etiqueta": "Muy buena", "consejo": "" }
+  }
+}

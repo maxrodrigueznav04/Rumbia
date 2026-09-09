@@ -1,0 +1,33 @@
+{
+  "nombre": {
+    "vacio": "Write your name.",
+    "corto": "Must be at least 2 characters.",
+    "largo": "Maximum 80 characters."
+  },
+  "email": {
+    "vacio": "Write your email.",
+    "invalido": "That email doesn't look right."
+  },
+  "password": {
+    "vacio": "Write a password.",
+    "corta": "{{cantidad}} more characters needed (minimum 8).",
+    "larga": "Maximum 72 characters."
+  },
+  "passwordLogin": "Write your password.",
+  "requerido": "{{etiqueta}} is required.",
+  "numero": {
+    "invalido": "Must be a number.",
+    "negativo": "Can't be negative."
+  },
+  "paradaEnRango": {
+    "antesDeLlegada": "The stop's departure can't be before its arrival.",
+    "fueraDelViaje": "The stop's dates must fall within the trip's dates."
+  },
+  "urlInvalida": "Must be a full URL (https://...).",
+  "fuerzaPassword": {
+    "muyDebil": { "etiqueta": "Very weak", "consejo": "Make it longer: string together three or four words." },
+    "debil": { "etiqueta": "Weak", "consejo": "12 characters or more helps a lot." },
+    "buena": { "etiqueta": "Good", "consejo": "" },
+    "muyBuena": { "etiqueta": "Very good", "consejo": "" }
+  }
+}

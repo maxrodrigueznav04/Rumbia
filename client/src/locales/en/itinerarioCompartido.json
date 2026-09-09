@@ -1,0 +1,33 @@
+{
+  "planearMiViaje": "Plan my trip",
+  "abriendoItinerario": "Opening the itinerary...",
+  "enlaceNoFunciona": {
+    "titulo": "This link no longer works",
+    "texto": "Whoever shared it may have stopped sharing it, or the trip may no longer exist."
+  },
+  "noPudimosAbrirlo": "We couldn't open it",
+  "itinerarioCompartido": "Shared itinerary",
+  "viajero": "traveler",
+  "viajeros": "travelers",
+  "dia": "Day {{numero}} · {{fecha}}",
+  "notaEstimacion": "Suggested activities, plus what's already captured for transportation and lodging. These are estimates, not firm prices.",
+  "aceptarPropuesta": "Accept this proposal",
+  "noSePudoAceptar": "The proposal could not be accepted.",
+  "propuestaAceptada": {
+    "titulo": "Proposal accepted",
+    "texto": "We already notified whoever prepared your trip. They'll be in touch with you shortly."
+  },
+  "buscarYReservar": {
+    "titulo": "Search and book",
+    "texto": "Rumbia doesn't book or charge anything: these links take you to the provider's site with the search already filled in."
+  },
+  "ctaFinal": {
+    "titulo": "Want one like this for your trip?",
+    "texto": "Build it in a minute, no account needed.",
+    "boton": "Try Rumbia"
+  },
+  "pie": {
+    "aviso": "Rumbia doesn't process trip bookings or payments. Links take you to the provider's site.",
+    "ariaEnlaces": "Site links"
+  }
+}
