@@ -1,0 +1,38 @@
+{
+  "titulo": "Templates",
+  "subtituloAgencia": "Shared with your team: any agent in your agency can use them.",
+  "subtituloPersonal": "Destinations you build often, ready to apply to a new trip without starting from scratch.",
+  "crearDesdeItinerario": "Create from an itinerary",
+  "sinPlantillas": "You don't have any templates yet",
+  "elegirItinerarioExistente": "Choose an existing itinerary",
+  "sinPlantillasTexto": "Open any itinerary you've already built and use \"Save as template\" to reuse it with the next client traveling to the same destination.",
+  "sinDestino": "No destination",
+  "dia": "day",
+  "dias": "days",
+  "guardadaPorTi": "you",
+  "guardadaPor": " · saved by {{nombre}}",
+  "usar": "Use",
+  "eliminar": "Delete",
+  "eliminarPlantillaTitulo": "Delete template",
+  "eliminarPlantillaMensaje": "\"{{nombre}}\" will be deleted. Trips you already created with it aren't touched.",
+  "elegirItinerario": {
+    "titulo": "Choose itinerary",
+    "buscarLabel": "Search trip or destination",
+    "sinResultadosPre": "There are no itineraries on this page of results. Search another destination or ",
+    "crearViajeEnlace": "create a trip",
+    "sinResultadosPost": ".",
+    "anterior": "Previous",
+    "siguiente": "Next"
+  },
+  "aplicar": {
+    "titulo": "Use \"{{nombre}}\"",
+    "tituloDefault": "Trip to {{destino}}",
+    "texto": "This creates a new trip to {{destino}} with the same itinerary as the template. You'll be able to edit it afterward like any other trip.",
+    "nombreLabel": "What's the trip called?",
+    "viajerosLabel": "How many are traveling?",
+    "presupuestoLabel": "Estimated budget",
+    "presupuestoPlaceholder": "Optional",
+    "cancelar": "Cancel",
+    "crearViaje": "Create trip"
+  }
+}

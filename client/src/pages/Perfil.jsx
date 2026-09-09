@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import TarjetaAgencia from '../components/TarjetaAgencia.jsx';
 import { Boton, Campo, Tarjeta, Aviso, Modal, CampoPassword } from '../components/ui.jsx';
 
-const RITMOS = [
-  { valor: 'relajado', texto: 'Relajado (3 actividades al día)' },
-  { valor: 'moderado', texto: 'Moderado (4 actividades al día)' },
-  { valor: 'intenso', texto: 'Intenso (5 actividades al día)' },
-];
+const RITMOS = ['relajado', 'moderado', 'intenso'];
 
 export default function Perfil() {
+  const { t } = useTranslation('perfil');
   const { user, actualizarUsuario, logout } = useAuth();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -70,7 +68,7 @@ export default function Perfil() {
         },
       });
       actualizarUsuario(data.user);
-      setEstado({ tipo: 'exito', mensaje: 'Cambios guardados.' });
+      setEstado({ tipo: 'exito', mensaje: t('cambiosGuardados') });
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
@@ -81,14 +79,14 @@ export default function Perfil() {
   return (
     <div className="pila" style={{ maxWidth: 620, margin: '0 auto' }}>
       <div>
-        <h1 style={{ marginBottom: 4 }}>Tu perfil</h1>
+        <h1 style={{ marginBottom: 4 }}>{t('titulo')}</h1>
         <p className="suave" style={{ margin: 0 }}>
-          Administra tu cuenta, las preferencias de viaje y tu agencia.
+          {t('subtitulo')}
         </p>
       </div>
 
-      <nav className="secciones-perfil" aria-label="Configuración">
-        {[['cuenta', 'Mi cuenta'], ...(user?.preferences?.perfilUso !== 'personal' ? [['marca', 'Marca'], ['equipo', 'Equipo'], ...(esDueno ? [['facturacion', 'Facturación']] : [])] : [])].map(([id, texto]) =>
+      <nav className="secciones-perfil" aria-label={t('secciones.aria')}>
+        {[['cuenta', t('secciones.cuenta')], ...(user?.preferences?.perfilUso !== 'personal' ? [['marca', t('secciones.marca')], ['equipo', t('secciones.equipo')], ...(esDueno ? [['facturacion', t('secciones.facturacion')]] : [])] : [])].map(([id, texto]) =>
           <Boton key={id} variante={seccion === id ? 'primario' : 'secundario'} aria-pressed={seccion === id} onClick={() => setParams({ seccion: id })}>{texto}</Boton>)}
       </nav>
       {seccion === 'cuenta' && <Tarjeta>
@@ -96,7 +94,7 @@ export default function Perfil() {
           {estado && <Aviso tipo={estado.tipo}>{estado.mensaje}</Aviso>}
 
           <div className="campo">
-            <label>¿Cómo usas Rumbia?</label>
+            <label>{t('comoUsas')}</label>
             <div className="selector-perfil-uso">
               <button
                 type="button"
@@ -104,8 +102,8 @@ export default function Perfil() {
                 className={`opcion-perfil-uso ${form.perfilUso === 'agencia' ? 'activo' : ''}`}
                 onClick={() => setForm((f) => ({ ...f, perfilUso: 'agencia' }))}
               >
-                <strong>Soy agencia o agente</strong>
-                <span className="tenue">Cliente, margen y propuestas visibles en tus viajes</span>
+                <strong>{t('soyAgencia')}</strong>
+                <span className="tenue">{t('soyAgenciaTexto')}</span>
               </button>
               <button
                 type="button"
@@ -113,28 +111,28 @@ export default function Perfil() {
                 className={`opcion-perfil-uso ${form.perfilUso === 'personal' ? 'activo' : ''}`}
                 onClick={() => setForm((f) => ({ ...f, perfilUso: 'personal' }))}
               >
-                <strong>Viajo por mi cuenta</strong>
-                <span className="tenue">Sin nada de agencia: solo lo esencial del viaje</span>
+                <strong>{t('viajoPorMiCuenta')}</strong>
+                <span className="tenue">{t('viajoPorMiCuentaTexto')}</span>
               </button>
             </div>
           </div>
 
-          <Campo label="Nombre" name="name" value={form.name} onChange={cambiar} required />
+          <Campo label={t('nombre')} name="name" value={form.name} onChange={cambiar} required />
 
-          <Campo label="Email">
+          <Campo label={t('email')}>
             <input value={user?.email || ''} disabled />
           </Campo>
 
           <div className="rejilla rejilla-2">
             <Campo
-              label="Ciudad de origen"
+              label={t('ciudadOrigen')}
               name="homeCity"
-              placeholder="Monterrey"
+              placeholder={t('ciudadOrigenPlaceholder')}
               value={form.homeCity}
               onChange={cambiar}
-              ayuda="Se usa como origen por defecto."
+              ayuda={t('ciudadOrigenAyuda')}
             />
-            <Campo label="Moneda">
+            <Campo label={t('moneda')}>
               <select name="currency" value={form.currency} onChange={cambiar}>
                 {['MXN', 'USD', 'EUR', 'COP', 'ARS', 'CLP', 'PEN'].map((m) => (
                   <option key={m} value={m}>
@@ -145,26 +143,26 @@ export default function Perfil() {
             </Campo>
           </div>
 
-          <Campo label="Ritmo de viaje">
+          <Campo label={t('ritmoDeViaje')}>
             <select name="pace" value={form.pace} onChange={cambiar}>
               {RITMOS.map((r) => (
-                <option key={r.valor} value={r.valor}>
-                  {r.texto}
+                <option key={r} value={r}>
+                  {t(`ritmos.${r}`)}
                 </option>
               ))}
             </select>
           </Campo>
 
-          <Campo label="Nivel de gasto">
+          <Campo label={t('nivelDeGasto')}>
             <select name="budgetLevel" value={form.budgetLevel} onChange={cambiar}>
-              <option value="bajo">Bajo — mochilero, lo económico</option>
-              <option value="medio">Medio — cómodo sin excesos</option>
-              <option value="alto">Alto — sin fijarse mucho en el precio</option>
+              <option value="bajo">{t('niveles.bajo')}</option>
+              <option value="medio">{t('niveles.medio')}</option>
+              <option value="alto">{t('niveles.alto')}</option>
             </select>
           </Campo>
 
           <Boton type="submit" cargando={guardando}>
-            {guardando ? 'Guardando...' : 'Guardar cambios'}
+            {guardando ? t('guardando') : t('guardarCambios')}
           </Boton>
         </form>
       </Tarjeta>}
@@ -173,14 +171,12 @@ export default function Perfil() {
         <TarjetaAgencia seccion={seccion} user={user} actualizarUsuario={actualizarUsuario} />
       )}
 
-      {seccion === 'cuenta' && <Tarjeta titulo="Eliminar mi cuenta" className="zona-peligro">
+      {seccion === 'cuenta' && <Tarjeta titulo={t('eliminarCuentaTitulo')} className="zona-peligro">
         <p className="suave">
-          Se borran tu cuenta y <strong>todos tus viajes, itinerarios y gastos</strong>. La
-          eliminación es inmediata y no se puede deshacer: no hay papelera ni forma de recuperarlos
-          después.
+          {t('eliminarCuentaPre')}<strong>{t('eliminarCuentaBold')}</strong>{t('eliminarCuentaPost')}
         </p>
         <Boton variante="peligro" onClick={() => setBajaAbierta(true)}>
-          Eliminar mi cuenta
+          {t('eliminarCuentaBoton')}
         </Boton>
       </Tarjeta>}
 
@@ -191,19 +187,18 @@ export default function Perfil() {
           setPasswordBaja('');
           setErrorBaja(null);
         }}
-        titulo="¿Eliminar tu cuenta?"
+        titulo={t('modalEliminarTitulo')}
         ancho={440}
       >
         <form onSubmit={eliminarCuenta} className="pila" noValidate>
-          <Aviso tipo="alerta" titulo="Esto no se puede deshacer">
-            Vas a borrar tu cuenta y todo lo que has guardado en ella. Si solo quieres dejar de
-            usarla por ahora, puedes cerrar sesión y volver cuando quieras.
+          <Aviso tipo="alerta" titulo={t('modalAvisoTitulo')}>
+            {t('modalAvisoTexto')}
           </Aviso>
 
           {errorBaja && <Aviso tipo="error">{errorBaja.message}</Aviso>}
 
           <CampoPassword
-            label="Escribe tu contraseña para confirmar"
+            label={t('confirmaConTuContrasena')}
             name="passwordBaja"
             value={passwordBaja}
             onChange={(e) => setPasswordBaja(e.target.value)}
@@ -221,10 +216,10 @@ export default function Perfil() {
                 setErrorBaja(null);
               }}
             >
-              Cancelar
+              {t('cancelar')}
             </Boton>
             <Boton variante="peligro" type="submit" cargando={borrando} disabled={!passwordBaja}>
-              Sí, eliminar todo
+              {t('siEliminarTodo')}
             </Boton>
           </div>
         </form>

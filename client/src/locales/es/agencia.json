@@ -1,0 +1,225 @@
+{
+  "planes": {
+    "inicio_mensual": { "etiqueta": "Inicio / Solo (Mensual)", "ayuda": "De 1 a 3 agentes incluidos" },
+    "inicio_anual": { "etiqueta": "Inicio / Solo (Anual)", "ayuda": "De 1 a 3 agentes incluidos (ahorra 1.5 meses)" },
+    "agencia_mensual": { "etiqueta": "Agencia (Mensual)", "ayuda": "De 4 a 8 agentes incluidos" },
+    "agencia_anual": { "etiqueta": "Agencia (Anual)", "ayuda": "De 4 a 8 agentes incluidos (ahorra 1.5 meses)" },
+    "pro_mensual": { "etiqueta": "Agencia Pro (Mensual)" },
+    "pro_anual": { "etiqueta": "Agencia Pro (Anual)" },
+    "mensual": { "etiqueta": "Mensual (Legacy)" },
+    "anual": { "etiqueta": "Anual (Legacy)" },
+    "vitalicio": { "etiqueta": "De por vida (Legacy)", "ayuda": "Pago único, sin agentes extra automáticos" }
+  },
+  "agenteExtraSufijo": {
+    "limite": "por agente extra (16+)",
+    "simple": "por agente extra",
+    "unico": "único por agente extra"
+  },
+  "tiers": {
+    "inicio": {
+      "nombre": "Inicio / Solo",
+      "capacidad": "1 a 3 agentes incluidos",
+      "puntos": [
+        "De 1 a 3 agentes incluidos",
+        "25 itinerarios inteligentes al mes",
+        "Viajes manuales y PDFs ilimitados",
+        "Datos de contacto del asesor"
+      ]
+    },
+    "agencia": {
+      "nombre": "Agencia",
+      "destacado": "Popular",
+      "capacidad": "4 a 8 agentes incluidos",
+      "puntos": [
+        "De 4 a 8 agentes incluidos",
+        "150 itinerarios inteligentes al mes",
+        "Logo y membrete oficial en PDF",
+        "Margen de ganancia automático",
+        "Ocultar desglose de precios",
+        "Reporte de productividad por agente"
+      ]
+    },
+    "pro": {
+      "nombre": "Agencia Pro",
+      "capacidad": "Hasta 15 agentes incluidos",
+      "puntos": [
+        "Hasta 15 agentes incluidos",
+        "500 itinerarios inteligentes al mes",
+        "Marca blanca (sin pie de Rumbia)",
+        "Soporte prioritario por WhatsApp",
+        "Asistente virtual de viaje ilimitado"
+      ]
+    }
+  },
+  "marcaPdf": {
+    "titulo": "Marca en el PDF",
+    "texto": "Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando descargas el PDF. Déjalo vacío y sale la marca de Rumbia.",
+    "guardado": "Marca guardada.",
+    "noSeGuardo": "No se pudo guardar",
+    "nombreLabel": "Nombre de tu agencia o negocio",
+    "nombrePlaceholder": "Viajes del Sur",
+    "logoLabel": "Logo",
+    "cambiarLogo": "Cambiar logo",
+    "subirLogo": "Subir logo",
+    "quitar": "Quitar",
+    "logoAyuda": "PNG, JPEG o WebP, hasta 2 MB.",
+    "logoUrlLabel": "O pega la URL de un logo que ya esté publicado",
+    "logoUrlPlaceholder": "https://tusitio.com/logo.png",
+    "contactoLabel": "Contacto que aparece bajo el logo",
+    "contactoPlaceholder": "ventas@viajesdelsur.mx · 55 1234 5678",
+    "guardar": "Guardar marca"
+  },
+  "unirseOCrear": {
+    "titulo": "¿Trabajas con más agentes?",
+    "texto": "Una agencia comparte la misma marca en el PDF entre varios agentes, cada uno con su propia cuenta y sus propios viajes.",
+    "crearLabel": "Crear una agencia nueva",
+    "crearPlaceholder": "Nombre de la agencia",
+    "crearBoton": "Crear agencia",
+    "unirseLabel": "Unirme con un código",
+    "unirsePlaceholder": "Código que te dio tu agencia",
+    "unirseBoton": "Unirme"
+  },
+  "stripe": {
+    "cancelado": "No se completó el pago: no se hizo ningún cargo.",
+    "verificando": "Verificando tu pago...",
+    "recibido": "Pago recibido. Tu plan ya está activo.",
+    "enProceso": "Tu pago está en proceso. Puede tardar unos segundos más en reflejarse aquí.",
+    "cargandoAgencia": "Cargando tu agencia..."
+  },
+  "avisoCongelada": {
+    "tituloTrialVencido": "Tu prueba gratuita de 7 días ha finalizado",
+    "tituloInactivo": "El plan de esta agencia no está activo",
+    "duenoTrialVencidoTexto": "Tus viajes y propuestas siguen a salvo en tu cuenta. Para continuar creando y editando itinerarios oficiales con tu logo y margen, activa tu suscripción.",
+    "duenoTrialVencidoEnlace": "Elegir y activar plan →",
+    "duenoInactivoTexto": "Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta que {{accion}} el plan.",
+    "reactives": "reactives",
+    "actives": "actives",
+    "duenoInactivoEnlace": "Ir a {{accion}} →",
+    "reactivarlo": "reactivarlo",
+    "activarlo": "activarlo",
+    "miembroTexto": "Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia active o reactive el plan."
+  },
+  "vistaMiembro": {
+    "texto": "Perteneces a una agencia: tus PDF salen con su marca, no con la tuya. Solo quien la creó puede editarla.",
+    "pruebaTitulo": "Prueba gratuita activa ({{dias}} {{diaLabel}})",
+    "diaRestante": "día restante",
+    "diasRestantes": "días restantes",
+    "pruebaTexto": "Tu agencia está disfrutando del periodo de prueba gratuita de 7 días con acceso completo.",
+    "salir": "Salir de la agencia"
+  },
+  "ajusteAgentesExtra": {
+    "ayudaPlan": "ℹ️ {{ayuda}}. Para ampliar agentes o cambiar de plan, usa \"Administrar plan\".",
+    "label": "Agentes extra",
+    "guardar": "Guardar cambio",
+    "actualizado": "Actualizado. El ajuste se prorratea en tu próxima factura."
+  },
+  "panelBilling": {
+    "titulo": "Plan de la agencia",
+    "estadoActivo": "Activo",
+    "estadoPrueba": "Prueba ({{dias}}d)",
+    "estadoPruebaVencida": "Prueba vencida",
+    "estadoVencido": "Vencido",
+    "estadoSinActivar": "Sin activar",
+    "pruebaTitulo": "Prueba gratuita activa · {{dias}} {{diaLabel}}",
+    "pruebaTexto": "Tu agencia tiene acceso libre a todas las funciones profesionales{{hasta}}. Puedes activar tu plan en cualquier momento para asegurar el servicio continuo.",
+    "pruebaHasta": " hasta el {{fecha}}",
+    "planActivoTexto": "Plan {{plan}}, {{capacidad}} agente(s) de cupo ({{enUso}} en uso){{periodo}}.",
+    "periodoSeCancela": " · se cancela el {{fecha}}",
+    "periodoSeRenueva": " · se renueva el {{fecha}}",
+    "vitalicioTexto": "El plan De por vida es un pago único: para sumar más agentes, contáctanos.",
+    "administrarPlan": "Administrar plan",
+    "reactivarPlan": "Reactivar plan",
+    "activoSinContratar": "Tu plan está activo. No necesitas contratarlo de nuevo. Para cambiar un plan otorgado por la agencia, contacta a soporte.",
+    "elegirPlanTexto": "Elige el plan que mejor se adapte al tamaño de tu equipo para activar tus propuestas, itinerarios inteligentes y cotizaciones oficiales:",
+    "pagoMensual": "Pago Mensual",
+    "pagoAnual": "Pago Anual",
+    "ahorra": "Ahorra 1.5 meses",
+    "pesos": "Pesos (MXN)",
+    "dolares": "Dólares (USD)",
+    "divisaAyuda": "Elige la divisa de tu tarjeta. Algunas tarjetas mexicanas rechazan cargos en dólares.",
+    "sufijoMes": "/mes",
+    "sufijoAnio": "/año",
+    "popular": "Popular",
+    "capacidadIcono": "👥 {{capacidad}}",
+    "masDe15Label": "¿Tienes más de 15 agentes? Agentes adicionales (16+)",
+    "porAgenteExtraAyuda": "+${{monto}} {{moneda}}{{periodo}} por cada agente extra",
+    "planResumen": "Plan {{nombre}} ({{frecuencia}})",
+    "mensual": "Mensual",
+    "anual": "Anual",
+    "totalAPagar": "Total a pagar: ",
+    "alMes": "al mes",
+    "alAnio": "al año (10.5 meses)",
+    "continuarStripe": "Continuar al pago seguro con Stripe →"
+  },
+  "reporte": {
+    "titulo": "Reporte del mes",
+    "cargando": "Cargando reporte...",
+    "nadie": "Nadie ha armado un viaje todavía este mes.",
+    "totalMes": "{{cantidad}} viaje(s) armado(s) este mes en total."
+  },
+  "dueno": {
+    "pruebaTitulo": "Prueba gratuita de 7 días activa ({{dias}} {{diaLabel}})",
+    "pruebaTexto": "Tienes acceso completo a todas las funciones profesionales: crea itinerarios ilimitados, genera cotizaciones en PDF con tu logo y añade márgenes comerciales a tus propuestas.",
+    "marcaTitulo": "Marca en el PDF",
+    "insigniaDueno": "Dueño de la agencia",
+    "marcaTexto": "Esta marca la ven todos los agentes de tu agencia en sus PDF. Solo tú puedes editarla.",
+    "actualizada": "Agencia actualizada.",
+    "nombreLabel": "Nombre de la agencia",
+    "logoLabel": "Logo",
+    "cambiarLogo": "Cambiar logo",
+    "subirLogo": "Subir logo",
+    "quitar": "Quitar",
+    "logoAyuda": "PNG, JPEG o WebP, hasta 2 MB.",
+    "contactoLabel": "Contacto que aparece bajo el logo",
+    "colorAcentoLabel": "Color de acento del PDF",
+    "colorPredeterminado": "Verde de Rumbia (predeterminado)",
+    "restablecer": "Restablecer",
+    "colorAyuda": "Se usa en la insignia, los marcadores de día y las actividades del PDF. Con tu plan, además, el pie ya no menciona a Rumbia — el documento sale con tu marca, punto.",
+    "tipografiaLabel": "Tipografía del PDF",
+    "tamanoTextoLabel": "Tamaño de texto del PDF",
+    "fondoLabel": "Fondo del PDF",
+    "personalizacionTitulo": "Personalización completa disponible en Agencia y Agencia Pro",
+    "personalizacionTexto": "Elige tu propio color de acento para el PDF y quita la mención a Rumbia del pie — ",
+    "compararPlanes": "compara los planes",
+    "guardarCambios": "Guardar cambios",
+    "codigoInvitacionTitulo": "Código de invitación",
+    "codigoInvitacionTexto": "Compártelo con tus agentes; lo escriben en su perfil para unirse a esta agencia.",
+    "copiado": "Copiado",
+    "copiar": "Copiar",
+    "regenerar": "Regenerar",
+    "agentesTitulo": "Agentes ({{cantidad}})",
+    "sinAgentes": "Todavía nadie se ha unido con el código.",
+    "quitar2": "Quitar",
+    "zonaPeligroConMiembros": "Mientras haya otros agentes en tu agencia no puedes salir: primero tienen que salir ellos, o los quitas tú desde la lista de arriba.",
+    "zonaPeligroSinMiembros": "Al salir, la agencia se elimina porque ya no tendría dueño.",
+    "salir": "Salir de la agencia",
+    "quitarAgenteTitulo": "Quitar agente",
+    "quitarAgenteMensaje": "{{nombre}} deja de ver la marca de la agencia. Su cuenta y sus viajes no se tocan.",
+    "quitarConfirmar": "Quitar"
+  },
+  "fuentesPdf": {
+    "default": "Rumbia (predeterminada)",
+    "editorial": "Editorial elegante",
+    "clasica": "Clásica",
+    "corporativa": "Corporativa",
+    "redondeada": "Redondeada",
+    "tradicional": "Tradicional",
+    "neutra": "Neutra",
+    "robusta": "Robusta"
+  },
+  "densidadesPdf": {
+    "compacto": "Compacto",
+    "normal": "Normal",
+    "grande": "Grande"
+  },
+  "fondosPdf": {
+    "default": "Blanco (predeterminado)",
+    "azul": "Azul cielo",
+    "amarillo": "Amarillo suave",
+    "morado": "Lavanda",
+    "verde": "Verde salvia",
+    "beige": "Beige cálido",
+    "rosa": "Rosa pastel",
+    "gris": "Gris perla"
+  }
+}

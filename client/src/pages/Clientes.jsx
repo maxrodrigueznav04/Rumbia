@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { clientsApi, ApiError } from '../api/index.js';
 import { useMetaPagina } from '../hooks/useMetaPagina.js';
 import { Boton, Campo, Tarjeta, Modal, Aviso, Insignia, Vacio } from '../components/ui.jsx';
@@ -9,9 +10,11 @@ import { rangoFechas, formatoMoneda, ETIQUETAS_ESTADO } from '../utils/format.js
 const ORIGENES_COMUNES = ['WhatsApp', 'Instagram', 'Recomendación', 'Página Web', 'Facebook', 'Feria de Viajes', 'Otro'];
 
 export default function Clientes() {
+  const { t } = useTranslation('clientes');
+  const { t: tDominio } = useTranslation('dominio');
   useMetaPagina({
-    titulo: 'Clientes — CRM',
-    descripcion: 'Directorio de clientes, cartera de viajeros e historial de propuestas.',
+    titulo: t('meta.titulo'),
+    descripcion: t('meta.descripcion'),
     ruta: '/clientes',
   });
 
@@ -51,7 +54,7 @@ export default function Clientes() {
       const res = await clientsApi.list(params);
       setClientes(res.clientes || []);
     } catch (err) {
-      setError(err.message || 'No se pudieron cargar los clientes.');
+      setError(err.message || t('noSePudieronCargar'));
     } finally {
       setCargando(false);
     }
@@ -116,7 +119,7 @@ export default function Clientes() {
   const guardarCliente = async (e) => {
     e.preventDefault();
     if (!form.nombre.trim()) {
-      setFormError('El nombre del cliente es obligatorio.');
+      setFormError(t('modal.nombreObligatorio'));
       return;
     }
 
@@ -147,7 +150,7 @@ export default function Clientes() {
         abrirDetalle({ ...clienteDetalle, ...payload });
       }
     } catch (err) {
-      setFormError(err.message || 'Error al guardar el cliente.');
+      setFormError(err.message || t('modal.errorGuardar'));
     } finally {
       setGuardando(false);
     }
@@ -155,7 +158,7 @@ export default function Clientes() {
 
   const eliminarCliente = async (cliente, e) => {
     e?.stopPropagation();
-    if (!window.confirm(`¿Seguro que deseas eliminar a "${cliente.nombre}"? Sus viajes no se borrarán.`)) {
+    if (!window.confirm(t('confirmarEliminar', { nombre: cliente.nombre }))) {
       return;
     }
     try {
@@ -165,7 +168,7 @@ export default function Clientes() {
       }
       cargarClientes();
     } catch (err) {
-      alert(err.message || 'No se pudo eliminar el cliente.');
+      alert(err.message || t('noSePudoEliminar'));
     }
   };
 
@@ -184,14 +187,14 @@ export default function Clientes() {
       {/* Encabezado */}
       <div className="fila-entre" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
-          <span className="etiqueta">Gestión comercial</span>
-          <h1 style={{ margin: '4px 0 6px', fontSize: '2rem' }}>Cartera de Clientes</h1>
+          <span className="etiqueta">{t('gestionComercial')}</span>
+          <h1 style={{ margin: '4px 0 6px', fontSize: '2rem' }}>{t('titulo')}</h1>
           <p className="suave" style={{ margin: 0 }}>
-            Guarda la información de tus viajeros, sus preferencias y consulta todas sus propuestas.
+            {t('subtitulo')}
           </p>
         </div>
         <Boton onClick={abrirCrear}>
-          <Icono nombre="mas" tamano={16} /> Nuevo cliente
+          <Icono nombre="mas" tamano={16} /> {t('nuevoCliente')}
         </Boton>
       </div>
 
@@ -203,7 +206,7 @@ export default function Clientes() {
           <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
             <Campo
               type="search"
-              placeholder="Buscar por nombre, WhatsApp, teléfono o correo..."
+              placeholder={t('buscarPlaceholder')}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               style={{ marginBottom: 0 }}
@@ -212,14 +215,14 @@ export default function Clientes() {
 
           {todasEtiquetas.length > 0 && (
             <div className="fila" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="tenue" style={{ fontSize: '0.82rem' }}>Etiquetas:</span>
+              <span className="tenue" style={{ fontSize: '0.82rem' }}>{t('etiquetas')}</span>
               <button
                 type="button"
                 className={`boton chico ${!etiquetaFiltro ? '' : 'fantasma'}`}
                 style={{ padding: '3px 10px', fontSize: '0.8rem' }}
                 onClick={() => setEtiquetaFiltro('')}
               >
-                Todas
+                {t('todas')}
               </button>
               {todasEtiquetas.map((tag) => (
                 <button
@@ -241,21 +244,21 @@ export default function Clientes() {
       {cargando ? (
         <div style={{ textAlign: 'center', padding: '48px 0' }}>
           <span className="spinner" style={{ width: 32, height: 32 }} />
-          <p className="suave" style={{ marginTop: 12 }}>Cargando clientes...</p>
+          <p className="suave" style={{ marginTop: 12 }}>{t('cargandoClientes')}</p>
         </div>
       ) : clientes.length === 0 ? (
         <Vacio
           icono="👥"
-          titulo={busqueda || etiquetaFiltro ? 'No se encontraron clientes' : 'Aún no tienes clientes registrados'}
+          titulo={busqueda || etiquetaFiltro ? t('sinResultados') : t('sinClientes')}
           accion={
             <Boton onClick={abrirCrear}>
-              <Icono nombre="mas" tamano={16} /> Registrar primer cliente
+              <Icono nombre="mas" tamano={16} /> {t('registrarPrimerCliente')}
             </Boton>
           }
         >
           {busqueda || etiquetaFiltro
-            ? 'Intenta con otro término de búsqueda o limpia los filtros.'
-            : 'Registra a tus clientes frecuentes para asociar sus propuestas con un solo clic.'}
+            ? t('sinResultadosTexto')
+            : t('sinClientesTexto')}
         </Vacio>
       ) : (
         <div className="rejilla rejilla-3" style={{ gap: 16 }}>
@@ -299,7 +302,7 @@ export default function Clientes() {
                         </strong>
                         {c.origen && (
                           <span className="tenue" style={{ fontSize: '0.78rem' }}>
-                            Origen: {c.origen}
+                            {t('origen', { origen: c.origen })}
                           </span>
                         )}
                       </div>
@@ -309,7 +312,7 @@ export default function Clientes() {
                         type="button"
                         className="boton fantasma chico"
                         style={{ padding: '4px 8px' }}
-                        title="Editar cliente"
+                        title={t('editarCliente')}
                         onClick={(e) => abrirEditar(c, e)}
                       >
                         <Icono nombre="lapiz" tamano={15} />
@@ -396,16 +399,16 @@ export default function Clientes() {
                   }}
                 >
                   <span className="tenue" style={{ fontSize: '0.8rem' }}>
-                    {c.viajesCount === 1 ? '1 propuesta' : `${c.viajesCount || 0} propuestas`}
+                    {c.viajesCount === 1 ? t('propuesta') : t('propuestas', { cantidad: c.viajesCount || 0 })}
                   </span>
                   <button
                     type="button"
                     className="boton secundario chico"
                     style={{ fontSize: '0.78rem', padding: '4px 10px' }}
                     onClick={(e) => crearViajeParaCliente(c, e)}
-                    title="Crear nueva propuesta para este cliente"
+                    title={t('crearPropuestaTitulo')}
                   >
-                    + Nueva propuesta
+                    {t('nuevaPropuesta')}
                   </button>
                 </div>
               </div>
@@ -418,14 +421,14 @@ export default function Clientes() {
       <Modal
         abierto={modalAbierto}
         onCerrar={cerrarModal}
-        titulo={editandoCliente ? 'Editar cliente' : 'Nuevo cliente'}
+        titulo={editandoCliente ? t('modal.editarTitulo') : t('modal.nuevoTitulo')}
       >
         {formError && <Aviso tipo="error">{formError}</Aviso>}
 
         <form onSubmit={guardarCliente} className="pila" style={{ gap: 14 }}>
           <Campo
-            label="Nombre completo o familia *"
-            placeholder="Ej. Familia González / Roberto Martínez"
+            label={t('modal.nombreLabel')}
+            placeholder={t('modal.nombrePlaceholder')}
             value={form.nombre}
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             required
@@ -434,22 +437,22 @@ export default function Clientes() {
 
           <div className="rejilla rejilla-2" style={{ gap: 12 }}>
             <Campo
-              label="WhatsApp / Teléfono"
-              placeholder="+52 55 1234 5678"
+              label={t('modal.telefonoLabel')}
+              placeholder={t('modal.telefonoPlaceholder')}
               value={form.telefono}
               onChange={(e) => setForm({ ...form, telefono: e.target.value })}
             />
             <Campo
-              label="Correo electrónico"
+              label={t('modal.emailLabel')}
               type="email"
-              placeholder="cliente@correo.com"
+              placeholder={t('modal.emailPlaceholder')}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
 
           <div className="campo">
-            <label>Origen del cliente</label>
+            <label>{t('modal.origenLabel')}</label>
             <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
               <select
                 value={ORIGENES_COMUNES.includes(form.origen) ? form.origen : 'Otro'}
@@ -468,7 +471,7 @@ export default function Clientes() {
               {!ORIGENES_COMUNES.slice(0, -1).includes(form.origen) && (
                 <input
                   type="text"
-                  placeholder="¿Cuál origen?"
+                  placeholder={t('modal.origenOtroPlaceholder')}
                   value={form.origen}
                   onChange={(e) => setForm({ ...form, origen: e.target.value })}
                   style={{ flex: 1 }}
@@ -478,18 +481,18 @@ export default function Clientes() {
           </div>
 
           <Campo
-            label="Etiquetas (separadas por coma)"
-            placeholder="Ej. VIP, Familia, Frecuente, Playa"
+            label={t('modal.etiquetasLabel')}
+            placeholder={t('modal.etiquetasPlaceholder')}
             value={form.etiquetasStr}
             onChange={(e) => setForm({ ...form, etiquetasStr: e.target.value })}
-            ayuda="Útiles para filtrar grupos de viajeros."
+            ayuda={t('modal.etiquetasAyuda')}
           />
 
           <div className="campo">
-            <label>Notas y preferencias de viaje</label>
+            <label>{t('modal.notasLabel')}</label>
             <textarea
               rows="3"
-              placeholder="Gustos particulares, destinos pendientes, aerolínea favorita, alergias, números de pasaporte..."
+              placeholder={t('modal.notasPlaceholder')}
               value={form.notas}
               onChange={(e) => setForm({ ...form, notas: e.target.value })}
             />
@@ -502,16 +505,16 @@ export default function Clientes() {
                 className="boton peligro chico"
                 onClick={(e) => eliminarCliente(editandoCliente, e)}
               >
-                Eliminar cliente
+                {t('modal.eliminarCliente')}
               </button>
             ) : <span />}
 
             <div className="fila" style={{ gap: 8 }}>
               <Boton type="button" variante="secundario" onClick={cerrarModal}>
-                Cancelar
+                {t('modal.cancelar')}
               </Boton>
               <Boton type="submit" cargando={guardando}>
-                {editandoCliente ? 'Guardar cambios' : 'Registrar cliente'}
+                {editandoCliente ? t('modal.guardarCambios') : t('modal.registrarCliente')}
               </Boton>
             </div>
           </div>
@@ -522,7 +525,7 @@ export default function Clientes() {
       <Modal
         abierto={Boolean(clienteDetalle)}
         onCerrar={() => setClienteDetalle(null)}
-        titulo={clienteDetalle?.nombre || 'Detalle del cliente'}
+        titulo={clienteDetalle?.nombre || t('detalle.tituloPorDefecto')}
         ancho={640}
       >
         {clienteDetalle && (
@@ -569,13 +572,13 @@ export default function Clientes() {
                     chico
                     onClick={(e) => abrirEditar(clienteDetalle, e)}
                   >
-                    <Icono nombre="lapiz" tamano={14} /> Editar
+                    <Icono nombre="lapiz" tamano={14} /> {t('detalle.editar')}
                   </Boton>
                   <Boton
                     chico
                     onClick={(e) => crearViajeParaCliente(clienteDetalle, e)}
                   >
-                    + Nuevo viaje
+                    {t('detalle.nuevoViaje')}
                   </Boton>
                 </div>
               </div>
@@ -583,7 +586,7 @@ export default function Clientes() {
               {clienteDetalle.notas && (
                 <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed var(--border)' }}>
                   <span className="tenue" style={{ fontSize: '0.78rem', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Notas & Preferencias
+                    {t('detalle.notasYPreferencias')}
                   </span>
                   <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: 'var(--texto-suave)', whiteSpace: 'pre-wrap' }}>
                     {clienteDetalle.notas}
@@ -596,14 +599,14 @@ export default function Clientes() {
             <div>
               <div className="fila-entre" style={{ alignItems: 'center', marginBottom: 12 }}>
                 <h4 style={{ margin: 0, fontSize: '1.05rem' }}>
-                  Historial de Viajes y Propuestas ({viajesCliente.length})
+                  {t('detalle.historial', { cantidad: viajesCliente.length })}
                 </h4>
                 <Link
                   to={`/viajes/nuevo?clientId=${clienteDetalle._id}&clientName=${encodeURIComponent(clienteDetalle.nombre)}`}
                   className="suave"
                   style={{ fontSize: '0.82rem', fontWeight: 600 }}
                 >
-                  + Armar nueva propuesta
+                  {t('detalle.armarNuevaPropuesta')}
                 </Link>
               </div>
 
@@ -621,16 +624,17 @@ export default function Clientes() {
                   }}
                 >
                   <p className="suave" style={{ margin: '0 0 10px', fontSize: '0.9rem' }}>
-                    Este cliente aún no tiene viajes o propuestas asociadas.
+                    {t('detalle.sinViajes')}
                   </p>
                   <Boton chico onClick={(e) => crearViajeParaCliente(clienteDetalle, e)}>
-                    Crear primera propuesta
+                    {t('detalle.crearPrimeraPropuesta')}
                   </Boton>
                 </div>
               ) : (
                 <div className="pila" style={{ gap: 10 }}>
                   {viajesCliente.map((v) => {
                     const estadoInfo = ETIQUETAS_ESTADO[v.status] || ETIQUETAS_ESTADO.borrador;
+                    const textoEstado = tDominio(`estadoViaje.${v.status}`, { defaultValue: estadoInfo.texto });
                     return (
                       <Link
                         key={v._id}
@@ -654,7 +658,7 @@ export default function Clientes() {
                               {v.title || v.destination?.name}
                             </strong>
                             <Insignia color={estadoInfo.color} style={{ fontSize: '0.72rem' }}>
-                              {estadoInfo.texto}
+                              {textoEstado}
                             </Insignia>
                           </div>
                           <span className="tenue" style={{ fontSize: '0.8rem', display: 'block', marginTop: 3 }}>

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { agencyApi, authApi, billingApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import Icono from './Icono.jsx';
 import { FUENTES_PDF, DENSIDADES_PDF } from '../utils/fuentesPdf.js';
 import { FONDOS_PDF } from '../utils/fondosPdf.js';
+import { localeDeFecha } from '../utils/format.js';
 import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, ErrorCarga } from './ui.jsx';
 
 /**
@@ -20,15 +22,15 @@ import { Boton, Campo, Tarjeta, Aviso, Insignia, ModalConfirmar, Cargando, Error
  * mas que una tarifa.
  */
 const PLANES = {
-  inicio_mensual: { etiqueta: 'Inicio / Solo (Mensual)', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos', base: { mxn: '$190 MXN/mes', usd: '$10 USD/mes' } },
-  inicio_anual: { etiqueta: 'Inicio / Solo (Anual)', agentesBase: 3, ayuda: 'De 1 a 3 agentes incluidos (ahorra 1.5 meses)', base: { mxn: '$1,950 MXN/año', usd: '$104 USD/año' } },
-  agencia_mensual: { etiqueta: 'Agencia (Mensual)', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos', base: { mxn: '$450 MXN/mes', usd: '$25 USD/mes' } },
-  agencia_anual: { etiqueta: 'Agencia (Anual)', agentesBase: 8, ayuda: 'De 4 a 8 agentes incluidos (ahorra 1.5 meses)', base: { mxn: '$4,650 MXN/año', usd: '$260 USD/año' } },
-  pro_mensual: { etiqueta: 'Agencia Pro (Mensual)', agentesBase: 15, permiteExtra: true, base: { mxn: '$750 MXN/mes', usd: '$40 USD/mes' }, agente: { mxn: '+$75 MXN/mes por agente extra (16+)', usd: '+$4 USD/mes por agente extra (16+)' } },
-  pro_anual: { etiqueta: 'Agencia Pro (Anual)', agentesBase: 15, permiteExtra: true, base: { mxn: '$7,800 MXN/año', usd: '$416 USD/año' }, agente: { mxn: '+$780 MXN/año por agente extra (16+)', usd: '+$42 USD/año por agente extra (16+)' } },
-  mensual: { etiqueta: 'Mensual (Legacy)', permiteExtra: true, base: { mxn: '$20 USD/mes', usd: '$20 USD/mes' }, agente: { mxn: '+$10 USD/mes por agente extra', usd: '+$10 USD/mes por agente extra' } },
-  anual: { etiqueta: 'Anual (Legacy)', permiteExtra: true, base: { mxn: '$200 USD/año', usd: '$200 USD/año' }, agente: { mxn: '+$100 USD/año por agente extra', usd: '+$100 USD/año por agente extra' } },
-  vitalicio: { etiqueta: 'De por vida (Legacy)', base: { mxn: '$500 USD pago único', usd: '$500 USD pago único' }, agente: { mxn: '+$250 USD único por agente extra', usd: '+$250 USD único por agente extra' } },
+  inicio_mensual: { agentesBase: 3, base: { mxn: '$190 MXN/mes', usd: '$10 USD/mes' } },
+  inicio_anual: { agentesBase: 3, base: { mxn: '$1,950 MXN/año', usd: '$104 USD/año' } },
+  agencia_mensual: { agentesBase: 8, base: { mxn: '$450 MXN/mes', usd: '$25 USD/mes' } },
+  agencia_anual: { agentesBase: 8, base: { mxn: '$4,650 MXN/año', usd: '$260 USD/año' } },
+  pro_mensual: { agentesBase: 15, permiteExtra: true, base: { mxn: '$750 MXN/mes', usd: '$40 USD/mes' }, agente: { mxn: '+$75 MXN/mes', usd: '+$4 USD/mes' }, agenteTipo: 'limite' },
+  pro_anual: { agentesBase: 15, permiteExtra: true, base: { mxn: '$7,800 MXN/año', usd: '$416 USD/año' }, agente: { mxn: '+$780 MXN/año', usd: '+$42 USD/año' }, agenteTipo: 'limite' },
+  mensual: { permiteExtra: true, base: { mxn: '$20 USD/mes', usd: '$20 USD/mes' }, agente: { mxn: '+$10 USD/mes', usd: '+$10 USD/mes' }, agenteTipo: 'simple' },
+  anual: { permiteExtra: true, base: { mxn: '$200 USD/año', usd: '$200 USD/año' }, agente: { mxn: '+$100 USD/año', usd: '+$100 USD/año' }, agenteTipo: 'simple' },
+  vitalicio: { base: { mxn: '$500 USD pago único', usd: '$500 USD pago único' }, agente: { mxn: '+$250 USD', usd: '+$250 USD' }, agenteTipo: 'unico' },
 };
 
 // Mismos montos que pro_mensual.agente/pro_anual.agente en PLANES de arriba
@@ -40,47 +42,35 @@ const PRECIO_AGENTE_EXTRA_PRO = {
   usd: { mensual: 4, anual: 42 },
 };
 
+function etiquetaPlan(t, planId) {
+  return t(`planes.${planId}.etiqueta`, { defaultValue: planId });
+}
+
+function ayudaPlan(t, planId) {
+  return t(`planes.${planId}.ayuda`, { defaultValue: '' });
+}
+
+function textoAgenteExtra(t, planId, moneda) {
+  const plan = PLANES[planId];
+  if (!plan?.agente) return undefined;
+  const sufijo = t(`agenteExtraSufijo.${plan.agenteTipo}`);
+  return `${plan.agente[moneda]} ${sufijo}`;
+}
+
 export const TIERS_SELECCION = [
   {
     id: 'inicio',
-    nombre: 'Inicio / Solo',
-    capacidad: '1 a 3 agentes incluidos',
     monto: { mxn: { mensual: '$190', anual: '$1,950' }, usd: { mensual: '$10', anual: '$104' } },
-    puntos: [
-      'De 1 a 3 agentes incluidos',
-      '25 itinerarios inteligentes al mes',
-      'Viajes manuales y PDFs ilimitados',
-      'Datos de contacto del asesor',
-    ],
   },
   {
     id: 'agencia',
-    nombre: 'Agencia',
     destacado: true,
-    capacidad: '4 a 8 agentes incluidos',
     monto: { mxn: { mensual: '$450', anual: '$4,650' }, usd: { mensual: '$25', anual: '$260' } },
-    puntos: [
-      'De 4 a 8 agentes incluidos',
-      '150 itinerarios inteligentes al mes',
-      'Logo y membrete oficial en PDF',
-      'Margen de ganancia automático',
-      'Ocultar desglose de precios',
-      'Reporte de productividad por agente',
-    ],
   },
   {
     id: 'pro',
-    nombre: 'Agencia Pro',
-    capacidad: 'Hasta 15 agentes incluidos',
     monto: { mxn: { mensual: '$750', anual: '$7,800' }, usd: { mensual: '$40', anual: '$416' } },
     permiteExtra: true,
-    puntos: [
-      'Hasta 15 agentes incluidos',
-      '500 itinerarios inteligentes al mes',
-      'Marca blanca (sin pie de Rumbia)',
-      'Soporte prioritario por WhatsApp',
-      'Asistente virtual de viaje ilimitado',
-    ],
   },
 ];
 
@@ -106,6 +96,7 @@ export default function TarjetaAgencia({ user, actualizarUsuario, seccion = 'mar
 /* ------------------------------------------------------------------ */
 
 function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
+  const { t } = useTranslation('agencia');
   const [form, setForm] = useState({
     agencyName: user?.branding?.agencyName || '',
     logoUrl: user?.branding?.logoUrl || '',
@@ -126,7 +117,7 @@ function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
     try {
       const data = await authApi.updateProfile({ branding: form });
       actualizarUsuario(data.user);
-      setEstado({ tipo: 'exito', mensaje: 'Marca guardada.' });
+      setEstado({ tipo: 'exito', mensaje: t('marcaPdf.guardado') });
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
@@ -167,29 +158,28 @@ function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
 
   return (
     <>
-      {seccion === 'marca' && <Tarjeta titulo="Marca en el PDF">
+      {seccion === 'marca' && <Tarjeta titulo={t('marcaPdf.titulo')}>
         <p className="suave" style={{ marginTop: 0 }}>
-          Si armas itinerarios para otras personas, esto es lo que aparece en el membrete cuando
-          descargas el PDF. Déjalo vacío y sale la marca de Rumbia.
+          {t('marcaPdf.texto')}
         </p>
 
         {estado && (
-          <Aviso tipo={estado.tipo} titulo={estado.tipo === 'exito' ? undefined : 'No se pudo guardar'}>
+          <Aviso tipo={estado.tipo} titulo={estado.tipo === 'exito' ? undefined : t('marcaPdf.noSeGuardo')}>
             {estado.mensaje}
           </Aviso>
         )}
 
         <form onSubmit={guardar} className="pila" noValidate>
           <Campo
-            label="Nombre de tu agencia o negocio"
+            label={t('marcaPdf.nombreLabel')}
             name="agencyName"
             value={form.agencyName}
             onChange={cambiar}
-            placeholder="Viajes del Sur"
+            placeholder={t('marcaPdf.nombrePlaceholder')}
           />
 
           <div className="campo">
-            <label>Logo</label>
+            <label>{t('marcaPdf.logoLabel')}</label>
             <div className="fila" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {form.logoUrl && (
                 <img
@@ -220,11 +210,11 @@ function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
                 cargando={subiendoLogo}
                 onClick={() => inputLogoRef.current?.click()}
               >
-                <Icono nombre="mas" tamano={14} /> {form.logoUrl ? 'Cambiar logo' : 'Subir logo'}
+                <Icono nombre="mas" tamano={14} /> {form.logoUrl ? t('marcaPdf.cambiarLogo') : t('marcaPdf.subirLogo')}
               </Boton>
               {form.logoUrl && (
                 <Boton type="button" variante="peligro-texto" chico onClick={quitarLogo} cargando={subiendoLogo}>
-                  Quitar
+                  {t('marcaPdf.quitar')}
                 </Boton>
               )}
             </div>
@@ -233,29 +223,29 @@ function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
                 {errorLogo}
               </span>
             )}
-            <span className="campo-ayuda">PNG, JPEG o WebP, hasta 2 MB.</span>
+            <span className="campo-ayuda">{t('marcaPdf.logoAyuda')}</span>
           </div>
 
           <Campo
-            label="O pega la URL de un logo que ya esté publicado"
+            label={t('marcaPdf.logoUrlLabel')}
             name="logoUrl"
             type="url"
             value={form.logoUrl}
             onChange={cambiar}
-            placeholder="https://tusitio.com/logo.png"
+            placeholder={t('marcaPdf.logoUrlPlaceholder')}
           />
 
           <Campo
-            label="Contacto que aparece bajo el logo"
+            label={t('marcaPdf.contactoLabel')}
             name="contact"
             value={form.contact}
             onChange={cambiar}
-            placeholder="ventas@viajesdelsur.mx · 55 1234 5678"
+            placeholder={t('marcaPdf.contactoPlaceholder')}
           />
 
           <div>
             <Boton type="submit" cargando={guardando}>
-              Guardar marca
+              {t('marcaPdf.guardar')}
             </Boton>
           </div>
         </form>
@@ -268,6 +258,7 @@ function VistaSinAgencia({ user, actualizarUsuario, seccion }) {
 
 /** Crear una agencia o unirse a una con un codigo. Solo aplica sin agencia. */
 function UnirseOCrear({ actualizarUsuario }) {
+  const { t } = useTranslation('agencia');
   const [nombre, setNombre] = useState('');
   const [codigo, setCodigo] = useState('');
   const [creando, setCreando] = useState(false);
@@ -303,10 +294,9 @@ function UnirseOCrear({ actualizarUsuario }) {
   };
 
   return (
-    <Tarjeta titulo="¿Trabajas con más agentes?">
+    <Tarjeta titulo={t('unirseOCrear.titulo')}>
       <p className="suave" style={{ marginTop: 0 }}>
-        Una agencia comparte la misma marca en el PDF entre varios agentes, cada uno con su propia
-        cuenta y sus propios viajes.
+        {t('unirseOCrear.texto')}
       </p>
 
       {error && <Aviso tipo="error">{error}</Aviso>}
@@ -314,27 +304,27 @@ function UnirseOCrear({ actualizarUsuario }) {
       <div className="rejilla-detalle" style={{ gap: 20 }}>
         <form onSubmit={crear} className="pila-sm">
           <Campo
-            label="Crear una agencia nueva"
+            label={t('unirseOCrear.crearLabel')}
             name="nombreAgencia"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            placeholder="Nombre de la agencia"
+            placeholder={t('unirseOCrear.crearPlaceholder')}
           />
           <Boton type="submit" variante="secundario" chico cargando={creando} disabled={!nombre.trim()}>
-            Crear agencia
+            {t('unirseOCrear.crearBoton')}
           </Boton>
         </form>
 
         <form onSubmit={unirse} className="pila-sm">
           <Campo
-            label="Unirme con un código"
+            label={t('unirseOCrear.unirseLabel')}
             name="codigoAgencia"
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
-            placeholder="Código que te dio tu agencia"
+            placeholder={t('unirseOCrear.unirsePlaceholder')}
           />
           <Boton type="submit" variante="secundario" chico cargando={uniendo} disabled={!codigo.trim()}>
-            Unirme
+            {t('unirseOCrear.unirseBoton')}
           </Boton>
         </form>
       </div>
@@ -347,6 +337,7 @@ function UnirseOCrear({ actualizarUsuario }) {
 /* ------------------------------------------------------------------ */
 
 function VistaConAgencia({ actualizarUsuario, seccion }) {
+  const { t } = useTranslation('agencia');
   const { data, cargando, error, recargar, setData } = useFetch(
     ({ signal }) => agencyApi.obtener({ signal }),
     []
@@ -366,13 +357,13 @@ function VistaConAgencia({ actualizarUsuario, seccion }) {
     window.history.replaceState({}, '', window.location.pathname);
 
     if (resultado === 'cancelado') {
-      setAvisoStripe('No se completó el pago: no se hizo ningún cargo.');
+      setAvisoStripe(t('stripe.cancelado'));
       return;
     }
     if (resultado !== 'exito') return;
 
     let cancelado = false;
-    setAvisoStripe('Verificando tu pago...');
+    setAvisoStripe(t('stripe.verificando'));
 
     (async () => {
       for (const espera of [0, 2000, 4000]) {
@@ -383,7 +374,7 @@ function VistaConAgencia({ actualizarUsuario, seccion }) {
           if (cancelado) return;
           setData(fresca);
           if (fresca?.agency?.billing?.status === 'activa') {
-            setAvisoStripe('Pago recibido. Tu plan ya está activo.');
+            setAvisoStripe(t('stripe.recibido'));
             setTimeout(() => !cancelado && setAvisoStripe(null), 3000);
             return;
           }
@@ -394,7 +385,7 @@ function VistaConAgencia({ actualizarUsuario, seccion }) {
       // Se agoto el reintento sin ver el plan activo todavia: se pide
       // paciencia en vez de afirmar algo que no se pudo confirmar.
       if (!cancelado) {
-        setAvisoStripe('Tu pago está en proceso. Puede tardar unos segundos más en reflejarse aquí.');
+        setAvisoStripe(t('stripe.enProceso'));
       }
     })();
 
@@ -406,14 +397,14 @@ function VistaConAgencia({ actualizarUsuario, seccion }) {
 
   if (cargando) {
     return (
-      <Tarjeta titulo="Marca en el PDF">
-        <Cargando texto="Cargando tu agencia..." />
+      <Tarjeta titulo={t('marcaPdf.titulo')}>
+        <Cargando texto={t('stripe.cargandoAgencia')} />
       </Tarjeta>
     );
   }
   if (error) {
     return (
-      <Tarjeta titulo="Marca en el PDF">
+      <Tarjeta titulo={t('marcaPdf.titulo')}>
         <ErrorCarga error={error} onReintentar={recargar} />
       </Tarjeta>
     );
@@ -455,9 +446,10 @@ function calcularTrial(billing) {
 }
 
 function AvisoCongelada({ paraDueno, yaTuvoPlan, esTrialVencido }) {
+  const { t } = useTranslation('agencia');
   const titulo = esTrialVencido
-    ? 'Tu prueba gratuita de 7 días ha finalizado'
-    : 'El plan de esta agencia no está activo';
+    ? t('avisoCongelada.tituloTrialVencido')
+    : t('avisoCongelada.tituloInactivo');
 
   return (
     <Aviso tipo="alerta" titulo={titulo}>
@@ -465,30 +457,33 @@ function AvisoCongelada({ paraDueno, yaTuvoPlan, esTrialVencido }) {
         <>
           {esTrialVencido ? (
             <>
-              Tus viajes y propuestas siguen a salvo en tu cuenta. Para continuar creando y editando
-              itinerarios oficiales con tu logo y margen, activa tu suscripción.{' '}
+              {t('avisoCongelada.duenoTrialVencidoTexto')}{' '}
               <a href="/perfil?seccion=facturacion#plan-agencia" style={{ fontWeight: 600 }}>
-                Elegir y activar plan →
+                {t('avisoCongelada.duenoTrialVencidoEnlace')}
               </a>
             </>
           ) : (
             <>
-              Tus viajes y los de tus agentes siguen ahí, pero nadie puede crear ni editar nada hasta
-              que {yaTuvoPlan ? 'reactives' : 'actives'} el plan.{' '}
+              {t('avisoCongelada.duenoInactivoTexto', {
+                accion: t(yaTuvoPlan ? 'avisoCongelada.reactives' : 'avisoCongelada.actives'),
+              })}{' '}
               <a href="/perfil?seccion=facturacion#plan-agencia" style={{ fontWeight: 600 }}>
-                Ir a {yaTuvoPlan ? 'reactivarlo' : 'activarlo'} →
+                {t('avisoCongelada.duenoInactivoEnlace', {
+                  accion: t(yaTuvoPlan ? 'avisoCongelada.reactivarlo' : 'avisoCongelada.activarlo'),
+                })}
               </a>
             </>
           )}
         </>
       ) : (
-        `Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que el dueño de la agencia active o reactive el plan.`
+        t('avisoCongelada.miembroTexto')
       )}
     </Aviso>
   );
 }
 
 function VistaMiembro({ agencia, actualizarUsuario }) {
+  const { t } = useTranslation('agencia');
   const [saliendo, setSaliendo] = useState(false);
   const [error, setError] = useState(null);
 
@@ -508,15 +503,14 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
   };
 
   return (
-    <Tarjeta titulo="Marca en el PDF">
+    <Tarjeta titulo={t('marcaPdf.titulo')}>
       <p className="suave" style={{ marginTop: 0 }}>
-        Perteneces a una agencia: tus PDF salen con su marca, no con la tuya. Solo quien la creó
-        puede editarla.
+        {t('vistaMiembro.texto')}
       </p>
 
       {trial.enTrial && (
-        <Aviso tipo="info" titulo={`Prueba gratuita activa (${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'})`}>
-          Tu agencia está disfrutando del periodo de prueba gratuita de 7 días con acceso completo.
+        <Aviso tipo="info" titulo={t('vistaMiembro.pruebaTitulo', { dias: trial.diasRestantes, diaLabel: t(trial.diasRestantes === 1 ? 'vistaMiembro.diaRestante' : 'vistaMiembro.diasRestantes') })}>
+          {t('vistaMiembro.pruebaTexto')}
         </Aviso>
       )}
 
@@ -552,7 +546,7 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
 
       <div style={{ marginTop: 18 }}>
         <Boton variante="peligro-texto" chico cargando={saliendo} onClick={salir}>
-          Salir de la agencia
+          {t('vistaMiembro.salir')}
         </Boton>
       </div>
     </Tarjeta>
@@ -571,6 +565,7 @@ function VistaMiembro({ agencia, actualizarUsuario }) {
  * suscripción que ajustar, así que PanelBilling ni la monta para ese caso.
  */
 function AjusteAgentesExtra({ agencia, recargar }) {
+  const { t } = useTranslation('agencia');
   const billing = agencia.billing || {};
   const moneda = billing.moneda || 'mxn';
   const [valor, setValor] = useState(billing.extraAgentes ?? 0);
@@ -599,7 +594,7 @@ function AjusteAgentesExtra({ agencia, recargar }) {
   if (billing.plan && !PLANES[billing.plan]?.permiteExtra) {
     return (
       <p className="tenue" style={{ marginTop: 8, fontSize: '0.85rem' }}>
-        ℹ️ {PLANES[billing.plan]?.ayuda}. Para ampliar agentes o cambiar de plan, usa &quot;Administrar plan&quot;.
+        {t('ajusteAgentesExtra.ayudaPlan', { ayuda: ayudaPlan(t, billing.plan) })}
       </p>
     );
   }
@@ -608,16 +603,16 @@ function AjusteAgentesExtra({ agencia, recargar }) {
     <form onSubmit={guardar} className="pila-sm" style={{ marginTop: 12 }}>
       <div className="fila" style={{ gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <Campo
-          label="Agentes extra"
+          label={t('ajusteAgentesExtra.label')}
           type="number"
           min="0"
           step="1"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          ayuda={PLANES[billing.plan]?.agente?.[moneda]}
+          ayuda={textoAgenteExtra(t, billing.plan, moneda)}
         />
         <Boton type="submit" variante="secundario" chico cargando={guardando} disabled={!cambiado}>
-          Guardar cambio
+          {t('ajusteAgentesExtra.guardar')}
         </Boton>
       </div>
       {error && (
@@ -627,7 +622,7 @@ function AjusteAgentesExtra({ agencia, recargar }) {
       )}
       {exito && (
         <span className="tenue" style={{ fontSize: '0.85rem' }}>
-          Actualizado. El ajuste se prorratea en tu próxima factura.
+          {t('ajusteAgentesExtra.actualizado')}
         </span>
       )}
     </form>
@@ -635,6 +630,7 @@ function AjusteAgentesExtra({ agencia, recargar }) {
 }
 
 function PanelBilling({ agencia, totalAgentes, recargar }) {
+  const { t } = useTranslation('agencia');
   const billing = agencia.billing || {};
   const yaTuvoPlan = Boolean(billing.stripeCustomerId);
 
@@ -654,8 +650,8 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   const [moneda, setMoneda] = useState(billing.moneda || 'mxn');
 
   const planClave = `${tier}_${frecuencia}`;
-  const tierSeleccionado = TIERS_SELECCION.find((t) => t.id === tier) || TIERS_SELECCION[1];
-  const periodoTexto = frecuencia === 'mensual' ? 'al mes' : 'al año (10.5 meses)';
+  const tierSeleccionado = TIERS_SELECCION.find((tr) => tr.id === tier) || TIERS_SELECCION[1];
+  const periodoTexto = frecuencia === 'mensual' ? t('panelBilling.alMes') : t('panelBilling.alAnio');
 
   const [extraAgentes, setExtraAgentes] = useState(Math.max(0, totalAgentes - 15));
 
@@ -708,19 +704,19 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
   return (
     <Tarjeta
       id="plan-agencia"
-      titulo="Plan de la agencia"
+      titulo={t('panelBilling.titulo')}
       accion={
         billing.status && (
           <Insignia color={billing.status === 'activa' || trial.enTrial ? 'verde' : 'ambar'}>
             {billing.status === 'activa'
-              ? 'Activo'
+              ? t('panelBilling.estadoActivo')
               : trial.enTrial
-              ? `Prueba (${trial.diasRestantes}d)`
+              ? t('panelBilling.estadoPrueba', { dias: trial.diasRestantes })
               : trial.trialVencido
-              ? 'Prueba vencida'
+              ? t('panelBilling.estadoPruebaVencida')
               : billing.status === 'congelada'
-              ? 'Vencido'
-              : 'Sin activar'}
+              ? t('panelBilling.estadoVencido')
+              : t('panelBilling.estadoSinActivar')}
           </Insignia>
         )
       }
@@ -728,27 +724,32 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
       {error && <Aviso tipo="error">{error}</Aviso>}
 
       {trial.enTrial && (
-        <Aviso tipo="info" titulo={`Prueba gratuita activa · ${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'}`}>
-          Tu agencia tiene acceso libre a todas las funciones profesionales
-          {billing.trialHasta ? ` hasta el ${new Date(billing.trialHasta).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}` : ''}.
-          Puedes activar tu plan en cualquier momento para asegurar el servicio continuo.
+        <Aviso tipo="info" titulo={t('panelBilling.pruebaTitulo', { dias: trial.diasRestantes, diaLabel: t(trial.diasRestantes === 1 ? 'vistaMiembro.diaRestante' : 'vistaMiembro.diasRestantes') })}>
+          {t('panelBilling.pruebaTexto', {
+            hasta: billing.trialHasta
+              ? t('panelBilling.pruebaHasta', { fecha: new Date(billing.trialHasta).toLocaleDateString(localeDeFecha(), { day: 'numeric', month: 'long' }) })
+              : '',
+          })}
         </Aviso>
       )}
 
       {billing.status === 'activa' && (
         <>
           <p className="suave" style={{ marginTop: 0 }}>
-            Plan {PLANES[billing.plan]?.etiqueta || billing.plan}, {agencia.capacidadAgentes} agente(s)
-            de cupo ({totalAgentes} en uso)
-            {billing.periodoHasta &&
-              ` · ${billing.cancelaAlFinalizarPeriodo ? 'se cancela el' : 'se renueva el'} ${new Date(
-                billing.periodoHasta
-              ).toLocaleDateString('es-MX')}`}
-            .
+            {t('panelBilling.planActivoTexto', {
+              plan: etiquetaPlan(t, billing.plan) || billing.plan,
+              capacidad: agencia.capacidadAgentes,
+              enUso: totalAgentes,
+              periodo: billing.periodoHasta
+                ? t(billing.cancelaAlFinalizarPeriodo ? 'panelBilling.periodoSeCancela' : 'panelBilling.periodoSeRenueva', {
+                    fecha: new Date(billing.periodoHasta).toLocaleDateString(localeDeFecha()),
+                  })
+                : '',
+            })}
           </p>
           {billing.plan === 'vitalicio' ? (
             <p className="tenue" style={{ marginTop: 0, fontSize: '0.85rem' }}>
-              El plan De por vida es un pago único: para sumar más agentes, contáctanos.
+              {t('panelBilling.vitalicioTexto')}
             </p>
           ) : (
             <AjusteAgentesExtra agencia={agencia} recargar={recargar} />
@@ -758,15 +759,14 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
 
       {yaTuvoPlan ? (
         <Boton variante="secundario" chico cargando={cargando} onClick={irAlPortal}>
-          {billing.status === 'activa' ? 'Administrar plan' : 'Reactivar plan'}
+          {billing.status === 'activa' ? t('panelBilling.administrarPlan') : t('panelBilling.reactivarPlan')}
         </Boton>
       ) : billing.status === 'activa' ? (
-        <p className="suave">Tu plan está activo. No necesitas contratarlo de nuevo. Para cambiar un plan otorgado por la agencia, contacta a soporte.</p>
+        <p className="suave">{t('panelBilling.activoSinContratar')}</p>
       ) : (
         <>
           <p className="suave" style={{ marginTop: 0, marginBottom: 16 }}>
-            Elige el plan que mejor se adapte al tamaño de tu equipo para activar tus propuestas,
-            itinerarios inteligentes y cotizaciones oficiales:
+            {t('panelBilling.elegirPlanTexto')}
           </p>
 
           <form onSubmit={irACheckout} className="pila" style={{ gap: 16 }}>
@@ -788,14 +788,14 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                 className={`boton chico ${frecuencia === 'mensual' ? '' : 'secundario'}`}
                 onClick={() => setFrecuencia('mensual')}
               >
-                Pago Mensual
+                {t('panelBilling.pagoMensual')}
               </button>
               <button
                 type="button"
                 className={`boton chico ${frecuencia === 'anual' ? '' : 'secundario'}`}
                 onClick={() => setFrecuencia('anual')}
               >
-                Pago Anual <Insignia color="verde" style={{ marginLeft: 6 }}>Ahorra 1.5 meses</Insignia>
+                {t('panelBilling.pagoAnual')} <Insignia color="verde" style={{ marginLeft: 6 }}>{t('panelBilling.ahorra')}</Insignia>
               </button>
             </div>
 
@@ -818,32 +818,32 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                   className={`boton chico ${moneda === 'mxn' ? '' : 'secundario'}`}
                   onClick={() => setMoneda('mxn')}
                 >
-                  Pesos (MXN)
+                  {t('panelBilling.pesos')}
                 </button>
                 <button
                   type="button"
                   className={`boton chico ${moneda === 'usd' ? '' : 'secundario'}`}
                   onClick={() => setMoneda('usd')}
                 >
-                  Dólares (USD)
+                  {t('panelBilling.dolares')}
                 </button>
               </div>
               <p className="tenue" style={{ fontSize: '0.78rem', margin: '6px 0 0' }}>
-                Elige la divisa de tu tarjeta. Algunas tarjetas mexicanas rechazan cargos en dólares.
+                {t('panelBilling.divisaAyuda')}
               </p>
             </div>
 
             {/* 3 Tarjetas visuales de selección de plan */}
             <div className="rejilla rejilla-3" style={{ gap: 14 }}>
-              {TIERS_SELECCION.map((t) => {
-                const activo = tier === t.id;
-                const monto = t.monto[moneda][frecuencia];
-                const periodo = frecuencia === 'mensual' ? '/mes' : '/año';
+              {TIERS_SELECCION.map((tierItem) => {
+                const activo = tier === tierItem.id;
+                const monto = tierItem.monto[moneda][frecuencia];
+                const periodo = frecuencia === 'mensual' ? t('panelBilling.sufijoMes') : t('panelBilling.sufijoAnio');
 
                 return (
                   <div
-                    key={t.id}
-                    onClick={() => setTier(t.id)}
+                    key={tierItem.id}
+                    onClick={() => setTier(tierItem.id)}
                     style={{
                       border: activo ? '2px solid var(--verde)' : '1px solid var(--border)',
                       borderRadius: 'var(--radio)',
@@ -865,12 +865,12 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                             type="radio"
                             name="tier_agencia"
                             checked={activo}
-                            onChange={() => setTier(t.id)}
+                            onChange={() => setTier(tierItem.id)}
                             style={{ margin: 0, cursor: 'pointer', accentColor: 'var(--verde)' }}
                           />
-                          <strong style={{ fontSize: '1.02rem', color: 'var(--texto)' }}>{t.nombre}</strong>
+                          <strong style={{ fontSize: '1.02rem', color: 'var(--texto)' }}>{t(`tiers.${tierItem.id}.nombre`)}</strong>
                         </div>
-                        {t.destacado && <Insignia color="verde" style={{ fontSize: '0.72rem', fontWeight: 700 }}>Popular</Insignia>}
+                        {tierItem.destacado && <Insignia color="verde" style={{ fontSize: '0.72rem', fontWeight: 700 }}>{t('panelBilling.popular')}</Insignia>}
                       </div>
 
                       <div style={{ margin: '8px 0 10px', display: 'flex', alignItems: 'baseline', gap: 5 }}>
@@ -898,11 +898,11 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
                           width: 'fit-content',
                         }}
                       >
-                        👥 {t.capacidad}
+                        {t('panelBilling.capacidadIcono', { capacidad: t(`tiers.${tierItem.id}.capacidad`) })}
                       </div>
 
                       <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: 'var(--texto-suave)', lineHeight: 1.45 }}>
-                        {t.puntos.map((pt, idx) => (
+                        {t(`tiers.${tierItem.id}.puntos`, { returnObjects: true }).map((pt, idx) => (
                           <li key={idx} style={{ marginBottom: 4 }}>{pt}</li>
                         ))}
                       </ul>
@@ -916,15 +916,17 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             {tier === 'pro' && (
               <div style={{ maxWidth: 420, marginTop: 2 }}>
                 <Campo
-                  label="¿Tienes más de 15 agentes? Agentes adicionales (16+)"
+                  label={t('panelBilling.masDe15Label')}
                   type="number"
                   min="0"
                   step="1"
                   value={extraAgentes}
                   onChange={(e) => setExtraAgentes(e.target.value)}
-                  ayuda={`+$${PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia]} ${moneda.toUpperCase()}${
-                    frecuencia === 'mensual' ? '/mes' : '/año'
-                  } por cada agente extra`}
+                  ayuda={t('panelBilling.porAgenteExtraAyuda', {
+                    monto: PRECIO_AGENTE_EXTRA_PRO[moneda][frecuencia],
+                    moneda: moneda.toUpperCase(),
+                    periodo: frecuencia === 'mensual' ? t('panelBilling.sufijoMes') : t('panelBilling.sufijoAnio'),
+                  })}
                 />
               </div>
             )}
@@ -945,14 +947,17 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
             >
               <div>
                 <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--texto)' }}>
-                  Plan {tierSeleccionado.nombre} ({frecuencia === 'mensual' ? 'Mensual' : 'Anual'})
+                  {t('panelBilling.planResumen', {
+                    nombre: t(`tiers.${tierSeleccionado.id}.nombre`),
+                    frecuencia: frecuencia === 'mensual' ? t('panelBilling.mensual') : t('panelBilling.anual'),
+                  })}
                 </strong>
                 <span className="tenue" style={{ fontSize: '0.82rem' }}>
-                  Total a pagar: <strong style={{ color: 'var(--marca)' }}>{precioActual} {periodoTexto}</strong> · {tierSeleccionado.capacidad}
+                  {t('panelBilling.totalAPagar')}<strong style={{ color: 'var(--marca)' }}>{precioActual} {periodoTexto}</strong> · {t(`tiers.${tierSeleccionado.id}.capacidad`)}
                 </span>
               </div>
               <Boton type="submit" cargando={cargando}>
-                Continuar al pago seguro con Stripe →
+                {t('panelBilling.continuarStripe')}
               </Boton>
             </div>
           </form>
@@ -968,18 +973,19 @@ function PanelBilling({ agencia, totalAgentes, recargar }) {
  * bloquear ni volver a pedir todo lo demas si falla.
  */
 export function ReporteAgencia() {
+  const { t } = useTranslation('agencia');
   const { data, cargando, error, recargar } = useFetch(({ signal }) => agencyApi.reporte({ signal }), []);
 
   return (
-    <Tarjeta titulo="Reporte del mes">
-      {cargando && <Cargando texto="Cargando reporte..." />}
+    <Tarjeta titulo={t('reporte.titulo')}>
+      {cargando && <Cargando texto={t('reporte.cargando')} />}
       {error && <ErrorCarga error={error} onReintentar={recargar} />}
       {data && (
         <>
           <p className="suave" style={{ marginTop: 0 }}>
             {data.totalMes === 0
-              ? 'Nadie ha armado un viaje todavía este mes.'
-              : `${data.totalMes} viaje(s) armado(s) este mes en total.`}
+              ? t('reporte.nadie')
+              : t('reporte.totalMes', { cantidad: data.totalMes })}
           </p>
           <div className="pila-sm">
             {data.porAgente.map((a) => (
@@ -1001,6 +1007,7 @@ export function ReporteAgencia() {
 const COLOR_RUMBIA = '#1F6F5C';
 
 function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion }) {
+  const { t } = useTranslation('agencia');
   const [form, setForm] = useState({
     agencyName: agencia.agencyName,
     contact: agencia.contact || '',
@@ -1033,7 +1040,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
       // de la app leen la marca, no solo esta pantalla.
       actualizarUsuario({ agency: data.agency });
       recargar();
-      setEstado({ tipo: 'exito', mensaje: 'Agencia actualizada.' });
+      setEstado({ tipo: 'exito', mensaje: t('dueno.actualizada') });
     } catch (err) {
       setEstado({ tipo: 'error', mensaje: err.message });
     } finally {
@@ -1121,9 +1128,9 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
       {trial.enTrial && (
         <Aviso
           tipo="info"
-          titulo={`Prueba gratuita de 7 días activa (${trial.diasRestantes} ${trial.diasRestantes === 1 ? 'día restante' : 'días restantes'})`}
+          titulo={t('dueno.pruebaTitulo', { dias: trial.diasRestantes, diaLabel: t(trial.diasRestantes === 1 ? 'vistaMiembro.diaRestante' : 'vistaMiembro.diasRestantes') })}
         >
-          Tienes acceso completo a todas las funciones profesionales: crea itinerarios ilimitados, genera cotizaciones en PDF con tu logo y añade márgenes comerciales a tus propuestas.
+          {t('dueno.pruebaTexto')}
         </Aviso>
       )}
 
@@ -1135,18 +1142,18 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
         />
       )}
 
-      {seccion === 'marca' && <Tarjeta titulo="Marca en el PDF" accion={<Insignia color="verde">Dueño de la agencia</Insignia>}>
+      {seccion === 'marca' && <Tarjeta titulo={t('dueno.marcaTitulo')} accion={<Insignia color="verde">{t('dueno.insigniaDueno')}</Insignia>}>
         <p className="suave" style={{ marginTop: 0 }}>
-          Esta marca la ven todos los agentes de tu agencia en sus PDF. Solo tú puedes editarla.
+          {t('dueno.marcaTexto')}
         </p>
 
         {estado && <Aviso tipo={estado.tipo}>{estado.mensaje}</Aviso>}
 
         <form onSubmit={guardar} className="pila" noValidate>
-          <Campo label="Nombre de la agencia" name="agencyName" value={form.agencyName} onChange={cambiar} />
+          <Campo label={t('dueno.nombreLabel')} name="agencyName" value={form.agencyName} onChange={cambiar} />
 
           <div className="campo">
-            <label>Logo</label>
+            <label>{t('dueno.logoLabel')}</label>
             <div className="fila" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {logoUrl && (
                 <img
@@ -1177,22 +1184,22 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                 cargando={subiendoLogo}
                 onClick={() => inputLogoRef.current?.click()}
               >
-                <Icono nombre="mas" tamano={14} /> {logoUrl ? 'Cambiar logo' : 'Subir logo'}
+                <Icono nombre="mas" tamano={14} /> {logoUrl ? t('dueno.cambiarLogo') : t('dueno.subirLogo')}
               </Boton>
               {logoUrl && (
                 <Boton type="button" variante="peligro-texto" chico onClick={quitarLogo} cargando={subiendoLogo}>
-                  Quitar
+                  {t('dueno.quitar')}
                 </Boton>
               )}
             </div>
-            <span className="campo-ayuda">PNG, JPEG o WebP, hasta 2 MB.</span>
+            <span className="campo-ayuda">{t('dueno.logoAyuda')}</span>
           </div>
 
-          <Campo label="Contacto que aparece bajo el logo" name="contact" value={form.contact} onChange={cambiar} />
+          <Campo label={t('dueno.contactoLabel')} name="contact" value={form.contact} onChange={cambiar} />
 
           {agencia.marcaBlanca ? (
             <div className="campo">
-              <label htmlFor="colorAcento">Color de acento del PDF</label>
+              <label htmlFor="colorAcento">{t('dueno.colorAcentoLabel')}</label>
               <div className="fila" style={{ gap: 10, alignItems: 'center' }}>
                 <input
                   id="colorAcento"
@@ -1202,7 +1209,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                   onChange={cambiar}
                   style={{ width: 44, height: 36, padding: 2, cursor: 'pointer' }}
                 />
-                <span className="tenue">{form.colorAcento || 'Verde de Rumbia (predeterminado)'}</span>
+                <span className="tenue">{form.colorAcento || t('dueno.colorPredeterminado')}</span>
                 {form.colorAcento && (
                   <Boton
                     type="button"
@@ -1210,23 +1217,22 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                     chico
                     onClick={() => setForm((f) => ({ ...f, colorAcento: '' }))}
                   >
-                    Restablecer
+                    {t('dueno.restablecer')}
                   </Boton>
                 )}
               </div>
               <span className="campo-ayuda">
-                Se usa en la insignia, los marcadores de día y las actividades del PDF. Con tu plan,
-                además, el pie ya no menciona a Rumbia — el documento sale con tu marca, punto.
+                {t('dueno.colorAyuda')}
               </span>
             </div>
           ) : null}
 
           {agencia.marcaBlanca ? (
-            <Campo label="Tipografía del PDF" name="fuentePdf">
+            <Campo label={t('dueno.tipografiaLabel')} name="fuentePdf">
               <select name="fuentePdf" value={form.fuentePdf} onChange={cambiar}>
                 {FUENTES_PDF.map((f) => (
                   <option key={f.id} value={f.id}>
-                    {f.etiqueta}
+                    {t(`fuentesPdf.${f.id || 'default'}`)}
                   </option>
                 ))}
               </select>
@@ -1234,11 +1240,11 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
           ) : null}
 
           {agencia.marcaBlanca ? (
-            <Campo label="Tamaño de texto del PDF" name="densidadPdf">
+            <Campo label={t('dueno.tamanoTextoLabel')} name="densidadPdf">
               <select name="densidadPdf" value={form.densidadPdf} onChange={cambiar}>
                 {DENSIDADES_PDF.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.etiqueta}
+                    {t(`densidadesPdf.${d.id}`)}
                   </option>
                 ))}
               </select>
@@ -1247,7 +1253,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
 
           {agencia.marcaBlanca ? (
             <div className="campo">
-              <label>Fondo del PDF</label>
+              <label>{t('dueno.fondoLabel')}</label>
               {/* Paleta curada, sin selector de color libre a proposito: el
                   fondo cubre toda la hoja detras de las tarjetas blancas, y
                   un tono mal elegido se traga el documento entero. */}
@@ -1257,8 +1263,8 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                     key={f.id}
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, fondoPdf: f.id }))}
-                    title={f.etiqueta}
-                    aria-label={f.etiqueta}
+                    title={t(`fondosPdf.${f.id || 'default'}`)}
+                    aria-label={t(`fondosPdf.${f.id || 'default'}`)}
                     aria-pressed={form.fondoPdf === f.id}
                     style={{
                       width: 34,
@@ -1275,18 +1281,18 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                   />
                 ))}
               </div>
-              <span className="campo-ayuda">{FONDOS_PDF.find((f) => f.id === form.fondoPdf)?.etiqueta}</span>
+              <span className="campo-ayuda">{t(`fondosPdf.${form.fondoPdf || 'default'}`)}</span>
             </div>
           ) : (
-            <Aviso tipo="info" titulo="Personalización completa disponible en Agencia y Agencia Pro">
-              Elige tu propio color de acento para el PDF y quita la mención a Rumbia del pie —{' '}
-              <Link to="/acerca">compara los planes</Link>.
+            <Aviso tipo="info" titulo={t('dueno.personalizacionTitulo')}>
+              {t('dueno.personalizacionTexto')}
+              <Link to="/acerca">{t('dueno.compararPlanes')}</Link>.
             </Aviso>
           )}
 
           <div>
             <Boton type="submit" cargando={guardando}>
-              Guardar cambios
+              {t('dueno.guardarCambios')}
             </Boton>
           </div>
         </form>
@@ -1296,27 +1302,27 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
 
       {seccion === 'equipo' && <>
 
-      <Tarjeta titulo="Código de invitación">
+      <Tarjeta titulo={t('dueno.codigoInvitacionTitulo')}>
         <p className="suave" style={{ marginTop: 0 }}>
-          Compártelo con tus agentes; lo escriben en su perfil para unirse a esta agencia.
+          {t('dueno.codigoInvitacionTexto')}
         </p>
         <div className="fila" style={{ gap: 8, alignItems: 'center' }}>
           <code className="enlace-compartir" style={{ flex: 'unset', fontWeight: 700, letterSpacing: '0.04em' }}>
             {agencia.inviteCode}
           </code>
           <Boton chico onClick={copiarCodigo}>
-            {copiado ? 'Copiado' : 'Copiar'}
+            {copiado ? t('dueno.copiado') : t('dueno.copiar')}
           </Boton>
           <Boton variante="secundario" chico onClick={regenerarCodigo} cargando={regenerando}>
-            Regenerar
+            {t('dueno.regenerar')}
           </Boton>
         </div>
       </Tarjeta>
 
-      <Tarjeta titulo={`Agentes (${miembros.length})`}>
+      <Tarjeta titulo={t('dueno.agentesTitulo', { cantidad: miembros.length })}>
         {miembros.length === 0 ? (
           <p className="suave" style={{ margin: 0 }}>
-            Todavía nadie se ha unido con el código.
+            {t('dueno.sinAgentes')}
           </p>
         ) : (
           <div className="pila-sm">
@@ -1329,7 +1335,7 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
                   </span>
                 </div>
                 <Boton variante="peligro-texto" chico onClick={() => setPorEliminar(m)}>
-                  Quitar
+                  {t('dueno.quitar2')}
                 </Boton>
               </div>
             ))}
@@ -1342,11 +1348,11 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
       <Tarjeta className="zona-peligro">
         <p className="suave" style={{ marginTop: 0 }}>
           {miembros.length > 0
-            ? 'Mientras haya otros agentes en tu agencia no puedes salir: primero tienen que salir ellos, o los quitas tú desde la lista de arriba.'
-            : 'Al salir, la agencia se elimina porque ya no tendría dueño.'}
+            ? t('dueno.zonaPeligroConMiembros')
+            : t('dueno.zonaPeligroSinMiembros')}
         </p>
         <Boton variante="peligro-texto" chico onClick={salir} cargando={saliendo} disabled={miembros.length > 0}>
-          Salir de la agencia
+          {t('dueno.salir')}
         </Boton>
       </Tarjeta>
 
@@ -1355,9 +1361,9 @@ function VistaDueno({ agencia, miembros, actualizarUsuario, recargar, seccion })
         abierto={Boolean(porEliminar)}
         onCerrar={() => setPorEliminar(null)}
         onConfirmar={eliminarMiembro}
-        titulo="Quitar agente"
-        mensaje={`${porEliminar?.name} deja de ver la marca de la agencia. Su cuenta y sus viajes no se tocan.`}
-        textoConfirmar="Quitar"
+        titulo={t('dueno.quitarAgenteTitulo')}
+        mensaje={t('dueno.quitarAgenteMensaje', { nombre: porEliminar?.name })}
+        textoConfirmar={t('dueno.quitarConfirmar')}
       />
     </>
   );

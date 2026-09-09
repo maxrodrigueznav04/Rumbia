@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { templatesApi, tripsApi } from '../api/index.js';
 import useDebounce from '../hooks/useDebounce.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -27,6 +28,7 @@ const hoy = new Date().toISOString().slice(0, 10);
  * desde el botón "Guardar como plantilla" en la pantalla de un itinerario.
  */
 export default function Plantillas() {
+  const { t } = useTranslation('plantillas');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data, cargando, error, recargar } = useFetch(
@@ -43,13 +45,13 @@ export default function Plantillas() {
   return (
     <div className="pila">
       <div>
-        <h1 style={{ marginBottom: 4 }}>Plantillas</h1>
+        <h1 style={{ marginBottom: 4 }}>{t('titulo')}</h1>
         <p className="suave" style={{ margin: 0 }}>
           {user?.agency
-            ? 'Compartidas con tu equipo: cualquier agente de tu agencia las puede usar.'
-            : 'Destinos que armas seguido, listos para aplicar a un viaje nuevo sin empezar de cero.'}
+            ? t('subtituloAgencia')
+            : t('subtituloPersonal')}
         </p>
-        <Boton variante="secundario" onClick={() => setElegirViaje(true)}>Crear desde un itinerario</Boton>
+        <Boton variante="secundario" onClick={() => setElegirViaje(true)}>{t('crearDesdeItinerario')}</Boton>
       </div>
 
       {cargando && (
@@ -67,9 +69,8 @@ export default function Plantillas() {
       {error && <ErrorCarga error={error} onReintentar={recargar} />}
 
       {data && plantillas.length === 0 && (
-        <Vacio icono="🗂️" titulo="Todavía no tienes plantillas" accion={<Boton onClick={() => setElegirViaje(true)}>Elegir un itinerario existente</Boton>}>
-          Abre cualquier itinerario ya armado y usa "Guardar como plantilla" para reutilizarlo con el
-          próximo cliente que viaje al mismo destino.
+        <Vacio icono="🗂️" titulo={t('sinPlantillas')} accion={<Boton onClick={() => setElegirViaje(true)}>{t('elegirItinerarioExistente')}</Boton>}>
+          {t('sinPlantillasTexto')}
         </Vacio>
       )}
 
@@ -78,23 +79,20 @@ export default function Plantillas() {
           {plantillas.map((p) => (
             <Tarjeta key={p._id} titulo={p.name}>
               <p className="suave" style={{ marginTop: 0 }}>
-                <Icono nombre="pin" tamano={14} /> {nombreDestino(p) || 'Sin destino'}
+                <Icono nombre="pin" tamano={14} /> {nombreDestino(p) || t('sinDestino')}
                 <br />
-                {p.dayCount} {p.dayCount === 1 ? 'día' : 'días'}
+                {p.dayCount} {p.dayCount === 1 ? t('dia') : t('dias')}
                 {user?.agency && p.creadaPor && (
-                  <>
-                    {' '}
-                    · guardada por {p.creadaPorId === user._id ? 'ti' : p.creadaPor}
-                  </>
+                  t('guardadaPor', { nombre: p.creadaPorId === user._id ? t('guardadaPorTi') : p.creadaPor })
                 )}
               </p>
               <div className="fila" style={{ gap: 8 }}>
                 <Boton chico onClick={() => setPorUsar(p)}>
-                  Usar
+                  {t('usar')}
                 </Boton>
                 {p.creadaPorId === user?._id && (
                   <Boton variante="peligro-texto" chico onClick={() => setPorEliminar(p)}>
-                    Eliminar
+                    {t('eliminar')}
                   </Boton>
                 )}
               </div>
@@ -119,36 +117,38 @@ export default function Plantillas() {
           await templatesApi.eliminar(porEliminar._id);
           recargar();
         }}
-        titulo="Eliminar plantilla"
-        mensaje={`Se va a borrar "${porEliminar?.name}". Los viajes que ya creaste con ella no se tocan.`}
-        textoConfirmar="Eliminar"
+        titulo={t('eliminarPlantillaTitulo')}
+        mensaje={t('eliminarPlantillaMensaje', { nombre: porEliminar?.name })}
+        textoConfirmar={t('eliminar')}
       />
     </div>
   );
 }
 
 function ElegirItinerario({ onCerrar }) {
+  const { t } = useTranslation('plantillas');
   const [busqueda, setBusqueda] = useState('');
   const [page, setPage] = useState(1);
   const q = useDebounce(busqueda, 300);
   const req = useFetch(({ signal }) => tripsApi.list({ q, page }, { signal }), [q, page]);
   const viajes = (req.data?.trips || []).filter((v) => v.tieneItinerario);
-  return <Modal abierto onCerrar={onCerrar} titulo="Elegir itinerario">
-    <Campo label="Buscar viaje o destino" type="search" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPage(1); }} />
+  return <Modal abierto onCerrar={onCerrar} titulo={t('elegirItinerario.titulo')}>
+    <Campo label={t('elegirItinerario.buscarLabel')} type="search" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPage(1); }} />
     {req.error && <ErrorCarga error={req.error} onReintentar={req.recargar} />}
     {req.cargando ? <Esqueleto alto={80} /> : <div className="pila-sm">
       {viajes.map((v) => <Link key={v._id} className="boton secundario" to={`/viajes/${v._id}/itinerario?plantilla=1`}>{v.title} · {nombreDestino(v)}</Link>)}
-      {!viajes.length && !req.error && <p className="suave">No hay itinerarios en esta página de resultados. Busca otro destino o <Link to="/viajes/nuevo">crea un viaje</Link>.</p>}
+      {!viajes.length && !req.error && <p className="suave">{t('elegirItinerario.sinResultadosPre')}<Link to="/viajes/nuevo">{t('elegirItinerario.crearViajeEnlace')}</Link>{t('elegirItinerario.sinResultadosPost')}</p>}
     </div>}
-    {req.data?.pagination?.pages > 1 && <div className="modal-acciones"><Boton disabled={page <= 1 || req.cargando} onClick={() => setPage(page - 1)}>Anterior</Boton><span>{page} / {req.data.pagination.pages}</span><Boton disabled={page >= req.data.pagination.pages || req.cargando} onClick={() => setPage(page + 1)}>Siguiente</Boton></div>}
+    {req.data?.pagination?.pages > 1 && <div className="modal-acciones"><Boton disabled={page <= 1 || req.cargando} onClick={() => setPage(page - 1)}>{t('elegirItinerario.anterior')}</Boton><span>{page} / {req.data.pagination.pages}</span><Boton disabled={page >= req.data.pagination.pages || req.cargando} onClick={() => setPage(page + 1)}>{t('elegirItinerario.siguiente')}</Boton></div>}
   </Modal>;
 }
 
 /** Modal: título, fechas y viajeros para crear el viaje a partir de la plantilla elegida. */
 function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
+  const { t } = useTranslation('plantillas');
   const { user } = useAuth();
   const [form, setForm] = useState({
-    title: `Viaje a ${plantilla.destination?.name || ''}`,
+    title: t('aplicar.tituloDefault', { destino: plantilla.destination?.name || '' }),
     startDate: '',
     endDate: '',
     travelers: 1,
@@ -170,7 +170,7 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
     setEnviando(true);
     try {
       const data = await templatesApi.aplicar(plantilla._id, {
-        title: form.title.trim() || `Viaje a ${plantilla.destination?.name}`,
+        title: form.title.trim() || t('aplicar.tituloDefault', { destino: plantilla.destination?.name }),
         startDate: form.startDate,
         endDate: form.endDate,
         travelers: Number(form.travelers) || 1,
@@ -189,17 +189,16 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
   };
 
   return (
-    <Modal abierto onCerrar={onCerrar} titulo={`Usar "${plantilla.name}"`} ancho={480}>
+    <Modal abierto onCerrar={onCerrar} titulo={t('aplicar.titulo', { nombre: plantilla.name })} ancho={480}>
       <form onSubmit={enviar} className="pila" noValidate>
         <p className="suave" style={{ marginTop: 0 }}>
-          Se crea un viaje nuevo a {nombreDestino(plantilla)} con el mismo itinerario de la
-          plantilla. Podrás editarlo después como cualquier otro viaje.
+          {t('aplicar.texto', { destino: nombreDestino(plantilla) })}
         </p>
 
         {error && <Aviso tipo="error">{error}</Aviso>}
 
         <Campo
-          label="¿Cómo se llama el viaje?"
+          label={t('aplicar.nombreLabel')}
           name="title"
           value={form.title}
           onChange={cambiar}
@@ -217,7 +216,7 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
 
         <div className="rejilla rejilla-2">
           <Campo
-            label="¿Cuántos viajan?"
+            label={t('aplicar.viajerosLabel')}
             name="travelers"
             type="number"
             min="1"
@@ -227,12 +226,12 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
             error={errorDe('travelers')}
           />
           <Campo
-            label="Presupuesto estimado"
+            label={t('aplicar.presupuestoLabel')}
             name="presupuesto"
             type="number"
             min="0"
             step="100"
-            placeholder="Opcional"
+            placeholder={t('aplicar.presupuestoPlaceholder')}
             value={form.presupuesto}
             onChange={cambiar}
           />
@@ -240,10 +239,10 @@ function FormAplicarPlantilla({ plantilla, onCerrar, onCreado }) {
 
         <div className="modal-acciones">
           <Boton type="button" variante="secundario" onClick={onCerrar}>
-            Cancelar
+            {t('aplicar.cancelar')}
           </Boton>
           <Boton type="submit" cargando={enviando}>
-            Crear viaje
+            {t('aplicar.crearViaje')}
           </Boton>
         </div>
       </form>
