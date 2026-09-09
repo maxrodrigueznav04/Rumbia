@@ -35,7 +35,9 @@ export default function SelectorIdioma() {
 
   return (
     <Boton variante="fantasma" chico onClick={cambiar} title={etiqueta} aria-label={etiqueta}>
-      {idioma.toUpperCase()}
+      <span aria-hidden="true" style={{ fontSize: '1.1em' }}>
+        {idioma === 'es' ? '🇲🇽' : '🇺🇸'}
+      </span>
     </Boton>
   );
 }
