@@ -3,6 +3,43 @@ import { authApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Boton } from './ui.jsx';
 
+// Banderas dibujadas a mano, no el emoji 🇲🇽/🇺🇸: el emoji de bandera depende
+// de que la fuente del sistema tenga ese glifo, y Windows (entre otros) no lo
+// trae -- ahi se veia el codigo de pais en texto plano o nada. Un SVG propio
+// se ve igual en cualquier navegador y sistema operativo.
+function BanderaMx() {
+  return (
+    <svg width="20" height="14" viewBox="0 0 20 14" role="img" aria-hidden="true">
+      <g clipPath="url(#recorte-bandera-mx)">
+        <rect width="20" height="14" fill="#fff" />
+        <rect width="6.667" height="14" fill="#006341" />
+        <rect x="13.333" width="6.667" height="14" fill="#CE1126" />
+        <circle cx="10" cy="7" r="1.6" fill="none" stroke="#8B5E1F" strokeWidth="0.6" />
+      </g>
+      <clipPath id="recorte-bandera-mx">
+        <rect width="20" height="14" rx="2" />
+      </clipPath>
+    </svg>
+  );
+}
+
+function BanderaUs() {
+  return (
+    <svg width="20" height="14" viewBox="0 0 20 14" role="img" aria-hidden="true">
+      <g clipPath="url(#recorte-bandera-us)">
+        <rect width="20" height="14" fill="#fff" />
+        {[0, 2, 4, 6, 8, 10, 12].map((y) => (
+          <rect key={y} y={y} width="20" height="1" fill="#B22234" />
+        ))}
+        <rect width="9" height="7" fill="#3C3B6E" />
+      </g>
+      <clipPath id="recorte-bandera-us">
+        <rect width="20" height="14" rx="2" />
+      </clipPath>
+    </svg>
+  );
+}
+
 /**
  * Alterna es/en, persistido por i18next-browser-languagedetector en
  * localStorage (misma idea que useTema.js, pero sin duplicar esa logica
@@ -35,9 +72,7 @@ export default function SelectorIdioma() {
 
   return (
     <Boton variante="fantasma" chico onClick={cambiar} title={etiqueta} aria-label={etiqueta}>
-      <span aria-hidden="true" style={{ fontSize: '1.1em' }}>
-        {idioma === 'es' ? '🇲🇽' : '🇺🇸'}
-      </span>
+      {idioma === 'es' ? <BanderaMx /> : <BanderaUs />}
     </Boton>
   );
 }
