@@ -4,7 +4,13 @@
     "guardar": "Guardar",
     "opcional": "Opcional.",
     "notas": "Notas",
-    "esEstimado": "Es un estimado, todavía no lo reservo"
+    "esEstimado": "Es un estimado, todavía no lo reservo",
+    "etiquetaTitulo": "El título",
+    "etiquetaDestino": "El destino",
+    "etiquetaDescripcion": "La descripción",
+    "formatoHora": "Usa formato de 24 horas, ej. 14:30.",
+    "regresoAntesDeSalida": "El regreso no puede ser antes de la salida.",
+    "escribeElMonto": "Escribe el monto."
   },
   "dia": {
     "titulo": "Día {{numero}}",

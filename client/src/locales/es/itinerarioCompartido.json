@@ -1,0 +1,33 @@
+{
+  "planearMiViaje": "Planear mi viaje",
+  "abriendoItinerario": "Abriendo el itinerario...",
+  "enlaceNoFunciona": {
+    "titulo": "Este enlace ya no funciona",
+    "texto": "Puede que quien lo compartió haya dejado de compartirlo, o que el viaje ya no exista."
+  },
+  "noPudimosAbrirlo": "No pudimos abrirlo",
+  "itinerarioCompartido": "Itinerario compartido",
+  "viajero": "viajero",
+  "viajeros": "viajeros",
+  "dia": "Día {{numero}} · {{fecha}}",
+  "notaEstimacion": "Actividades sugeridas, más lo que ya se capturó en transporte y hospedaje. Son estimaciones, no precios en firme.",
+  "aceptarPropuesta": "Aceptar esta propuesta",
+  "noSePudoAceptar": "No se pudo aceptar la propuesta.",
+  "propuestaAceptada": {
+    "titulo": "Propuesta aceptada",
+    "texto": "Ya avisamos a quien preparó tu viaje. En breve se pondrá en contacto contigo."
+  },
+  "buscarYReservar": {
+    "titulo": "Buscar y reservar",
+    "texto": "Rumbia no reserva ni cobra: estos enlaces llevan al sitio del proveedor con la búsqueda ya prellenada."
+  },
+  "ctaFinal": {
+    "titulo": "¿Quieres uno así para tu viaje?",
+    "texto": "Ármalo en un minuto, sin crear cuenta.",
+    "boton": "Probar Rumbia"
+  },
+  "pie": {
+    "aviso": "Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.",
+    "ariaEnlaces": "Enlaces del sitio"
+  }
+}

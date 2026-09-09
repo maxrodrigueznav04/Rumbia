@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "titulo": "Prueba gratis sin cuenta",
+    "descripcion": "Genera un itinerario de muestra con IA para cualquier destino, sin crear cuenta."
+  },
+  "nav": {
+    "irAMisViajes": "Ir a mis viajes"
+  },
+  "encabezado": {
+    "titulo": "Prueba el generador, sin cuenta",
+    "textoPre": "Es una muestra simplificada: escribe a dónde vas y arma un itinerario en segundos. No calcula presupuesto ni clima, y no se guarda nada — ",
+    "crearCuentaGratis": "crea una cuenta gratis",
+    "textoPost": " para eso y para el resto de lo que hace Rumbia."
+  },
+  "form": {
+    "tituloTarjeta": "Arma un itinerario ahora",
+    "aDondeVas": "¿A dónde vas?",
+    "aDondeVasPlaceholder": "Oaxaca, Ciudad de México, Cancún...",
+    "cuantosViajan": "¿Cuántos viajan?",
+    "queTeInteresa": "¿Qué te interesa? (hasta 5)",
+    "generando": "Armando tu itinerario...",
+    "generarGratis": "Generar itinerario gratis",
+    "ayudaTiempo": "Tarda entre 20 y 60 segundos. No se guarda nada hasta que tú quieras."
+  },
+  "atajos": {
+    "finDeSemana": "Fin de semana",
+    "cincoDias": "5 días",
+    "unaSemana": "Una semana"
+  },
+  "errorDestino": "Escribe a dónde quieres ir.",
+  "resultado": {
+    "avisoTitulo": "Listo, este es tu itinerario",
+    "avisoPre": "Es una muestra: no se guardó en ningún lado. ",
+    "crearCuentaGratis": "Crea una cuenta gratis",
+    "avisoPost": " para guardarlo, editarlo, sumarle presupuesto y ver el clima del destino.",
+    "dia": "Día {{numero}} · {{fecha}}",
+    "porPersona": "por persona",
+    "buscarYReservar": {
+      "titulo": "Buscar y reservar",
+      "texto": "Rumbia no reserva ni cobra: estos enlaces te llevan al sitio del proveedor con tu búsqueda ya prellenada."
+    },
+    "ctaFinal": {
+      "titulo": "¿Te sirve? Guárdalo antes de que se pierda",
+      "texto": "Con una cuenta gratis puedes editarlo, mover actividades, sumar tus gastos y llevar el control del presupuesto.",
+      "boton": "Crear cuenta gratis"
+    }
+  },
+  "pie": {
+    "aviso": "Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.",
+    "ariaEnlaces": "Enlaces del sitio"
+  }
+}

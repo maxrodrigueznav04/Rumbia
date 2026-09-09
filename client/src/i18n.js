@@ -46,6 +46,12 @@ import cookiesEs from './locales/es/cookies.json';
 import cookiesEn from './locales/en/cookies.json';
 import terminosEs from './locales/es/terminos.json';
 import terminosEn from './locales/en/terminos.json';
+import probarEs from './locales/es/probar.json';
+import probarEn from './locales/en/probar.json';
+import itinerarioCompartidoEs from './locales/es/itinerarioCompartido.json';
+import itinerarioCompartidoEn from './locales/en/itinerarioCompartido.json';
+import validacionEs from './locales/es/validacion.json';
+import validacionEn from './locales/en/validacion.json';
 
 export const IDIOMAS = ['es', 'en'];
 
@@ -66,7 +72,8 @@ i18n
         viajes: viajesEs, nuevoViaje: nuevoViajeEs, itinerario: itinerarioEs, detalleViaje: detalleViajeEs,
         agencia: agenciaEs, perfil: perfilEs, clientes: clientesEs, plantillas: plantillasEs,
         impresion: impresionEs, paginaLegal: paginaLegalEs, privacidad: privacidadEs,
-        cookies: cookiesEs, terminos: terminosEs,
+        cookies: cookiesEs, terminos: terminosEs, probar: probarEs,
+        itinerarioCompartido: itinerarioCompartidoEs, validacion: validacionEs,
       },
       en: {
         comun: comunEn, inicio: inicioEn, acerca: acercaEn, auth: authEn, layout: layoutEn,
@@ -74,7 +81,8 @@ i18n
         viajes: viajesEn, nuevoViaje: nuevoViajeEn, itinerario: itinerarioEn, detalleViaje: detalleViajeEn,
         agencia: agenciaEn, perfil: perfilEn, clientes: clientesEn, plantillas: plantillasEn,
         impresion: impresionEn, paginaLegal: paginaLegalEn, privacidad: privacidadEn,
-        cookies: cookiesEn, terminos: terminosEn,
+        cookies: cookiesEn, terminos: terminosEn, probar: probarEn,
+        itinerarioCompartido: itinerarioCompartidoEn, validacion: validacionEn,
       },
     },
     fallbackLng: 'es',
@@ -83,7 +91,7 @@ i18n
       'comun', 'inicio', 'acerca', 'auth', 'layout', 'dominio', 'campos',
       'formularios', 'viaje', 'viajes', 'nuevoViaje', 'itinerario', 'detalleViaje',
       'agencia', 'perfil', 'clientes', 'plantillas', 'impresion', 'paginaLegal',
-      'privacidad', 'cookies', 'terminos',
+      'privacidad', 'cookies', 'terminos', 'probar', 'itinerarioCompartido', 'validacion',
     ],
     defaultNS: 'comun',
     interpolation: { escapeValue: false },

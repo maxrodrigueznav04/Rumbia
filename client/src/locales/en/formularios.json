@@ -4,7 +4,13 @@
     "guardar": "Save",
     "opcional": "Optional.",
     "notas": "Notes",
-    "esEstimado": "This is an estimate, I haven't booked it yet"
+    "esEstimado": "This is an estimate, I haven't booked it yet",
+    "etiquetaTitulo": "The title",
+    "etiquetaDestino": "The destination",
+    "etiquetaDescripcion": "The description",
+    "formatoHora": "Use 24-hour format, e.g. 14:30.",
+    "regresoAntesDeSalida": "The return can't be before the departure.",
+    "escribeElMonto": "Enter the amount."
   },
   "dia": {
     "titulo": "Day {{numero}}",

@@ -50,12 +50,12 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       margenMonto: viaje.margen?.monto || '',
     },
     {
-      title: reglas.requerido('El título'),
-      destino: reglas.requerido('El destino'),
+      title: reglas.requerido(t('formularios:comun.etiquetaTitulo')),
+      destino: reglas.requerido(t('formularios:comun.etiquetaDestino')),
       presupuesto: reglas.numeroPositivo,
       endDate: (v, todos) =>
         v && todos.startDate && new Date(v) < new Date(todos.startDate)
-          ? 'El regreso no puede ser antes de la salida.'
+          ? t('formularios:comun.regresoAntesDeSalida')
           : null,
     }
   );

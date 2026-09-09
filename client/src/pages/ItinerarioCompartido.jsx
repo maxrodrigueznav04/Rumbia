@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { publicApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import EnlacesReserva from '../components/EnlacesReserva.jsx';
@@ -13,7 +14,7 @@ import {
   formatoFecha,
   formatoMoneda,
   rangoFechas,
-  humanizar,
+  traducirDominio,
   porPersonas,
   ICONOS_CATEGORIA,
   nombreDestino,
@@ -29,6 +30,10 @@ const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
  * porque el backend directamente no los manda.
  */
 export default function ItinerarioCompartido() {
+  const { t } = useTranslation('itinerarioCompartido');
+  const { t: tItinerario } = useTranslation('itinerario');
+  const { t: tDominio } = useTranslation('dominio');
+  const { t: tComun } = useTranslation('comun');
   const { token } = useParams();
   const { data, cargando, error, recargar } = useFetch(
     ({ signal }) => publicApi.verCompartido(token, { signal }),
@@ -58,7 +63,7 @@ export default function ItinerarioCompartido() {
       await publicApi.aceptarPropuesta(token);
       recargar();
     } catch (err) {
-      setErrorAceptar(err.message || 'No se pudo aceptar la propuesta.');
+      setErrorAceptar(err.message || t('noSePudoAceptar'));
     } finally {
       setAceptando(false);
     }
@@ -75,21 +80,21 @@ export default function ItinerarioCompartido() {
             Rumbia
           </Link>
           <Link to="/" className="boton secundario chico">
-            Planear mi viaje
+            {t('planearMiViaje')}
           </Link>
         </div>
       </header>
 
       <main className="contenedor pagina">
-        {cargando && <Cargando texto="Abriendo el itinerario..." />}
+        {cargando && <Cargando texto={t('abriendoItinerario')} />}
 
         {error && !cargando && (
           error.status === 404 ? (
-            <Vacio titulo="Este enlace ya no funciona">
-              Puede que quien lo compartió haya dejado de compartirlo, o que el viaje ya no exista.
+            <Vacio titulo={t('enlaceNoFunciona.titulo')}>
+              {t('enlaceNoFunciona.texto')}
             </Vacio>
           ) : (
-            <ErrorCarga error={error} onReintentar={recargar} contexto="No pudimos abrirlo" />
+            <ErrorCarga error={error} onReintentar={recargar} contexto={t('noPudimosAbrirlo')} />
           )
         )}
 
@@ -101,16 +106,16 @@ export default function ItinerarioCompartido() {
 
             <header className="fila-entre no-imprimir">
               <div>
-                <span className="etiqueta">Itinerario compartido</span>
+                <span className="etiqueta">{t('itinerarioCompartido')}</span>
                 <h1 style={{ margin: '4px 0' }}>{data.viaje.title}</h1>
                 <p className="suave" style={{ margin: 0 }}>
                   {nombreDestino(data.viaje)} · {rangoFechas(data.viaje.startDate, data.viaje.endDate)} ·{' '}
-                  {data.viaje.durationDays} días · {data.viaje.travelers}{' '}
-                  {data.viaje.travelers === 1 ? 'viajero' : 'viajeros'}
+                  {data.viaje.durationDays} {tItinerario('diasPlural')} · {data.viaje.travelers}{' '}
+                  {data.viaje.travelers === 1 ? t('viajero') : t('viajeros')}
                 </p>
               </div>
               <Boton variante="secundario" chico onClick={() => window.print()}>
-                <Icono nombre="descarga" tamano={15} /> Descargar PDF
+                <Icono nombre="descarga" tamano={15} /> {tItinerario('descargarPdf')}
               </Boton>
             </header>
 
@@ -120,7 +125,10 @@ export default function ItinerarioCompartido() {
             <div className="rejilla rejilla-detalle">
               <div className="pila">
                 {data.itinerary.days.map((dia) => (
-                  <Tarjeta key={dia._id || dia.dayNumber} titulo={`Día ${dia.dayNumber} · ${formatoFecha(dia.date)}`}>
+                  <Tarjeta
+                    key={dia._id || dia.dayNumber}
+                    titulo={t('dia', { numero: dia.dayNumber, fecha: formatoFecha(dia.date) })}
+                  >
                     {dia.title && <h4 style={{ marginTop: 0 }}>{dia.title}</h4>}
                     {dia.summary && <p className="suave">{dia.summary}</p>}
                     <div className="pila-sm">
@@ -134,10 +142,10 @@ export default function ItinerarioCompartido() {
                             </h4>
                             {a.description && <p>{a.description}</p>}
                             <div className="fila" style={{ gap: 6 }}>
-                              <Insignia>{humanizar(a.category)}</Insignia>
+                              <Insignia>{traducirDominio(tDominio, a.category)}</Insignia>
                               {!ocultarCosto && a.estimatedCost > 0 && (
                                 <Insignia color="ambar">
-                                  ≈ {formatoMoneda(a.estimatedCost, moneda)} por persona
+                                  ≈ {formatoMoneda(a.estimatedCost, moneda)} {tItinerario('porPersona')}
                                 </Insignia>
                               )}
                             </div>
@@ -156,17 +164,17 @@ export default function ItinerarioCompartido() {
                 {(data.viaje.precioTotalPorPersona > 0 ||
                   data.itinerary.totalEstimatedCost > 0 ||
                   data.viaje.coreCosts?.total > 0) && (
-                  <Tarjeta titulo={`Precio propuesto · ${moneda}`}>
+                  <Tarjeta titulo={tItinerario('precioPropuestoMoneda', { moneda })}>
                     {!ocultarCosto && (
                       <div className="pila-sm">
                         <div className="linea-gasto">
-                          <span className="suave">Actividades</span>
+                          <span className="suave">{tItinerario('actividadesLinea')}</span>
                           <span className="numero">
                             {formatoMoneda(data.itinerary.totalEstimatedCost, moneda)}
                           </span>
                         </div>
                         <div className="linea-gasto">
-                          <span className="suave">Ida y vuelta, hospedaje y transporte local</span>
+                          <span className="suave">{tItinerario('idaYVueltaHospedaje')}</span>
                           <span className="numero">
                             {formatoMoneda(
                               porPersonas(data.viaje.coreCosts?.total || 0, data.viaje.travelers, 1),
@@ -176,7 +184,7 @@ export default function ItinerarioCompartido() {
                         </div>
                         {data.viaje.margenPorPersona > 0 && (
                           <div className="linea-gasto">
-                            <span className="suave">Cuota de servicio</span>
+                            <span className="suave">{tItinerario('cuotaDeServicio')}</span>
                             <span className="numero">
                               {formatoMoneda(data.viaje.margenPorPersona, moneda)}
                             </span>
@@ -186,37 +194,36 @@ export default function ItinerarioCompartido() {
                     )}
 
                     <div className="fila-entre" style={{ marginTop: 12 }}>
-                      <span className="suave">Por persona</span>
+                      <span className="suave">{tItinerario('porPersonaLinea')}</span>
                       <span className="numero grande">
                         {formatoMoneda(data.viaje.precioTotalPorPersona, moneda)}
                       </span>
                     </div>
                     <div className="fila-entre" style={{ marginTop: 6 }}>
                       <span className="suave">
-                        {paraCuantos} {paraCuantos === 1 ? 'viajero' : 'viajeros'}
+                        {paraCuantos} {paraCuantos === 1 ? t('viajero') : t('viajeros')}
                       </span>
                       <span className="numero">
                         {formatoMoneda(data.viaje.precioTotalPorPersona * paraCuantos, moneda)}
                       </span>
                     </div>
                     <p className="tenue" style={{ margin: '12px 0 0', fontSize: '0.8rem' }}>
-                      Actividades sugeridas, más lo que ya se capturó en transporte y hospedaje. Son
-                      estimaciones, no precios en firme.
+                      {t('notaEstimacion')}
                     </p>
 
                     {['borrador', 'enviada'].includes(data.viaje.estadoPropuesta) && (
                       <div style={{ marginTop: 14 }}>
                         {errorAceptar && <Aviso tipo="error">{errorAceptar}</Aviso>}
                         <Boton ancho cargando={aceptando} onClick={aceptarPropuesta}>
-                          <Icono nombre="palomita" tamano={16} /> Aceptar esta propuesta
+                          <Icono nombre="palomita" tamano={16} /> {t('aceptarPropuesta')}
                         </Boton>
                       </div>
                     )}
 
                     {['aceptada', 'pagada'].includes(data.viaje.estadoPropuesta) && (
                       <div style={{ marginTop: 14 }}>
-                        <Aviso tipo="exito" titulo="Propuesta aceptada">
-                          Ya avisamos a quien preparó tu viaje. En breve se pondrá en contacto contigo.
+                        <Aviso tipo="exito" titulo={t('propuestaAceptada.titulo')}>
+                          {t('propuestaAceptada.texto')}
                         </Aviso>
                       </div>
                     )}
@@ -224,7 +231,7 @@ export default function ItinerarioCompartido() {
                 )}
 
                 {data.pins?.length > 0 && (
-                  <Tarjeta titulo="Actividades en el mapa" className="no-imprimir">
+                  <Tarjeta titulo={tItinerario('actividadesEnElMapa')} className="no-imprimir">
                     <Suspense fallback={<Cargando texto="Cargando mapa..." />}>
                       <MapaDestino
                         pines={data.pins}
@@ -234,14 +241,13 @@ export default function ItinerarioCompartido() {
                   </Tarjeta>
                 )}
 
-                <Tarjeta titulo="Buscar y reservar" className="no-imprimir">
+                <Tarjeta titulo={t('buscarYReservar.titulo')} className="no-imprimir">
                   <p className="suave">
-                    Rumbia no reserva ni cobra: estos enlaces llevan al sitio del proveedor con la
-                    búsqueda ya prellenada.
+                    {t('buscarYReservar.texto')}
                   </p>
                   {Object.entries(data.links || {}).map(([seccion, enlaces]) => (
                     <div key={seccion} style={{ marginBottom: 'var(--e4)' }}>
-                      <span className="etiqueta">{humanizar(seccion)}</span>
+                      <span className="etiqueta">{traducirDominio(tDominio, seccion)}</span>
                       <div style={{ marginTop: 8 }}>
                         <EnlacesReserva
                           enlaces={enlaces}
@@ -256,10 +262,10 @@ export default function ItinerarioCompartido() {
                 </Tarjeta>
 
                 <Tarjeta className="centrado no-imprimir">
-                  <h3>¿Quieres uno así para tu viaje?</h3>
-                  <p className="suave">Ármalo en un minuto, sin crear cuenta.</p>
+                  <h3>{t('ctaFinal.titulo')}</h3>
+                  <p className="suave">{t('ctaFinal.texto')}</p>
                   <Link to="/" className="boton">
-                    Probar Rumbia
+                    {t('ctaFinal.boton')}
                   </Link>
                 </Tarjeta>
               </div>
@@ -273,13 +279,13 @@ export default function ItinerarioCompartido() {
       <footer className="pie">
         <div className="contenedor">
           <p className="tenue">
-            Rumbia no procesa reservas ni pagos de viajes. Los enlaces te llevan al sitio del proveedor.
+            {t('pie.aviso')}
           </p>
-          <nav className="pie-enlaces" aria-label="Enlaces del sitio">
-            <Link to="/acerca">Acerca de</Link>
-            <Link to="/privacidad">Privacidad</Link>
-            <Link to="/cookies">Cookies y rastreo</Link>
-            <Link to="/terminos">Términos</Link>
+          <nav className="pie-enlaces" aria-label={t('pie.ariaEnlaces')}>
+            <Link to="/acerca">{tComun('piePagina.acercaDe')}</Link>
+            <Link to="/privacidad">{tComun('piePagina.privacidad')}</Link>
+            <Link to="/cookies">{tComun('piePagina.cookies')}</Link>
+            <Link to="/terminos">{tComun('piePagina.terminos')}</Link>
           </nav>
         </div>
       </footer>

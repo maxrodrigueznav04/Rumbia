@@ -1,40 +1,47 @@
 /**
  * Validación del lado del cliente. Refleja las reglas del backend (Zod) para dar
  * feedback inmediato, pero NO las sustituye: el servidor sigue siendo la autoridad.
+ *
+ * Importa el singleton de i18n directo (no el hook useTranslation) porque estas
+ * son funciones normales, no componentes, y se usan como validadores pasados a
+ * useFormulario -- mismo patrón que utils/format.js.
  */
+import i18n from '../i18n.js';
+
+const t = (key, params) => i18n.t(key, { ns: 'validacion', ...params });
 
 export const reglas = {
   nombre: (v) => {
-    const t = (v || '').trim();
-    if (!t) return 'Escribe tu nombre.';
-    if (t.length < 2) return 'Debe tener al menos 2 caracteres.';
-    if (t.length > 80) return 'Máximo 80 caracteres.';
+    const val = (v || '').trim();
+    if (!val) return t('nombre.vacio');
+    if (val.length < 2) return t('nombre.corto');
+    if (val.length > 80) return t('nombre.largo');
     return null;
   },
 
   email: (v) => {
-    const t = (v || '').trim();
-    if (!t) return 'Escribe tu email.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return 'Ese email no se ve bien.';
+    const val = (v || '').trim();
+    if (!val) return t('email.vacio');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)) return t('email.invalido');
     return null;
   },
 
   password: (v) => {
-    if (!v) return 'Escribe una contraseña.';
-    if (v.length < 8) return `Faltan ${8 - v.length} caracteres (mínimo 8).`;
-    if (v.length > 72) return 'Máximo 72 caracteres.';
+    if (!v) return t('password.vacio');
+    if (v.length < 8) return t('password.corta', { cantidad: 8 - v.length });
+    if (v.length > 72) return t('password.larga');
     return null;
   },
 
-  passwordLogin: (v) => (v ? null : 'Escribe tu contraseña.'),
+  passwordLogin: (v) => (v ? null : t('passwordLogin')),
 
-  requerido: (etiqueta) => (v) => (String(v ?? '').trim() ? null : `${etiqueta} es obligatorio.`),
+  requerido: (etiqueta) => (v) => (String(v ?? '').trim() ? null : t('requerido', { etiqueta })),
 
   numeroPositivo: (v) => {
     if (v === '' || v == null) return null; // opcional
     const n = Number(v);
-    if (Number.isNaN(n)) return 'Debe ser un número.';
-    if (n < 0) return 'No puede ser negativo.';
+    if (Number.isNaN(n)) return t('numero.invalido');
+    if (n < 0) return t('numero.negativo');
     return null;
   },
 
@@ -46,21 +53,21 @@ export const reglas = {
    */
   paradaEnRango: (startDate, endDate, tripStart, tripEnd) => {
     if (!startDate || !endDate || !tripStart || !tripEnd) return null;
-    if (endDate < startDate) return 'La salida de la parada no puede ser antes de la llegada.';
+    if (endDate < startDate) return t('paradaEnRango.antesDeLlegada');
     if (startDate < tripStart || endDate > tripEnd) {
-      return 'Las fechas de la parada deben caer dentro de las fechas del viaje.';
+      return t('paradaEnRango.fueraDelViaje');
     }
     return null;
   },
 
   urlOpcional: (v) => {
-    const t = (v || '').trim();
-    if (!t) return null;
+    const val = (v || '').trim();
+    if (!val) return null;
     try {
-      new URL(t);
+      new URL(val);
       return null;
     } catch {
-      return 'Debe ser una URL completa (https://...).';
+      return t('urlInvalida');
     }
   },
 };
@@ -94,13 +101,19 @@ export function fuerzaPassword(pass = '') {
 
   const escala = [
     null,
-    { etiqueta: 'Muy débil', color: 'error', consejo: 'Alárgala: junta tres o cuatro palabras.' },
-    { etiqueta: 'Débil', color: 'alerta', consejo: 'Con 12 caracteres o más mejora bastante.' },
-    { etiqueta: 'Buena', color: 'cielo', consejo: '' },
-    { etiqueta: 'Muy buena', color: 'exito', consejo: '' },
+    { clave: 'muyDebil', color: 'error' },
+    { clave: 'debil', color: 'alerta' },
+    { clave: 'buena', color: 'cielo' },
+    { clave: 'muyBuena', color: 'exito' },
   ];
+  const { clave, color } = escala[nivel];
 
-  return { nivel, ...escala[nivel] };
+  return {
+    nivel,
+    etiqueta: t(`fuerzaPassword.${clave}.etiqueta`),
+    color,
+    consejo: t(`fuerzaPassword.${clave}.consejo`),
+  };
 }
 
 /**
