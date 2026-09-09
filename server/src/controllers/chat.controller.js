@@ -85,7 +85,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   const doc = chat || new TripChat({ trip: trip?._id || null, user: req.user._id, messages: [] });
   doc.messages.push({ role: 'user', text: message });
 
-  const respuesta = await sendChatMessage({ trip, itinerary, messages: doc.messages });
+  const respuesta = await sendChatMessage({ trip, itinerary, messages: doc.messages, idioma: req.idioma });
 
   const textoModelo =
     respuesta.text.length > MAX_LARGO_MENSAJE

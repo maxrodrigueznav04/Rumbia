@@ -91,6 +91,7 @@ export function buildRouteLines(destination, totalDays, paradas) {
 }
 
 function buildPrompt(ctx) {
+  const enIngles = ctx.idioma === 'en';
   const interests = ctx.interests?.length ? ctx.interests.join(', ') : 'sin preferencia declarada';
   const budgetLine = ctx.budgetAmount
     ? `Presupuesto total aproximado del viaje: ${ctx.budgetAmount} ${ctx.currency} para ${ctx.travelers} viajero(s). Ajusta las sugerencias a ese rango.`
@@ -126,7 +127,11 @@ REGLAS
 7. estimatedCost es el costo POR PERSONA en ${ctx.currency}. Usa 0 si la actividad es gratuita.
 8. El dia 1 debe considerar que el viajero llega ese dia (no lo satures por la manana).
 9. El ultimo dia debe ser ligero, considerando la salida.
-10. Escribe todo en espanol, en tono cercano y practico. Evita relleno generico tipo "explora la ciudad".${
+10. ${
+    enIngles
+      ? 'Write everything in English, in a warm and practical tone. Avoid generic filler like "explore the city".'
+      : 'Escribe todo en espanol, en tono cercano y practico. Evita relleno generico tipo "explora la ciudad".'
+  }${
     esMultiCiudad
       ? `\n11. Respeta estrictamente la ruta: cada dia usa SOLO lugares de la ciudad que le corresponde segun el rango de dias de arriba, nunca lugares de otra ciudad de la ruta.\n12. En cada dia, incluye destinationIndex con el valor de la ruta de arriba: 0 para los dias de "${ctx.destination}", o el numero de la parada (1 para la primera, 2 para la segunda, etc.) para los dias de esa parada.`
       : ''
@@ -160,15 +165,17 @@ function normalizeTime(valor) {
 }
 
 /** Normaliza la respuesta cruda de Gemini al shape del modelo Itinerary. */
-export function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
+export function normalizeDays(raw, expectedDays, maxDestinationIndex = 0, idioma = 'es') {
   const days = Array.isArray(raw?.days) ? raw.days : [];
+  const tituloDiaPorDefecto = (n) => (idioma === 'en' ? `Day ${n}` : `Día ${n}`);
+  const actividadPorDefecto = idioma === 'en' ? 'Activity' : 'Actividad';
 
   return days.slice(0, expectedDays).map((day, dayIdx) => ({
     dayNumber: Number(day.dayNumber) || dayIdx + 1,
     // Salvaguarda ante alucinaciones del modelo: nunca un indice fuera del
     // rango de paradas reales del viaje.
     destinationIndex: Math.min(Math.max(0, Number(day.destinationIndex) || 0), maxDestinationIndex),
-    title: String(day.title || `Día ${dayIdx + 1}`).slice(0, 160),
+    title: String(day.title || tituloDiaPorDefecto(dayIdx + 1)).slice(0, 160),
     summary: String(day.summary || '').slice(0, 600),
     activities: (Array.isArray(day.activities) ? day.activities : []).map((act, actIdx) => {
       // act.lat/lng no son required en ITINERARY_SCHEMA (Gemini puede no ubicar
@@ -181,7 +188,7 @@ export function normalizeDays(raw, expectedDays, maxDestinationIndex = 0) {
 
       return {
         time: normalizeTime(act.time),
-        title: String(act.title || 'Actividad').slice(0, 160),
+        title: String(act.title || actividadPorDefecto).slice(0, 160),
         description: String(act.description || '').slice(0, 800),
         category: ACTIVITY_CATEGORIES.includes(act.category) ? act.category : 'otro',
         location: {
@@ -340,7 +347,7 @@ export async function generateItinerary(ctx) {
         throw ApiError.serviceUnavailable('Gemini devolvió un JSON malformado.');
       }
 
-      const normalized = normalizeDays(parsed, ctx.days, ctx.paradas?.length || 0);
+      const normalized = normalizeDays(parsed, ctx.days, ctx.paradas?.length || 0, ctx.idioma);
       if (!normalized.length) {
         throw ApiError.serviceUnavailable('Gemini no generó ningún día de itinerario.');
       }

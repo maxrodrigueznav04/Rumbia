@@ -8,6 +8,7 @@ import env from './config/env.js';
 import routes from './routes/index.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiters.js';
+import { idioma } from './middleware/idioma.js';
 import { webhook as stripeWebhook } from './controllers/billing.controller.js';
 
 const app = express();
@@ -57,6 +58,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(env.isProd ? 'combined' : 'dev'));
 
+app.use(idioma);
 app.use('/api', apiLimiter, routes);
 
 app.get('/', (_req, res) => {

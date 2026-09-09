@@ -48,6 +48,7 @@ export const generarItinerarioInvitado = asyncHandler(async (req, res) => {
     budgetHint: 'medio',
     budgetAmount: 0,
     currency: 'MXN',
+    idioma: req.idioma,
   };
 
   const resultado = await callGemini(contexto);

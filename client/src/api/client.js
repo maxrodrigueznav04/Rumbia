@@ -6,6 +6,7 @@
  * - Normaliza los errores del backend en un objeto Error con .status y .details.
  * - Si la cookie ya vencio (401) avisa para redirigir al login.
  */
+import i18n from '../i18n.js';
 
 export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -80,6 +81,10 @@ async function request(path, { method = 'GET', body, signal, timeout = TIMEOUT_M
   if (auth && usuarioEsperado && !(method === 'GET' && path === '/auth/me') && !['/auth/login', '/auth/register'].includes(path)) {
     headers['X-Rumbia-User'] = usuarioEsperado;
   }
+  // Para que el servidor traduzca mensajes de error y la IA responda en el
+  // idioma que ve la persona en pantalla, no en el del navegador (que puede
+  // no coincidir con el idioma elegido a mano en el selector).
+  headers['X-Rumbia-Idioma'] = i18n.resolvedLanguage || i18n.language || 'es';
   // FormData (subir un archivo) trae su propio Content-Type con el boundary
   // multipart; si se fija aqui a mano, el navegador no puede completarlo y la
   // peticion llega sin poder separar los campos.

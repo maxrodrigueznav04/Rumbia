@@ -2,13 +2,15 @@ import mongoose from 'mongoose';
 import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import { reportarError } from '../config/sentry.js';
+import { traducirMensaje } from '../i18n/mensajes.js';
 
 export function notFound(req, _res, next) {
   next(ApiError.notFound(`Ruta no encontrada: ${req.method} ${req.originalUrl}`));
 }
 
 /* eslint-disable-next-line no-unused-vars */
-export function errorHandler(err, _req, res, _next) {
+export function errorHandler(err, req, res, _next) {
+  const idioma = req.idioma || 'es';
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Error interno del servidor.';
   let details = err.details;
@@ -44,6 +46,13 @@ export function errorHandler(err, _req, res, _next) {
       // solos y no hace falta que nadie los revise a mano).
       reportarError(err);
     }
+  }
+
+  message = traducirMensaje(message, idioma);
+  if (Array.isArray(details)) {
+    details = details.map((d) =>
+      d && typeof d.message === 'string' ? { ...d, message: traducirMensaje(d.message, idioma) } : d
+    );
   }
 
   res.status(statusCode).json({
