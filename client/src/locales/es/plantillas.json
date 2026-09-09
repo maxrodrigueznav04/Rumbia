@@ -1,0 +1,38 @@
+{
+  "titulo": "Plantillas",
+  "subtituloAgencia": "Compartidas con tu equipo: cualquier agente de tu agencia las puede usar.",
+  "subtituloPersonal": "Destinos que armas seguido, listos para aplicar a un viaje nuevo sin empezar de cero.",
+  "crearDesdeItinerario": "Crear desde un itinerario",
+  "sinPlantillas": "Todavía no tienes plantillas",
+  "elegirItinerarioExistente": "Elegir un itinerario existente",
+  "sinPlantillasTexto": "Abre cualquier itinerario ya armado y usa \"Guardar como plantilla\" para reutilizarlo con el próximo cliente que viaje al mismo destino.",
+  "sinDestino": "Sin destino",
+  "dia": "día",
+  "dias": "días",
+  "guardadaPorTi": "ti",
+  "guardadaPor": " · guardada por {{nombre}}",
+  "usar": "Usar",
+  "eliminar": "Eliminar",
+  "eliminarPlantillaTitulo": "Eliminar plantilla",
+  "eliminarPlantillaMensaje": "Se va a borrar \"{{nombre}}\". Los viajes que ya creaste con ella no se tocan.",
+  "elegirItinerario": {
+    "titulo": "Elegir itinerario",
+    "buscarLabel": "Buscar viaje o destino",
+    "sinResultadosPre": "No hay itinerarios en esta página de resultados. Busca otro destino o ",
+    "crearViajeEnlace": "crea un viaje",
+    "sinResultadosPost": ".",
+    "anterior": "Anterior",
+    "siguiente": "Siguiente"
+  },
+  "aplicar": {
+    "titulo": "Usar \"{{nombre}}\"",
+    "tituloDefault": "Viaje a {{destino}}",
+    "texto": "Se crea un viaje nuevo a {{destino}} con el mismo itinerario de la plantilla. Podrás editarlo después como cualquier otro viaje.",
+    "nombreLabel": "¿Cómo se llama el viaje?",
+    "viajerosLabel": "¿Cuántos viajan?",
+    "presupuestoLabel": "Presupuesto estimado",
+    "presupuestoPlaceholder": "Opcional",
+    "cancelar": "Cancelar",
+    "crearViaje": "Crear viaje"
+  }
+}

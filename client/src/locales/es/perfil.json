@@ -1,0 +1,48 @@
+{
+  "titulo": "Tu perfil",
+  "subtitulo": "Administra tu cuenta, las preferencias de viaje y tu agencia.",
+  "secciones": {
+    "aria": "Configuración",
+    "cuenta": "Mi cuenta",
+    "marca": "Marca",
+    "equipo": "Equipo",
+    "facturacion": "Facturación"
+  },
+  "cambiosGuardados": "Cambios guardados.",
+  "comoUsas": "¿Cómo usas Rumbia?",
+  "soyAgencia": "Soy agencia o agente",
+  "soyAgenciaTexto": "Cliente, margen y propuestas visibles en tus viajes",
+  "viajoPorMiCuenta": "Viajo por mi cuenta",
+  "viajoPorMiCuentaTexto": "Sin nada de agencia: solo lo esencial del viaje",
+  "nombre": "Nombre",
+  "email": "Email",
+  "ciudadOrigen": "Ciudad de origen",
+  "ciudadOrigenPlaceholder": "Monterrey",
+  "ciudadOrigenAyuda": "Se usa como origen por defecto.",
+  "moneda": "Moneda",
+  "ritmoDeViaje": "Ritmo de viaje",
+  "ritmos": {
+    "relajado": "Relajado (3 actividades al día)",
+    "moderado": "Moderado (4 actividades al día)",
+    "intenso": "Intenso (5 actividades al día)"
+  },
+  "nivelDeGasto": "Nivel de gasto",
+  "niveles": {
+    "bajo": "Bajo — mochilero, lo económico",
+    "medio": "Medio — cómodo sin excesos",
+    "alto": "Alto — sin fijarse mucho en el precio"
+  },
+  "guardando": "Guardando...",
+  "guardarCambios": "Guardar cambios",
+  "eliminarCuentaTitulo": "Eliminar mi cuenta",
+  "eliminarCuentaPre": "Se borran tu cuenta y ",
+  "eliminarCuentaBold": "todos tus viajes, itinerarios y gastos",
+  "eliminarCuentaPost": ". La eliminación es inmediata y no se puede deshacer: no hay papelera ni forma de recuperarlos después.",
+  "eliminarCuentaBoton": "Eliminar mi cuenta",
+  "modalEliminarTitulo": "¿Eliminar tu cuenta?",
+  "modalAvisoTitulo": "Esto no se puede deshacer",
+  "modalAvisoTexto": "Vas a borrar tu cuenta y todo lo que has guardado en ella. Si solo quieres dejar de usarla por ahora, puedes cerrar sesión y volver cuando quieras.",
+  "confirmaConTuContrasena": "Escribe tu contraseña para confirmar",
+  "cancelar": "Cancelar",
+  "siEliminarTodo": "Sí, eliminar todo"
+}

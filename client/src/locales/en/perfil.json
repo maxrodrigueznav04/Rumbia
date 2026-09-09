@@ -1,0 +1,48 @@
+{
+  "titulo": "Your profile",
+  "subtitulo": "Manage your account, travel preferences, and agency.",
+  "secciones": {
+    "aria": "Settings",
+    "cuenta": "My account",
+    "marca": "Branding",
+    "equipo": "Team",
+    "facturacion": "Billing"
+  },
+  "cambiosGuardados": "Changes saved.",
+  "comoUsas": "How do you use Rumbia?",
+  "soyAgencia": "I'm an agency or agent",
+  "soyAgenciaTexto": "Client, margin, and proposals shown on your trips",
+  "viajoPorMiCuenta": "I travel on my own",
+  "viajoPorMiCuentaTexto": "No agency features: just the essentials of the trip",
+  "nombre": "Name",
+  "email": "Email",
+  "ciudadOrigen": "Home city",
+  "ciudadOrigenPlaceholder": "Monterrey",
+  "ciudadOrigenAyuda": "Used as the default origin.",
+  "moneda": "Currency",
+  "ritmoDeViaje": "Travel pace",
+  "ritmos": {
+    "relajado": "Relaxed (3 activities a day)",
+    "moderado": "Moderate (4 activities a day)",
+    "intenso": "Intense (5 activities a day)"
+  },
+  "nivelDeGasto": "Spending level",
+  "niveles": {
+    "bajo": "Low — backpacker, budget-friendly",
+    "medio": "Medium — comfortable without excess",
+    "alto": "High — not too worried about price"
+  },
+  "guardando": "Saving...",
+  "guardarCambios": "Save changes",
+  "eliminarCuentaTitulo": "Delete my account",
+  "eliminarCuentaPre": "This deletes your account and ",
+  "eliminarCuentaBold": "all your trips, itineraries, and expenses",
+  "eliminarCuentaPost": ". Deletion is immediate and cannot be undone: there's no trash bin or way to recover them afterward.",
+  "eliminarCuentaBoton": "Delete my account",
+  "modalEliminarTitulo": "Delete your account?",
+  "modalAvisoTitulo": "This cannot be undone",
+  "modalAvisoTexto": "You're about to delete your account and everything saved in it. If you just want to stop using it for now, you can log out and come back whenever you want.",
+  "confirmaConTuContrasena": "Type your password to confirm",
+  "cancelar": "Cancel",
+  "siEliminarTodo": "Yes, delete everything"
+}

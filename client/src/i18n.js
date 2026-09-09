@@ -28,6 +28,14 @@ import itinerarioEs from './locales/es/itinerario.json';
 import itinerarioEn from './locales/en/itinerario.json';
 import detalleViajeEs from './locales/es/detalleViaje.json';
 import detalleViajeEn from './locales/en/detalleViaje.json';
+import agenciaEs from './locales/es/agencia.json';
+import agenciaEn from './locales/en/agencia.json';
+import perfilEs from './locales/es/perfil.json';
+import perfilEn from './locales/en/perfil.json';
+import clientesEs from './locales/es/clientes.json';
+import clientesEn from './locales/en/clientes.json';
+import plantillasEs from './locales/es/plantillas.json';
+import plantillasEn from './locales/en/plantillas.json';
 
 export const IDIOMAS = ['es', 'en'];
 
@@ -46,11 +54,13 @@ i18n
         comun: comunEs, inicio: inicioEs, acerca: acercaEs, auth: authEs, layout: layoutEs,
         dominio: dominioEs, campos: camposEs, formularios: formulariosEs, viaje: viajeEs,
         viajes: viajesEs, nuevoViaje: nuevoViajeEs, itinerario: itinerarioEs, detalleViaje: detalleViajeEs,
+        agencia: agenciaEs, perfil: perfilEs, clientes: clientesEs, plantillas: plantillasEs,
       },
       en: {
         comun: comunEn, inicio: inicioEn, acerca: acercaEn, auth: authEn, layout: layoutEn,
         dominio: dominioEn, campos: camposEn, formularios: formulariosEn, viaje: viajeEn,
         viajes: viajesEn, nuevoViaje: nuevoViajeEn, itinerario: itinerarioEn, detalleViaje: detalleViajeEn,
+        agencia: agenciaEn, perfil: perfilEn, clientes: clientesEn, plantillas: plantillasEn,
       },
     },
     fallbackLng: 'es',
@@ -58,6 +68,7 @@ i18n
     ns: [
       'comun', 'inicio', 'acerca', 'auth', 'layout', 'dominio', 'campos',
       'formularios', 'viaje', 'viajes', 'nuevoViaje', 'itinerario', 'detalleViaje',
+      'agencia', 'perfil', 'clientes', 'plantillas',
     ],
     defaultNS: 'comun',
     interpolation: { escapeValue: false },

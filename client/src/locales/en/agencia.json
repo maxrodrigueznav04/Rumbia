@@ -1,0 +1,225 @@
+{
+  "planes": {
+    "inicio_mensual": { "etiqueta": "Inicio / Solo (Monthly)", "ayuda": "1 to 3 agents included" },
+    "inicio_anual": { "etiqueta": "Inicio / Solo (Annual)", "ayuda": "1 to 3 agents included (save 1.5 months)" },
+    "agencia_mensual": { "etiqueta": "Agencia (Monthly)", "ayuda": "4 to 8 agents included" },
+    "agencia_anual": { "etiqueta": "Agencia (Annual)", "ayuda": "4 to 8 agents included (save 1.5 months)" },
+    "pro_mensual": { "etiqueta": "Agencia Pro (Monthly)" },
+    "pro_anual": { "etiqueta": "Agencia Pro (Annual)" },
+    "mensual": { "etiqueta": "Monthly (Legacy)" },
+    "anual": { "etiqueta": "Annual (Legacy)" },
+    "vitalicio": { "etiqueta": "Lifetime (Legacy)", "ayuda": "One-time payment, no automatic extra agents" }
+  },
+  "agenteExtraSufijo": {
+    "limite": "per extra agent (16+)",
+    "simple": "per extra agent",
+    "unico": "one-time, per extra agent"
+  },
+  "tiers": {
+    "inicio": {
+      "nombre": "Inicio / Solo",
+      "capacidad": "1 to 3 agents included",
+      "puntos": [
+        "1 to 3 agents included",
+        "25 smart itineraries per month",
+        "Unlimited manual trips and PDFs",
+        "Advisor's contact info"
+      ]
+    },
+    "agencia": {
+      "nombre": "Agencia",
+      "destacado": "Popular",
+      "capacidad": "4 to 8 agents included",
+      "puntos": [
+        "4 to 8 agents included",
+        "150 smart itineraries per month",
+        "Logo and official letterhead on PDF",
+        "Automatic profit margin",
+        "Hide price breakdown",
+        "Productivity report per agent"
+      ]
+    },
+    "pro": {
+      "nombre": "Agencia Pro",
+      "capacidad": "Up to 15 agents included",
+      "puntos": [
+        "Up to 15 agents included",
+        "500 smart itineraries per month",
+        "White label (no Rumbia footer)",
+        "Priority support via WhatsApp",
+        "Unlimited virtual travel assistant"
+      ]
+    }
+  },
+  "marcaPdf": {
+    "titulo": "Branding on the PDF",
+    "texto": "If you build itineraries for other people, this is what shows up in the letterhead when you download the PDF. Leave it empty and the Rumbia brand shows instead.",
+    "guardado": "Branding saved.",
+    "noSeGuardo": "Couldn't save",
+    "nombreLabel": "Your agency or business name",
+    "nombrePlaceholder": "Viajes del Sur",
+    "logoLabel": "Logo",
+    "cambiarLogo": "Change logo",
+    "subirLogo": "Upload logo",
+    "quitar": "Remove",
+    "logoAyuda": "PNG, JPEG, or WebP, up to 2 MB.",
+    "logoUrlLabel": "Or paste the URL of a logo that's already published",
+    "logoUrlPlaceholder": "https://yoursite.com/logo.png",
+    "contactoLabel": "Contact shown under the logo",
+    "contactoPlaceholder": "sales@viajesdelsur.mx · 55 1234 5678",
+    "guardar": "Save branding"
+  },
+  "unirseOCrear": {
+    "titulo": "Work with more agents?",
+    "texto": "An agency shares the same PDF branding across several agents, each with their own account and their own trips.",
+    "crearLabel": "Create a new agency",
+    "crearPlaceholder": "Agency name",
+    "crearBoton": "Create agency",
+    "unirseLabel": "Join with a code",
+    "unirsePlaceholder": "Code your agency gave you",
+    "unirseBoton": "Join"
+  },
+  "stripe": {
+    "cancelado": "The payment wasn't completed: no charge was made.",
+    "verificando": "Verifying your payment...",
+    "recibido": "Payment received. Your plan is now active.",
+    "enProceso": "Your payment is being processed. It may take a few more seconds to show up here.",
+    "cargandoAgencia": "Loading your agency..."
+  },
+  "avisoCongelada": {
+    "tituloTrialVencido": "Your 7-day free trial has ended",
+    "tituloInactivo": "This agency's plan isn't active",
+    "duenoTrialVencidoTexto": "Your trips and proposals are still safe in your account. To keep creating and editing official itineraries with your logo and margin, activate your subscription.",
+    "duenoTrialVencidoEnlace": "Choose and activate a plan →",
+    "duenoInactivoTexto": "Your trips and your agents' trips are still there, but no one can create or edit anything until you {{accion}} the plan.",
+    "reactives": "reactivate",
+    "actives": "activate",
+    "duenoInactivoEnlace": "Go {{accion}} →",
+    "reactivarlo": "reactivate it",
+    "activarlo": "activate it",
+    "miembroTexto": "Your trips are still there, but you can't create or edit anything until the agency owner activates or reactivates the plan."
+  },
+  "vistaMiembro": {
+    "texto": "You belong to an agency: your PDFs go out with its branding, not yours. Only whoever created it can edit it.",
+    "pruebaTitulo": "Free trial active ({{dias}} {{diaLabel}})",
+    "diaRestante": "day left",
+    "diasRestantes": "days left",
+    "pruebaTexto": "Your agency is enjoying the 7-day free trial with full access.",
+    "salir": "Leave the agency"
+  },
+  "ajusteAgentesExtra": {
+    "ayudaPlan": "ℹ️ {{ayuda}}. To add more agents or change plans, use \"Manage plan\".",
+    "label": "Extra agents",
+    "guardar": "Save change",
+    "actualizado": "Updated. The adjustment is prorated on your next invoice."
+  },
+  "panelBilling": {
+    "titulo": "Agency plan",
+    "estadoActivo": "Active",
+    "estadoPrueba": "Trial ({{dias}}d)",
+    "estadoPruebaVencida": "Trial expired",
+    "estadoVencido": "Expired",
+    "estadoSinActivar": "Not activated",
+    "pruebaTitulo": "Free trial active · {{dias}} {{diaLabel}}",
+    "pruebaTexto": "Your agency has free access to all the professional features{{hasta}}. You can activate your plan anytime to keep the service running without interruption.",
+    "pruebaHasta": " until {{fecha}}",
+    "planActivoTexto": "Plan {{plan}}, {{capacidad}} agent slot(s) ({{enUso}} in use){{periodo}}.",
+    "periodoSeCancela": " · cancels on {{fecha}}",
+    "periodoSeRenueva": " · renews on {{fecha}}",
+    "vitalicioTexto": "The Lifetime plan is a one-time payment: contact us to add more agents.",
+    "administrarPlan": "Manage plan",
+    "reactivarPlan": "Reactivate plan",
+    "activoSinContratar": "Your plan is active. You don't need to buy it again. To change a plan granted by the agency, contact support.",
+    "elegirPlanTexto": "Choose the plan that best fits your team's size to activate your proposals, smart itineraries, and official quotes:",
+    "pagoMensual": "Monthly",
+    "pagoAnual": "Annual",
+    "ahorra": "Save 1.5 months",
+    "pesos": "Pesos (MXN)",
+    "dolares": "Dollars (USD)",
+    "divisaAyuda": "Choose the currency of your card. Some Mexican cards reject charges in dollars.",
+    "sufijoMes": "/mo",
+    "sufijoAnio": "/yr",
+    "popular": "Popular",
+    "capacidadIcono": "👥 {{capacidad}}",
+    "masDe15Label": "More than 15 agents? Additional agents (16+)",
+    "porAgenteExtraAyuda": "+${{monto}} {{moneda}}{{periodo}} per extra agent",
+    "planResumen": "{{nombre}} Plan ({{frecuencia}})",
+    "mensual": "Monthly",
+    "anual": "Annual",
+    "totalAPagar": "Total due: ",
+    "alMes": "per month",
+    "alAnio": "per year (10.5 months)",
+    "continuarStripe": "Continue to secure payment with Stripe →"
+  },
+  "reporte": {
+    "titulo": "This month's report",
+    "cargando": "Loading report...",
+    "nadie": "No one has built a trip yet this month.",
+    "totalMes": "{{cantidad}} trip(s) built this month in total."
+  },
+  "dueno": {
+    "pruebaTitulo": "7-day free trial active ({{dias}} {{diaLabel}})",
+    "pruebaTexto": "You have full access to all the professional features: create unlimited itineraries, generate PDF quotes with your logo, and add commercial margins to your proposals.",
+    "marcaTitulo": "Branding on the PDF",
+    "insigniaDueno": "Agency owner",
+    "marcaTexto": "This branding is seen by every agent in your agency on their PDFs. Only you can edit it.",
+    "actualizada": "Agency updated.",
+    "nombreLabel": "Agency name",
+    "logoLabel": "Logo",
+    "cambiarLogo": "Change logo",
+    "subirLogo": "Upload logo",
+    "quitar": "Remove",
+    "logoAyuda": "PNG, JPEG, or WebP, up to 2 MB.",
+    "contactoLabel": "Contact shown under the logo",
+    "colorAcentoLabel": "PDF accent color",
+    "colorPredeterminado": "Rumbia green (default)",
+    "restablecer": "Reset",
+    "colorAyuda": "Used in the badge, day markers, and activities on the PDF. With your plan, the footer also stops mentioning Rumbia — the document goes out with your brand, period.",
+    "tipografiaLabel": "PDF typography",
+    "tamanoTextoLabel": "PDF text size",
+    "fondoLabel": "PDF background",
+    "personalizacionTitulo": "Full customization available on Agencia and Agencia Pro",
+    "personalizacionTexto": "Choose your own accent color for the PDF and remove the Rumbia mention from the footer — ",
+    "compararPlanes": "compare plans",
+    "guardarCambios": "Save changes",
+    "codigoInvitacionTitulo": "Invite code",
+    "codigoInvitacionTexto": "Share it with your agents; they enter it in their profile to join this agency.",
+    "copiado": "Copied",
+    "copiar": "Copy",
+    "regenerar": "Regenerate",
+    "agentesTitulo": "Agents ({{cantidad}})",
+    "sinAgentes": "No one has joined with the code yet.",
+    "quitar2": "Remove",
+    "zonaPeligroConMiembros": "While there are other agents in your agency you can't leave: they need to leave first, or you can remove them from the list above.",
+    "zonaPeligroSinMiembros": "Leaving deletes the agency, since it would no longer have an owner.",
+    "salir": "Leave the agency",
+    "quitarAgenteTitulo": "Remove agent",
+    "quitarAgenteMensaje": "{{nombre}} stops seeing the agency's branding. Their account and trips aren't touched.",
+    "quitarConfirmar": "Remove"
+  },
+  "fuentesPdf": {
+    "default": "Rumbia (default)",
+    "editorial": "Elegant Editorial",
+    "clasica": "Classic",
+    "corporativa": "Corporate",
+    "redondeada": "Rounded",
+    "tradicional": "Traditional",
+    "neutra": "Neutral",
+    "robusta": "Bold"
+  },
+  "densidadesPdf": {
+    "compacto": "Compact",
+    "normal": "Normal",
+    "grande": "Large"
+  },
+  "fondosPdf": {
+    "default": "White (default)",
+    "azul": "Sky blue",
+    "amarillo": "Soft yellow",
+    "morado": "Lavender",
+    "verde": "Sage green",
+    "beige": "Warm beige",
+    "rosa": "Pastel pink",
+    "gris": "Pearl gray"
+  }
+}
