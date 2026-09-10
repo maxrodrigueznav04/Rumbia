@@ -1,4 +1,4 @@
-import { Fragment, Suspense, lazy, useCallback, useState } from 'react';
+import { Fragment, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { tripsApi } from '../api/index.js';
@@ -38,6 +38,7 @@ import {
   ETIQUETAS_ESTADO,
   ETIQUETAS_ESTADO_PROPUESTA,
 } from '../utils/format.js';
+import { revisarFechasViaje } from '../utils/revisionViaje.js';
 
 // Leaflet pesa: se carga solo cuando esta pantalla se abre.
 const MapaDestino = lazy(() => import('../components/MapaDestino.jsx'));
@@ -193,6 +194,8 @@ export default function DetalleViaje() {
     resumenReq.recargar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const avisosFechas = useMemo(() => revisarFechasViaje(viajeReq.data?.trip), [viajeReq.data]);
 
   if (viajeReq.cargando) {
     return (
@@ -385,6 +388,22 @@ export default function DetalleViaje() {
           {avisoItinerario.diasSobrantes > 0
             ? t('diasSobrantes', { cantidad: avisoItinerario.diasSobrantes, actividades: avisoItinerario.actividadesEnSobrantes })
             : t('fechasActualizadas')}
+        </Aviso>
+      )}
+
+      {avisosFechas.length > 0 && (
+        <Aviso tipo="alerta" titulo={t('revisionFechas.titulo')}>
+          <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+            {avisosFechas.map((a) => (
+              <li key={a.id}>
+                {t(`revisionFechas.mensajes.${a.tipo}`, {
+                  ...a.datos,
+                  tramo: a.datos.tramo === 'outbound' ? t('secciones.ida') : t('secciones.vuelta'),
+                  etiqueta: a.datos.nombre || (a.datos.tipo ? td(a.datos.tipo) : t('secciones.hospedaje')),
+                })}
+              </li>
+            ))}
+          </ul>
         </Aviso>
       )}
 

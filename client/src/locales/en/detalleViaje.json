@@ -26,6 +26,15 @@
   "diasAgregados": "{{cantidad}} empty day(s) were added. ",
   "diasSobrantes": "There are {{cantidad}} day(s) that now fall outside the trip, with {{actividades}} activity/activities. Nothing was deleted: review them in the itinerary.",
   "fechasActualizadas": "Each day's dates were updated.",
+  "revisionFechas": {
+    "titulo": "Check these dates",
+    "mensajes": {
+      "llegadaAntesSalida": "{{tramo}} transportation: arrival is before departure.",
+      "regresoAntesIda": "The return transportation leaves before the outbound one.",
+      "hospedajeInvertido": "{{etiqueta}} #{{indice}}: check-out is before check-in.",
+      "hospedajeFueraDeRango": "{{etiqueta}} #{{indice}}: its stay dates fall outside the trip's dates."
+    }
+  },
   "otrasOpcionesPara": "Other options for {{nombre}}",
   "otrasOpciones": "Other options for this client",
   "noSePudoDuplicar": "The trip could not be duplicated.",
