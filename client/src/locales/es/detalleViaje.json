@@ -26,6 +26,15 @@
   "diasAgregados": "Se agregaron {{cantidad}} día(s) vacío(s). ",
   "diasSobrantes": "Hay {{cantidad}} día(s) que ya quedan fuera del viaje, con {{actividades}} actividad(es). No se borraron: revísalos en el itinerario.",
   "fechasActualizadas": "Las fechas de cada día se actualizaron.",
+  "revisionFechas": {
+    "titulo": "Revisa estas fechas",
+    "mensajes": {
+      "llegadaAntesSalida": "Transporte de {{tramo}}: la llegada queda antes que la salida.",
+      "regresoAntesIda": "El transporte de vuelta sale antes que el de ida.",
+      "hospedajeInvertido": "{{etiqueta}} #{{indice}}: el check-out es anterior al check-in.",
+      "hospedajeFueraDeRango": "{{etiqueta}} #{{indice}}: sus fechas de estancia quedan fuera de las del viaje."
+    }
+  },
   "otrasOpcionesPara": "Otras opciones para {{nombre}}",
   "otrasOpciones": "Otras opciones para este cliente",
   "noSePudoDuplicar": "No se pudo duplicar el viaje.",
