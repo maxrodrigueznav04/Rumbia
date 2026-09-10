@@ -12,7 +12,7 @@ import Icono from '../components/Icono.jsx';
 import { Boton, Tarjeta, Insignia, Cargando, ErrorCarga, Vacio, Aviso } from '../components/ui.jsx';
 import {
   formatoFecha,
-  formatoMoneda,
+  formatoMonedaConCodigo as formatoMoneda,
   rangoFechas,
   traducirDominio,
   porPersonas,

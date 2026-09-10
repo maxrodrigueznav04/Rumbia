@@ -3,7 +3,7 @@ import { Modal, Tarjeta, Boton, Aviso } from './ui.jsx';
 import ResumenViaje from './ResumenViaje.jsx';
 import { EncabezadoImpresion, PieImpresion, estiloPersonalizado } from './HojaImpresion.jsx';
 import { calcularCotizacion, viajeParaCliente } from '../utils/cotizacion.js';
-import { formatoMoneda, formatoFecha } from '../utils/format.js';
+import { formatoMonedaConCodigo as formatoMoneda, formatoFecha } from '../utils/format.js';
 
 export default function VistaPreviaPropuesta({ viaje, itinerario, marca, onCerrar, onCompartir, compartiendo, error }) {
   const { t } = useTranslation('itinerario');
@@ -20,13 +20,13 @@ export default function VistaPreviaPropuesta({ viaje, itinerario, marca, onCerra
         <div className="pila-sm">{dia.activities.map((act, index) => <article key={act._id || index} className="actividad-previa">
           <strong>{act.time} · {act.title}</strong><p>{act.description}</p>
           {act.location?.name && <p className="suave">{act.location.name}</p>}
-          {!viaje.ocultarDesglose && act.estimatedCost > 0 && <span>{formatoMoneda(act.estimatedCost, moneda)} {moneda} {t('vistaPrevia.porPersona')}</span>}
+          {!viaje.ocultarDesglose && act.estimatedCost > 0 && <span>{formatoMoneda(act.estimatedCost, moneda)} {t('vistaPrevia.porPersona')}</span>}
         </article>)}</div>
       </Tarjeta>)}
       <Tarjeta titulo={t('vistaPrevia.precioPropuesto')}>
-        {!viaje.ocultarDesglose && <p>{t('vistaPrevia.servicios', { servicios: formatoMoneda(q.servicios, moneda), actividades: formatoMoneda(q.actividades, moneda), margen: formatoMoneda(q.margen, moneda), moneda })}</p>}
-        <p className="numero grande">{formatoMoneda(q.total, moneda)} {moneda}</p>
-        <p>{t('vistaPrevia.totalPorPersona', { monto: `${formatoMoneda(q.porPersona, moneda)} ${moneda}`, viajeros: viaje.travelers })}</p>
+        {!viaje.ocultarDesglose && <p>{t('vistaPrevia.servicios', { servicios: formatoMoneda(q.servicios, moneda), actividades: formatoMoneda(q.actividades, moneda), margen: formatoMoneda(q.margen, moneda) })}</p>}
+        <p className="numero grande">{formatoMoneda(q.total, moneda)}</p>
+        <p>{t('vistaPrevia.totalPorPersona', { monto: formatoMoneda(q.porPersona, moneda), viajeros: viaje.travelers })}</p>
         <p className="tenue">{t('vistaPrevia.notaFinal')}</p>
       </Tarjeta>
       <PieImpresion marca={marca} siempre />

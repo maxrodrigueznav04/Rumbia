@@ -659,6 +659,18 @@ button.insignia:active:not(:disabled) { transform: scale(0.97); }
 }
 .boton.ancho { width: 100%; }
 
+.acciones-itinerario,
+.acciones-itinerario-secundarias { display: flex; flex-wrap: wrap; gap: 8px; }
+.acciones-itinerario-toggle { display: none; }
+@media (max-width: 759px) {
+  .acciones-itinerario { width: 100%; }
+  .acciones-itinerario > .boton { padding-inline: 12px; }
+  .acciones-itinerario-toggle { display: inline-flex; }
+  .acciones-itinerario-secundarias { display: none; width: 100%; }
+  .acciones-itinerario-secundarias.abiertas { display: flex; }
+  .acciones-itinerario-secundarias > .boton { width: 100%; }
+}
+
 /* ---------------------- Formularios ---------------------- */
 
 .campo { display: flex; flex-direction: column; gap: 6px; }

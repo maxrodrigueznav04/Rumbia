@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Boton, Tarjeta } from './ui.jsx';
-import { formatoMoneda } from '../utils/format.js';
+import { formatoMonedaConCodigo as formatoMoneda } from '../utils/format.js';
 import { calcularCotizacion } from '../utils/cotizacion.js';
 
 export default function ResumenCotizacion({ viaje, onEditar, onVistaPrevia }) {
@@ -9,7 +9,7 @@ export default function ResumenCotizacion({ viaje, onEditar, onVistaPrevia }) {
   const q = calcularCotizacion(viaje);
   const precioPendiente = q.base === 0 && q.pendientes.length > 0;
   const moneda = viaje.budget?.currency || 'MXN';
-  const dinero = (n) => `${formatoMoneda(n, moneda)} ${moneda}`;
+  const dinero = (n) => formatoMoneda(n, moneda);
   return <Tarjeta titulo={t('cotizacion.titulo')} className="resumen-cotizacion">
     <div className="metricas-cotizacion">
       <div><span>{t('cotizacion.serviciosCapturados')}</span><strong>{q.servicios > 0 ? dinero(q.servicios) : t('cotizacion.pendienteDeConfirmar')}</strong></div>

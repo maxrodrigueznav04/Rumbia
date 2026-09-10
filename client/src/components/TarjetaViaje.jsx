@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Insignia } from './ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  formatoMoneda,
+  formatoMonedaConCodigo as formatoMoneda,
   rangoFechas,
   tiempoRelativo,
   ETIQUETAS_ESTADO,
@@ -87,7 +87,7 @@ export default function TarjetaViaje({ viaje }) {
                 {presupuesto > 0 ? t('tarjetaViaje.porcentajeDelPresupuesto', { porcentaje: Math.round(porcentaje) }) : t('tarjetaViaje.capturado')}
               </span>
               <span className="numero" style={{ fontSize: '0.92rem' }}>
-                {formatoMoneda(gastado, moneda)} {moneda}
+                {formatoMoneda(gastado, moneda)}
                 {presupuesto > 0 && (
                   <span className="tenue" style={{ fontWeight: 400 }}>
                     {' / '}

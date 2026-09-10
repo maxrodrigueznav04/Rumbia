@@ -20,6 +20,7 @@ import {
 import Icono from '../components/Icono.jsx';
 import ResumenViaje from '../components/ResumenViaje.jsx';
 import VistaPreviaPropuesta from '../components/VistaPreviaPropuesta.jsx';
+import AccionesItinerario from '../components/AccionesItinerario.jsx';
 import { viajeParaCliente } from '../utils/cotizacion.js';
 import SelectorPersonas from '../components/SelectorPersonas.jsx';
 import RevisionItinerario from '../components/RevisionItinerario.jsx';
@@ -485,12 +486,13 @@ export default function Itinerario() {
         </div>
 
         {itinerario && (
-          <div className="fila" style={{ gap: 8 }}>
-            <Boton variante="secundario" onClick={() => window.print()}>
-              <Icono nombre="descarga" tamano={15} /> {t('descargarPdf')}
-            </Boton>
+          <AccionesItinerario principal={
             <Boton variante="secundario" onClick={() => setVistaPrevia(true)} cargando={trabajandoEnlace}>
               <Icono nombre="flechaSalida" tamano={15} /> {t('revisarYCompartir')}
+            </Boton>
+          }>
+            <Boton variante="secundario" onClick={() => window.print()}>
+              <Icono nombre="descarga" tamano={15} /> {t('descargarPdf')}
             </Boton>
             {viaje.durationDays <= LIMITE_DIAS_IA && (
               <Boton
@@ -504,7 +506,7 @@ export default function Itinerario() {
             <Boton variante="secundario" onClick={() => setPlantillaAbierta(true)}>
               <Icono nombre="recibo" tamano={15} /> {t('guardarComoPlantilla')}
             </Boton>
-          </div>
+          </AccionesItinerario>
         )}
       </header>
 

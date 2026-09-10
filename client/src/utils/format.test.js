@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatoMoneda,
+  formatoMonedaConCodigo,
   rangoFechas,
   nochesEntre,
   paraInputFecha,
@@ -11,6 +12,11 @@ import {
 } from './format.js';
 
 describe('formatoMoneda', () => {
+  it.each(['MXN', 'USD', 'EUR'])('identifica %s exactamente una vez en precios explícitos', (moneda) => {
+    const resultado = formatoMonedaConCodigo(57000.5, moneda);
+    expect(resultado.split(moneda)).toHaveLength(2);
+    expect(resultado).toContain('57,000.50');
+  });
   it('no muestra centavos: en un presupuesto de viaje estorban', () => {
     expect(formatoMoneda(5760, 'MXN')).not.toMatch(/[.,]\d{2}\b/);
     expect(formatoMoneda(5760, 'MXN')).toMatch(/5,760/);

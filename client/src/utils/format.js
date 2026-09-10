@@ -14,19 +14,25 @@ export const localeActual = () => (i18n.resolvedLanguage === 'en' ? 'en-US' : 'e
 // este archivo (Dashboard.jsx), donde "localeActual" sin contexto es ambiguo.
 export const localeDeFecha = localeActual;
 
-export function formatoMoneda(monto, moneda = 'MXN') {
+export function formatoMoneda(monto, moneda = 'MXN', currencyDisplay = 'symbol') {
   const n = Number(monto) || 0;
   const locale = localeActual();
   try {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: moneda,
+      currencyDisplay,
       maximumFractionDigits: n % 1 === 0 ? 0 : 2,
     }).format(n);
   } catch {
     // Codigo de moneda desconocido: no romper la vista por un dato malo.
     return `${n.toLocaleString(locale)} ${moneda}`;
   }
+}
+
+/** Identifica la divisa una sola vez, incluso cuando varias usan el signo $. */
+export function formatoMonedaConCodigo(monto, moneda = 'MXN') {
+  return formatoMoneda(monto, moneda, 'code');
 }
 
 const parse = (valor) => {
