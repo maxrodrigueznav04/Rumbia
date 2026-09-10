@@ -20,6 +20,7 @@
     "test:clima": "node scripts/prueba-clima.mjs",
     "test:baja": "node scripts/prueba-baja.mjs",
     "clicks": "node scripts/clicks.mjs",
+    "cuentas": "node scripts/cuentas.mjs",
     "auditoria": "node scripts/auditoria.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs",
     "gemini:modelos": "node scripts/gemini-modelos.mjs",
