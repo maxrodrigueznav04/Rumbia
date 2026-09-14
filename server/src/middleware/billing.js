@@ -29,8 +29,10 @@ export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
   // 1. Suscripción activa en Stripe
   if (agencia.billing?.status === 'activa') return next();
 
-  // 2. Periodo de prueba gratuito (trial) de 7 días vigente
+  // 2. Periodo de prueba gratuito (trial) de 14 días vigente
   const ahora = new Date();
+  // Agencias antiguas sin fecha guardada conservan su duracion original.
+  // Las nuevas guardan trialHasta con 14 dias desde su creacion.
   const finTrial =
     agencia.billing?.trialHasta ||
     (agencia.billing?.status === 'trial'
@@ -44,7 +46,7 @@ export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
   const esTrial = agencia.billing?.status === 'trial' || Boolean(finTrial);
   throw ApiError.forbidden(
     esTrial
-      ? 'El periodo de prueba gratuita de 7 días de tu agencia ha concluido. Tus viajes siguen guardados, pero necesitas activar un plan para crear o editar contenido.'
+      ? 'El periodo de prueba gratuita de tu agencia ha concluido. Tus viajes siguen guardados, pero necesitas activar un plan para crear o editar contenido.'
       : 'La suscripción de tu agencia no está activa. Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que se active un plan.'
   );
 });

@@ -121,10 +121,10 @@ const billingSchema = new mongoose.Schema(
     // Vacio en el plan vitalicio, que no vence. En mensual/anual es la fecha
     // que Stripe reporta como fin del periodo pagado.
     periodoHasta: { type: Date },
-    // Periodo de prueba gratuito de 7 dias para agencias nuevas.
+    // Periodo de prueba gratuito de 14 dias para agencias nuevas.
     trialHasta: {
       type: Date,
-      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },
     // Contador de uso de IA del mes en curso, mismo patron y mismo campo "mes"
     // (YYYY-MM) que User.usoIA, pero a nivel agencia: mientras el cupo

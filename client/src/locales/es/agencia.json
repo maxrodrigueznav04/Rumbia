@@ -87,7 +87,7 @@
     "cargandoAgencia": "Cargando tu agencia..."
   },
   "avisoCongelada": {
-    "tituloTrialVencido": "Tu prueba gratuita de 7 días ha finalizado",
+    "tituloTrialVencido": "Tu prueba gratuita ha finalizado",
     "tituloInactivo": "El plan de esta agencia no está activo",
     "duenoTrialVencidoTexto": "Tus viajes y propuestas siguen a salvo en tu cuenta. Para continuar creando y editando itinerarios oficiales con tu logo y margen, activa tu suscripción.",
     "duenoTrialVencidoEnlace": "Elegir y activar plan →",
@@ -104,7 +104,7 @@
     "pruebaTitulo": "Prueba gratuita activa ({{dias}} {{diaLabel}})",
     "diaRestante": "día restante",
     "diasRestantes": "días restantes",
-    "pruebaTexto": "Tu agencia está disfrutando del periodo de prueba gratuita de 7 días con acceso completo.",
+    "pruebaTexto": "Tu agencia está disfrutando del periodo de prueba gratuita con acceso completo.",
     "salir": "Salir de la agencia"
   },
   "ajusteAgentesExtra": {
@@ -158,7 +158,7 @@
     "totalMes": "{{cantidad}} viaje(s) armado(s) este mes en total."
   },
   "dueno": {
-    "pruebaTitulo": "Prueba gratuita de 7 días activa ({{dias}} {{diaLabel}})",
+    "pruebaTitulo": "Prueba gratuita activa ({{dias}} {{diaLabel}})",
     "pruebaTexto": "Tienes acceso completo a todas las funciones profesionales: crea itinerarios ilimitados, genera cotizaciones en PDF con tu logo y añade márgenes comerciales a tus propuestas.",
     "marcaTitulo": "Marca en el PDF",
     "insigniaDueno": "Dueño de la agencia",

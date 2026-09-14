@@ -103,8 +103,8 @@ const EXACTOS = {
     "Verify your email before continuing: check your inbox (or spam) and click the link we sent you when you created your account.",
 
   // --- billing congelado ---
-  'El periodo de prueba gratuita de 7 días de tu agencia ha concluido. Tus viajes siguen guardados, pero necesitas activar un plan para crear o editar contenido.':
-    "Your agency's 7-day free trial has ended. Your trips are still saved, but you need to activate a plan to create or edit content.",
+  'El periodo de prueba gratuita de tu agencia ha concluido. Tus viajes siguen guardados, pero necesitas activar un plan para crear o editar contenido.':
+    "Your agency's free trial has ended. Your trips are still saved, but you need to activate a plan to create or edit content.",
   'La suscripción de tu agencia no está activa. Tus viajes siguen ahí, pero no puedes crear ni editar nada hasta que se active un plan.':
     "Your agency's subscription isn't active. Your trips are still there, but you can't create or edit anything until a plan is activated.",
 
