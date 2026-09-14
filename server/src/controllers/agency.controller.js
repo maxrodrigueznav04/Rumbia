@@ -48,7 +48,7 @@ function vistaAgenciaMiembro(agencia) {
  * primero tiene que salir de la que ya tiene (endpoint /salir).
  */
 export const crearAgencia = asyncHandler(async (req, res) => {
-  // Crear una agencia da un trial de 7 dias con acceso completo, gratis: el
+  // Crear una agencia da un trial de 14 dias con acceso completo, gratis: el
   // mismo abuso de correos desechables que se cierra al generar con IA (ver
   // requireEmailVerificado.js) aplica aqui, y con un premio mas grande.
   requireEmailVerificado(req.user);
@@ -58,7 +58,7 @@ export const crearAgencia = asyncHandler(async (req, res) => {
   }
 
   const { agencyName, contact } = req.body;
-  // El trial de 7 dias es un beneficio por USUARIO, no por agencia: sin este
+  // El trial de 14 dias es un beneficio por USUARIO, no por agencia: sin este
   // chequeo, salir de una agencia y crear otra daba un trial nuevo cada vez.
   // "pendiente" es el mismo bloqueo de escritura que "congelada"
   // (middleware/billing.js) -- solo cambia el texto que ve el dueno.

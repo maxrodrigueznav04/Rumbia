@@ -4,7 +4,7 @@ import { esAdmin } from './esAdmin.js';
 /**
  * Exige correo verificado antes de dejar hacer algo que cuesta dinero real
  * (generar con IA) o que un correo desechable puede abusar en cadena (crear
- * una agencia y su trial gratis de 7 dias). El registro activaba la cuenta
+ * una agencia y su trial gratis de 14 dias). El registro activaba la cuenta
  * sin confirmar el correo -- sin este candado, alguien podia registrar
  * cuentas o agencias en cadena con correos de un solo uso para multiplicar
  * cupo gratis (hallazgo S4 de la auditoria de lanzamiento).

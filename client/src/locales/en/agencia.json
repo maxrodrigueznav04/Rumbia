@@ -87,7 +87,7 @@
     "cargandoAgencia": "Loading your agency..."
   },
   "avisoCongelada": {
-    "tituloTrialVencido": "Your 7-day free trial has ended",
+    "tituloTrialVencido": "Your free trial has ended",
     "tituloInactivo": "This agency's plan isn't active",
     "duenoTrialVencidoTexto": "Your trips and proposals are still safe in your account. To keep creating and editing official itineraries with your logo and margin, activate your subscription.",
     "duenoTrialVencidoEnlace": "Choose and activate a plan →",
@@ -104,7 +104,7 @@
     "pruebaTitulo": "Free trial active ({{dias}} {{diaLabel}})",
     "diaRestante": "day left",
     "diasRestantes": "days left",
-    "pruebaTexto": "Your agency is enjoying the 7-day free trial with full access.",
+    "pruebaTexto": "Your agency is enjoying the free trial with full access.",
     "salir": "Leave the agency"
   },
   "ajusteAgentesExtra": {
@@ -158,7 +158,7 @@
     "totalMes": "{{cantidad}} trip(s) built this month in total."
   },
   "dueno": {
-    "pruebaTitulo": "7-day free trial active ({{dias}} {{diaLabel}})",
+    "pruebaTitulo": "free trial active ({{dias}} {{diaLabel}})",
     "pruebaTexto": "You have full access to all the professional features: create unlimited itineraries, generate PDF quotes with your logo, and add commercial margins to your proposals.",
     "marcaTitulo": "Branding on the PDF",
     "insigniaDueno": "Agency owner",

@@ -438,12 +438,27 @@ await check('User nace sin uso de IA registrado este mes', async () => {
 });
 
 await check('Agency nace en periodo de prueba (trial), sin agentes extra', async () => {
+  const antes = Date.now();
   const a = new Agency({ agencyName: 'Viajes del Sur', owner: uid });
+  const despues = Date.now();
   assert(!a.validateSync(), 'no deberia fallar');
   assert(a.billing.status === 'trial', `status=${a.billing.status}`);
   assert(a.billing.trialHasta instanceof Date, 'debe tener fecha de fin de trial');
+  const duracion = 14 * 86400000;
+  assert(a.billing.trialHasta.getTime() >= antes + duracion &&
+    a.billing.trialHasta.getTime() <= despues + duracion, 'debe vencer exactamente en 14 dias');
   assert(a.capacidadAgentes === 3, `capacidad=${a.capacidadAgentes}`);
-  return 'trial 7 días, cupo 3';
+  return 'trial 14 días, cupo 3';
+});
+
+await check('Agency conserva el vencimiento de pruebas existentes y no reinicia pruebas usadas', async () => {
+  const vencimiento = new Date('2026-09-20T12:00:00Z');
+  const existente = Agency.hydrate({ agencyName: 'Existente', owner: uid,
+    billing: { status: 'trial', trialHasta: vencimiento } });
+  assert(existente.billing.trialHasta.getTime() === vencimiento.getTime(), 'debe conservar la fecha guardada');
+  const usada = new Agency({ agencyName: 'Otra agencia', owner: uid,
+    billing: { status: 'pendiente', trialHasta: new Date(0) } });
+  assert(usada.billing.trialHasta.getTime() === 0, 'no debe otorgar otra prueba');
 });
 
 await check('Agency: agentes extra suman a la capacidad', async () => {
