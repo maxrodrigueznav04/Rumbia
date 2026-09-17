@@ -24,26 +24,26 @@
     "@fontsource/playfair-display": "^5.3.0",
     "@fontsource/poppins": "^5.3.0",
     "@fontsource/work-sans": "^5.3.0",
-    "@sentry/react": "10.73.0",
+    "@sentry/react": "10.74.0",
     "i18next": "^26.4.2",
     "i18next-browser-languagedetector": "^8.2.1",
     "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-i18next": "^17.0.13",
+    "react-i18next": "^17.0.14",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.18.3",
     "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.5",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^4.1.11",
     "jsdom": "^30.0.1",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vitest": "^4.1.11",
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.131.2"
   }
 }
