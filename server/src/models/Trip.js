@@ -214,7 +214,8 @@ const tripSchema = new mongoose.Schema(
     // cliente ve el total y de qué se compone (vuelo, hotel, traslados), pero
     // no el precio de cada renglon. Se aplica en el PDF y el enlace publico;
     // el dueño del viaje sigue viendo todo en su propia pantalla.
-    ocultarDesglose: { type: Boolean, default: false },
+    // Default true para máxima privacidad en nuevas propuestas.
+    ocultarDesglose: { type: Boolean, default: true },
     // Independiente de ocultarDesglose (eso es precio): esto tapa el codigo
     // de reservacion, el link de gestion externo y las notas internas de
     // transporte/hospedaje en el PDF y el enlace publico -- datos que sirven

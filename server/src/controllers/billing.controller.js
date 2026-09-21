@@ -154,18 +154,12 @@ export const webhook = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Firma invalida.');
   }
 
-  // Stripe puede reenviar el mismo evento si no vio la respuesta 2xx a
-  // tiempo (timeout de red, redeploy a la mitad). El indice unico de
-  // eventId es quien de verdad evita procesarlo dos veces: si otro proceso
-  // ya lo inserto entre que se checa y se inserta, este insert simplemente
-  // choca y se responde 200 sin repetir ningun efecto.
-  try {
-    await StripeEvent.create({ eventId: evento.id, type: evento.type });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.json({ received: true, duplicado: true });
-    }
-    throw err;
+  // 1. Idempotencia: si el evento ya fue procesado con éxito previamente, no se
+  // vuelve a aplicar. Stripe puede reenviar eventos por timeouts o reintentos;
+  // responder 200 con duplicado evita procesar dos veces el mismo evento.
+  const yaProcesado = await StripeEvent.findOne({ eventId: evento.id });
+  if (yaProcesado) {
+    return res.json({ received: true, duplicado: true });
   }
 
   const eventoCreatedDate = new Date(evento.created * 1000);
@@ -235,6 +229,19 @@ export const webhook = asyncHandler(async (req, res) => {
 
     default:
       break; // El resto de los eventos no cambia nada del lado de Rumbia.
+  }
+
+  // 2. Solo registramos el evento como procesado una vez que todas las
+  // actualizaciones concluyeron correctamente. Si la actualización de la agencia
+  // falla, StripeEvent no se guarda, la petición responde error 5xx y Stripe
+  // podrá reintentar el evento sin que se considere duplicado.
+  try {
+    await StripeEvent.create({ eventId: evento.id, type: evento.type });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.json({ received: true, duplicado: true });
+    }
+    throw err;
   }
 
   res.json({ received: true });

@@ -284,6 +284,8 @@ export const createTripSchema = z
     notes: z.string().trim().max(2000).optional(),
     client: objectId.optional().nullable(),
     cliente: clienteSchema.optional(),
+    ocultarDesglose: z.boolean().default(true),
+    ocultarCodigos: z.boolean().default(true),
     // Gustos del viajero de este viaje (no de quien lo arma). Opcionales: un
     // agente puede no saberlos todavia al crear el viaje.
     interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
