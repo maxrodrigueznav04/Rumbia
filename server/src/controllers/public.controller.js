@@ -142,7 +142,8 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       // sale de aqui.
       populate: {
         path: 'agency',
-        select: 'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf billing.plan',
+        select:
+          'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf createdAt billing.plan billing.status billing.trialHasta',
       },
     });
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');

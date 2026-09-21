@@ -13,7 +13,7 @@ process.env.STRIPE_PRICE_PRO_MENSUAL_AGENTE ||= 'price_test_pro_mensual_agente';
 // rechazan de entrada, antes de poder simular la respuesta HTTP con fetch.
 process.env.GEMINI_API_KEY ||= 'test_key_test_key';
 
-const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client, limitesDePlan } = await import(
+const { Trip, Itinerary, Expense, User, Agency, ItineraryTemplate, AuditLog, Client, StripeEvent, limitesDePlan } = await import(
   '../src/models/index.js'
 );
 const schemas = await import('../src/validators/schemas.js');
@@ -25,6 +25,10 @@ const { esAdmin } = await import('../src/utils/esAdmin.js');
 const { escaparRegex, CAMPOS_EDITABLES_DIRECTO, filtroPertenenciaTrip } = await import(
   '../src/controllers/trip.controller.js'
 );
+const { soloLecturaSiCongelada } = await import('../src/middleware/billing.js');
+const { unirseAgencia } = await import('../src/controllers/agency.controller.js');
+const { webhook } = await import('../src/controllers/billing.controller.js');
+const { verItinerarioCompartido } = await import('../src/controllers/public.controller.js');
 const { incrementarUsoIAMensual } = await import('../src/utils/cupoIA.js');
 const ApiError = (await import('../src/utils/ApiError.js')).default;
 const mongoose = (await import('mongoose')).default;
@@ -264,6 +268,31 @@ await check('lodging: destinationIndex fuera de rango NO bloquea el guardado', a
   return 'destinationIndex huerfano (5, sin parada 5) no truena la validacion';
 });
 
+await check('Trip: ocultarDesglose y ocultarCodigos por defecto true, preserva false explicito', async () => {
+  const tDefault = new Trip({
+    user: uid,
+    title: 'Viaje Privado',
+    destination: { name: 'Cancun' },
+    startDate: new Date('2026-10-01'),
+    endDate: new Date('2026-10-05'),
+  });
+  assert(tDefault.ocultarDesglose === true, `ocultarDesglose por defecto debe ser true, fue ${tDefault.ocultarDesglose}`);
+  assert(tDefault.ocultarCodigos === true, `ocultarCodigos por defecto debe ser true, fue ${tDefault.ocultarCodigos}`);
+
+  const tFalso = new Trip({
+    user: uid,
+    title: 'Viaje Publico',
+    destination: { name: 'Cancun' },
+    startDate: new Date('2026-10-01'),
+    endDate: new Date('2026-10-05'),
+    ocultarDesglose: false,
+    ocultarCodigos: false,
+  });
+  assert(tFalso.ocultarDesglose === false, 'debe respetar false explicito en ocultarDesglose');
+  assert(tFalso.ocultarCodigos === false, 'debe respetar false explicito en ocultarCodigos');
+  return 'default true en ambos; respeta false explicito';
+});
+
 await check('Trip: existe un indice para el filtro "proximos"/"pasados" (user + endDate)', async () => {
   // schema.indexes() no necesita conexion real a Mongo: solo lee las
   // definiciones declaradas. listTrips filtra por endDate en esos dos
@@ -484,20 +513,152 @@ await check('Agency: capacidadAgentes respeta el tope base de cada tier (Inicio/
   return 'inicio=3, agencia=8, pro=15(+extra)';
 });
 
-await check('Agency: marcaBlanca solo en planes Agencia y Pro, no Inicio ni sin plan', async () => {
-  const sinPlan = new Agency({ agencyName: 'X', owner: uid });
-  assert(sinPlan.marcaBlanca === false, 'trial/sin plan no califica');
+await check('Agency: esTrialActivo y tieneAccesoActivo reflejan trial vigente vs vencido vs activo', async () => {
+  const enTrial = new Agency({ agencyName: 'X', owner: uid });
+  assert(enTrial.esTrialActivo === true, 'debe ser trial activo');
+  assert(enTrial.tieneAccesoActivo === true, 'trial vigente debe tener acceso');
 
-  const inicio = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'inicio_mensual' } });
+  const trialVencido = new Agency({
+    agencyName: 'X',
+    owner: uid,
+    billing: { status: 'trial', trialHasta: new Date(Date.now() - 1000) },
+  });
+  assert(trialVencido.esTrialActivo === false, 'trial vencido no debe ser activo');
+  assert(trialVencido.tieneAccesoActivo === false, 'trial vencido no tiene acceso');
+
+  const planActivo = new Agency({
+    agencyName: 'X',
+    owner: uid,
+    billing: { status: 'activa', plan: 'inicio_mensual' },
+  });
+  assert(planActivo.esTrialActivo === false, 'plan de pago no es trial');
+  assert(planActivo.tieneAccesoActivo === true, 'plan de pago tiene acceso');
+
+  const congelada = new Agency({
+    agencyName: 'X',
+    owner: uid,
+    billing: { status: 'congelada', trialHasta: new Date(0) },
+  });
+  assert(congelada.esTrialActivo === false, 'congelada no es trial');
+  assert(congelada.tieneAccesoActivo === false, 'congelada no tiene acceso');
+
+  return 'trial activo -> acceso; trial vencido/congelada -> sin acceso; activa -> acceso';
+});
+
+await check('Agency: marcaBlanca habilitada en trial activo y planes Agencia/Pro; bloqueada en Inicio y vencida', async () => {
+  const enTrial = new Agency({ agencyName: 'X', owner: uid });
+  assert(enTrial.marcaBlanca === true, 'trial activo debe incluir marca blanca');
+
+  const trialVencido = new Agency({
+    agencyName: 'X',
+    owner: uid,
+    billing: { status: 'trial', trialHasta: new Date(Date.now() - 1000) },
+  });
+  assert(trialVencido.marcaBlanca === false, 'trial vencido no debe tener marca blanca');
+
+  const sinPlan = new Agency({
+    agencyName: 'X',
+    owner: uid,
+    billing: { status: 'pendiente', trialHasta: new Date(0) },
+  });
+  assert(sinPlan.marcaBlanca === false, 'sin plan/pendiente no califica');
+
+  const inicio = new Agency({ agencyName: 'X', owner: uid, billing: { status: 'activa', plan: 'inicio_mensual' } });
   assert(inicio.marcaBlanca === false, 'Inicio no califica');
 
-  const agencia = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'agencia_anual' } });
+  const agencia = new Agency({ agencyName: 'X', owner: uid, billing: { status: 'activa', plan: 'agencia_anual' } });
   assert(agencia.marcaBlanca === true, 'Agencia si califica');
 
-  const pro = new Agency({ agencyName: 'X', owner: uid, billing: { plan: 'pro_mensual' } });
+  const pro = new Agency({ agencyName: 'X', owner: uid, billing: { status: 'activa', plan: 'pro_mensual' } });
   assert(pro.marcaBlanca === true, 'Pro si califica');
 
-  return 'sin plan/Inicio -> false, Agencia/Pro -> true';
+  return 'trial activo/Agencia/Pro -> true, trial vencido/pendiente/Inicio -> false';
+});
+
+await check('soloLecturaSiCongelada: permite escritura durante trial activo y bloquea con trial vencido', async () => {
+  const origFindById = Agency.findById;
+  try {
+    const agenciaActiva = new Agency({ agencyName: 'X', owner: uid });
+    Agency.findById = () => ({
+      select: () => agenciaActiva,
+    });
+    let nextLlamado = false;
+    await soloLecturaSiCongelada(
+      { method: 'POST', user: { agency: agenciaActiva._id }, originalUrl: '/api/trips' },
+      {},
+      (err) => { if (!err) nextLlamado = true; }
+    );
+    assert(nextLlamado === true, 'trial activo debe permitir escritura');
+
+    const agenciaVencida = new Agency({
+      agencyName: 'X',
+      owner: uid,
+      billing: { status: 'trial', trialHasta: new Date(Date.now() - 1000) },
+    });
+    Agency.findById = () => ({
+      select: () => agenciaVencida,
+    });
+    let errorCapturado = null;
+    await soloLecturaSiCongelada(
+      { method: 'POST', user: { agency: agenciaVencida._id }, originalUrl: '/api/trips' },
+      {},
+      (err) => { errorCapturado = err; }
+    ).catch((err) => { errorCapturado = err; });
+    assert(errorCapturado?.statusCode === 403, 'trial vencido debe arrojar 403');
+  } finally {
+    Agency.findById = origFindById;
+  }
+  return 'trial activo permite escritura; trial vencido bloquea con 403';
+});
+
+await check('unirseAgencia: permite unirse durante trial activo y rechaza si trial esta vencido o sin cupo', async () => {
+  const origFindOne = Agency.findOne;
+  const origCount = User.countDocuments;
+  try {
+    const agenciaTrial = new Agency({ agencyName: 'X', owner: uid, inviteCode: 'code123' });
+    Agency.findOne = () => Promise.resolve(agenciaTrial);
+    User.countDocuments = () => Promise.resolve(1);
+
+    let guardado = false;
+    const req = {
+      user: {
+        _id: new mongoose.Types.ObjectId(),
+        agency: null,
+        save: async () => { guardado = true; },
+        populate: async () => {},
+        toJSON: () => ({}),
+      },
+      body: { inviteCode: 'code123' },
+    };
+    let jsonResp = null;
+    const res = { json: (data) => { jsonResp = data; } };
+
+    await unirseAgencia(req, res);
+    assert(guardado === true, 'el usuario debe guardarse con la agencia');
+    assert(jsonResp?.success === true, 'debe responder exitoso');
+
+    const agenciaVencida = new Agency({
+      agencyName: 'X',
+      owner: uid,
+      inviteCode: 'code123',
+      billing: { status: 'trial', trialHasta: new Date(Date.now() - 1000) },
+    });
+    Agency.findOne = () => Promise.resolve(agenciaVencida);
+    let errVencida = null;
+    const req2 = { user: { agency: null }, body: { inviteCode: 'code123' } };
+    await unirseAgencia(req2, res).catch((err) => { errVencida = err; });
+    assert(errVencida?.statusCode === 403, 'trial vencido debe arrojar 403');
+
+    Agency.findOne = () => Promise.resolve(agenciaTrial);
+    User.countDocuments = () => Promise.resolve(3);
+    let errCupo = null;
+    await unirseAgencia(req2, res).catch((err) => { errCupo = err; });
+    assert(errCupo?.statusCode === 409, 'cupo lleno debe arrojar 409');
+  } finally {
+    Agency.findOne = origFindOne;
+    User.countDocuments = origCount;
+  }
+  return 'trial activo permite union; vencido da 403; cupo lleno da 409';
 });
 
 await check('Agency valida el formato del color de acento', async () => {
@@ -1042,9 +1203,23 @@ await check('createTripSchema acepta payload valido', async () => {
   // la preferencia del usuario cuando no se manda, y necesita ver undefined
   // (no 'MXN') para saber que hay que heredar. Ver trip.controller.js.
   assert(r.data.budget.currency === undefined, 'sin default de moneda en el schema');
+  assert(r.data.ocultarDesglose === true, 'default ocultarDesglose true');
+  assert(r.data.ocultarCodigos === true, 'default ocultarCodigos true');
   assert(r.data.interests === undefined && r.data.pace === undefined && r.data.budgetLevel === undefined,
     'gustos del viajero sin default: generate() cae al perfil de quien genera si faltan');
-  return 'coerce + default de monto, moneda sin forzar, gustos del viajero opcionales';
+  return 'coerce + default de monto, moneda sin forzar, privacidad por defecto true, gustos del viajero opcionales';
+});
+
+await check('createTripSchema respeta false explicito en ocultarDesglose y ocultarCodigos', () => {
+  const r = schemas.createTripSchema.safeParse({
+    title: 'Oaxaca', destination: { name: 'Oaxaca' },
+    startDate: '2026-09-10', endDate: '2026-09-14',
+    ocultarDesglose: false, ocultarCodigos: false,
+  });
+  assert(r.success, JSON.stringify(r.error?.issues));
+  assert(r.data.ocultarDesglose === false, 'debe respetar false en ocultarDesglose');
+  assert(r.data.ocultarCodigos === false, 'debe respetar false en ocultarCodigos');
+  return 'false explicito conservado sin sobreescribir';
 });
 
 await check('createTripSchema acepta los gustos del viajero cuando si se mandan', async () => {
@@ -1759,6 +1934,241 @@ await check('resolverPlanDesdeSuscripcion devuelve null si ningun Price conocido
   const r = stripeService.resolverPlanDesdeSuscripcion(sub);
   assert(r === null, 'no deberia adivinar un plan sin Price que calce');
   return 'null: no pisa el plan actual con una suposicion';
+});
+
+await check('webhook Stripe: fallo intermedio no registra StripeEvent y permite reintento exitoso (P07 idempotencia)', async () => {
+  const origConstruirEvento = stripeService.construirEvento;
+  const origFindOne = StripeEvent.findOne;
+  const origCreate = StripeEvent.create;
+  const origUpdateOne = Agency.updateOne;
+
+  const eventosGuardados = new Map();
+  let llamadasUpdateOne = 0;
+  let simularFalloEnUpdate = true;
+
+  try {
+    const mockEvento = {
+      id: 'evt_test_p07_retry_123',
+      type: 'customer.subscription.updated',
+      created: 1700000000,
+      data: {
+        object: {
+          id: 'sub_test_123',
+          status: 'active',
+          current_period_end: 1700005000,
+          metadata: { agencyId: 'agencia_p07_123' },
+          items: {
+            data: [{ price: { id: 'price_test_agencia_mensual' }, quantity: 1 }],
+          },
+        },
+      },
+    };
+
+    stripeService.construirEvento = () => mockEvento;
+    StripeEvent.findOne = ({ eventId }) => Promise.resolve(eventosGuardados.get(eventId) || null);
+    StripeEvent.create = async (doc) => {
+      if (eventosGuardados.has(doc.eventId)) {
+        const err = new Error('Duplicate key');
+        err.code = 11000;
+        throw err;
+      }
+      eventosGuardados.set(doc.eventId, doc);
+      return doc;
+    };
+    Agency.updateOne = async () => {
+      llamadasUpdateOne++;
+      if (simularFalloEnUpdate) {
+        throw new Error('Fallo transitorio en base de datos al actualizar la agencia');
+      }
+      return { acknowledged: true, modifiedCount: 1 };
+    };
+
+    const req = {
+      headers: { 'stripe-signature': 'sig_test' },
+      body: Buffer.from('payload_crudo'),
+    };
+
+    // 1. Intento inicial: falla en Agency.updateOne (fallo intermedio)
+    let errPrimerIntento = null;
+    let resPrimerIntento = null;
+    await webhook(req, { json: (d) => { resPrimerIntento = d; } }, (err) => { errPrimerIntento = err; });
+
+    assert(errPrimerIntento !== null, 'el webhook debe propagar el error si Agency.updateOne falla');
+    assert(eventosGuardados.has(mockEvento.id) === false, 'StripeEvent NO debe guardarse si la actualizacion falla');
+    assert(llamadasUpdateOne === 1, 'Agency.updateOne se intento una vez');
+
+    // 2. Reintento de Stripe con el MISMO eventId
+    simularFalloEnUpdate = false;
+    let errReintento = null;
+    let resReintento = null;
+    await webhook(req, { json: (d) => { resReintento = d; } }, (err) => { errReintento = err; });
+
+    assert(errReintento === null, 'el reintento debe completarse sin error');
+    assert(resReintento?.received === true && !resReintento?.duplicado, 'debe responder received: true');
+    assert(eventosGuardados.has(mockEvento.id) === true, 'StripeEvent SI debe registrarse tras completar la actualizacion');
+    assert(llamadasUpdateOne === 2, 'Agency.updateOne se ejecuto con exito en el reintento');
+
+    // 3. Tercera llamada con el mismo eventId (evento duplicado / at-least-once delivery)
+    let resDuplicado = null;
+    await webhook(req, { json: (d) => { resDuplicado = d; } }, (err) => { throw err; });
+
+    assert(resDuplicado?.received === true && resDuplicado?.duplicado === true, 'debe responder duplicado: true');
+    assert(llamadasUpdateOne === 2, 'Agency.updateOne NO debe volver a ejecutarse para un evento duplicado');
+
+    return 'fallo intermedio no guarda evento; reintento exitoso lo guarda; duplicado no re-ejecuta update';
+  } finally {
+    stripeService.construirEvento = origConstruirEvento;
+    StripeEvent.findOne = origFindOne;
+    StripeEvent.create = origCreate;
+    Agency.updateOne = origUpdateOne;
+  }
+});
+
+await check('webhook Stripe: condicion de carrera (error 11000 en StripeEvent.create) responde duplicado sin 500', async () => {
+  const origConstruirEvento = stripeService.construirEvento;
+  const origFindOne = StripeEvent.findOne;
+  const origCreate = StripeEvent.create;
+  const origUpdateOne = Agency.updateOne;
+
+  try {
+    const mockEvento = {
+      id: 'evt_test_carrera_456',
+      type: 'customer.subscription.updated',
+      created: 1700000000,
+      data: {
+        object: {
+          id: 'sub_test_456',
+          status: 'active',
+          current_period_end: 1700005000,
+          metadata: { agencyId: 'agencia_p07_456' },
+          items: {
+            data: [{ price: { id: 'price_test_agencia_mensual' }, quantity: 1 }],
+          },
+        },
+      },
+    };
+
+    stripeService.construirEvento = () => mockEvento;
+    StripeEvent.findOne = () => Promise.resolve(null);
+    StripeEvent.create = () => {
+      const err = new Error('E11000 duplicate key error collection');
+      err.code = 11000;
+      throw err;
+    };
+    Agency.updateOne = () => Promise.resolve({ acknowledged: true });
+
+    const req = {
+      headers: { 'stripe-signature': 'sig_test' },
+      body: Buffer.from('payload_crudo'),
+    };
+
+    let resData = null;
+    await webhook(req, { json: (d) => { resData = d; } }, (err) => { throw err; });
+
+    assert(resData?.received === true && resData?.duplicado === true, 'debe responder duplicado: true');
+    return 'E11000 capturado y manejado como duplicado: true';
+  } finally {
+    stripeService.construirEvento = origConstruirEvento;
+    StripeEvent.findOne = origFindOne;
+    StripeEvent.create = origCreate;
+    Agency.updateOne = origUpdateOne;
+  }
+});
+
+await check('verItinerarioCompartido: oculta desglose de precios y margenes en servidor cuando ocultarDesglose=true', async () => {
+  const origItinFindOne = Itinerary.findOne;
+  const origTripFindById = Trip.findById;
+  try {
+    const mockTrip = new Trip({
+      user: uid,
+      title: 'Viaje Privado',
+      destination: { name: 'Roma', country: 'IT' },
+      startDate: new Date('2026-10-01'),
+      endDate: new Date('2026-10-05'),
+      travelers: 2,
+      budget: { currency: 'EUR' },
+      transport: {
+        outbound: { mode: 'flight', provider: 'Iberia', cost: 500, departureAt: '10:00', notes: 'vuelo 123' },
+        inbound: { mode: 'flight', provider: 'Iberia', cost: 600, departureAt: '18:00', notes: 'vuelo 456' },
+      },
+      lodging: [{ name: 'Hotel Central', totalCost: 800, nightlyRate: 200, nights: 4, notes: 'habitacion 12' }],
+      localTransport: [{ type: 'metro', estimatedCost: 50, notes: 'pase semanal' }],
+      margen: { tipo: 'fijo', monto: 300 },
+      ocultarDesglose: true,
+      ocultarCodigos: true,
+    });
+
+    const mockItinerary = new Itinerary({
+      trip: mockTrip._id,
+      shareToken: 'token_compartido_123',
+      days: [{
+        dayNumber: 1,
+        date: new Date('2026-10-01'),
+        estimatedCost: 150,
+        activities: [{
+          time: '10:00',
+          title: 'Coliseo',
+          estimatedCost: 75,
+          notes: 'reserva confirmada',
+          bookingRef: 'REF123',
+          externalUrl: 'https://tickets.example.com',
+        }],
+      }],
+    });
+
+    Itinerary.findOne = () => Promise.resolve(mockItinerary);
+    Trip.findById = () => ({
+      select: () => ({
+        populate: () => Promise.resolve(mockTrip),
+      }),
+    });
+
+    let resJson = null;
+    const req = { params: { token: 'token_compartido_123' } };
+    const res = { json: (data) => { resJson = data; } };
+
+    await verItinerarioCompartido(req, res);
+
+    assert(resJson?.success === true, 'respuesta exitosa');
+    const data = resJson.data;
+    const v = data.viaje;
+    const itin = data.itinerary;
+
+    // Con ocultarDesglose: true
+    assert(v.coreCosts === undefined, 'coreCosts debe ser undefined cuando ocultarDesglose=true');
+    assert(v.margenPorPersona === undefined, 'margenPorPersona debe ser undefined cuando ocultarDesglose=true');
+    assert(v.transport.outbound.cost === undefined, 'cost en transport.outbound debe estar oculto');
+    assert(v.transport.inbound.cost === undefined, 'cost en transport.inbound debe estar oculto');
+    assert(v.lodging[0].nightlyRate === undefined && v.lodging[0].totalCost === undefined, 'costos de lodging deben estar ocultos');
+    assert(v.localTransport[0].estimatedCost === undefined, 'costo de localTransport debe estar oculto');
+    assert(itin.totalEstimatedCost === undefined, 'totalEstimatedCost del itinerario debe ser undefined');
+    assert(itin.days[0].estimatedCost === undefined, 'estimatedCost del dia debe estar oculto');
+    assert(itin.days[0].activities[0].estimatedCost === undefined, 'estimatedCost de la actividad debe estar oculto');
+
+    // Con ocultarCodigos: true
+    assert(v.transport.outbound.notes === undefined, 'notes de transport deben estar ocultos');
+    assert(v.lodging[0].notes === undefined, 'notes de lodging deben estar ocultos');
+
+    // Precio total por persona y hayMargen si deben estar presentes
+    assert(typeof v.precioTotalPorPersona === 'number' && v.precioTotalPorPersona > 0, 'precioTotalPorPersona presente');
+    assert(v.hayMargen === true, 'hayMargen true para indicar cuota de servicio');
+
+    // Ahora probar con ocultarDesglose: false y ocultarCodigos: false
+    mockTrip.ocultarDesglose = false;
+    mockTrip.ocultarCodigos = false;
+    await verItinerarioCompartido(req, res);
+    const dataVisible = resJson.data;
+    assert(dataVisible.viaje.coreCosts !== undefined, 'coreCosts visible cuando ocultarDesglose=false');
+    assert(dataVisible.viaje.margenPorPersona !== undefined, 'margenPorPersona visible cuando ocultarDesglose=false');
+    assert(dataVisible.itinerary.totalEstimatedCost !== undefined, 'totalEstimatedCost visible cuando ocultarDesglose=false');
+    assert(dataVisible.viaje.transport.outbound.cost === 500, 'costo transport visible cuando ocultarDesglose=false');
+    assert(dataVisible.viaje.transport.outbound.notes === 'vuelo 123', 'notes de transport visible cuando ocultarCodigos=false');
+    assert(dataVisible.viaje.lodging[0].notes === 'habitacion 12', 'notes de lodging visible cuando ocultarCodigos=false');
+  } finally {
+    Itinerary.findOne = origItinFindOne;
+    Trip.findById = origTripFindById;
+  }
+  return 'servidor limpia coreCosts, costos de actividades, transport y margenes al ocultar desglose';
 });
 
 console.log('\n== Logo (Cloudinary sin configurar) ==');

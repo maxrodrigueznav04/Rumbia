@@ -26,23 +26,14 @@ export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
   const agencia = await Agency.findById(req.user.agency).select('billing createdAt');
   if (!agencia) return next();
 
-  // 1. Suscripción activa en Stripe
-  if (agencia.billing?.status === 'activa') return next();
+  // 1. Acceso activo por suscripción pagada o periodo de prueba (trial) vigente
+  if (agencia.tieneAccesoActivo) return next();
 
-  // 2. Periodo de prueba gratuito (trial) de 14 días vigente
-  const ahora = new Date();
-  // Agencias antiguas sin fecha guardada conservan su duracion original.
-  // Las nuevas guardan trialHasta con 14 dias desde su creacion.
   const finTrial =
     agencia.billing?.trialHasta ||
-    (agencia.billing?.status === 'trial'
+    (agencia.billing?.status === 'trial' && agencia.createdAt
       ? new Date(new Date(agencia.createdAt).getTime() + 7 * 86400000)
       : null);
-
-  if (finTrial && new Date(finTrial) > ahora) {
-    return next();
-  }
-
   const esTrial = agencia.billing?.status === 'trial' || Boolean(finTrial);
   throw ApiError.forbidden(
     esTrial

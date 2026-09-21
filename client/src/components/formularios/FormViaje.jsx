@@ -44,7 +44,7 @@ export default function FormViaje({ abierto, onCerrar, viaje, onGuardado }) {
       notes: viaje.notes || '',
       clienteNombre: viaje.client?.nombre || viaje.cliente?.nombre || '',
       clienteContacto: viaje.client?.telefono || viaje.client?.email || viaje.cliente?.contacto || '',
-      ocultarDesglose: viaje.ocultarDesglose ?? false,
+      ocultarDesglose: viaje.ocultarDesglose ?? true,
       ocultarCodigos: viaje.ocultarCodigos ?? true,
       margenTipo: viaje.margen?.tipo || 'fijo',
       margenMonto: viaje.margen?.monto || '',

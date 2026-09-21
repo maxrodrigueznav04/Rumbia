@@ -189,12 +189,30 @@ agencySchema.methods.regenerarCodigo = function regenerarCodigo() {
   return this.inviteCode;
 };
 
-// Beneficio de los planes Agencia y Agencia Pro: el PDF deja de mencionar a
-// Rumbia en el pie y puede usar el color de acento propio. "inicio" y el uso
-// personal (sin agencia) se quedan con el pie estandar.
+// Verifica si la agencia esta dentro de su periodo de prueba gratuito (trial) de 14 dias.
+agencySchema.virtual('esTrialActivo').get(function esTrialActivo() {
+  if (this.billing?.status !== 'trial') return false;
+  const ahora = new Date();
+  const finTrial =
+    this.billing?.trialHasta ||
+    (this.createdAt ? new Date(new Date(this.createdAt).getTime() + 7 * 86400000) : null);
+  return Boolean(finTrial && new Date(finTrial) > ahora);
+});
+
+// true si la suscripcion esta activa o si el trial de 14 dias sigue vigente.
+agencySchema.virtual('tieneAccesoActivo').get(function tieneAccesoActivo() {
+  return this.billing?.status === 'activa' || this.esTrialActivo;
+});
+
+// Beneficio de los planes Agencia y Agencia Pro, y del trial de 14 dias:
+// el PDF deja de mencionar a Rumbia en el pie y puede usar color de acento,
+// fuentes, fondos y densidad propios. "inicio", agencias con trial vencido/congeladas
+// y el uso personal (sin agencia) se quedan con el pie estandar.
 agencySchema.virtual('marcaBlanca').get(function marcaBlanca() {
   const plan = this.billing?.plan;
-  return Boolean(plan?.startsWith('agencia') || plan?.startsWith('pro'));
+  if (plan?.startsWith('agencia') || plan?.startsWith('pro')) return true;
+  if (this.esTrialActivo) return true;
+  return false;
 });
 
 agencySchema.virtual('capacidadAgentes').get(function capacidadAgentes() {

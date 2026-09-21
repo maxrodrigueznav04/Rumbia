@@ -14,7 +14,7 @@ import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
  * su PDF aunque la agencia si tenga el plan que lo quita.
  */
 const AGENCIA_PUBLICA =
-  'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf owner createdAt billing.plan';
+  'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf owner createdAt billing.plan billing.status billing.trialHasta';
 
 /**
  * Recorta el documento de Agency a lo que puede ver un miembro que no es el
@@ -169,11 +169,11 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
   if (!agencia) throw ApiError.notFound('Ese código no corresponde a ninguna agencia.');
 
   // Un dueño solo, sin nadie más, no necesita plan (es uso personal con marca
-  // de agencia). En cuanto alguien más se une, ya es el producto de pago: no
-  // se deja sumar gente a una agencia sin un plan activo. La cuenta admin
-  // (ADMIN_EMAIL) no tiene tope de cupo ni necesita plan activo para unirse.
+  // de agencia). En cuanto alguien más se une, ya es el producto de pago o el
+  // periodo de prueba: no se deja sumar gente a una agencia sin plan o trial activo.
+  // La cuenta admin (ADMIN_EMAIL) no tiene tope de cupo ni necesita plan activo para unirse.
   const esAdminUser = esAdmin(req.user);
-  const sinPlanActivo = agencia.billing?.status !== 'activa';
+  const sinPlanActivo = !agencia.tieneAccesoActivo;
   if (sinPlanActivo && !esAdminUser) {
     throw ApiError.forbidden(
       'Esta agencia todavía no tiene un plan activo. Pídele al dueño que lo active antes de unirte.'
