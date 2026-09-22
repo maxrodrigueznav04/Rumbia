@@ -27,7 +27,7 @@ export const listar = asyncHandler(async (req, res) => {
     additionalDestinations: p.additionalDestinations || [],
     dayCount: p.days?.length || 0,
     creadaPorId: p.user?._id,
-    creadaPor: p.user?.name || '',
+    creadaPor: p.user?.name || (p.user ? '' : 'Usuario eliminado'),
     createdAt: p.createdAt,
   }));
 

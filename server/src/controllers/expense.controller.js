@@ -1,13 +1,35 @@
-import { Expense } from '../models/index.js';
+import { Expense, Trip, Agency } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { convertirTotales } from '../services/exchange.service.js';
 
-async function findOwnedExpense(expenseId, userId) {
+async function findOwnedExpense(expenseId, user) {
   const expense = await Expense.findById(expenseId);
   if (!expense) throw ApiError.notFound('Gasto no encontrado.');
-  if (String(expense.user) !== String(userId)) throw ApiError.forbidden();
+
+  const trip = await Trip.findById(expense.trip);
+  if (!trip) throw ApiError.notFound('Viaje no encontrado.');
+
+  if (!trip.agency) {
+    const esDuenoDelViaje = String(trip.user) === String(user._id);
+    const esAutorDelGasto = String(expense.user) === String(user._id);
+    if (!esDuenoDelViaje && !esAutorDelGasto) throw ApiError.forbidden();
+    return expense;
+  }
+
+  if (!user.agency || String(user.agency) !== String(trip.agency)) {
+    throw ApiError.forbidden();
+  }
+
+  const agencia = await Agency.findById(trip.agency);
+  const esDuenoAgencia = agencia && String(agencia.owner) === String(user._id);
+  const esAutorGasto = String(expense.user) === String(user._id);
+
+  if (!esDuenoAgencia && !esAutorGasto) {
+    throw ApiError.forbidden();
+  }
+
   return expense;
 }
 
@@ -59,7 +81,7 @@ export const createExpense = asyncHandler(async (req, res) => {
 });
 
 export const updateExpense = asyncHandler(async (req, res) => {
-  const expense = await findOwnedExpense(req.params.id, req.user._id);
+  const expense = await findOwnedExpense(req.params.id, req.user);
   Object.assign(expense, req.body);
   await expense.save();
 
@@ -67,7 +89,7 @@ export const updateExpense = asyncHandler(async (req, res) => {
 });
 
 export const deleteExpense = asyncHandler(async (req, res) => {
-  const expense = await findOwnedExpense(req.params.id, req.user._id);
+  const expense = await findOwnedExpense(req.params.id, req.user);
   await expense.deleteOne();
 
   res.json({ success: true, message: 'Gasto eliminado.' });
