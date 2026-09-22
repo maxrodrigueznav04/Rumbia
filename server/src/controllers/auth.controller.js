@@ -411,27 +411,57 @@ export const deleteAccount = asyncHandler(async (req, res) => {
         detalle: `No se pudo cancelar la suscripción de Stripe (${subscriptionId}) al borrar la cuenta y su agencia "${agenciaPropia.agencyName}". Revisar y cancelar a mano en el dashboard de Stripe.`,
       });
     }
-    // Si el dueño estaba SOLO, todo lo que comparte esta agencia lo creo el
-    // mismo (nunca un companero): sin borrarlo aqui quedaba huerfano,
-    // apuntando a una Agency que ya no existe. Con otros agentes activos NO
-    // se toca -- es cartera del equipo que sigue ahi, mismo criterio que
-    // Client/ItineraryTemplate personales unas lineas abajo.
-    if (otrosMiembros === 0) {
-      await Client.deleteMany({ agency: agenciaPropia._id });
-      await ItineraryTemplate.deleteMany({ agency: agenciaPropia._id });
-    }
+    // Al eliminarse la agencia, los viajes, clientes y plantillas que armaron
+    // los miembros del equipo vuelven a su espacio personal (agency: null)
+    // para que no pierdan acceso a su trabajo ni a su cartera.
+    await Trip.updateMany(
+      { agency: agenciaPropia._id, user: { $ne: user._id } },
+      { agency: null }
+    );
+    await Client.updateMany(
+      { agency: agenciaPropia._id, user: { $ne: user._id } },
+      { agency: null }
+    );
+    await ItineraryTemplate.updateMany(
+      { agency: agenciaPropia._id, user: { $ne: user._id } },
+      { agency: null }
+    );
+
+    // Los viajes, clientes y plantillas de la agencia creados por el propio dueño
+    // pasan a ser personales para que se eliminen junto con su cuenta abajo.
+    await Trip.updateMany(
+      { agency: agenciaPropia._id, user: user._id },
+      { agency: null }
+    );
+    await Client.updateMany(
+      { agency: agenciaPropia._id, user: user._id },
+      { agency: null }
+    );
+    await ItineraryTemplate.updateMany(
+      { agency: agenciaPropia._id, user: user._id },
+      { agency: null }
+    );
+
     if (agenciaPropia.logoUrl) await borrarLogo(`agencia-${agenciaPropia._id}`);
     await Agency.deleteOne({ _id: agenciaPropia._id });
   }
 
   // Sin transacciones (no damos por hecho el replica set): primero los hijos,
   // para que un fallo a media operacion no deje viajes sin dueno.
-  const viajes = await Trip.find({ user: user._id }).select('_id');
-  const idsViajes = viajes.map((v) => v._id);
+  //
+  // Un viaje armado dentro de una agencia es cartera del EQUIPO, igual que los
+  // clientes y plantillas de agencia: no se borra solo porque el agente elimino
+  // su cuenta. Se queda con la agencia para que sus companeros conserven el
+  // historial y puedan seguir atendiendolo. Solo se eliminan los viajes
+  // personales (agency: null), y sus dependencias correspondientes.
+  const viajesPersonales = await Trip.find({ user: user._id, agency: null }).select('_id');
+  const idsViajesPersonales = viajesPersonales.map((v) => v._id);
 
-  await Itinerary.deleteMany({ user: user._id });
-  await Expense.deleteMany({ user: user._id });
-  await TripChat.deleteMany({ user: user._id });
+  await Itinerary.deleteMany({ trip: { $in: idsViajesPersonales } });
+  await Expense.deleteMany({ trip: { $in: idsViajesPersonales } });
+  await TripChat.deleteMany({
+    $or: [{ trip: { $in: idsViajesPersonales } }, { user: user._id, trip: null }],
+  });
   // Los clientes del CRM compartidos con una agencia son cartera del EQUIPO,
   // no de quien los registro -- si se borran solo porque un agente elimino su
   // cuenta, el resto de la agencia pierde ese historial. Solo se borran los
@@ -442,13 +472,13 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // Mismo criterio que Client: una plantilla compartida con una agencia se
   // queda con el equipo, solo se borran las personales (sin agencia).
   await ItineraryTemplate.deleteMany({ user: user._id, agency: null });
-  await Trip.deleteMany({ _id: { $in: idsViajes } });
+  await Trip.deleteMany({ _id: { $in: idsViajesPersonales } });
   if (user.branding?.logoUrl) await borrarLogo(String(user._id));
   await user.deleteOne();
 
   res.json({
     success: true,
     message: 'Tu cuenta y todos tus viajes se eliminaron.',
-    data: { viajesEliminados: idsViajes.length },
+    data: { viajesEliminados: idsViajesPersonales.length },
   });
 });
