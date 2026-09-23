@@ -1,6 +1,7 @@
 /**
  * Test de regresión para P02: Aislamiento multi-tenant y propiedad de datos de agencia.
  * Cubre:
+ * 0. Seguridad: rechazo preventivo de URIs remotas y mongodb+srv sin intentar conexión
  * 1. Caso mixto de eliminación de cuenta (personal borrado, corporativo preservado, owner sin 500)
  * 2. Ex-miembro expulsado no puede modificar ni borrar gasto corporativo (403)
  * 3. Owner de la agencia sí puede modificar y borrar gasto corporativo de miembro (200)
@@ -13,23 +14,88 @@
  * 10. Salida del owner de la agencia (POST /api/agency/salir) es rechazada (409) con o sin miembros
  */
 
-const mongoUri = process.env.MONGO_URI_TEST || process.env.TEST_MONGO_URI;
-if (!mongoUri) {
-  console.error('\n[test-p02-regression] Error: Se requiere una URI configurada para una base de datos de pruebas aislada.');
-  console.error('[test-p02-regression] Define la variable de entorno MONGO_URI_TEST o TEST_MONGO_URI antes de ejecutar este test.\n');
-  process.exit(1);
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import http from 'http';
+import mongoose from 'mongoose';
+
+/**
+ * Valida estrictamente que una URI apunte a una base de datos MongoDB local.
+ * Reglas de seguridad:
+ * - Rechaza terminantemente esquemas mongodb+srv://.
+ * - Debe iniciar con mongodb://.
+ * - Solo se admiten conexiones locales a 127.0.0.1 o localhost.
+ * - Rechaza cualquier dirección remota, dominio externo o IP no local.
+ * - No imprime credenciales ni secretos en los errores.
+ */
+export function validarMongoUriLocal(uri) {
+  if (!uri || typeof uri !== 'string') {
+    throw new Error('No se proporcionó una URI de conexión.');
+  }
+
+  const trimmed = uri.trim();
+  if (trimmed.startsWith('mongodb+srv://') || trimmed.includes('+srv')) {
+    throw new Error('Esquema mongodb+srv:// no permitido. Las pruebas solo se permiten contra MongoDB local en 127.0.0.1 o localhost.');
+  }
+
+  if (!trimmed.startsWith('mongodb://')) {
+    throw new Error('Esquema inválido. La URI debe iniciar estrictamente con mongodb://');
+  }
+
+  // Extraer la sección de hosts (entre mongodb:// y / o ?)
+  const sinEsquema = trimmed.slice('mongodb://'.length);
+  const sinCredenciales = sinEsquema.includes('@') ? sinEsquema.split('@')[1] : sinEsquema;
+  const hostsParte = sinCredenciales.split('/')[0].split('?')[0];
+  const hosts = hostsParte.split(',').map((h) => h.trim()).filter(Boolean);
+
+  if (!hosts.length) {
+    throw new Error('No se identificó ningún host en la URI.');
+  }
+
+  for (const hostConPuerto of hosts) {
+    const hostOnly = hostConPuerto.split(':')[0].toLowerCase();
+    if (hostOnly !== '127.0.0.1' && hostOnly !== 'localhost') {
+      throw new Error(`Host no autorizado: "${hostOnly}". Las pruebas solo pueden ejecutarse contra MongoDB local en 127.0.0.1 o localhost.`);
+    }
+  }
+
+  return true;
 }
 
-process.env.MONGO_URI = mongoUri;
-process.env.JWT_SECRET ||= 'test_only_rumbia_regression_secret_1234567890';
-process.env.NODE_ENV = 'test';
+const esEjecucionDirecta = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
-import mongoose from 'mongoose';
-import http from 'http';
+if (esEjecucionDirecta) {
+  // Seguridad estricta: NO se usa process.env.MONGO_URI como respaldo bajo ninguna circunstancia.
+  // Solo se aceptan las variables dedicadas MONGO_URI_TEST o TEST_MONGO_URI.
+  const mongoUri = process.env.MONGO_URI_TEST || process.env.TEST_MONGO_URI;
+  if (!mongoUri) {
+    console.error('\n[test-p02-regression] Error: Se requiere una URI configurada explícitamente para una base de datos de pruebas aislada.');
+    console.error('[test-p02-regression] Define la variable de entorno MONGO_URI_TEST o TEST_MONGO_URI (ej: mongodb://127.0.0.1:27018/rumbia_test_p02).');
+    console.error('[test-p02-regression] Por seguridad, no se utiliza MONGO_URI como respaldo ni se aceptan conexiones remotas.\n');
+    process.exit(1);
+  }
 
-const { default: app } = await import('../src/app.js');
-const { signToken } = await import('../src/middleware/auth.js');
-const { User, Trip, Expense, Itinerary, Agency, ItineraryTemplate } = await import('../src/models/index.js');
+  try {
+    validarMongoUriLocal(mongoUri);
+  } catch (err) {
+    console.error('\n[test-p02-regression] Error de seguridad: La URI de pruebas fue rechazada antes de conectar.');
+    console.error(`[test-p02-regression] ${err.message}`);
+    console.error('[test-p02-regression] Se prohíben esquemas mongodb+srv://, hosts remotos o entornos no locales.\n');
+    process.exit(1);
+  }
+
+  process.env.MONGO_URI = mongoUri;
+  process.env.JWT_SECRET ||= 'test_only_rumbia_regression_secret_1234567890';
+  process.env.NODE_ENV = 'test';
+}
+
+let app, signToken, User, Trip, Expense, Itinerary, Agency, ItineraryTemplate;
+
+if (esEjecucionDirecta) {
+  ({ default: app } = await import('../src/app.js'));
+  ({ signToken } = await import('../src/middleware/auth.js'));
+  ({ User, Trip, Expense, Itinerary, Agency, ItineraryTemplate } = await import('../src/models/index.js'));
+}
 
 let server;
 let baseUrl;
@@ -119,6 +185,52 @@ async function main() {
   console.log('================================================================');
   console.log('SUITE DE REGRESIÓN P02: AISLAMIENTO MULTI-TENANT Y PERMISOS');
   console.log('================================================================\n');
+
+  // -------------------------------------------------------------
+  // CASO 0: Seguridad - Rechazo preventivo de URIs remotas y mongodb+srv sin conectar
+  // -------------------------------------------------------------
+  await runTest('0. Seguridad: rechazo preventivo de URIs remotas, mongodb+srv y variables de respaldo sin intentar conexión', async () => {
+    // 1. mongodb+srv:// rechazado inmediatamente
+    let lanzoSrv = false;
+    try {
+      validarMongoUriLocal('mongodb+srv://cluster-remoto.ejemplo.test/rumbia_test');
+    } catch (err) {
+      lanzoSrv = /mongodb\+srv/i.test(err.message);
+    }
+    assert(lanzoSrv, 'No se rechazó la URI con esquema mongodb+srv://');
+
+    // 2. Host remoto de dominio rechazado inmediatamente
+    let lanzoHostRemoto = false;
+    try {
+      validarMongoUriLocal('mongodb://servidor-remoto.ejemplo.test:27017/rumbia_test');
+    } catch (err) {
+      lanzoHostRemoto = /Host no autorizado/i.test(err.message);
+    }
+    assert(lanzoHostRemoto, 'No se rechazó el host remoto de dominio');
+
+    // 3. IP remota rechazada inmediatamente
+    let lanzoIpRemota = false;
+    try {
+      validarMongoUriLocal('mongodb://192.168.1.100:27017/rumbia_test');
+    } catch (err) {
+      lanzoIpRemota = /Host no autorizado/i.test(err.message);
+    }
+    assert(lanzoIpRemota, 'No se rechazó la IP no local');
+
+    // 4. Esquemas ajenos rechazados inmediatamente
+    let lanzoEsquema = false;
+    try {
+      validarMongoUriLocal('http://127.0.0.1:27017/rumbia_test');
+    } catch (err) {
+      lanzoEsquema = /Esquema/i.test(err.message);
+    }
+    assert(lanzoEsquema, 'No se rechazó el esquema inválido');
+
+    // 5. Host local 127.0.0.1 y localhost permitidos
+    assert(validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia_test') === true, 'No aceptó 127.0.0.1');
+    assert(validarMongoUriLocal('mongodb://localhost:27017/rumbia_test') === true, 'No aceptó localhost');
+    assert(validarMongoUriLocal('mongodb://127.0.0.1:27017,127.0.0.1:27018/rumbia_test') === true, 'No aceptó replica set local');
+  });
 
   await startServer();
 
@@ -790,7 +902,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Error fatal en suite de regresión:', err);
-  process.exit(1);
-});
+if (esEjecucionDirecta) {
+  main().catch((err) => {
+    console.error('Error fatal en suite de regresión:', err);
+    process.exit(1);
+  });
+}

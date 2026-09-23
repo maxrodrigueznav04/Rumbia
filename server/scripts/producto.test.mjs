@@ -86,3 +86,94 @@ test('salirAgencia: un miembro normal sí puede salir de la agencia', async () =
   assert.equal(guardado, true);
 });
 
+test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongodb+srv sin conectar', async () => {
+  const { validarMongoUriLocal } = await import('./test-p02-regression.mjs');
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  const execFileAsync = promisify(execFile);
+
+  // 1. Unidad: rechazo estricto de mongodb+srv y hosts remotos
+  assert.throws(() => validarMongoUriLocal('mongodb+srv://servidor-ficticio.test/db'), /mongodb\+srv/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://servidor-externo.test:27017/db'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://192.168.1.50:27017/db'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://10.0.0.1:27017/db'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('http://localhost:27017/db'), /Esquema/i);
+  assert.equal(validarMongoUriLocal('mongodb://127.0.0.1:27018/db'), true);
+  assert.equal(validarMongoUriLocal('mongodb://localhost:27017/db'), true);
+
+  // 2. Proceso: rechazo de mongodb+srv antes de conectar (código 1, sin abrir servidor)
+  await assert.rejects(
+    async () => {
+      await execFileAsync(
+        process.execPath,
+        ['scripts/test-p02-regression.mjs'],
+        {
+          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: 'mongodb+srv://servidor-remoto.test/db',
+            TEST_MONGO_URI: '',
+          },
+        }
+      );
+    },
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr || err.stdout, /Error de seguridad/i);
+      assert.match(err.stderr || err.stdout, /mongodb\+srv/i);
+      assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
+      return true;
+    }
+  );
+
+  // 3. Proceso: rechazo de host remoto antes de conectar (código 1, sin abrir servidor)
+  await assert.rejects(
+    async () => {
+      await execFileAsync(
+        process.execPath,
+        ['scripts/test-p02-regression.mjs'],
+        {
+          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: 'mongodb://servidor-remoto.test:27017/db',
+            TEST_MONGO_URI: '',
+          },
+        }
+      );
+    },
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr || err.stdout, /Error de seguridad/i);
+      assert.match(err.stderr || err.stdout, /Host no autorizado/i);
+      assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
+      return true;
+    }
+  );
+
+  // 4. Proceso: no usar MONGO_URI como respaldo (código 1, sin abrir servidor)
+  await assert.rejects(
+    async () => {
+      await execFileAsync(
+        process.execPath,
+        ['scripts/test-p02-regression.mjs'],
+        {
+          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: '',
+            TEST_MONGO_URI: '',
+            MONGO_URI: 'mongodb://127.0.0.1:27017/rumbia',
+          },
+        }
+      );
+    },
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr || err.stdout, /no se utiliza MONGO_URI como respaldo/i);
+      assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
+      return true;
+    }
+  );
+});
+
