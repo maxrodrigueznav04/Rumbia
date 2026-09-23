@@ -388,62 +388,15 @@ export const deleteAccount = asyncHandler(async (req, res) => {
     );
   }
 
-  // Si es dueño de una agencia, esta se borra con el en vez de quedar
-  // huerfana: sin esto, nadie mas podria editarla ni sacar a sus miembros,
-  // porque agenciaComoDueno compara contra un owner que ya no existe. A los
-  // demas agentes se les limpia el agency para que vuelvan a su marca propia,
-  // igual que cuando el dueño sale por la via normal (salirAgencia).
+  // Protección P02 (etapa 1): El dueño de una agencia no puede eliminar su cuenta
+  // directamente mientras sea dueño de una agencia activa, para impedir la destrucción
+  // de la agencia, la pérdida de registros corporativos o su conversión indebida a datos personales.
+  // Debe transferir la propiedad a otro miembro o archivar la agencia previamente.
   const agenciaPropia = await Agency.findOne({ owner: user._id });
   if (agenciaPropia) {
-    const otrosMiembros = await User.countDocuments({
-      agency: agenciaPropia._id,
-      _id: { $ne: user._id },
-    });
-    await User.updateMany({ agency: agenciaPropia._id }, { agency: null });
-    // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
-    // que ya no existe y a la que nadie puede volver a entrar para cancelar.
-    const { ok: stripeOk, subscriptionId } = await cancelarSuscripcion({ agencia: agenciaPropia });
-    if (!stripeOk) {
-      await AuditLog.registrar({
-        agency: agenciaPropia._id,
-        actor: user,
-        accion: 'agencia.cancelacion_stripe_fallida',
-        detalle: `No se pudo cancelar la suscripción de Stripe (${subscriptionId}) al borrar la cuenta y su agencia "${agenciaPropia.agencyName}". Revisar y cancelar a mano en el dashboard de Stripe.`,
-      });
-    }
-    // Al eliminarse la agencia, los viajes, clientes y plantillas que armaron
-    // los miembros del equipo vuelven a su espacio personal (agency: null)
-    // para que no pierdan acceso a su trabajo ni a su cartera.
-    await Trip.updateMany(
-      { agency: agenciaPropia._id, user: { $ne: user._id } },
-      { agency: null }
+    throw ApiError.conflict(
+      'No puedes eliminar tu cuenta mientras seas el dueño de una agencia activa. Transfiere la propiedad de la agencia a otro miembro o archívala antes de darte de baja.'
     );
-    await Client.updateMany(
-      { agency: agenciaPropia._id, user: { $ne: user._id } },
-      { agency: null }
-    );
-    await ItineraryTemplate.updateMany(
-      { agency: agenciaPropia._id, user: { $ne: user._id } },
-      { agency: null }
-    );
-
-    // Los viajes, clientes y plantillas de la agencia creados por el propio dueño
-    // pasan a ser personales para que se eliminen junto con su cuenta abajo.
-    await Trip.updateMany(
-      { agency: agenciaPropia._id, user: user._id },
-      { agency: null }
-    );
-    await Client.updateMany(
-      { agency: agenciaPropia._id, user: user._id },
-      { agency: null }
-    );
-    await ItineraryTemplate.updateMany(
-      { agency: agenciaPropia._id, user: user._id },
-      { agency: null }
-    );
-
-    if (agenciaPropia.logoUrl) await borrarLogo(`agencia-${agenciaPropia._id}`);
-    await Agency.deleteOne({ _id: agenciaPropia._id });
   }
 
   // Sin transacciones (no damos por hecho el replica set): primero los hijos,

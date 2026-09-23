@@ -219,10 +219,10 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 /**
  * Sale de la agencia actual.
  *
- * El dueno no puede salir mientras queden otros agentes: haria huerfana la
- * agencia, sin nadie que pueda editarla ni sacar a los demas. Si el dueno sale
- * y ya no queda nadie mas, la agencia se borra sola en vez de quedar viva sin
- * dueno ocupando espacio en la base.
+ * Protección P02 (etapa 1): El dueño no puede salir directamente de la agencia
+ * (ni estando solo ni con miembros), ya que eso destruiría la agencia o sus datos
+ * corporativos (clientes, plantillas, etc.). Debe transferir la propiedad a otro
+ * miembro o archivar la agencia antes de salir.
  */
 export const salirAgencia = asyncHandler(async (req, res) => {
   if (!req.user.agency) throw ApiError.badRequest('No perteneces a ninguna agencia.');
@@ -231,43 +231,9 @@ export const salirAgencia = asyncHandler(async (req, res) => {
   const esDueno = agencia && String(agencia.owner) === String(req.user._id);
 
   if (esDueno) {
-    const otrosMiembros = await User.countDocuments({
-      agency: agencia._id,
-      _id: { $ne: req.user._id },
-    });
-    if (otrosMiembros > 0) {
-      throw ApiError.conflict(
-        'Eres el dueño y todavía hay otros agentes en la agencia. Sácalos primero, o pídeles que salgan ellos mismos.'
-      );
-    }
-    // Antes de borrar: el registro necesita agencyName/agencia._id mientras
-    // el documento todavia existe.
-    await AuditLog.registrar({
-      agency: agencia._id,
-      actor: req.user,
-      accion: 'agencia.eliminada',
-      detalle: `"${agencia.agencyName}" se eliminó al salir el dueño sin más agentes.`,
-    });
-    // Antes de borrar: sin esto, Stripe le seguiria cobrando por una agencia
-    // que ya no existe y a la que nadie puede volver a entrar para cancelar.
-    const { ok: stripeOk, subscriptionId } = await cancelarSuscripcion({ agencia });
-    if (!stripeOk) {
-      await AuditLog.registrar({
-        agency: agencia._id,
-        actor: req.user,
-        accion: 'agencia.cancelacion_stripe_fallida',
-        detalle: `No se pudo cancelar la suscripción de Stripe (${subscriptionId}) al borrar "${agencia.agencyName}". Revisar y cancelar a mano en el dashboard de Stripe.`,
-      });
-    }
-    // El dueno esta solo (otrosMiembros === 0): todo lo que quede con este
-    // agency._id lo creo el mismo, nunca un companero de equipo. Sin
-    // borrarlo aqui, quedaba huerfano -- apuntando a una Agency que ya no
-    // existe, invisible para siempre (nada en la app vuelve a consultar por
-    // ese agencyId una vez borrado).
-    await Client.deleteMany({ agency: agencia._id });
-    await ItineraryTemplate.deleteMany({ agency: agencia._id });
-    if (agencia.logoUrl) await borrarLogo(`agencia-${agencia._id}`);
-    await Agency.deleteOne({ _id: agencia._id });
+    throw ApiError.conflict(
+      'Como dueño no puedes salir de la agencia directamente ni eliminar sus datos. Transfiere la propiedad a otro miembro o archiva la agencia antes de salir.'
+    );
   }
 
   req.user.agency = null;

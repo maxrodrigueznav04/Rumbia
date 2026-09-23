@@ -9,7 +9,8 @@
  * 6. Usuario de otra agencia no puede modificar ni borrar (403)
  * 7. Ex-miembro que salió voluntariamente de la agencia (POST /api/agency/salir) no puede modificar ni borrar (403)
  * 8. Edición y eliminación de gastos personales (dueño: 200, usuario ajeno: 403)
- * 9. Baja del owner con miembros: la agencia se elimina, los viajes de miembros revierten a personal y no pierden acceso
+ * 9. Baja del owner con agencia activa es rechazada (409) para proteger integridad corporativa
+ * 10. Salida del owner de la agencia (POST /api/agency/salir) es rechazada (409) con o sin miembros
  */
 
 const mongoUri = process.env.MONGO_URI_TEST || process.env.TEST_MONGO_URI;
@@ -624,9 +625,9 @@ async function main() {
     });
 
     // -------------------------------------------------------------
-    // CASO 9: Baja del owner de agencia con miembros activos
+    // CASO 9: Protección P02: Intento de baja del dueño con agencia activa
     // -------------------------------------------------------------
-    await runTest('9. Baja del owner con miembros: la agencia se elimina, los viajes de miembros revierten a personal y conservan acceso', async () => {
+    await runTest('9. Protección P02: Intento de baja del dueño con agencia activa es rechazado (409) y preserva los datos', async () => {
       const owner = await crearUsuario(`owner9_${TAG}@test.com`, 'Owner 9', 'dueno_agencia');
       const agency = await Agency.create({
         agencyName: 'Agencia 9 Test',
@@ -680,70 +681,98 @@ async function main() {
         date: '2026-12-02',
       });
 
-      // Owner elimina su cuenta via DELETE /api/auth/me
+      // Owner intenta eliminar su cuenta via DELETE /api/auth/me -> debe ser RECHAZADO con 409
       const deleteOwnerRes = await req('DELETE', '/auth/me', {
         user: owner,
         body: { password: 'Password123!' },
       });
-      assert(deleteOwnerRes.status === 200, `DELETE /auth/me de owner respondió ${deleteOwnerRes.status}`);
+      assert(deleteOwnerRes.status === 409, `DELETE /auth/me de owner respondió ${deleteOwnerRes.status}, se esperaba 409`);
+      assert(
+        deleteOwnerRes.json?.message?.includes('dueño de una agencia activa'),
+        `Mensaje inesperado: ${deleteOwnerRes.json?.message}`
+      );
 
-      // Verificar en BD:
-      // 1. Owner eliminado
+      // Verificar en BD que NINGÚN dato fue eliminado ni alterado:
+      // 1. Owner sigue existiendo
       const checkOwner = await User.findById(owner._id);
-      assert(checkOwner === null, 'El owner no fue eliminado de la BD');
+      assert(checkOwner !== null, 'El owner fue eliminado indebidamente');
 
-      // 2. Agencia eliminada
+      // 2. Agencia sigue existiendo y su owner sigue siendo el mismo
       const checkAgency = await Agency.findById(agency._id);
-      assert(checkAgency === null, 'La agencia no fue eliminada de la BD');
+      assert(checkAgency !== null, 'La agencia fue eliminada indebidamente');
+      assert(String(checkAgency.owner) === String(owner._id), 'El owner de la agencia cambió indebidamente');
 
-      // 3. Miembro sigue vivo pero con agency: null
+      // 3. Miembro sigue siendo miembro activo de la agencia
       const checkMember = await User.findById(member._id);
       assert(checkMember !== null, 'El miembro fue eliminado indebidamente');
-      assert(checkMember.agency === null, 'El miembro aún tiene agency asignada');
+      assert(String(checkMember.agency) === String(agency._id), 'La pertenencia de agencia del miembro fue alterada');
 
-      // 4. Viaje del owner fue eliminado (limpieza sin huérfanos)
+      // 4. Viaje y gasto corporativo del owner están intactos y siguen perteneciendo a la agencia
       const checkOwnerTrip = await Trip.findById(ownerCorpTrip._id);
-      assert(checkOwnerTrip === null, 'El viaje corporativo del owner no fue eliminado');
+      assert(checkOwnerTrip !== null, 'El viaje corporativo del owner fue eliminado');
+      assert(String(checkOwnerTrip.agency) === String(agency._id), 'El viaje del owner perdió su agency');
+      assert(String(checkOwnerTrip.user) === String(owner._id), 'La autoría del viaje cambió');
       const checkOwnerExpense = await Expense.findById(ownerCorpExpense._id);
-      assert(checkOwnerExpense === null, 'El gasto corporativo del owner no fue eliminado');
+      assert(checkOwnerExpense !== null, 'El gasto corporativo del owner no debió ser eliminado');
 
-      // 5. Viaje del miembro fue PRESERVADO y revirtió a agency: null
+      // 5. Viaje y gasto corporativo del miembro están intactos y siguen perteneciendo a la agencia
       const checkMemberTrip = await Trip.findById(memberCorpTrip._id);
-      assert(checkMemberTrip !== null, 'El viaje corporativo del miembro fue eliminado indebidamente');
-      assert(checkMemberTrip.agency === null, 'El viaje del miembro aún tiene agency asignada');
+      assert(checkMemberTrip !== null, 'El viaje corporativo del miembro fue eliminado');
+      assert(String(checkMemberTrip.agency) === String(agency._id), 'El viaje del miembro perdió su agency');
       assert(String(checkMemberTrip.user) === String(member._id), 'La autoría del viaje del miembro cambió');
-
-      // 6. Gasto del miembro fue PRESERVADO
       const checkMemberExpense = await Expense.findById(memberCorpExpense._id);
-      assert(checkMemberExpense !== null, 'El gasto del miembro fue eliminado indebidamente');
+      assert(checkMemberExpense !== null, 'El gasto corporativo del miembro no debió ser eliminado');
+    });
 
-      // 7. Miembro accede a sus datos via API sin 500 ni 403
-      const memberTripsRes = await req('GET', '/trips', { user: checkMember });
-      assert(memberTripsRes.status === 200, `GET /trips de miembro respondió ${memberTripsRes.status}`);
-      const tripEncontrado = memberTripsRes.json?.data?.trips?.find((t) => String(t._id) === String(memberCorpTrip._id));
-      assert(tripEncontrado, 'El viaje del miembro no aparece en su lista tras la disolución de la agencia');
-
-      const memberTripDetail = await req('GET', `/trips/${memberCorpTrip._id}`, { user: checkMember });
-      assert(memberTripDetail.status === 200, `GET /trips/:id respondió ${memberTripDetail.status}`);
-
-      const memberExpensesRes = await req('GET', `/trips/${memberCorpTrip._id}/expenses`, { user: checkMember });
-      assert(memberExpensesRes.status === 200, `GET /trips/:id/expenses respondió ${memberExpensesRes.status}`);
-      assert(memberExpensesRes.json?.data?.expenses?.length === 1, 'El gasto del miembro no aparece en el viaje');
-
-      // 8. Miembro puede editar y borrar su gasto (ahora en viaje personal)
-      const patchMemberExpense = await req('PATCH', `/expenses/${memberCorpExpense._id}`, {
-        user: checkMember,
-        body: { description: 'Hotel Paris Miembro (actualizado)', amount: 3800 },
+    // -------------------------------------------------------------
+    // CASO 10: Salida de agencia por el dueño (POST /api/agency/salir)
+    // -------------------------------------------------------------
+    await runTest('10. Protección P02: Intento de salida de agencia del dueño (POST /api/agency/salir) es rechazado (409) con o sin miembros', async () => {
+      // Caso 10a: Dueño con miembros
+      const owner10 = await crearUsuario(`owner10_${TAG}@test.com`, 'Owner 10', 'dueno_agencia');
+      const agency10 = await Agency.create({
+        agencyName: 'Agencia 10 Test',
+        owner: owner10._id,
+        billing: { status: 'activa', plan: 'agencia_mensual' },
       });
-      assert(patchMemberExpense.status === 200, `PATCH del gasto por el miembro respondió ${patchMemberExpense.status}`);
+      owner10.agency = agency10._id;
+      await owner10.save();
 
-      const deleteMemberExpense = await req('DELETE', `/expenses/${memberCorpExpense._id}`, {
-        user: checkMember,
+      const member10 = await crearUsuario(`member10_${TAG}@test.com`, 'Member 10', 'agente');
+      member10.agency = agency10._id;
+      await member10.save();
+
+      const salirConMiembros = await req('POST', '/agency/salir', { user: owner10 });
+      assert(salirConMiembros.status === 409, `POST /agency/salir de owner con miembros respondió ${salirConMiembros.status}, se esperaba 409`);
+
+      // Caso 10b: Dueño solo en la agencia
+      const ownerSolo = await crearUsuario(`ownerSolo_${TAG}@test.com`, 'Owner Solo', 'dueno_agencia');
+      const agencySolo = await Agency.create({
+        agencyName: 'Agencia Solo Test',
+        owner: ownerSolo._id,
+        billing: { status: 'activa', plan: 'agencia_mensual' },
       });
-      assert(deleteMemberExpense.status === 200, `DELETE del gasto por el miembro respondió ${deleteMemberExpense.status}`);
+      ownerSolo.agency = agencySolo._id;
+      await ownerSolo.save();
 
-      const checkExpenseFinal = await Expense.findById(memberCorpExpense._id);
-      assert(checkExpenseFinal === null, 'El gasto no fue eliminado por el miembro');
+      const templateSolo = await ItineraryTemplate.create({
+        user: ownerSolo._id,
+        agency: agencySolo._id,
+        name: 'Plantilla Solo 10',
+        destination: { name: 'Cancún', country: 'MX' },
+      });
+
+      const salirSolo = await req('POST', '/agency/salir', { user: ownerSolo });
+      assert(salirSolo.status === 409, `POST /agency/salir de owner solo respondió ${salirSolo.status}, se esperaba 409`);
+
+      // Verificar que la agencia y la plantilla NO fueron autodestruidas
+      const checkAgencySolo = await Agency.findById(agencySolo._id);
+      assert(checkAgencySolo !== null, 'La agencia del dueño solo fue destruida indebidamente');
+      const checkTemplateSolo = await ItineraryTemplate.findById(templateSolo._id);
+      assert(checkTemplateSolo !== null, 'La plantilla de la agencia fue destruida indebidamente');
+
+      const checkOwnerSolo = await User.findById(ownerSolo._id);
+      assert(String(checkOwnerSolo.agency) === String(agencySolo._id), 'El owner solo fue desvinculado de su agencia');
     });
 
   } finally {
