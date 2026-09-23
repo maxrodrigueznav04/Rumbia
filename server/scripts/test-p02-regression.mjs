@@ -59,6 +59,23 @@ export function validarMongoUriLocal(uri) {
     }
   }
 
+  // Extraer y validar explícitamente el nombre de la base de datos
+  if (!sinCredenciales.includes('/')) {
+    throw new Error('No se especificó ninguna base de datos en la URI. Debe especificar una base de datos de pruebas ("rumbia_test_p02" o con prefijo "rumbia_test_").');
+  }
+
+  const despuesDeSlash = sinCredenciales.slice(sinCredenciales.indexOf('/') + 1);
+  const dbName = despuesDeSlash.split('?')[0].trim();
+
+  if (!dbName) {
+    throw new Error('No se especificó ninguna base de datos en la URI. Debe especificar una base de datos de pruebas ("rumbia_test_p02" o con prefijo "rumbia_test_").');
+  }
+
+  const esBaseValida = dbName === 'rumbia_test_p02' || dbName.startsWith('rumbia_test_');
+  if (!esBaseValida) {
+    throw new Error(`Base de datos no autorizada: "${dbName}". Las pruebas solo pueden ejecutarse contra "rumbia_test_p02" o una base con prefijo "rumbia_test_".`);
+  }
+
   return true;
 }
 
@@ -220,16 +237,51 @@ async function main() {
     // 4. Esquemas ajenos rechazados inmediatamente
     let lanzoEsquema = false;
     try {
-      validarMongoUriLocal('http://127.0.0.1:27017/rumbia_test');
+      validarMongoUriLocal('http://127.0.0.1:27017/rumbia_test_p02');
     } catch (err) {
       lanzoEsquema = /Esquema/i.test(err.message);
     }
     assert(lanzoEsquema, 'No se rechazó el esquema inválido');
 
-    // 5. Host local 127.0.0.1 y localhost permitidos
-    assert(validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia_test') === true, 'No aceptó 127.0.0.1');
-    assert(validarMongoUriLocal('mongodb://localhost:27017/rumbia_test') === true, 'No aceptó localhost');
-    assert(validarMongoUriLocal('mongodb://127.0.0.1:27017,127.0.0.1:27018/rumbia_test') === true, 'No aceptó replica set local');
+    // 5. Host local sin base de datos rechazada inmediatamente
+    let lanzoSinBase = false;
+    try {
+      validarMongoUriLocal('mongodb://127.0.0.1:27018');
+    } catch (err) {
+      lanzoSinBase = /No se especificó ninguna base de datos/i.test(err.message);
+    }
+    assert(lanzoSinBase, 'No se rechazó la URI local sin base de datos');
+
+    let lanzoSlashVacio = false;
+    try {
+      validarMongoUriLocal('mongodb://127.0.0.1:27018/');
+    } catch (err) {
+      lanzoSlashVacio = /No se especificó ninguna base de datos/i.test(err.message);
+    }
+    assert(lanzoSlashVacio, 'No se rechazó la URI con slash pero sin base de datos');
+
+    // 6. Base de datos local no autorizada rechazada inmediatamente
+    let lanzoBaseNoAutorizada = false;
+    try {
+      validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia');
+    } catch (err) {
+      lanzoBaseNoAutorizada = /Base de datos no autorizada/i.test(err.message);
+    }
+    assert(lanzoBaseNoAutorizada, 'No se rechazó la base no autorizada "rumbia"');
+
+    let lanzoBaseAdmin = false;
+    try {
+      validarMongoUriLocal('mongodb://localhost:27017/admin');
+    } catch (err) {
+      lanzoBaseAdmin = /Base de datos no autorizada/i.test(err.message);
+    }
+    assert(lanzoBaseAdmin, 'No se rechazó la base no autorizada "admin"');
+
+    // 7. Host local 127.0.0.1 y localhost con base autorizada (rumbia_test_p02 o prefijo rumbia_test_) permitidos
+    assert(validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia_test_p02') === true, 'No aceptó 127.0.0.1 con rumbia_test_p02');
+    assert(validarMongoUriLocal('mongodb://localhost:27017/rumbia_test_p02') === true, 'No aceptó localhost con rumbia_test_p02');
+    assert(validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia_test_custom') === true, 'No aceptó base con prefijo rumbia_test_');
+    assert(validarMongoUriLocal('mongodb://127.0.0.1:27017,127.0.0.1:27018/rumbia_test_p02') === true, 'No aceptó replica set local');
   });
 
   await startServer();

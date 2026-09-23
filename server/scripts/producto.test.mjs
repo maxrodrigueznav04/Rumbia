@@ -90,28 +90,38 @@ test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongod
   const { validarMongoUriLocal } = await import('./test-p02-regression.mjs');
   const { execFile } = await import('node:child_process');
   const { promisify } = await import('node:util');
+  const { fileURLToPath } = await import('node:url');
+  const path = await import('node:path');
   const execFileAsync = promisify(execFile);
 
-  // 1. Unidad: rechazo estricto de mongodb+srv y hosts remotos
-  assert.throws(() => validarMongoUriLocal('mongodb+srv://servidor-ficticio.test/db'), /mongodb\+srv/i);
-  assert.throws(() => validarMongoUriLocal('mongodb://servidor-externo.test:27017/db'), /Host no autorizado/i);
-  assert.throws(() => validarMongoUriLocal('mongodb://192.168.1.50:27017/db'), /Host no autorizado/i);
-  assert.throws(() => validarMongoUriLocal('mongodb://10.0.0.1:27017/db'), /Host no autorizado/i);
-  assert.throws(() => validarMongoUriLocal('http://localhost:27017/db'), /Esquema/i);
-  assert.equal(validarMongoUriLocal('mongodb://127.0.0.1:27018/db'), true);
-  assert.equal(validarMongoUriLocal('mongodb://localhost:27017/db'), true);
+  const dirActual = path.dirname(fileURLToPath(import.meta.url));
+  const serverDir = path.resolve(dirActual, '..');
+  const scriptPath = path.resolve(dirActual, 'test-p02-regression.mjs');
+
+  // 1. Unidad: rechazo estricto de mongodb+srv, hosts remotos y bases no autorizadas
+  assert.throws(() => validarMongoUriLocal('mongodb+srv://servidor-ficticio.test/rumbia_test_p02'), /mongodb\+srv/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://servidor-externo.test:27017/rumbia_test_p02'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://192.168.1.50:27017/rumbia_test_p02'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://10.0.0.1:27017/rumbia_test_p02'), /Host no autorizado/i);
+  assert.throws(() => validarMongoUriLocal('http://localhost:27017/rumbia_test_p02'), /Esquema/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://127.0.0.1:27018'), /No se especificó ninguna base de datos/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://127.0.0.1:27018/'), /No se especificó ninguna base de datos/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia'), /Base de datos no autorizada/i);
+  assert.throws(() => validarMongoUriLocal('mongodb://localhost:27017/admin'), /Base de datos no autorizada/i);
+  assert.equal(validarMongoUriLocal('mongodb://127.0.0.1:27018/rumbia_test_p02'), true);
+  assert.equal(validarMongoUriLocal('mongodb://localhost:27017/rumbia_test_suite'), true);
 
   // 2. Proceso: rechazo de mongodb+srv antes de conectar (código 1, sin abrir servidor)
   await assert.rejects(
     async () => {
       await execFileAsync(
         process.execPath,
-        ['scripts/test-p02-regression.mjs'],
+        [scriptPath],
         {
-          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          cwd: serverDir,
           env: {
             ...process.env,
-            MONGO_URI_TEST: 'mongodb+srv://servidor-remoto.test/db',
+            MONGO_URI_TEST: 'mongodb+srv://servidor-remoto.test/rumbia_test_p02',
             TEST_MONGO_URI: '',
           },
         }
@@ -131,12 +141,12 @@ test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongod
     async () => {
       await execFileAsync(
         process.execPath,
-        ['scripts/test-p02-regression.mjs'],
+        [scriptPath],
         {
-          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          cwd: serverDir,
           env: {
             ...process.env,
-            MONGO_URI_TEST: 'mongodb://servidor-remoto.test:27017/db',
+            MONGO_URI_TEST: 'mongodb://servidor-remoto.test:27017/rumbia_test_p02',
             TEST_MONGO_URI: '',
           },
         }
@@ -156,14 +166,14 @@ test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongod
     async () => {
       await execFileAsync(
         process.execPath,
-        ['scripts/test-p02-regression.mjs'],
+        [scriptPath],
         {
-          cwd: 'c:/Users/maxro/OneDrive/Documents/Claude Cowork/Rumbo/server',
+          cwd: serverDir,
           env: {
             ...process.env,
             MONGO_URI_TEST: '',
             TEST_MONGO_URI: '',
-            MONGO_URI: 'mongodb://127.0.0.1:27017/rumbia',
+            MONGO_URI: 'mongodb://127.0.0.1:27018/rumbia_test_p02',
           },
         }
       );
@@ -171,6 +181,56 @@ test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongod
     (err) => {
       assert.equal(err.code, 1);
       assert.match(err.stderr || err.stdout, /no se utiliza MONGO_URI como respaldo/i);
+      assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
+      return true;
+    }
+  );
+
+  // 5. Proceso: rechazo de base de datos no autorizada en MongoDB local (código 1, sin abrir servidor)
+  await assert.rejects(
+    async () => {
+      await execFileAsync(
+        process.execPath,
+        [scriptPath],
+        {
+          cwd: serverDir,
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: 'mongodb://127.0.0.1:27018/rumbia',
+            TEST_MONGO_URI: '',
+          },
+        }
+      );
+    },
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr || err.stdout, /Error de seguridad/i);
+      assert.match(err.stderr || err.stdout, /Base de datos no autorizada/i);
+      assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
+      return true;
+    }
+  );
+
+  // 6. Proceso: rechazo de URI local sin base de datos (código 1, sin abrir servidor)
+  await assert.rejects(
+    async () => {
+      await execFileAsync(
+        process.execPath,
+        [scriptPath],
+        {
+          cwd: serverDir,
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: 'mongodb://127.0.0.1:27018',
+            TEST_MONGO_URI: '',
+          },
+        }
+      );
+    },
+    (err) => {
+      assert.equal(err.code, 1);
+      assert.match(err.stderr || err.stdout, /Error de seguridad/i);
+      assert.match(err.stderr || err.stdout, /No se especificó ninguna base de datos/i);
       assert.doesNotMatch(err.stdout, /Servidor de prueba escuchando/i);
       return true;
     }
