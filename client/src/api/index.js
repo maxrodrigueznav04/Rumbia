@@ -163,6 +163,14 @@ export const templatesApi = {
   aplicar: (id, payload) => api.post(`/templates/${id}/aplicar`, payload),
 };
 
+export const visualTemplatesApi = {
+  list: (opts) => api.get('/visual-templates', opts),
+  get: (id, opts) => api.get(`/visual-templates/${id}`, opts),
+  create: (payload) => api.post('/visual-templates', payload),
+  update: (id, payload) => api.patch(`/visual-templates/${id}`, payload),
+  duplicate: (id) => api.post(`/visual-templates/${id}/duplicate`),
+};
+
 export const expensesApi = {
   list: (params, opts) => api.get(`/expenses${qs(params)}`, opts),
   create: (payload) => api.post('/expenses', payload),

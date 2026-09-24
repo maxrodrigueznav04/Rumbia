@@ -11,6 +11,7 @@ export { default as Expense, EXPENSE_CATEGORIES } from './Expense.js';
 export { default as ClickSalida, ORIGENES_CLICK } from './ClickSalida.js';
 export { default as Agency, limitesDePlan } from './Agency.js';
 export { default as ItineraryTemplate } from './ItineraryTemplate.js';
+export { default as VisualTemplate } from './VisualTemplate.js';
 export { default as TripChat } from './TripChat.js';
 export { default as AuditLog, ACCIONES_AUDITORIA } from './AuditLog.js';
 export { default as Client } from './Client.js';

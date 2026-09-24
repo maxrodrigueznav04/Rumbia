@@ -41,6 +41,7 @@ export default function Plantillas() {
   const [elegirViaje, setElegirViaje] = useState(false);
 
   const plantillas = data?.templates || [];
+  const visualTemplatesEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true';
 
   return (
     <div className="pila">
@@ -53,6 +54,11 @@ export default function Plantillas() {
         </p>
         <Boton variante="secundario" onClick={() => setElegirViaje(true)}>{t('crearDesdeItinerario')}</Boton>
       </div>
+
+      {visualTemplatesEnabled && user?.agency && <Tarjeta titulo={t('visualesTitulo')}>
+        <p className="suave">{t('visualesTexto')}</p>
+        <Link to="/plantillas-visuales" className="boton secundario">{t('visualesAbrir')}</Link>
+      </Tarjeta>}
 
       {cargando && (
         <div className="rejilla rejilla-2 rejilla-3">

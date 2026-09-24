@@ -36,6 +36,8 @@ import clientesEs from './locales/es/clientes.json';
 import clientesEn from './locales/en/clientes.json';
 import plantillasEs from './locales/es/plantillas.json';
 import plantillasEn from './locales/en/plantillas.json';
+import visualTemplatesEs from './locales/es/visualTemplates.json';
+import visualTemplatesEn from './locales/en/visualTemplates.json';
 import impresionEs from './locales/es/impresion.json';
 import impresionEn from './locales/en/impresion.json';
 import paginaLegalEs from './locales/es/paginaLegal.json';
@@ -70,7 +72,7 @@ i18n
         comun: comunEs, inicio: inicioEs, acerca: acercaEs, auth: authEs, layout: layoutEs,
         dominio: dominioEs, campos: camposEs, formularios: formulariosEs, viaje: viajeEs,
         viajes: viajesEs, nuevoViaje: nuevoViajeEs, itinerario: itinerarioEs, detalleViaje: detalleViajeEs,
-        agencia: agenciaEs, perfil: perfilEs, clientes: clientesEs, plantillas: plantillasEs,
+        agencia: agenciaEs, perfil: perfilEs, clientes: clientesEs, plantillas: plantillasEs, visualTemplates: visualTemplatesEs,
         impresion: impresionEs, paginaLegal: paginaLegalEs, privacidad: privacidadEs,
         cookies: cookiesEs, terminos: terminosEs, probar: probarEs,
         itinerarioCompartido: itinerarioCompartidoEs, validacion: validacionEs,
@@ -79,7 +81,7 @@ i18n
         comun: comunEn, inicio: inicioEn, acerca: acercaEn, auth: authEn, layout: layoutEn,
         dominio: dominioEn, campos: camposEn, formularios: formulariosEn, viaje: viajeEn,
         viajes: viajesEn, nuevoViaje: nuevoViajeEn, itinerario: itinerarioEn, detalleViaje: detalleViajeEn,
-        agencia: agenciaEn, perfil: perfilEn, clientes: clientesEn, plantillas: plantillasEn,
+        agencia: agenciaEn, perfil: perfilEn, clientes: clientesEn, plantillas: plantillasEn, visualTemplates: visualTemplatesEn,
         impresion: impresionEn, paginaLegal: paginaLegalEn, privacidad: privacidadEn,
         cookies: cookiesEn, terminos: terminosEn, probar: probarEn,
         itinerarioCompartido: itinerarioCompartidoEn, validacion: validacionEn,
@@ -90,7 +92,7 @@ i18n
     ns: [
       'comun', 'inicio', 'acerca', 'auth', 'layout', 'dominio', 'campos',
       'formularios', 'viaje', 'viajes', 'nuevoViaje', 'itinerario', 'detalleViaje',
-      'agencia', 'perfil', 'clientes', 'plantillas', 'impresion', 'paginaLegal',
+      'agencia', 'perfil', 'clientes', 'plantillas', 'visualTemplates', 'impresion', 'paginaLegal',
       'privacidad', 'cookies', 'terminos', 'probar', 'itinerarioCompartido', 'validacion',
     ],
     defaultNS: 'comun',
