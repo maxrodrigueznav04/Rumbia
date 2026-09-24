@@ -31,3 +31,5 @@ Prompts finales de las imágenes:
 2. **Interior (`gaslamp-editorial.png`):** fotografía editorial horizontal de una calle inspirada en Gaslamp Quarter al anochecer, fachadas históricas, luces cálidas y peatones indistintos; sin letreros legibles, marcas, personas identificables ni restaurantes concretos.
 
 El contenido conserva el carácter de **propuesta sugerida** del ejemplo: precios, vuelos, estancias, restaurantes y horarios necesitan confirmación externa antes de enviarse como oferta real.
+
+El ejemplo original sitúa el traslado a Anaheim el 18 de octubre, pero las fechas indicadas para las estancias no coinciden con ese traslado. La muestra conserva la ruta día por día y marca las fechas exactas de alojamiento como pendientes de conciliar.
