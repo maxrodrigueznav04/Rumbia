@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba de paginación de propuesta visual</title>
+  <style>
+    :root { font-family: Arial, sans-serif; color: #172638; background: #e9edf2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .documento { width: 210mm; margin: 20px auto; background: white; }
+    .portada { height: 269mm; position: relative; overflow: hidden; color: white; background: #132b46; }
+    .portada::before { content: ""; position: absolute; width: 205mm; height: 205mm; border-radius: 50%; right: -63mm; top: 33mm; background: radial-gradient(circle at 35% 35%, #f9be7b 0, #d77756 33%, #263f63 34%, #142c49 70%); opacity: .95; }
+    .portada::after { content: ""; position: absolute; left: -50mm; bottom: -78mm; width: 190mm; height: 145mm; border: 1.5mm solid rgba(255,255,255,.13); border-radius: 50%; transform: rotate(-18deg); }
+    .marca { position: absolute; top: 17mm; left: 17mm; letter-spacing: .22em; font-size: 12pt; font-weight: 700; }
+    .marca small { display: block; letter-spacing: .08em; font-size: 6.8pt; margin-top: 2mm; font-weight: 400; opacity: .75; }
+    .portada-contenido { position: absolute; left: 17mm; right: 17mm; bottom: 38mm; z-index: 1; }
+    .eyebrow { color: #f7c28a; text-transform: uppercase; letter-spacing: .2em; font-weight: 700; font-size: 8pt; }
+    .portada h1 { margin: 6mm 0 3mm; font-family: Georgia, serif; font-weight: 400; font-size: 36pt; line-height: 1.08; max-width: 125mm; }
+    .portada p { max-width: 112mm; font-size: 11pt; line-height: 1.55; color: #e1e9f2; }
+    .portada-datos { position: absolute; left: 17mm; right: 17mm; bottom: 14mm; border-top: 1px solid rgba(255,255,255,.45); padding-top: 5mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 8.5pt; z-index: 1; }
+    .portada-datos strong { color: #f7c28a; font-size: 11pt; }
+    .contenido { padding: 15mm 17mm 17mm; }
+    .cabecera { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d7dee8; padding-bottom: 5mm; margin-bottom: 9mm; font-size: 8pt; color: #63768e; }
+    .cabecera strong { color: #132b46; letter-spacing: .15em; }
+    .seccion-titulo { font-family: Georgia, serif; font-weight: 400; color: #132b46; font-size: 20pt; margin: 0 0 7mm; }
+    .dia { break-inside: avoid; page-break-inside: avoid; margin: 0 0 7mm; padding-left: 7mm; border-left: 1.5mm solid #d68a67; }
+    .dia-cabecera { display: flex; align-items: baseline; gap: 4mm; margin-bottom: 3mm; }
+    .dia-numero { font-size: 7.5pt; font-weight: 700; color: #a85434; letter-spacing: .11em; text-transform: uppercase; white-space: nowrap; }
+    .dia h3 { font-family: Georgia, serif; font-size: 15pt; font-weight: 400; color: #132b46; margin: 0; }
+    .dia p { font-size: 8.5pt; line-height: 1.45; margin: 0 0 4mm; color: #52657b; }
+    .actividad { display: grid; grid-template-columns: 14mm 1fr; gap: 3mm; padding: 2.2mm 0; border-top: 1px solid #e2e8ee; font-size: 8pt; line-height: 1.35; }
+    .actividad time { font-weight: 700; color: #a85434; }
+    .actividad strong { color: #172638; }
+    .cierre { break-inside: avoid; page-break-inside: avoid; margin-top: 5mm; border-top: 1px solid #d7dee8; padding-top: 3mm; }
+    .cierre h2 { margin: 0 0 2mm; color: #132b46; font-family: Georgia, serif; font-size: 15pt; font-weight: 400; }
+    .cierre p { margin: 0 0 2mm; color: #52657b; font-size: 8pt; line-height: 1.4; }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      :root, html, body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .documento { width: auto; margin: 0; }
+      .portada { height: 269mm; break-after: page; page-break-after: always; }
+      .contenido { padding: 0; }
+      .cabecera { break-after: avoid; }
+      .seccion-titulo { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="documento">
+    <section class="portada" aria-label="Portada de composición libre">
+      <div class="marca">DAYCOTRAVELS<small>Somos tu punto de partida</small></div>
+      <div class="portada-contenido">
+        <div class="eyebrow">Una propuesta para viajar a tu manera</div>
+        <h1>San Diego<br>y Los Ángeles</h1>
+        <p>Una ruta entre la costa del Pacífico, barrios llenos de carácter y días para descubrir cada lugar a tu propio ritmo.</p>
+      </div>
+      <div class="portada-datos"><span>Octubre de 2026</span><span id="portada-duracion"></span><strong>MXN $82,317</strong></div>
+    </section>
+    <section class="contenido" aria-label="Contenido dinámico">
+      <div class="cabecera"><strong>DAYCOTRAVELS</strong><span>Propuesta de viaje · San Diego y Los Ángeles</span></div>
+      <h2 class="seccion-titulo">El recorrido día a día</h2>
+      <div id="dias"></div>
+    </section>
+  </main>
+  <script>
+    const requested = Number(new URLSearchParams(location.search).get('days'));
+    const count = requested === 15 ? 15 : 3;
+    const nombres = ['Llegada y bienvenida', 'La costa y sus paisajes', 'Arte, gastronomía y barrios', 'Camino hacia Anaheim', 'Un día de parques y experiencias'];
+    const actividades = [
+      ['09:00', 'Explorar el destino', 'Tiempo para pasear y conocer los lugares más representativos.'],
+      ['13:00', 'Sabores de la región', 'Una comida con espacio para disfrutar la cocina local sin prisas.'],
+      ['17:00', 'Tarde libre', 'Una oportunidad para seguir descubriendo rincones o descansar.']
+    ];
+    document.getElementById('portada-duracion').textContent = `${count} días · 2 viajeros`;
+    const container = document.getElementById('dias');
+    for (let day = 1; day <= count; day++) {
+      const section = document.createElement('section');
+      section.className = 'dia';
+      const title = nombres[(day - 1) % nombres.length];
+      section.innerHTML = `<div class="dia-cabecera"><span class="dia-numero">Día ${day}</span><h3>${title}</h3></div><p>Una jornada pensada para disfrutar el viaje con un ritmo cómodo y momentos para descubrir el destino.</p>${actividades.map(([hora, nombre, descripcion]) => `<div class="actividad"><time>${hora}</time><div><strong>${nombre}</strong><br>${descripcion}</div></div>`).join('')}`;
+      if (day === count) {
+        section.innerHTML += '<footer class="cierre"><h2>Sigamos planeando</h2><p>Esta propuesta es una estimación sujeta a disponibilidad y confirmación de tarifas. La reserva y el pago de los servicios se realizan con los proveedores correspondientes.</p><p>DAYCOTRAVELS · Propuesta preparada especialmente para ti</p></footer>';
+      }
+      container.appendChild(section);
+    }
+  </script>
+</body>
+</html>
