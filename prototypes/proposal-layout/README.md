@@ -23,6 +23,8 @@ El archivo `index.html` acepta `?days=3` o `?days=15` y puede abrirse en un nave
 
 `dayco-editorial.html` es una segunda muestra visual basada en los ocho días y los lugares de `DaycoEjemplo.pdf`. Usa el logotipo extraído de ese PDF, una portada fotográfica, una página de narrativa y precio, y días con actividades específicas. El resultado está en `output/pdf/DaycoTravels-propuesta-editorial-concepto.pdf` (A4, cinco páginas). No es una plantilla editable dentro de Rumbia ni prueba la integración con viajes reales.
 
+La imagen interior es opcional en esta muestra. Por defecto, `dayco-editorial.html` presenta tres momentos concretos del viaje en un panel tipográfico y genera `output/pdf/DaycoTravels-propuesta-editorial-sin-foto-interior.pdf`. Agregar `?interior=foto` a la URL muestra la variante fotográfica original. Ambas conservan la misma estructura de cinco páginas. En el producto, el agente debería poder elegir la variante al guardar su plantilla.
+
 Las dos fotografías se generaron con la herramienta integrada de generación de imágenes. Se guardaron en este directorio para que el HTML no dependa de archivos externos. Son **imágenes conceptuales**, no fotografías documentales de los lugares ni confirmación de servicios.
 
 Prompts finales de las imágenes:

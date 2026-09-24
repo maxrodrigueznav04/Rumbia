@@ -30,8 +30,19 @@
     .feature-head { margin:11mm 0 7mm; display:grid; grid-template-columns:1.2fr .8fr; gap:12mm; align-items:end; }
     .feature-head h2 { font-family:Georgia,serif; font-size:29pt; font-weight:400; line-height:1.08; letter-spacing:-.025em; margin:0; }
     .feature-head p { font-size:9pt; line-height:1.55; color:var(--muted); margin:0; }
-    .feature-photo { height:72mm; position:relative; overflow:hidden; background:#243a56 url('./gaslamp-editorial.png') center 51%/cover no-repeat; }
+    .feature-photo { display:none; height:72mm; position:relative; overflow:hidden; background:#243a56 url('./gaslamp-editorial.png') center 51%/cover no-repeat; }
     .feature-photo span { position:absolute; left:5mm; bottom:5mm; padding:2mm 3mm; background:rgba(19,38,64,.88); color:white; font-size:7pt; letter-spacing:.12em; text-transform:uppercase; }
+    .with-interior-photo .feature-photo { display:block; }
+    .highlights { height:72mm; background:var(--ink); color:white; display:grid; grid-template-columns:44mm repeat(3,1fr); padding:8mm 7mm; }
+    .with-interior-photo .highlights { display:none; }
+    .highlights-intro { padding-right:5mm; border-right:1px solid rgba(255,255,255,.27); }
+    .highlights-intro small { display:block; color:#e7aa8f; font-size:6.8pt; font-weight:700; letter-spacing:.16em; text-transform:uppercase; margin-bottom:5mm; }
+    .highlights-intro strong { display:block; font:400 19pt/1.15 Georgia,serif; }
+    .highlight { padding:1mm 3mm 0 5mm; border-right:1px solid rgba(255,255,255,.27); }
+    .highlight:last-child { border-right:0; }
+    .highlight time { display:block; font-size:7pt; color:#e7aa8f; letter-spacing:.13em; margin-bottom:7mm; }
+    .highlight b { display:block; font:400 14pt/1.18 Georgia,serif; margin-bottom:4mm; }
+    .highlight p { font-size:7.2pt; line-height:1.48; color:#d6dfe9; margin:0; }
     .route { display:grid; grid-template-columns:1fr 1fr 1fr; border-bottom:1px solid var(--line); margin:9mm 0 8mm; }
     .route-item { padding:0 4mm 6mm 0; border-right:1px solid var(--line); }
     .route-item + .route-item { padding-left:5mm; }
@@ -95,6 +106,7 @@
       <header class="feature-top"><img src="./dayco-logo-from-example.jpg" alt="DaycoTravels"><small>Tu viaje, pensado para ti</small></header>
       <div class="feature-head"><h2>Dos maneras de sentir California. Un solo viaje.</h2><p>Primero, la costa y los barrios de San Diego: Gaslamp al caer la tarde, La Jolla frente al mar y Balboa Park. Después, Anaheim y sus parques, con tiempo para disfrutar cada experiencia sin convertir el viaje en una carrera.</p></div>
       <div class="feature-photo"><span>Gaslamp Quarter · San Diego</span></div>
+      <div class="highlights" aria-label="Tres momentos destacados"><div class="highlights-intro"><small>Para recordar</small><strong>Tres momentos del viaje</strong></div><div class="highlight"><time>16 OCT</time><b>La Jolla Cove</b><p>Caminar junto a las calas y detenerse frente al Pacífico.</p></div><div class="highlight"><time>18 OCT</time><b>Coronado</b><p>Una última mañana de playa antes de salir hacia Anaheim.</p></div><div class="highlight"><time>21 OCT</time><b>Galaxy’s Edge</b><p>Un día para volver a las atracciones favoritas y explorar Batuu.</p></div></div>
       <div class="route"><div class="route-item"><b>San Diego</b><span>15–18 oct · Gaslamp, La Jolla, Balboa Park y Coronado.</span></div><div class="route-item"><b>Anaheim</b><span>Desde el 18 oct · Disneyland Park, California Adventure y Downtown Disney.</span></div><div class="route-item"><b>Regreso</b><span>22 oct · Desayuno, últimas compras y traslado al aeropuerto LAX.</span></div></div>
       <div class="offer"><div><div class="label">Inversión estimada</div><h3>El viaje empieza aquí</h3><p>Estimación del ejemplo para dos viajeros. Tarifas, servicios y disponibilidad deben confirmarse antes de reservar.</p></div><div class="offer-price"><strong>$41,158.80</strong><span>MXN por persona · $82,317.60 total</span></div></div>
       <div class="services"><div><b>Vuelos propuestos</b><span>Aeroméxico · ida 15 oct, regreso 22 oct.</span></div><div><b>Estancias consideradas</b><span>Casa la Jolla y zona Disney; fechas exactas por conciliar.</span></div><div><b>Movilidad</b><span>Renta de auto para el recorrido en destino.</span></div></div>
@@ -102,6 +114,7 @@
     <section class="days" aria-label="Itinerario día a día"><div class="days-heading"><strong>DaycoTravels · San Diego y Anaheim</strong><span>15–22 oct 2026</span></div><h2 class="days-intro">El viaje, día a día</h2><div id="day-list"></div></section>
   </main>
   <script>
+    document.body.classList.toggle('with-interior-photo', new URLSearchParams(location.search).get('interior') === 'foto');
     const days = [
       {date:'Jue 15 oct', title:'La primera noche en Gaslamp', lead:'Aterrizar, instalarse y dejar que el centro histórico marque el comienzo del viaje.', stops:[['14:00','Llegada y registro en San Diego','Traslado al alojamiento y tiempo para acomodarse.'],['16:30','Gaslamp Quarter y Seaport Village','Paseo entre arquitectura histórica, tiendas y vistas de la bahía.'],['19:00','Cena sugerida en Lumi by Akira Back','Una primera noche con cocina japonesa contemporánea.']], note:'El ritmo del primer día deja margen para el vuelo y el traslado.'},
       {date:'Vie 16 oct', title:'La Jolla frente al Pacífico', lead:'Calas, acantilados y una tarde para recorrer las calles más bonitas junto al mar.', stops:[['10:00','La Jolla Cove','Caminar por la costa y detenerse a disfrutar el paisaje.'],['13:00','Almuerzo sugerido en George’s at the Cove','Una pausa con vistas al océano.'],['15:30','Prospect Street','Galerías, boutiques y cafés para recorrer sin prisa.']]},
