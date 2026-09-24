@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/rumbia_test';
 process.env.JWT_SECRET = 'test_only_rumbia_session_regression_secret';
 const { protect, signToken } = await import('../src/middleware/auth.js');
-const { User, Trip, Agency } = await import('../src/models/index.js');
+const { User, Trip, Agency, AuditLog } = await import('../src/models/index.js');
 const { getPanel } = await import('../src/controllers/trip.controller.js');
 const { tripListQuerySchema } = await import('../src/validators/schemas.js');
 const { deleteAccount } = await import('../src/controllers/auth.controller.js');
@@ -236,4 +236,77 @@ test('seguridad test-p02-regression: rechazo preventivo de URIs remotas y mongod
     }
   );
 });
+
+test('deleteAccount: el dueño de una agencia archivada SÍ puede eliminar su cuenta y fija owner en null', async () => {
+  const { Itinerary, Expense, TripChat, Client, ItineraryTemplate } = await import('../src/models/index.js');
+  mock.method(Itinerary, 'deleteMany', async () => ({}));
+  mock.method(Expense, 'deleteMany', async () => ({}));
+  mock.method(TripChat, 'deleteMany', async () => ({}));
+  mock.method(Client, 'deleteMany', async () => ({}));
+  mock.method(ItineraryTemplate, 'deleteMany', async () => ({}));
+  mock.method(Trip, 'deleteMany', async () => ({}));
+  mock.method(AuditLog, 'registrar', async () => ({}));
+
+  let agencySaved = false;
+  const mockAgency = {
+    _id: '6ab49cf9194aa74f4ed2148d',
+    owner: '6ab49cf9194aa74f4ed2148e',
+    status: 'archivada',
+    save: async () => { agencySaved = true; },
+  };
+
+  mock.method(User, 'findById', () => ({
+    _id: '6ab49cf9194aa74f4ed2148e',
+    email: 'dueno_archivado@test.com',
+    select: () => ({
+      _id: '6ab49cf9194aa74f4ed2148e',
+      email: 'dueno_archivado@test.com',
+      comparePassword: async () => true,
+      deleteOne: async () => {},
+    }),
+  }));
+  mock.method(Agency, 'findOne', async () => mockAgency);
+  mock.method(Trip, 'find', () => ({
+    select: () => [],
+  }));
+
+  const res = await ejecutar(deleteAccount, {
+    user: { _id: '6ab49cf9194aa74f4ed2148e' },
+    body: { password: 'pass' },
+  });
+
+  assert.equal(res.success, true);
+  assert.equal(mockAgency.owner, null);
+  assert.equal(agencySaved, true);
+});
+
+test('salirAgencia: el dueño de una agencia archivada SÍ puede salir y fija owner en null', async () => {
+  mock.method(AuditLog, 'registrar', async () => ({}));
+  let agencySaved = false;
+  let userSaved = false;
+  const mockAgency = {
+    _id: '6ab49cf9194aa74f4ed2148d',
+    owner: '6ab49cf9194aa74f4ed2148e',
+    status: 'archivada',
+    save: async () => { agencySaved = true; },
+  };
+
+  mock.method(Agency, 'findById', async () => mockAgency);
+
+  const user = {
+    _id: '6ab49cf9194aa74f4ed2148e',
+    agency: '6ab49cf9194aa74f4ed2148d',
+    save: async () => { userSaved = true; },
+    populate: async () => {},
+    toJSON: () => ({ _id: '6ab49cf9194aa74f4ed2148e', agency: null }),
+  };
+
+  const res = await ejecutar(salirAgencia, { user });
+  assert.equal(res.success, true);
+  assert.equal(mockAgency.owner, null);
+  assert.equal(user.agency, null);
+  assert.equal(agencySaved, true);
+  assert.equal(userSaved, true);
+});
+
 

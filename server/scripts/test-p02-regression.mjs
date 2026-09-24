@@ -939,6 +939,340 @@ async function main() {
       assert(String(checkOwnerSolo.agency) === String(agencySolo._id), 'El owner solo fue desvinculado de su agencia');
     });
 
+    // -------------------------------------------------------------
+    // CASO 11: Transferencia aceptada de propiedad de agencia
+    // -------------------------------------------------------------
+    await runTest('11. Transferencia P02: Dueño transfiere a miembro activo, quien acepta con su sesión; autoría y pertenencia intactas', async () => {
+      const owner11 = await crearUsuario(`owner11_${TAG}@test.com`, 'Owner 11', 'dueno_agencia');
+      const agency11 = await Agency.create({
+        agencyName: 'Agencia 11 Test',
+        owner: owner11._id,
+        billing: { status: 'activa', plan: 'agencia_mensual' },
+      });
+      owner11.agency = agency11._id;
+      await owner11.save();
+
+      const member11 = await crearUsuario(`member11_${TAG}@test.com`, 'Member 11', 'agente');
+      member11.agency = agency11._id;
+      await member11.save();
+
+      // Viaje y gasto creados por el dueño original
+      const tripOwnerOriginal = await Trip.create({
+        user: owner11._id,
+        agency: agency11._id,
+        title: 'Viaje Original Owner 11',
+        destination: { name: 'Madrid', country: 'ES' },
+        startDate: '2026-11-01',
+        endDate: '2026-11-08',
+        travelers: 2,
+      });
+      const expenseOwnerOriginal = await Expense.create({
+        user: owner11._id,
+        trip: tripOwnerOriginal._id,
+        category: 'hospedaje',
+        description: 'Hotel Madrid',
+        amount: 5000,
+        currency: 'MXN',
+        date: '2026-11-02',
+      });
+
+      // 1. Owner solicita transferencia al miembro
+      const transferReq = await req('POST', '/agency/transferir/solicitar', {
+        user: owner11,
+        body: {
+          destinatarioId: String(member11._id),
+          password: 'Password123!',
+        },
+      });
+      assert(transferReq.status === 200, `Solicitar transferencia respondió ${transferReq.status}, se esperaba 200`);
+
+      const checkAgencyPendiente = await Agency.findById(agency11._id);
+      assert(checkAgencyPendiente.transferenciaPendiente !== null, 'No se guardó transferenciaPendiente');
+      assert(String(checkAgencyPendiente.transferenciaPendiente.destinatario) === String(member11._id), 'Destinatario incorrecto');
+
+      // 2. Miembro acepta la transferencia con su propia sesión
+      const transferAccept = await req('POST', '/agency/transferir/aceptar', {
+        user: member11,
+      });
+      assert(transferAccept.status === 200, `Aceptar transferencia respondió ${transferAccept.status}, se esperaba 200`);
+
+      // 3. Verificar que member11 ahora es el owner
+      const checkAgencyTransferred = await Agency.findById(agency11._id);
+      assert(String(checkAgencyTransferred.owner) === String(member11._id), 'El owner no fue transferido a member11');
+      assert(checkAgencyTransferred.transferenciaPendiente === null, 'transferenciaPendiente no fue limpiada');
+      assert(checkAgencyTransferred.version >= 2, 'La versión de la agencia no se incrementó');
+
+      // 4. El dueño original sigue siendo miembro activo
+      const checkOwnerOriginal = await User.findById(owner11._id);
+      assert(String(checkOwnerOriginal.agency) === String(agency11._id), 'El dueño original fue desvinculado de la membresía');
+
+      // 5. Los registros corporativos conservan intactos user (autor) y agency (pertenencia)
+      const checkTrip = await Trip.findById(tripOwnerOriginal._id);
+      assert(String(checkTrip.agency) === String(agency11._id), 'El viaje corporativo perdió su agencia');
+      assert(String(checkTrip.user) === String(owner11._id), 'La autoría histórica del viaje cambió indebidamente');
+
+      const checkExpense = await Expense.findById(expenseOwnerOriginal._id);
+      assert(String(checkExpense.user) === String(owner11._id), 'La autoría histórica del gasto cambió indebidamente');
+
+      // 6. El dueño original ya no es owner: si intenta archivar la agencia, recibe 403
+      const intentoArchivarExDueno = await req('POST', '/agency/archivar', {
+        user: owner11,
+        body: { password: 'Password123!', confirmacion: 'ARCHIVAR' },
+      });
+      assert(intentoArchivarExDueno.status === 403, `Ex-dueño pudo archivar: ${intentoArchivarExDueno.status}, se esperaba 403`);
+    });
+
+    // -------------------------------------------------------------
+    // CASO 12: Reglas de validación, rechazo y caducidad de transferencias
+    // -------------------------------------------------------------
+    await runTest('12. Transferencia P02: Validaciones (auto-transferencia, ajenos, cancelación, rechazo y caducidad)', async () => {
+      const owner12 = await crearUsuario(`owner12_${TAG}@test.com`, 'Owner 12', 'dueno_agencia');
+      const agency12 = await Agency.create({
+        agencyName: 'Agencia 12 Test',
+        owner: owner12._id,
+        billing: { status: 'activa', plan: 'agencia_mensual' },
+      });
+      owner12.agency = agency12._id;
+      await owner12.save();
+
+      const member12 = await crearUsuario(`member12_${TAG}@test.com`, 'Member 12', 'agente');
+      member12.agency = agency12._id;
+      await member12.save();
+
+      const userAjeno12 = await crearUsuario(`ajeno12_${TAG}@test.com`, 'Ajeno 12', 'agente');
+
+      // 1. Auto-transferencia rechazada con 400
+      const autoTransfer = await req('POST', '/agency/transferir/solicitar', {
+        user: owner12,
+        body: { destinatarioId: String(owner12._id), password: 'Password123!' },
+      });
+      assert(autoTransfer.status === 400, `Auto-transferencia respondió ${autoTransfer.status}, se esperaba 400`);
+
+      // 2. Transferencia a usuario ajeno rechazada con 400
+      const transferAjeno = await req('POST', '/agency/transferir/solicitar', {
+        user: owner12,
+        body: { destinatarioId: String(userAjeno12._id), password: 'Password123!' },
+      });
+      assert(transferAjeno.status === 400, `Transferencia a usuario ajeno respondió ${transferAjeno.status}, se esperaba 400`);
+
+      // 3. Solicitar transferencia válida y luego cancelarla por el dueño
+      await req('POST', '/agency/transferir/solicitar', {
+        user: owner12,
+        body: { destinatarioId: String(member12._id), password: 'Password123!' },
+      });
+      const cancelRes = await req('POST', '/agency/transferir/cancelar', { user: owner12 });
+      assert(cancelRes.status === 200, `Cancelar transferencia respondió ${cancelRes.status}, se esperaba 200`);
+
+      // Intentar aceptar tras cancelación -> 404
+      const acceptCancelado = await req('POST', '/agency/transferir/aceptar', { user: member12 });
+      assert(acceptCancelado.status === 404, `Aceptar transferencia cancelada respondió ${acceptCancelado.status}, se esperaba 404`);
+
+      // 4. Solicitar y rechazar por el destinatario
+      await req('POST', '/agency/transferir/solicitar', {
+        user: owner12,
+        body: { destinatarioId: String(member12._id), password: 'Password123!' },
+      });
+      const rejectRes = await req('POST', '/agency/transferir/rechazar', { user: member12 });
+      assert(rejectRes.status === 200, `Rechazar transferencia respondió ${rejectRes.status}, se esperaba 200`);
+
+      // 5. Caducidad: Simular expiración de 7 días
+      await Agency.findByIdAndUpdate(agency12._id, {
+        transferenciaPendiente: {
+          destinatario: member12._id,
+          solicitadoPor: owner12._id,
+          solicitadoEn: new Date(Date.now() - 8 * 86400000),
+          expiraEn: new Date(Date.now() - 1000), // Expiró hace 1 segundo
+        },
+      });
+      const acceptExpirado = await req('POST', '/agency/transferir/aceptar', { user: member12 });
+      assert(acceptExpirado.status === 400, `Aceptar transferencia expirada respondió ${acceptExpirado.status}, se esperaba 400`);
+    });
+
+    // -------------------------------------------------------------
+    // CASO 13: Archivo de agencia y suspensión de escrituras corporativas
+    // -------------------------------------------------------------
+    await runTest('13. Archivo P02: Dueño archiva agencia; escrituras corporativas suspendidas, enlaces públicos revocados y lectura conservada', async () => {
+      const owner13 = await crearUsuario(`owner13_${TAG}@test.com`, 'Owner 13', 'dueno_agencia');
+      const agency13 = await Agency.create({
+        agencyName: 'Agencia 13 Test',
+        owner: owner13._id,
+        billing: { status: 'activa', plan: 'agencia_mensual' },
+      });
+      owner13.agency = agency13._id;
+      await owner13.save();
+
+      const member13 = await crearUsuario(`member13_${TAG}@test.com`, 'Member 13', 'agente');
+      member13.agency = agency13._id;
+      await member13.save();
+
+      // Viaje corporativo preexistente antes del archivo
+      const corpTrip13 = await Trip.create({
+        user: member13._id,
+        agency: agency13._id,
+        title: 'Viaje Corporativo 13',
+        destination: { name: 'Roma', country: 'IT' },
+        startDate: '2026-11-10',
+        endDate: '2026-11-15',
+        travelers: 2,
+      });
+      const corpItinerary13 = await Itinerary.create({
+        trip: corpTrip13._id,
+        user: member13._id,
+        shareToken: `token13_${TAG}`,
+        days: [{ dayNumber: 1, title: 'Dia 1 Roma', activities: [] }],
+      });
+
+      // 1. Archivar la agencia por el dueño
+      const archivarRes = await req('POST', '/agency/archivar', {
+        user: owner13,
+        body: { password: 'Password123!', confirmacion: 'ARCHIVAR' },
+      });
+      assert(archivarRes.status === 200, `Archivar agencia respondió ${archivarRes.status}, se esperaba 200`);
+
+      const checkArchivada = await Agency.findById(agency13._id);
+      assert(checkArchivada.status === 'archivada', 'El estado de la agencia no es archivada');
+      assert(checkArchivada.archivedAt instanceof Date, 'archivedAt no fue registrado');
+      assert(String(checkArchivada.archivedBy) === String(owner13._id), 'archivedBy no coincide con el dueño');
+
+      // 2. Miembro intenta crear viaje corporativo -> 403 Forbidden
+      const crearViajeCorp = await req('POST', '/trips', {
+        user: member13,
+        body: {
+          title: 'Intento Viaje Corp en Archivada',
+          destination: { name: 'Tokio', country: 'JP' },
+          startDate: '2026-12-01',
+          endDate: '2026-12-08',
+        },
+      });
+      assert(crearViajeCorp.status === 403, `Crear viaje corporativo en archivada respondió ${crearViajeCorp.status}, se esperaba 403`);
+
+      // 3. Miembro intenta agregar gasto a viaje corporativo de agencia archivada -> 403 Forbidden
+      const crearGastoCorp = await req('POST', '/expenses', {
+        user: member13,
+        body: {
+          trip: String(corpTrip13._id),
+          description: 'Gasto en agencia archivada',
+          amount: 500,
+          category: 'comida',
+        },
+      });
+      assert(crearGastoCorp.status === 403, `Crear gasto corporativo en archivada respondió ${crearGastoCorp.status}, se esperaba 403`);
+
+      // 4. Nuevo usuario intenta unirse a agencia archivada con código -> 403 Forbidden
+      const usuarioNuevo = await crearUsuario(`nuevo13_${TAG}@test.com`, 'Nuevo 13', 'agente');
+      const unirseRes = await req('POST', '/agency/unirse', {
+        user: usuarioNuevo,
+        body: { inviteCode: checkArchivada.inviteCode },
+      });
+      assert(unirseRes.status === 403, `Unirse a agencia archivada respondió ${unirseRes.status}, se esperaba 403`);
+
+      // 5. Enlace público compartido deja de ser accesible -> 404 Not Found
+      const shareRes = await req('GET', `/public/itinerary/${corpItinerary13.shareToken}`);
+      assert(shareRes.status === 404, `Acceso público a itinerario de agencia archivada respondió ${shareRes.status}, se esperaba 404`);
+
+      // 6. Lectura privada del viaje corporativo por miembro sigue funcionando -> 200 OK
+      const getTripRes = await req('GET', `/trips/${corpTrip13._id}`, { user: member13 });
+      assert(getTripRes.status === 200, `Lectura de viaje corporativo respondió ${getTripRes.status}, se esperaba 200`);
+    });
+
+    // -------------------------------------------------------------
+    // CASO 14: Salida voluntaria y baja de cuenta del dueño tras archivar
+    // -------------------------------------------------------------
+    await runTest('14. Conservación P02: Dueño de agencia archivada puede salir o darse de baja; owner pasa a null y datos corporativos se preservan', async () => {
+      // Caso 14a: Salida voluntaria del dueño tras archivar
+      const owner14a = await crearUsuario(`owner14a_${TAG}@test.com`, 'Owner 14a', 'dueno_agencia');
+      const agency14a = await Agency.create({
+        agencyName: 'Agencia 14a Test',
+        owner: owner14a._id,
+        status: 'archivada',
+        archivedAt: new Date(),
+        archivedBy: owner14a._id,
+        billing: { status: 'congelada' },
+      });
+      owner14a.agency = agency14a._id;
+      await owner14a.save();
+
+      const salirOwnerArchivada = await req('POST', '/agency/salir', { user: owner14a });
+      assert(salirOwnerArchivada.status === 200, `POST /agency/salir de owner en archivada respondió ${salirOwnerArchivada.status}, se esperaba 200`);
+
+      const checkAgency14a = await Agency.findById(agency14a._id);
+      assert(checkAgency14a.owner === null, 'La agencia archivada no fijó owner: null tras salida');
+      const checkOwner14a = await User.findById(owner14a._id);
+      assert(checkOwner14a.agency === null, 'El usuario no fue desvinculado de la agencia');
+
+      // Caso 14b: Baja de cuenta del dueño tras archivar
+      const owner14b = await crearUsuario(`owner14b_${TAG}@test.com`, 'Owner 14b', 'dueno_agencia');
+      const agency14b = await Agency.create({
+        agencyName: 'Agencia 14b Test',
+        owner: owner14b._id,
+        status: 'archivada',
+        archivedAt: new Date(),
+        archivedBy: owner14b._id,
+        billing: { status: 'congelada' },
+      });
+      owner14b.agency = agency14b._id;
+      await owner14b.save();
+
+      // Viaje y gasto corporativos
+      const tripCorp14b = await Trip.create({
+        user: owner14b._id,
+        agency: agency14b._id,
+        title: 'Viaje Corporativo 14b',
+        destination: { name: 'Sevilla', country: 'ES' },
+        startDate: '2026-11-01',
+        endDate: '2026-11-05',
+        travelers: 1,
+      });
+      const expenseCorp14b = await Expense.create({
+        user: owner14b._id,
+        trip: tripCorp14b._id,
+        category: 'comida',
+        description: 'Tapas Sevilla',
+        amount: 800,
+        currency: 'MXN',
+      });
+
+      // Viaje personal del dueño
+      const tripPersonal14b = await Trip.create({
+        user: owner14b._id,
+        agency: null,
+        title: 'Viaje Personal Owner 14b',
+        destination: { name: 'Playa del Carmen', country: 'MX' },
+        startDate: '2026-12-01',
+        endDate: '2026-12-05',
+        travelers: 1,
+      });
+
+      // Dueño se da de baja
+      const bajaOwnerRes = await req('DELETE', '/auth/me', {
+        user: owner14b,
+        body: { password: 'Password123!' },
+      });
+      assert(bajaOwnerRes.status === 200, `DELETE /auth/me de owner en archivada respondió ${bajaOwnerRes.status}, se esperaba 200`);
+
+      // 1. Cuenta de owner eliminada
+      const checkOwnerEliminado = await User.findById(owner14b._id);
+      assert(checkOwnerEliminado === null, 'La cuenta del dueño no fue eliminada');
+
+      // 2. Viaje personal eliminado
+      const checkTripPersonal = await Trip.findById(tripPersonal14b._id);
+      assert(checkTripPersonal === null, 'El viaje personal del dueño no fue eliminado');
+
+      // 3. Agencia archivada existe con owner: null
+      const checkAgency14b = await Agency.findById(agency14b._id);
+      assert(checkAgency14b !== null, 'La agencia archivada fue eliminada indebidamente');
+      assert(checkAgency14b.owner === null, 'La agencia archivada no fijó owner: null');
+
+      // 4. Viaje y gasto corporativo CONSERVADOS intactos
+      const checkTripCorp = await Trip.findById(tripCorp14b._id);
+      assert(checkTripCorp !== null, 'El viaje corporativo fue eliminado');
+      assert(String(checkTripCorp.agency) === String(agency14b._id), 'El viaje corporativo perdió su agency');
+      assert(String(checkTripCorp.user) === String(owner14b._id), 'La autoría histórica fue borrada o alterada');
+
+      const checkExpenseCorp = await Expense.findById(expenseCorp14b._id);
+      assert(checkExpenseCorp !== null, 'El gasto corporativo fue eliminado');
+    });
+
   } finally {
     console.log('\n[test-p02-regression] Limpiando datos de prueba...');
     await cleanupTestData(TAG);

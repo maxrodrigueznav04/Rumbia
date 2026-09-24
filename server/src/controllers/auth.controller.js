@@ -388,15 +388,31 @@ export const deleteAccount = asyncHandler(async (req, res) => {
     );
   }
 
-  // Protección P02 (etapa 1): El dueño de una agencia no puede eliminar su cuenta
+  // Protección P02 (etapas 1 y 2): El dueño de una agencia no puede eliminar su cuenta
   // directamente mientras sea dueño de una agencia activa, para impedir la destrucción
-  // de la agencia, la pérdida de registros corporativos o su conversión indebida a datos personales.
-  // Debe transferir la propiedad a otro miembro o archivar la agencia previamente.
+  // de la agencia o la pérdida de registros corporativos. Debe transferir o archivar previamente.
+  // Si la agencia está archivada, la baja se permite dejando owner en null y preservando
+  // todos los documentos corporativos.
   const agenciaPropia = await Agency.findOne({ owner: user._id });
   if (agenciaPropia) {
-    throw ApiError.conflict(
-      'No puedes eliminar tu cuenta mientras seas el dueño de una agencia activa. Transfiere la propiedad de la agencia a otro miembro o archívala antes de darte de baja.'
-    );
+    const statusAgencia = agenciaPropia.status || 'activa';
+    if (statusAgencia === 'activa') {
+      throw ApiError.conflict(
+        'No puedes eliminar tu cuenta mientras seas el dueño de una agencia activa. Transfiere la propiedad de la agencia a otro miembro o archívala antes de darte de baja.'
+      );
+    }
+
+    agenciaPropia.owner = null;
+    if (typeof agenciaPropia.save === 'function') {
+      await agenciaPropia.save();
+    }
+
+    await AuditLog.registrar({
+      agency: agenciaPropia._id,
+      actor: user,
+      accion: 'agencia.owner_eliminado',
+      detalle: 'El dueño eliminó su cuenta tras archivar la agencia. Los registros corporativos se conservan en la agencia archivada.',
+    });
   }
 
   // Sin transacciones (no damos por hecho el replica set): primero los hijos,

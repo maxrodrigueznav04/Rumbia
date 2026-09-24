@@ -178,6 +178,18 @@ export const joinAgencySchema = z.object({
   inviteCode: z.string().trim().min(1, 'Escribe el código de invitación.').max(40),
 });
 
+export const solicitarTransferenciaSchema = z.object({
+  destinatarioId: objectId,
+  password: z.string().min(1, 'Escribe tu contraseña para confirmar.'),
+});
+
+export const archivarAgenciaSchema = z.object({
+  password: z.string().min(1, 'Escribe tu contraseña para confirmar.'),
+  confirmacion: z.literal('ARCHIVAR', {
+    errorMap: () => ({ message: 'Escribe ARCHIVAR para confirmar el cierre de la agencia.' }),
+  }),
+});
+
 export const checkoutAgencySchema = z.object({
   plan: z.enum(PLANES_AGENCIA),
   extraAgentes: z.coerce.number().int().min(0).max(500).default(0),

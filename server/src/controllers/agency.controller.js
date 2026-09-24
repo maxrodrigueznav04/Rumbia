@@ -5,6 +5,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { esAdmin } from '../utils/esAdmin.js';
 import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
+import * as agencyLifecycle from '../services/agencyLifecycle.service.js';
 
 /**
  * Selecciona solo lo que un agente cualquiera (no el dueno) puede ver de su
@@ -14,7 +15,7 @@ import { requireEmailVerificado } from '../utils/requireEmailVerificado.js';
  * su PDF aunque la agencia si tenga el plan que lo quita.
  */
 const AGENCIA_PUBLICA =
-  'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf owner createdAt billing.plan billing.status billing.trialHasta';
+  'agencyName logoUrl contact colorAcento fuentePdf densidadPdf fondoPdf owner createdAt status archivedAt version billing.plan billing.status billing.trialHasta';
 
 /**
  * Recorta el documento de Agency a lo que puede ver un miembro que no es el
@@ -34,6 +35,8 @@ function vistaAgenciaMiembro(agencia) {
     fondoPdf: agencia.fondoPdf,
     marcaBlanca: agencia.marcaBlanca,
     owner: agencia.owner,
+    status: agencia.status || 'activa',
+    archivedAt: agencia.archivedAt || null,
     billing: {
       status: agencia.billing?.status,
       trialHasta: agencia.billing?.trialHasta,
@@ -118,15 +121,31 @@ export const obtenerAgencia = asyncHandler(async (req, res) => {
       .lean();
   }
 
+  // Resolver si hay una solicitud de transferencia vigente relevante para el usuario
+  const ahora = new Date();
+  const tieneTransferVigente =
+    agencia.transferenciaPendiente?.expiraEn && agencia.transferenciaPendiente.expiraEn > ahora;
+  let transferenciaPendiente = null;
+  if (tieneTransferVigente) {
+    const esDestinatario = String(agencia.transferenciaPendiente.destinatario) === String(req.user._id);
+    if (esDueno || esDestinatario) {
+      transferenciaPendiente = agencia.transferenciaPendiente;
+    }
+  }
+
   res.json({
     success: true,
-    data: { agency: agenciaVisible, esDueno, miembros },
+    data: { agency: agenciaVisible, esDueno, miembros, transferenciaPendiente },
   });
 });
 
 /** Solo el dueno edita nombre, contacto y personalizacion del PDF. */
 export const actualizarAgencia = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada y no permite modificaciones.');
+  }
+
   const { agencyName, contact, logoUrl, colorAcento, fuentePdf, densidadPdf, fondoPdf } = req.body;
   if (agencyName !== undefined) agencia.agencyName = agencyName;
   if (contact !== undefined) agencia.contact = contact;
@@ -146,6 +165,9 @@ export const actualizarAgencia = asyncHandler(async (req, res) => {
 /** Mismo servicio de Cloudinary que el logo personal, con su propio espacio de nombres. */
 export const subirLogoAgencia = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada y no permite modificaciones.');
+  }
 
   const url = await subirLogoCloudinary({
     buffer: req.file.buffer,
@@ -167,6 +189,10 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 
   const agencia = await Agency.findOne({ inviteCode: req.body.inviteCode });
   if (!agencia) throw ApiError.notFound('Ese código no corresponde a ninguna agencia.');
+
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada y no acepta nuevos miembros.');
+  }
 
   // Un dueño solo, sin nadie más, no necesita plan (es uso personal con marca
   // de agencia). En cuanto alguien más se une, ya es el producto de pago o el
@@ -219,10 +245,12 @@ export const unirseAgencia = asyncHandler(async (req, res) => {
 /**
  * Sale de la agencia actual.
  *
- * Protección P02 (etapa 1): El dueño no puede salir directamente de la agencia
- * (ni estando solo ni con miembros), ya que eso destruiría la agencia o sus datos
- * corporativos (clientes, plantillas, etc.). Debe transferir la propiedad a otro
- * miembro o archivar la agencia antes de salir.
+ * Protección P02:
+ * - El dueño de una agencia ACTIVA no puede salir directamente de la agencia
+ *   (debe transferir la propiedad o archivar la agencia previamente).
+ * - Si la agencia está ARCHIVADA, el dueño sí puede salir voluntariamente,
+ *   dejando owner en null y preservando todos los documentos corporativos.
+ * - Cualquier miembro normal puede salir en cualquier momento.
  */
 export const salirAgencia = asyncHandler(async (req, res) => {
   if (!req.user.agency) throw ApiError.badRequest('No perteneces a ninguna agencia.');
@@ -231,9 +259,24 @@ export const salirAgencia = asyncHandler(async (req, res) => {
   const esDueno = agencia && String(agencia.owner) === String(req.user._id);
 
   if (esDueno) {
-    throw ApiError.conflict(
-      'Como dueño no puedes salir de la agencia directamente ni eliminar sus datos. Transfiere la propiedad a otro miembro o archiva la agencia antes de salir.'
-    );
+    const statusAgencia = agencia.status || 'activa';
+    if (statusAgencia === 'activa') {
+      throw ApiError.conflict(
+        'Como dueño no puedes salir de la agencia directamente ni eliminar sus datos. Transfiere la propiedad a otro miembro o archiva la agencia antes de salir.'
+      );
+    }
+
+    agencia.owner = null;
+    if (typeof agencia.save === 'function') {
+      await agencia.save();
+    }
+
+    await AuditLog.registrar({
+      agency: agencia._id,
+      actor: req.user,
+      accion: 'agencia.owner_salio',
+      detalle: 'El dueño abandonó la agencia archivada. La agencia permanece archivada con sus registros intactos.',
+    });
   }
 
   req.user.agency = null;
@@ -249,6 +292,9 @@ export const salirAgencia = asyncHandler(async (req, res) => {
 /** El dueno saca a otro agente. No puede sacarse a si mismo por aqui: para eso existe /salir. */
 export const eliminarMiembro = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada y no permite modificar miembros.');
+  }
 
   if (req.params.userId === String(req.user._id)) {
     throw ApiError.badRequest('No puedes eliminarte a ti mismo. Usa la opción de salir.');
@@ -273,6 +319,9 @@ export const eliminarMiembro = asyncHandler(async (req, res) => {
 /** Invalida el codigo anterior. Util si se compartio por error o ya no se quiere que circule. */
 export const regenerarCodigo = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada.');
+  }
   agencia.regenerarCodigo();
   await agencia.save();
 
@@ -355,5 +404,97 @@ async function usuarioConAgencia(user) {
   await user.populate({ path: 'agency', select: AGENCIA_PUBLICA });
   return user.toJSON();
 }
+
+/**
+ * Solicita la transferencia de propiedad de la agencia a un miembro activo.
+ */
+export const solicitarTransferencia = asyncHandler(async (req, res) => {
+  const { destinatarioId, password } = req.body;
+  const resultado = await agencyLifecycle.solicitarTransferencia({
+    agencyId: req.user.agency,
+    actor: req.user,
+    destinatarioId,
+    password,
+  });
+
+  res.json({
+    success: true,
+    message: 'Solicitud de transferencia enviada.',
+    data: resultado,
+  });
+});
+
+/**
+ * Acepta la transferencia de propiedad de la agencia.
+ */
+export const aceptarTransferencia = asyncHandler(async (req, res) => {
+  const resultado = await agencyLifecycle.aceptarTransferencia({
+    agencyId: req.user.agency,
+    actor: req.user,
+  });
+
+  res.json({
+    success: true,
+    message: 'Has aceptado la propiedad de la agencia.',
+    data: {
+      agency: resultado.agency,
+      user: await usuarioConAgencia(req.user),
+    },
+  });
+});
+
+/**
+ * Cancela una solicitud de transferencia pendiente.
+ */
+export const cancelarTransferencia = asyncHandler(async (req, res) => {
+  const resultado = await agencyLifecycle.cancelarTransferencia({
+    agencyId: req.user.agency,
+    actor: req.user,
+  });
+
+  res.json({
+    success: true,
+    message: 'Solicitud de transferencia cancelada.',
+    data: resultado,
+  });
+});
+
+/**
+ * Rechaza una solicitud de transferencia pendiente.
+ */
+export const rechazarTransferencia = asyncHandler(async (req, res) => {
+  const resultado = await agencyLifecycle.rechazarTransferencia({
+    agencyId: req.user.agency,
+    actor: req.user,
+  });
+
+  res.json({
+    success: true,
+    message: 'Transferencia rechazada.',
+    data: resultado,
+  });
+});
+
+/**
+ * Archiva la agencia suspendiendo operaciones corporativas de escritura.
+ */
+export const archivarAgencia = asyncHandler(async (req, res) => {
+  const { password, confirmacion } = req.body;
+  const resultado = await agencyLifecycle.archivarAgencia({
+    agencyId: req.user.agency,
+    actor: req.user,
+    password,
+    confirmacion,
+  });
+
+  res.json({
+    success: true,
+    message: 'Agencia archivada.',
+    data: {
+      agency: resultado.agency,
+      user: await usuarioConAgencia(req.user),
+    },
+  });
+});
 
 export { usuarioConAgencia };

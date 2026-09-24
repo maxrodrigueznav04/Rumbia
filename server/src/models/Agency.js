@@ -153,11 +153,33 @@ const billingSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const transferenciaPendienteSchema = new mongoose.Schema(
+  {
+    destinatario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    solicitadoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    solicitadoEn: { type: Date, default: Date.now },
+    expiraEn: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 const agencySchema = new mongoose.Schema(
   {
     agencyName: { type: String, required: true, trim: true, maxlength: 80 },
     logoUrl: { type: String, trim: true, default: '' },
     contact: { type: String, trim: true, maxlength: 160, default: '' },
+    // Estado del ciclo de vida de la agencia, independiente del estado de billing.
+    status: {
+      type: String,
+      enum: ['activa', 'archivada'],
+      default: 'activa',
+      index: true,
+    },
+    archivedAt: { type: Date, default: null },
+    archivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    // Version para coordinacion de concurrencia en mutaciones de ciclo de vida
+    version: { type: Number, default: 1 },
+    transferenciaPendiente: { type: transferenciaPendienteSchema, default: null },
     // Color de acento del PDF (insignia, marcadores de dia, actividades).
     // Beneficio de los planes Agencia/Pro -- el campo se puede guardar en
     // cualquier plan, pero solo se USA cuando marcaBlanca (abajo) es true;
@@ -175,7 +197,20 @@ const agencySchema = new mongoose.Schema(
     // Mismo criterio que fuentePdf: se guarda en cualquier plan, solo se usa
     // si marcaBlanca es true.
     fondoPdf: { type: String, enum: FONDOS_PDF, default: '' },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    // Una agencia activa SIEMPRE requiere un dueño existente. Una agencia
+    // archivada puede tener owner: null si su dueño se dio de baja posteriormente.
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+      index: true,
+      validate: {
+        validator: function (v) {
+          return this.status !== 'activa' || Boolean(v);
+        },
+        message: 'Una agencia activa requiere un dueño.',
+      },
+    },
     // Se comparte fuera de la app (whatsapp, correo) para que un agente se una
     // sin que el dueno tenga que invitarlo uno por uno desde un panel.
     inviteCode: { type: String, required: true, unique: true, default: generarCodigo },
@@ -191,7 +226,7 @@ agencySchema.methods.regenerarCodigo = function regenerarCodigo() {
 
 // Verifica si la agencia esta dentro de su periodo de prueba gratuito (trial) de 14 dias.
 agencySchema.virtual('esTrialActivo').get(function esTrialActivo() {
-  if (this.billing?.status !== 'trial') return false;
+  if (this.status === 'archivada' || this.billing?.status !== 'trial') return false;
   const ahora = new Date();
   const finTrial =
     this.billing?.trialHasta ||
@@ -201,6 +236,7 @@ agencySchema.virtual('esTrialActivo').get(function esTrialActivo() {
 
 // true si la suscripcion esta activa o si el trial de 14 dias sigue vigente.
 agencySchema.virtual('tieneAccesoActivo').get(function tieneAccesoActivo() {
+  if (this.status === 'archivada') return false;
   return this.billing?.status === 'activa' || this.esTrialActivo;
 });
 

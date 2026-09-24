@@ -1,4 +1,4 @@
-import { Itinerary, Trip, ClickSalida } from '../models/index.js';
+import { Itinerary, Trip, ClickSalida, Agency } from '../models/index.js';
 import { generateItinerary as callGemini } from '../services/gemini.service.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { decorarSecciones, hayAfiliados } from '../services/affiliates.service.js';
@@ -132,7 +132,7 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
   // personal: es el mismo criterio que usa el PDF privado.
   const trip = await Trip.findById(itinerary.trip)
     .select(
-      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose ocultarCodigos margen estadoPropuesta user'
+      'title destination additionalDestinations origin startDate endDate travelers budget transport lodging localTransport ocultarDesglose ocultarCodigos margen estadoPropuesta user agency'
     )
     .populate({
       path: 'user',
@@ -147,6 +147,14 @@ export const verItinerarioCompartido = asyncHandler(async (req, res) => {
       },
     });
   if (!trip) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
+
+  // Si el viaje pertenece a una agencia archivada, revocar acceso público (P02)
+  if (trip.agency) {
+    const agenciaTrip = await Agency.findById(trip.agency).select('status');
+    if (agenciaTrip?.status === 'archivada') {
+      throw ApiError.notFound('Este itinerario ya no está disponible.');
+    }
+  }
 
   // Lista blanca a proposito: branding/agency son lo unico del dueno que se
   // publica aqui. Si algun dia se le agrega un campo sensible a cualquiera de

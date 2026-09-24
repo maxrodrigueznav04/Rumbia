@@ -25,6 +25,13 @@ export const ACCIONES_AUDITORIA = [
   // quedaba en console.error, que Render rota y se pierde. Con esto queda
   // consultable para reconciliar el cobro a mano en el dashboard de Stripe.
   'agencia.cancelacion_stripe_fallida',
+  'agencia.transferencia_solicitada',
+  'agencia.transferencia_aceptada',
+  'agencia.transferencia_cancelada',
+  'agencia.transferencia_rechazada',
+  'agencia.archivada',
+  'agencia.owner_eliminado',
+  'agencia.owner_salio',
 ];
 
 const auditLogSchema = new mongoose.Schema(

@@ -23,10 +23,18 @@ export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
   const esRevocarCompartir = req.method === 'DELETE' && req.originalUrl.endsWith('/itinerary/share');
   if (!req.user.agency || req.method === 'GET' || esAdmin(req.user) || esRevocarCompartir) return next();
 
-  const agencia = await Agency.findById(req.user.agency).select('billing createdAt');
+  const agencia = await Agency.findById(req.user.agency).select('status billing createdAt');
   if (!agencia) return next();
 
-  // 1. Acceso activo por suscripción pagada o periodo de prueba (trial) vigente
+  // Regla P02: Si la agencia está archivada, ninguna operación de escritura corporativa está permitida,
+  // y el bypass administrativo no debe saltarse el archivo.
+  if (agencia.status === 'archivada') {
+    throw ApiError.forbidden(
+      'Esta agencia se encuentra archivada. No se permite crear, editar ni eliminar contenido corporativo.'
+    );
+  }
+
+  if (esAdmin(req.user)) return next();
   if (agencia.tieneAccesoActivo) return next();
 
   const finTrial =

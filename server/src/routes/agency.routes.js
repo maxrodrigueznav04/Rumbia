@@ -5,7 +5,13 @@ import { joinAgencyLimiter } from '../middleware/rateLimiters.js';
 import validate from '../middleware/validate.js';
 import subirLogo from '../middleware/subirLogo.js';
 import billingRoutes from './billing.routes.js';
-import { createAgencySchema, updateAgencySchema, joinAgencySchema } from '../validators/schemas.js';
+import {
+  createAgencySchema,
+  updateAgencySchema,
+  joinAgencySchema,
+  solicitarTransferenciaSchema,
+  archivarAgenciaSchema,
+} from '../validators/schemas.js';
 
 /** Todo aqui requiere sesion: una agencia solo existe en relacion a sus agentes. */
 const router = Router();
@@ -24,5 +30,12 @@ router.post('/codigo', ctrl.regenerarCodigo);
 router.delete('/miembros/:userId', ctrl.eliminarMiembro);
 router.get('/reporte', ctrl.obtenerReporte);
 router.get('/auditoria', ctrl.obtenerAuditoria);
+
+// Ciclo de vida: transferencia y archivo (P02)
+router.post('/transferir/solicitar', validate(solicitarTransferenciaSchema), ctrl.solicitarTransferencia);
+router.post('/transferir/aceptar', ctrl.aceptarTransferencia);
+router.post('/transferir/cancelar', ctrl.cancelarTransferencia);
+router.post('/transferir/rechazar', ctrl.rechazarTransferencia);
+router.post('/archivar', validate(archivarAgenciaSchema), ctrl.archivarAgencia);
 
 export default router;
