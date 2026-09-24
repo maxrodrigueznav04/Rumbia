@@ -34,6 +34,7 @@ El editor debe ofrecer diseños de partida, pero una agencia puede crear una com
 - Diseño reutilizable de encabezado de día y tarjeta de actividad; paginación automática del itinerario.
 - Secciones de resumen de transporte/hospedaje, precio e inclusiones/condiciones que puedan ordenarse y ocultarse.
 - Ajustes propios de una propuesta sin modificar la plantilla maestra.
+- Imágenes interiores opcionales: la agencia puede omitirlas sin dejar un hueco. El diseño reorganiza contenido propio del viaje en ese espacio. La portada puede conservar su imagen de forma independiente.
 - Vista previa y PDF A4 con composición concordante. La primera entrega de la plantilla visual es exclusivamente PDF; el enlace web actual sigue disponible como un entregable separado, identificado con claridad.
 - Versiones de plantilla y registro de la versión entregada. Una propuesta enviada no cambia silenciosamente al editar la plantilla o el viaje.
 
@@ -52,6 +53,7 @@ El editor debe ofrecer diseños de partida, pero una agencia puede crear una com
 4. Un cambio en la plantilla maestra no modifica una propuesta ya entregada; una edición propia del viaje no modifica la plantilla.
 5. Ningún campo interno o costo neto puede insertarse mediante variables de la plantilla ni filtrarse en la exportación.
 6. Un agente sin permiso de administración no puede modificar o eliminar la plantilla maestra de la agencia.
+7. La misma plantilla puede emitir una propuesta sin imagen interior, sin cuadro vacío ni solicitud obligatoria de subir una foto. Activar una imagen interior en otra versión no modifica la portada.
 
 ## Validación antes de ampliar el editor
 
