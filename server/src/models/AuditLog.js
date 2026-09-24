@@ -32,6 +32,9 @@ export const ACCIONES_AUDITORIA = [
   'agencia.archivada',
   'agencia.owner_eliminado',
   'agencia.owner_salio',
+  'agencia.trabajo_billing_encolado',
+  'agencia.trabajo_billing_completado',
+  'agencia.trabajo_billing_fallido',
 ];
 
 const auditLogSchema = new mongoose.Schema(

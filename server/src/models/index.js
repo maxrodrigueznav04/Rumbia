@@ -15,3 +15,4 @@ export { default as TripChat } from './TripChat.js';
 export { default as AuditLog, ACCIONES_AUDITORIA } from './AuditLog.js';
 export { default as Client } from './Client.js';
 export { default as StripeEvent } from './StripeEvent.js';
+export { default as PendingBillingJob, TIPOS_TRABAJO_BILLING, ESTADOS_TRABAJO_BILLING } from './PendingBillingJob.js';

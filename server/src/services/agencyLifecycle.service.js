@@ -1,5 +1,7 @@
 import { Agency, User, AuditLog } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
+import stripeService from './stripe.service.js';
+import { encolarPendienteBilling } from './billingQueue.service.js';
 
 const DIAS_VIGENCIA_TRANSFERENCIA = 7;
 
@@ -11,6 +13,7 @@ const DIAS_VIGENCIA_TRANSFERENCIA = 7;
  * - La agencia debe estar activa.
  * - El destinatario debe existir, no ser el dueño actual y pertenecer a la misma agencia.
  * - Solo se permite una solicitud vigente a la vez (vigencia: 7 días).
+ * - Concurrencia: optimismo por version y atomicidad.
  */
 export async function solicitarTransferencia({ agencyId, actor, destinatarioId, password }) {
   if (!actor || !actor.agency || String(actor.agency) !== String(agencyId)) {
@@ -29,7 +32,7 @@ export async function solicitarTransferencia({ agencyId, actor, destinatarioId, 
     throw ApiError.forbidden('Solo el dueño de la agencia puede transferir la propiedad.');
   }
 
-  if (agencia.status !== 'activa') {
+  if (agencia.status === 'archivada') {
     throw ApiError.badRequest('No se puede transferir una agencia archivada.');
   }
 
@@ -49,8 +52,23 @@ export async function solicitarTransferencia({ agencyId, actor, destinatarioId, 
 
   const expiraEn = new Date(ahora.getTime() + DIAS_VIGENCIA_TRANSFERENCIA * 24 * 60 * 60 * 1000);
 
+  // Control de concurrencia optimista por versión y validación de transferencia existente
   const agenciaActualizada = await Agency.findOneAndUpdate(
-    { _id: agencyId, owner: actor._id, status: 'activa' },
+    {
+      _id: agencyId,
+      owner: actor._id,
+      version: agencia.version,
+      $and: [
+        { $or: [{ status: 'activa' }, { status: { $exists: false } }] },
+        {
+          $or: [
+            { 'transferenciaPendiente.destinatario': { $exists: false } },
+            { 'transferenciaPendiente.destinatario': null },
+            { 'transferenciaPendiente.expiraEn': { $lte: ahora } },
+          ],
+        },
+      ],
+    },
     {
       $set: {
         transferenciaPendiente: {
@@ -66,7 +84,7 @@ export async function solicitarTransferencia({ agencyId, actor, destinatarioId, 
   );
 
   if (!agenciaActualizada) {
-    throw ApiError.conflict('La agencia cambió de estado o ya no eres el dueño.');
+    throw ApiError.conflict('Ya existe una solicitud de transferencia pendiente o la agencia cambió de estado concurrente.');
   }
 
   await AuditLog.registrar({
@@ -89,9 +107,11 @@ export async function solicitarTransferencia({ agencyId, actor, destinatarioId, 
  * - Requiere sesión activa del destinatario.
  * - La solicitud debe existir y no estar vencida.
  * - La agencia debe estar activa.
- * - El destinatario debe seguir siendo miembro activo de la agencia.
+ * - El destinatario debe seguir siendo miembro activo de la agencia (revalidado en DB).
  * - La transferencia cambia `owner`, pero conserva intacta la autoría histórica (`user`)
  *   y la pertenencia (`agency`) de todos los viajes, itinerarios y gastos.
+ * - Facturación: el pagador anterior se disocia a historialPagadores, no renueva,
+ *   y el nuevo dueño no hereda acceso al Customer Portal ni métodos de pago del anterior.
  * - El dueño anterior pasa a ser un miembro normal sin privilegios exclusivos de dueño.
  */
 export async function aceptarTransferencia({ agencyId, actor }) {
@@ -100,7 +120,7 @@ export async function aceptarTransferencia({ agencyId, actor }) {
   const agencia = await Agency.findById(agencyId);
   if (!agencia) throw ApiError.notFound('Agencia no encontrada.');
 
-  if (agencia.status !== 'activa') {
+  if (agencia.status === 'archivada') {
     throw ApiError.badRequest('La agencia no se encuentra activa.');
   }
 
@@ -119,16 +139,42 @@ export async function aceptarTransferencia({ agencyId, actor }) {
     throw ApiError.badRequest('La solicitud de transferencia ha expirado.');
   }
 
-  if (!actor.agency || String(actor.agency) !== String(agencyId)) {
+  // Revalidar que el destinatario siga perteneciendo a la agencia (previene carreras con expulsión)
+  const miembroActivo = await User.findOne({ _id: actor._id, agency: agencyId });
+  if (!miembroActivo) {
     throw ApiError.forbidden('Ya no perteneces a esta agencia.');
   }
 
   const antiguoDueno = await User.findById(agencia.owner);
 
+  // Detener la renovación del acuerdo anterior en Stripe (P02)
+  if (agencia.billing?.stripeSubscriptionId) {
+    const resRenovacion = await stripeService.detenerRenovacion({ agencia });
+    if (!resRenovacion.ok) {
+      await encolarPendienteBilling({
+        agencyId,
+        tipo: 'detener_renovacion',
+        datos: {
+          stripeSubscriptionId: agencia.billing.stripeSubscriptionId,
+          stripeCustomerId: agencia.billing.stripeCustomerId,
+        },
+        actor: actor._id,
+      });
+    }
+  }
+
+  const pagadorAnterior = {
+    stripeCustomerId: agencia.billing?.stripeCustomerId || '',
+    stripeSubscriptionId: agencia.billing?.stripeSubscriptionId || '',
+    transferidoEn: ahora,
+    desasociadoPor: actor._id,
+  };
+
   const agenciaActualizada = await Agency.findOneAndUpdate(
     {
       _id: agencyId,
-      status: 'activa',
+      $or: [{ status: 'activa' }, { status: { $exists: false } }],
+      version: agencia.version,
       'transferenciaPendiente.destinatario': actor._id,
       'transferenciaPendiente.expiraEn': { $gt: ahora },
     },
@@ -136,6 +182,13 @@ export async function aceptarTransferencia({ agencyId, actor }) {
       $set: {
         owner: actor._id,
         transferenciaPendiente: null,
+        'billing.stripeCustomerId': '',
+        'billing.stripeSubscriptionId': '',
+        'billing.checkoutSessionId': '',
+        'billing.cancelaAlFinalizarPeriodo': true,
+      },
+      $push: {
+        'billing.historialPagadores': pagadorAnterior,
       },
       $inc: { version: 1 },
     },
@@ -143,14 +196,14 @@ export async function aceptarTransferencia({ agencyId, actor }) {
   );
 
   if (!agenciaActualizada) {
-    throw ApiError.conflict('La transferencia ya fue procesada, expiró o la agencia cambió de estado.');
+    throw ApiError.conflict('La transferencia ya fue procesada, expiró o la agencia cambió de estado concurrente.');
   }
 
   await AuditLog.registrar({
     agency: agencyId,
     actor,
     accion: 'agencia.transferencia_aceptada',
-    detalle: `Aceptó la propiedad de la agencia transferida por ${antiguoDueno?.name || 'dueño anterior'} (${antiguoDueno?.email || 'N/A'}).`,
+    detalle: `Aceptó la propiedad de la agencia transferida por ${antiguoDueno?.name || 'dueño anterior'} (${antiguoDueno?.email || 'N/A'}). Pagador anterior desasociado.`,
   });
 
   return { agency: agenciaActualizada };
@@ -173,13 +226,22 @@ export async function cancelarTransferencia({ agencyId, actor }) {
   }
 
   const agenciaActualizada = await Agency.findOneAndUpdate(
-    { _id: agencyId, owner: actor._id },
+    {
+      _id: agencyId,
+      owner: actor._id,
+      version: agencia.version,
+      'transferenciaPendiente.destinatario': { $ne: null },
+    },
     {
       $set: { transferenciaPendiente: null },
       $inc: { version: 1 },
     },
     { new: true }
   );
+
+  if (!agenciaActualizada) {
+    throw ApiError.conflict('La solicitud de transferencia ya cambió de estado.');
+  }
 
   await AuditLog.registrar({
     agency: agencyId,
@@ -209,13 +271,21 @@ export async function rechazarTransferencia({ agencyId, actor }) {
   }
 
   const agenciaActualizada = await Agency.findOneAndUpdate(
-    { _id: agencyId, 'transferenciaPendiente.destinatario': actor._id },
+    {
+      _id: agencyId,
+      version: agencia.version,
+      'transferenciaPendiente.destinatario': actor._id,
+    },
     {
       $set: { transferenciaPendiente: null },
       $inc: { version: 1 },
     },
     { new: true }
   );
+
+  if (!agenciaActualizada) {
+    throw ApiError.conflict('La solicitud de transferencia ya cambió de estado.');
+  }
 
   await AuditLog.registrar({
     agency: agencyId,
@@ -235,6 +305,7 @@ export async function rechazarTransferencia({ agencyId, actor }) {
  * - Requiere confirmación con contraseña y palabra 'ARCHIVAR'.
  * - Conserva físicamente los documentos corporativos (viajes, gastos, plantillas, clientes).
  * - Conserva las membresías de los agentes restantes (en modo solo lectura / exportación).
+ * - Facturación: cancela suscripción activa en Stripe o encola reintento si falla; expira checkout abierto.
  * - Suspende escrituras corporativas (status = 'archivada').
  * - Invalida invitaciones y transferencias pendientes.
  * - Invalida/revoca el acceso a enlaces públicos de propuestas de la agencia.
@@ -262,15 +333,52 @@ export async function archivarAgencia({ agencyId, actor, password, confirmacion 
 
   const ahora = new Date();
 
-  // Atomically update to archived status, clear pending transfers, regenerate invite code
+  // Cancelar suscripción activa en Stripe (P02)
+  if (agencia.billing?.stripeSubscriptionId) {
+    const resCancel = await stripeService.cancelarSuscripcion({ agencia });
+    if (!resCancel.ok) {
+      await encolarPendienteBilling({
+        agencyId,
+        tipo: 'cancelar_suscripcion',
+        datos: {
+          stripeSubscriptionId: agencia.billing.stripeSubscriptionId,
+          stripeCustomerId: agencia.billing.stripeCustomerId,
+        },
+        actor: actor._id,
+      });
+    }
+  }
+
+  // Expirar checkout abierto si existe (P02)
+  if (agencia.billing?.checkoutSessionId) {
+    const resExp = await stripeService.expirarSesionCheckout(agencia.billing.checkoutSessionId);
+    if (!resExp.ok) {
+      await encolarPendienteBilling({
+        agencyId,
+        tipo: 'expirar_checkout',
+        datos: {
+          checkoutSessionId: agencia.billing.checkoutSessionId,
+        },
+        actor: actor._id,
+      });
+    }
+  }
+
+  // Actualización atómica del estado a archivada con control de versión
   const agenciaActualizada = await Agency.findOneAndUpdate(
-    { _id: agencyId, owner: actor._id, status: 'activa' },
+    {
+      _id: agencyId,
+      owner: actor._id,
+      status: { $ne: 'archivada' },
+      version: agencia.version,
+    },
     {
       $set: {
         status: 'archivada',
         archivedAt: ahora,
         archivedBy: actor._id,
         transferenciaPendiente: null,
+        'billing.checkoutSessionId': '',
       },
       $inc: { version: 1 },
     },
@@ -278,7 +386,7 @@ export async function archivarAgencia({ agencyId, actor, password, confirmacion 
   );
 
   if (!agenciaActualizada) {
-    throw ApiError.conflict('La agencia ya fue archivada o cambió de dueño.');
+    throw ApiError.conflict('La agencia ya fue archivada o cambió de estado concurrentemente.');
   }
 
   agenciaActualizada.regenerarCodigo();

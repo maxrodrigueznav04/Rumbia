@@ -303,6 +303,8 @@ export const createTripSchema = z
     interests: z.array(z.enum(TRAVEL_STYLES)).max(5).optional(),
     pace: z.enum(TRIP_PACES).optional(),
     budgetLevel: z.enum(BUDGET_LEVELS).optional(),
+    esPersonal: z.boolean().optional(),
+    personal: z.boolean().optional(),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: 'La fecha de regreso no puede ser anterior a la de salida.',
@@ -518,6 +520,8 @@ export const createClientSchema = z.object({
   notas: z.string().trim().max(2000).optional(),
   origen: z.string().trim().max(80).optional(),
   etiquetas: z.array(z.string().trim().max(40)).max(20).optional(),
+  esPersonal: z.boolean().optional(),
+  personal: z.boolean().optional(),
 });
 
 export const updateClientSchema = z

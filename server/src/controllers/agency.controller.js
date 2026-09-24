@@ -306,6 +306,17 @@ export const eliminarMiembro = asyncHandler(async (req, res) => {
   miembro.agency = null;
   await miembro.save();
 
+  // Si el miembro expulsado era el destinatario de una transferencia pendiente, anularla y versionar (P02)
+  if (
+    agencia.transferenciaPendiente?.destinatario &&
+    String(agencia.transferenciaPendiente.destinatario) === String(miembro._id)
+  ) {
+    await Agency.updateOne(
+      { _id: agencia._id },
+      { $set: { transferenciaPendiente: null }, $inc: { version: 1 } }
+    );
+  }
+
   await AuditLog.registrar({
     agency: agencia._id,
     actor: req.user,

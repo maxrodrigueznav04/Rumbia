@@ -67,6 +67,15 @@ export const sendMessage = asyncHandler(async (req, res) => {
   const { message, tripId } = req.body;
   const trip = await resolveTrip(tripId, req.user);
 
+  if (trip?.agency) {
+    const agencia = await Agency.findById(trip.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite generar ni modificar contenido corporativo.'
+      );
+    }
+  }
+
   verificarCupoChat(req.user); // no-op si tiene agencia (ver arriba)
 
   // Con agencia, Inicio topa a 60 mensajes/mes; Agencia y Pro no tienen tope
@@ -109,6 +118,16 @@ export const sendMessage = asyncHandler(async (req, res) => {
 export const clearChat = asyncHandler(async (req, res) => {
   const { tripId } = req.validatedQuery;
   const trip = await resolveTrip(tripId, req.user);
+
+  if (trip?.agency) {
+    const agencia = await Agency.findById(trip.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite generar ni modificar contenido corporativo.'
+      );
+    }
+  }
+
   await TripChat.deleteOne({ user: req.user._id, trip: trip?._id || null });
 
   res.json({ success: true, message: 'Chat reiniciado.' });

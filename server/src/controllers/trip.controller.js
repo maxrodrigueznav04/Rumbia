@@ -1,4 +1,4 @@
-import { Trip, Itinerary, Expense, Client, TripChat } from '../models/index.js';
+import { Trip, Itinerary, Expense, Client, TripChat, Agency } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
@@ -223,7 +223,19 @@ export const createTrip = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Cliente no encontrado.');
   }
 
-  const payload = { ...req.body, user: req.user._id, agency: req.user.agency || null };
+  const esPersonal = req.body.esPersonal === true || req.body.personal === true;
+  const targetAgency = esPersonal ? null : (req.user.agency || null);
+
+  if (targetAgency) {
+    const agencia = await Agency.findById(targetAgency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite crear contenido corporativo.'
+      );
+    }
+  }
+
+  const payload = { ...req.body, user: req.user._id, agency: targetAgency };
 
   // Moneda por defecto: la del perfil, si el usuario no mando una.
   if (!payload.budget?.currency) {
@@ -264,6 +276,16 @@ export const CAMPOS_EDITABLES_DIRECTO = [
 
 export const updateTrip = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.params.id, req.user);
+
+  // P02: Si el viaje pertenece a una agencia archivada, no se puede modificar (incluso por admin)
+  if (trip.agency) {
+    const agencia = await Agency.findById(trip.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite crear, editar ni eliminar contenido corporativo.'
+      );
+    }
+  }
 
   const fechasPrevias = `${trip.startDate?.getTime()}-${trip.endDate?.getTime()}`;
 
@@ -331,6 +353,17 @@ export const updateTrip = asyncHandler(async (req, res) => {
  */
 export const duplicarViaje = asyncHandler(async (req, res) => {
   const original = await findOwnedTrip(req.params.id, req.user);
+
+  // P02: Si el viaje pertenece a una agencia archivada, no se puede duplicar hacia la agencia
+  if (original.agency) {
+    const agencia = await Agency.findById(original.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite crear, editar ni eliminar contenido corporativo.'
+      );
+    }
+  }
+
   const itinerarioOriginal = await Itinerary.findOne({ trip: original._id });
 
   const copia = await Trip.create({
@@ -405,6 +438,16 @@ export const duplicarViaje = asyncHandler(async (req, res) => {
 
 export const deleteTrip = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.params.id, req.user);
+
+  // P02: Si el viaje pertenece a una agencia corporativa archivada, no se puede eliminar (incluso por admin)
+  if (trip.agency) {
+    const agencia = await Agency.findById(trip.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden(
+        'Esta agencia se encuentra archivada. No se permite crear, editar ni eliminar contenido corporativo.'
+      );
+    }
+  }
 
   // Compartir visibilidad con la agencia no es lo mismo que compartir el
   // permiso de borrar: mismo criterio que ya usa templates.controller.js

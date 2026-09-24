@@ -4,7 +4,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { convertirTotales } from '../services/exchange.service.js';
 
-async function findOwnedExpense(expenseId, user) {
+async function findOwnedExpense(expenseId, user, { forWrite = false } = {}) {
   const expense = await Expense.findById(expenseId);
   if (!expense) throw ApiError.notFound('Gasto no encontrado.');
 
@@ -23,6 +23,10 @@ async function findOwnedExpense(expenseId, user) {
   }
 
   const agencia = await Agency.findById(trip.agency);
+  if (forWrite && agencia?.status === 'archivada') {
+    throw ApiError.forbidden('Esta agencia se encuentra archivada. No se permite modificar gastos corporativos.');
+  }
+
   const esDuenoAgencia = agencia && String(agencia.owner) === String(user._id);
   const esAutorGasto = String(expense.user) === String(user._id);
 
@@ -71,6 +75,13 @@ export const listExpenses = asyncHandler(async (req, res) => {
 export const createExpense = asyncHandler(async (req, res) => {
   const trip = await findOwnedTrip(req.body.trip, req.user);
 
+  if (trip.agency) {
+    const agencia = await Agency.findById(trip.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta agencia se encuentra archivada. No se permite crear gastos corporativos.');
+    }
+  }
+
   const expense = await Expense.create({
     ...req.body,
     user: req.user._id,
@@ -81,7 +92,7 @@ export const createExpense = asyncHandler(async (req, res) => {
 });
 
 export const updateExpense = asyncHandler(async (req, res) => {
-  const expense = await findOwnedExpense(req.params.id, req.user);
+  const expense = await findOwnedExpense(req.params.id, req.user, { forWrite: true });
   Object.assign(expense, req.body);
   await expense.save();
 
@@ -89,7 +100,7 @@ export const updateExpense = asyncHandler(async (req, res) => {
 });
 
 export const deleteExpense = asyncHandler(async (req, res) => {
-  const expense = await findOwnedExpense(req.params.id, req.user);
+  const expense = await findOwnedExpense(req.params.id, req.user, { forWrite: true });
   await expense.deleteOne();
 
   res.json({ success: true, message: 'Gasto eliminado.' });

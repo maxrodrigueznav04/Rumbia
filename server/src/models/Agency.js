@@ -149,6 +149,16 @@ const billingSchema = new mongoose.Schema(
     // crear una segunda si el dueno le da doble clic o tiene dos pestañas
     // abiertas del mismo formulario. Ver stripe.service.js.
     checkoutSessionId: { type: String, default: '' },
+    // Historial de pagadores previos (separación de pagador en transferencia de dueño, P02).
+    // El nuevo dueño no hereda stripeCustomerId ni acceso al Customer Portal del pagador anterior.
+    historialPagadores: [
+      {
+        stripeCustomerId: { type: String, default: '' },
+        stripeSubscriptionId: { type: String, default: '' },
+        transferidoEn: { type: Date, default: Date.now },
+        desasociadoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      },
+    ],
   },
   { _id: false }
 );

@@ -321,8 +321,66 @@ export async function cancelarSuscripcion({ agencia }) {
     await stripe.subscriptions.cancel(subscriptionId);
     return { ok: true };
   } catch (err) {
+    if (err.code === 'resource_missing' || err.message?.includes('No such subscription')) {
+      return { ok: true };
+    }
     console.error(`[stripe] No se pudo cancelar la suscripcion ${subscriptionId} de la agencia ${agencia._id}: ${err.message}`);
-    return { ok: false, subscriptionId };
+    return { ok: false, error: err.message, subscriptionId };
+  }
+}
+
+export async function cancelarSuscripcionDirecto(subscriptionId) {
+  if (!stripe || !subscriptionId) return { ok: true };
+  try {
+    await stripe.subscriptions.cancel(subscriptionId);
+    return { ok: true };
+  } catch (err) {
+    if (err.code === 'resource_missing' || err.message?.includes('No such subscription')) {
+      return { ok: true };
+    }
+    throw err;
+  }
+}
+
+export async function detenerRenovacion({ agencia }) {
+  const subscriptionId = agencia?.billing?.stripeSubscriptionId;
+  if (!stripe || !subscriptionId) return { ok: true };
+  try {
+    await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
+    return { ok: true };
+  } catch (err) {
+    if (err.code === 'resource_missing' || err.message?.includes('No such subscription')) {
+      return { ok: true };
+    }
+    console.error(`[stripe] No se pudo detener renovacion ${subscriptionId} de agencia ${agencia._id}: ${err.message}`);
+    return { ok: false, error: err.message, subscriptionId };
+  }
+}
+
+export async function detenerRenovacionDirecto(subscriptionId) {
+  if (!stripe || !subscriptionId) return { ok: true };
+  try {
+    await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
+    return { ok: true };
+  } catch (err) {
+    if (err.code === 'resource_missing' || err.message?.includes('No such subscription')) {
+      return { ok: true };
+    }
+    throw err;
+  }
+}
+
+export async function expirarSesionCheckout(sessionId) {
+  if (!stripe || !sessionId) return { ok: true };
+  try {
+    await stripe.checkout.sessions.expire(sessionId);
+    return { ok: true };
+  } catch (err) {
+    if (err.code === 'resource_missing' || err.message?.includes('No such checkout') || err.message?.includes('cannot expire')) {
+      return { ok: true };
+    }
+    console.warn(`[stripe] No se pudo expirar sesion de checkout ${sessionId}: ${err.message}`);
+    return { ok: false, error: err.message, sessionId };
   }
 }
 
@@ -358,5 +416,9 @@ export default {
   cambiarAgentesSuscripcion,
   resolverPlanDesdeSuscripcion,
   cancelarSuscripcion,
+  cancelarSuscripcionDirecto,
+  detenerRenovacion,
+  detenerRenovacionDirecto,
+  expirarSesionCheckout,
   construirEvento,
 };

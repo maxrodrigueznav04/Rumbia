@@ -1,4 +1,4 @@
-import { Client, Trip } from '../models/index.js';
+import { Client, Trip, Agency } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { escaparRegex } from './trip.controller.js';
@@ -101,10 +101,20 @@ export const obtenerCliente = asyncHandler(async (req, res) => {
 });
 
 export const crearCliente = asyncHandler(async (req, res) => {
+  const esPersonal = req.body.esPersonal === true || req.body.personal === true;
+  const targetAgency = esPersonal ? null : (req.user.agency || null);
+
+  if (targetAgency) {
+    const agencia = await Agency.findById(targetAgency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta agencia se encuentra archivada. No se permite registrar clientes corporativos.');
+    }
+  }
+
   const payload = {
     ...req.body,
     user: req.user._id,
-    agency: req.user.agency || null,
+    agency: targetAgency,
   };
 
   const cliente = await Client.create(payload);
@@ -124,6 +134,13 @@ export const actualizarCliente = asyncHandler(async (req, res) => {
 
   if (!cliente) {
     throw ApiError.notFound('Cliente no encontrado.');
+  }
+
+  if (cliente.agency) {
+    const agencia = await Agency.findById(cliente.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta agencia se encuentra archivada. No se permite modificar clientes corporativos.');
+    }
   }
 
   const campos = ['nombre', 'email', 'telefono', 'notas', 'origen', 'etiquetas'];
@@ -158,6 +175,13 @@ export const eliminarCliente = asyncHandler(async (req, res) => {
 
   if (!cliente) {
     throw ApiError.notFound('Cliente no encontrado.');
+  }
+
+  if (cliente.agency) {
+    const agencia = await Agency.findById(cliente.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta agencia se encuentra archivada. No se permite eliminar clientes corporativos.');
+    }
   }
 
   await cliente.deleteOne();

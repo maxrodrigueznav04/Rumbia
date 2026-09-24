@@ -1,4 +1,4 @@
-import { Trip, Itinerary, ItineraryTemplate } from '../models/index.js';
+import { Trip, Itinerary, ItineraryTemplate, Agency } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { addDays } from '../utils/dates.js';
@@ -69,6 +69,14 @@ export const eliminar = asyncHandler(async (req, res) => {
     throw ApiError.forbidden('Ya no perteneces a la agencia con la que se comparte esta plantilla.');
   }
 
+  // P02: Si la plantilla pertenece a una agencia archivada, no se puede eliminar (ni por admin)
+  if (plantilla.agency) {
+    const agencia = await Agency.findById(plantilla.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta plantilla pertenece a una agencia archivada y no puede eliminarse.');
+    }
+  }
+
   await plantilla.deleteOne();
   res.json({ success: true, message: 'Plantilla eliminada.' });
 });
@@ -80,6 +88,12 @@ export const eliminar = asyncHandler(async (req, res) => {
  */
 export const aplicar = asyncHandler(async (req, res) => {
   const plantilla = await plantillaVisible(req.params.id, req.user);
+  if (plantilla.agency) {
+    const agencia = await Agency.findById(plantilla.agency).select('status');
+    if (agencia?.status === 'archivada') {
+      throw ApiError.forbidden('Esta agencia se encuentra archivada y no permite crear nuevos viajes.');
+    }
+  }
   const { title, startDate, endDate, travelers, budget, cliente } = req.body;
 
   const trip = await Trip.create({

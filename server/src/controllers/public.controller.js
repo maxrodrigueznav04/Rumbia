@@ -360,6 +360,14 @@ export const aceptarPropuesta = asyncHandler(async (req, res) => {
   const tripActual = await Trip.findById(itinerary.trip);
   if (!tripActual) throw ApiError.notFound('El viaje de este itinerario ya no existe.');
 
+  // Si el viaje pertenece a una agencia archivada, revocar aceptación pública (P02)
+  if (tripActual.agency) {
+    const agenciaTrip = await Agency.findById(tripActual.agency).select('status');
+    if (agenciaTrip?.status === 'archivada') {
+      throw ApiError.notFound('Este itinerario ya no está disponible.');
+    }
+  }
+
   const aceptacion = {
     en: new Date(),
     ip: req.ip || '',

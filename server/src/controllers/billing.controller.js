@@ -85,6 +85,11 @@ export const cambiarAgentes = asyncHandler(async (req, res) => {
 /** Portal de Stripe: cambiar tarjeta, cancelar, ver facturas. Nada de eso vive en Rumbia. */
 export const abrirPortal = asyncHandler(async (req, res) => {
   const agencia = await agenciaComoDueno(req);
+  if (!agencia.billing?.stripeCustomerId) {
+    throw ApiError.badRequest(
+      'Esta agencia no tiene una suscripción ni datos de pago registrados a tu nombre. Configura tu suscripción desde Checkout.'
+    );
+  }
   const url = await stripeService.crearSesionPortal({ agencia });
   res.json({ success: true, data: { url } });
 });
@@ -99,10 +104,12 @@ export const abrirPortal = asyncHandler(async (req, res) => {
  * ejemplo, una cancelacion seguida de un `checkout.session.completed`
  * atrasado que reactivaba la agencia por error.
  */
-async function aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate) {
+async function aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate, filtroAdicional = {}) {
   await Agency.updateOne(
     {
       _id: agencyId,
+      status: { $ne: 'archivada' },
+      ...filtroAdicional,
       $or: [
         { 'billing.ultimoEventoStripeEn': { $exists: false } },
         { 'billing.ultimoEventoStripeEn': { $lte: eventoCreatedDate } },
@@ -223,7 +230,14 @@ export const webhook = asyncHandler(async (req, res) => {
         }
       }
 
-      await aplicarSiEsFresco(agencyId, eventoCreatedDate, camposUpdate);
+      // P02: Si la agencia está archivada o si este webhook pertenece a una suscripción
+      // previa de un pagador anterior (historialPagadores), no sobreescribe la agencia.
+      await aplicarSiEsFresco(
+        agencyId,
+        eventoCreatedDate,
+        camposUpdate,
+        { 'billing.historialPagadores.stripeSubscriptionId': { $ne: sub.id } }
+      );
       break;
     }
 

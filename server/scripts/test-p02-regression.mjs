@@ -17,7 +17,11 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import http from 'http';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import mongoose from 'mongoose';
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Valida estrictamente que una URI apunte a una base de datos MongoDB local.
@@ -79,6 +83,8 @@ export function validarMongoUriLocal(uri) {
   return true;
 }
 
+process.env.JWT_SECRET ||= 'test_only_rumbia_regression_secret_1234567890';
+
 const esEjecucionDirecta = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (esEjecucionDirecta) {
@@ -102,16 +108,16 @@ if (esEjecucionDirecta) {
   }
 
   process.env.MONGO_URI = mongoUri;
-  process.env.JWT_SECRET ||= 'test_only_rumbia_regression_secret_1234567890';
   process.env.NODE_ENV = 'test';
 }
 
-let app, signToken, User, Trip, Expense, Itinerary, Agency, ItineraryTemplate;
+let app, signToken, User, Trip, Expense, Itinerary, Agency, ItineraryTemplate, Client, PendingBillingJob, AuditLog, encolarPendienteBilling, procesarPendientesBilling;
 
 if (esEjecucionDirecta) {
   ({ default: app } = await import('../src/app.js'));
   ({ signToken } = await import('../src/middleware/auth.js'));
-  ({ User, Trip, Expense, Itinerary, Agency, ItineraryTemplate } = await import('../src/models/index.js'));
+  ({ User, Trip, Expense, Itinerary, Agency, ItineraryTemplate, Client, PendingBillingJob, AuditLog } = await import('../src/models/index.js'));
+  ({ encolarPendienteBilling, procesarPendientesBilling } = await import('../src/services/billingQueue.service.js'));
 }
 
 let server;
@@ -173,11 +179,13 @@ function assert(condition, message) {
 async function cleanupTestData(tag) {
   const users = await User.find({ email: new RegExp(tag, 'i') });
   const userIds = users.map((u) => u._id);
-  const agencies = await Agency.find({ owner: { $in: userIds } });
+  const agencies = await Agency.find({ $or: [{ owner: { $in: userIds } }, { agencyName: new RegExp(tag, 'i') }] });
   const agencyIds = agencies.map((a) => a._id);
 
   await Expense.deleteMany({ $or: [{ user: { $in: userIds } }, { trip: { $in: await Trip.find({ $or: [{ user: { $in: userIds } }, { agency: { $in: agencyIds } }] }).distinct('_id') } }] });
   await Itinerary.deleteMany({ user: { $in: userIds } });
+  await Client.deleteMany({ $or: [{ user: { $in: userIds } }, { agency: { $in: agencyIds } }] });
+  await PendingBillingJob.deleteMany({ agency: { $in: agencyIds } });
   await ItineraryTemplate.deleteMany({ $or: [{ user: { $in: userIds } }, { agency: { $in: agencyIds } }] });
   await Trip.deleteMany({ $or: [{ user: { $in: userIds } }, { agency: { $in: agencyIds } }] });
   await Agency.deleteMany({ _id: { $in: agencyIds } });
@@ -1271,6 +1279,511 @@ async function main() {
 
       const checkExpenseCorp = await Expense.findById(expenseCorp14b._id);
       assert(checkExpenseCorp !== null, 'El gasto corporativo fue eliminado');
+    });
+
+    // -------------------------------------------------------------
+    // CASO 15: Facturación - Protección de Pagador Anterior, Reintentos y Webhooks Tardíos
+    // -------------------------------------------------------------
+    await runTest('15. Facturación P02: Transferir oculta portal/método del pagador anterior; reintentos de Stripe encolados; webhooks tardíos ignorados', async () => {
+      // 1. Crear dueño y miembro con suscripción activa previa
+      const owner15 = await crearUsuario(`owner15_${TAG}@test.com`, 'Owner 15', 'dueno_agencia');
+      const member15 = await crearUsuario(`member15_${TAG}@test.com`, 'Member 15', 'agente');
+      const agency15 = await Agency.create({
+        agencyName: `Agencia 15 Billing ${TAG}`,
+        owner: owner15._id,
+        members: [{ user: member15._id, role: 'agente', joinedAt: new Date() }],
+        status: 'activa',
+        billing: {
+          status: 'activa',
+          plan: 'agencia_mensual',
+          stripeCustomerId: 'cus_owner15_secret',
+          stripeSubscriptionId: 'sub_owner15_secret',
+          ultimoEventoStripeEn: new Date('2026-09-01T00:00:00Z'),
+        },
+      });
+      owner15.agency = agency15._id;
+      await owner15.save();
+      member15.agency = agency15._id;
+      await member15.save();
+
+      // 2. Transferencia al miembro
+      const transferRes = await req('POST', '/agency/transferir/solicitar', {
+        user: owner15,
+        body: { destinatarioId: String(member15._id), password: 'Password123!' },
+      });
+      assert(transferRes.status === 200, `Solicitar transferencia respondió ${transferRes.status}`);
+
+      const acceptRes = await req('POST', '/agency/transferir/aceptar', { user: member15 });
+      assert(acceptRes.status === 200, `Aceptar transferencia respondió ${acceptRes.status}`);
+
+      // Verificar que el nuevo dueño NO tiene stripeCustomerId/SubscriptionId activos y están en historialPagadores
+      const agencyTrasTransfer = await Agency.findById(agency15._id);
+      assert(!agencyTrasTransfer.billing.stripeCustomerId, 'stripeCustomerId no fue limpiado tras transferir');
+      assert(!agencyTrasTransfer.billing.stripeSubscriptionId, 'stripeSubscriptionId no fue limpiado tras transferir');
+      assert(agencyTrasTransfer.billing.historialPagadores?.length === 1, 'historialPagadores no registró al pagador anterior');
+      assert(agencyTrasTransfer.billing.historialPagadores[0].stripeCustomerId === 'cus_owner15_secret', 'historialPagadores guardó customer erróneo');
+      assert(agencyTrasTransfer.billing.historialPagadores[0].stripeSubscriptionId === 'sub_owner15_secret', 'historialPagadores guardó subscription errónea');
+
+      // 3. Nuevo dueño intenta abrir Customer Portal de Stripe -> 400 Bad Request
+      const portalRes = await req('POST', '/agency/billing/portal', { user: member15 });
+      assert(portalRes.status === 400, `Abrir portal sin customer respondió ${portalRes.status}, se esperaba 400`);
+      assert(portalRes.json?.message?.includes('no tiene una suscripción ni datos de pago'), 'Mensaje de error inesperado en portal');
+
+      // 4. Cola de reintentos y PendingBillingJob ante fallos externos de Stripe
+      const jobEncolado = await encolarPendienteBilling({
+        agencyId: agency15._id,
+        tipo: 'cancelar_suscripcion',
+        datos: { stripeSubscriptionId: 'sub_owner15_secret' },
+        actor: owner15._id,
+      });
+      assert(jobEncolado && jobEncolado.status === 'pendiente', 'No se encoló el trabajo pendiente de billing');
+      assert(jobEncolado.intentos === 0, 'Intentos iniciales debe ser 0');
+
+      // Procesar la cola
+      const resProcesar = await procesarPendientesBilling();
+      assert(resProcesar.completados >= 1, 'El trabajo de billing en cola no fue completado');
+
+      const jobConsultado = await PendingBillingJob.findById(jobEncolado._id);
+      assert(jobConsultado.status === 'completado', 'El estado del trabajo no pasó a completado');
+
+      // 5. Webhook tardío no altera estado de agencia archivada ni sobrescribe por suscripción en historialPagadores
+      const agencyArchivada15 = await Agency.create({
+        agencyName: `Agencia 15 Archivada ${TAG}`,
+        owner: null,
+        status: 'archivada',
+        billing: {
+          status: 'congelada',
+          plan: 'inicio_mensual',
+          historialPagadores: [{ stripeSubscriptionId: 'sub_owner15_secret' }],
+          ultimoEventoStripeEn: new Date('2026-09-02T00:00:00Z'),
+        },
+      });
+
+      // Intento de actualización vía webhook con fecha posterior
+      const { webhook } = await import('../src/controllers/billing.controller.js');
+      const stripeService = (await import('../src/services/stripe.service.js')).default;
+      const origConstruirEvento = stripeService.construirEvento;
+      try {
+        stripeService.construirEvento = () => ({
+          id: `evt_tardio_${TAG}`,
+          type: 'customer.subscription.updated',
+          created: 1790000000,
+          data: {
+            object: {
+              id: 'sub_owner15_secret',
+              status: 'active',
+              current_period_end: 1790005000,
+              metadata: { agencyId: String(agencyArchivada15._id) },
+              items: { data: [{ price: { id: 'price_test' }, quantity: 1 }] },
+            },
+          },
+        });
+
+        let webhookRes = null;
+        await webhook(
+          { headers: { 'stripe-signature': 'sig' }, body: Buffer.from('test') },
+          { json: (d) => { webhookRes = d; } },
+          (err) => { throw err; }
+        );
+        assert(webhookRes?.received === true, 'Webhook no respondió received: true');
+
+        const agencyRevisada = await Agency.findById(agencyArchivada15._id);
+        assert(agencyRevisada.status === 'archivada', 'La agencia archivada fue modificada indebidamente');
+        assert(agencyRevisada.billing.status === 'congelada', 'El billing fue reactivado indebidamente por webhook tardío');
+      } finally {
+        stripeService.construirEvento = origConstruirEvento;
+      }
+    });
+
+    // -------------------------------------------------------------
+    // CASO 16: Cierre Efectivo de Agencia Archivada (Sin Bypass Admin, Enlace Público 404, Plantillas 403)
+    // -------------------------------------------------------------
+    await runTest('16. Cierre Efectivo P02: Enlace público 404; plantillas corporativas 403; admin sin bypass de archivada', async () => {
+      const owner16 = await crearUsuario(`owner16_${TAG}@test.com`, 'Owner 16', 'dueno_agencia');
+      const admin16 = await crearUsuario(`admin16_${TAG}@test.com`, 'Admin 16', 'admin');
+      const agency16 = await Agency.create({
+        agencyName: `Agencia 16 Cierre ${TAG}`,
+        owner: owner16._id,
+        status: 'activa',
+        billing: { status: 'activa' },
+      });
+      owner16.agency = agency16._id;
+      await owner16.save();
+      admin16.agency = agency16._id;
+      await admin16.save();
+
+      const tripCorp16 = await Trip.create({
+        user: owner16._id,
+        agency: agency16._id,
+        title: 'Viaje Corp 16',
+        destination: { name: 'Cuzco', country: 'PE' },
+        startDate: '2026-10-10',
+        endDate: '2026-10-15',
+        travelers: 2,
+        estadoPropuesta: 'enviada',
+      });
+      const itinCorp16 = await Itinerary.create({
+        trip: tripCorp16._id,
+        user: owner16._id,
+        title: 'Itinerario Corp 16',
+        shareToken: `token16_${TAG}`,
+        days: [{ dayNumber: 1, title: 'Llegada' }],
+      });
+      const expCorp16 = await Expense.create({
+        user: owner16._id,
+        trip: tripCorp16._id,
+        category: 'comida',
+        description: 'Almuerzo Cuzco',
+        amount: 300,
+        currency: 'USD',
+      });
+      const templateCorp16 = await ItineraryTemplate.create({
+        agency: agency16._id,
+        user: owner16._id,
+        name: 'Plantilla Corporativa 16',
+        destination: { name: 'Cuzco' },
+        days: [{ dayNumber: 1, title: 'Dia 1' }],
+      });
+
+      // Archivar la agencia
+      const archivarRes = await req('POST', '/agency/archivar', {
+        user: owner16,
+        body: { password: 'Password123!', confirmacion: 'ARCHIVAR' },
+      });
+      assert(archivarRes.status === 200, `Archivar agencia respondió ${archivarRes.status}`);
+
+      // 1. Enlace público: aceptar propuesta -> 404 Not Found
+      const aceptarPropuestaRes = await req('POST', `/public/itinerary/${itinCorp16.shareToken}/aceptar`, {
+        body: { notasCliente: 'Acepto la propuesta' },
+      });
+      assert(aceptarPropuestaRes.status === 404, `Aceptar propuesta en agencia archivada respondió ${aceptarPropuestaRes.status}, se esperaba 404`);
+
+      // 2. Plantillas corporativas: borrar o aplicar -> 403 Forbidden
+      const borrarPlantillaRes = await req('DELETE', `/templates/${templateCorp16._id}`, { user: owner16 });
+      assert(borrarPlantillaRes.status === 403, `Borrar plantilla corporativa en archivada respondió ${borrarPlantillaRes.status}, se esperaba 403`);
+
+      const aplicarPlantillaRes = await req('POST', `/templates/${templateCorp16._id}/aplicar`, {
+        user: owner16,
+        body: { startDate: '2026-11-01', endDate: '2026-11-05' },
+      });
+      assert(aplicarPlantillaRes.status === 403, `Aplicar plantilla corporativa en archivada respondió ${aplicarPlantillaRes.status}, se esperaba 403`);
+
+      // 3. Cuenta Administradora (admin) NO tiene bypass en agencia archivada
+      const adminTripEdit = await req('PATCH', `/trips/${tripCorp16._id}`, {
+        user: admin16,
+        body: { title: 'Admin Intentando Editar Corp' },
+      });
+      assert(adminTripEdit.status === 403, `Admin editando viaje corporativo archivado respondió ${adminTripEdit.status}, se esperaba 403`);
+
+      const adminTripDup = await req('POST', `/trips/${tripCorp16._id}/duplicar`, {
+        user: admin16,
+      });
+      assert(adminTripDup.status === 403, `Admin duplicando viaje corporativo archivado respondió ${adminTripDup.status}, se esperaba 403`);
+
+      const adminCreateExpense = await req('POST', '/expenses', {
+        user: admin16,
+        body: {
+          trip: String(tripCorp16._id),
+          description: 'Gasto por admin',
+          amount: 100,
+          category: 'transporte',
+        },
+      });
+      assert(adminCreateExpense.status === 403, `Admin creando gasto corporativo archivado respondió ${adminCreateExpense.status}, se esperaba 403`);
+
+      const adminPatchExpense = await req('PATCH', `/expenses/${expCorp16._id}`, {
+        user: admin16,
+        body: { amount: 999 },
+      });
+      assert(adminPatchExpense.status === 403, `Admin editando gasto corporativo archivado respondió ${adminPatchExpense.status}, se esperaba 403`);
+
+      const adminDeleteExpense = await req('DELETE', `/expenses/${expCorp16._id}`, {
+        user: admin16,
+      });
+      assert(adminDeleteExpense.status === 403, `Admin borrando gasto corporativo archivado respondió ${adminDeleteExpense.status}, se esperaba 403`);
+
+      const adminChat = await req('POST', '/chat', {
+        user: admin16,
+        body: { tripId: String(tripCorp16._id), message: 'Hola' },
+      });
+      assert(adminChat.status === 403, `Admin enviando mensaje al chat de viaje archivado respondió ${adminChat.status}, se esperaba 403`);
+
+      const adminClearChat = await req('DELETE', `/chat?tripId=${tripCorp16._id}`, {
+        user: admin16,
+      });
+      assert(adminClearChat.status === 403, `Admin reiniciando chat de viaje archivado respondió ${adminClearChat.status}, se esperaba 403`);
+    });
+
+    // -------------------------------------------------------------
+    // CASO 17: Datos Personales Preservados y Editables para Miembro de Agencia Archivada
+    // -------------------------------------------------------------
+    await runTest('17. Datos Personales P02: Miembro de agencia archivada puede crear, editar y borrar viajes, gastos, clientes y plantillas personales', async () => {
+      const owner17 = await crearUsuario(`owner17_${TAG}@test.com`, 'Owner 17', 'dueno_agencia');
+      const member17 = await crearUsuario(`member17_${TAG}@test.com`, 'Member 17', 'agente');
+      const agency17 = await Agency.create({
+        agencyName: `Agencia 17 Personal ${TAG}`,
+        owner: owner17._id,
+        members: [{ user: member17._id, role: 'agente', joinedAt: new Date() }],
+        status: 'archivada',
+        billing: { status: 'congelada' },
+      });
+      owner17.agency = agency17._id;
+      await owner17.save();
+      member17.agency = agency17._id;
+      await member17.save();
+
+      // 1. Crear viaje personal (esPersonal: true) -> 201 Created
+      const createTripRes = await req('POST', '/trips', {
+        user: member17,
+        body: {
+          title: 'Viaje Personal Member 17',
+          destination: { name: 'Bariloche', country: 'AR' },
+          startDate: '2026-11-10',
+          endDate: '2026-11-15',
+          travelers: 1,
+          esPersonal: true,
+        },
+      });
+      assert(createTripRes.status === 201, `Crear viaje personal respondió ${createTripRes.status}, se esperaba 201`);
+      const tripPersonalId = createTripRes.json?.data?.trip?._id;
+      assert(tripPersonalId, 'No se recibió ID de viaje personal creado');
+      const tripCreado = await Trip.findById(tripPersonalId);
+      assert(tripCreado.agency === null, 'El viaje personal no tiene agency: null');
+
+      // 2. Editar viaje personal -> 200 OK
+      const editTripRes = await req('PATCH', `/trips/${tripPersonalId}`, {
+        user: member17,
+        body: { title: 'Viaje Personal Modificado 17' },
+      });
+      assert(editTripRes.status === 200, `Editar viaje personal respondió ${editTripRes.status}, se esperaba 200`);
+
+      // 3. Crear gasto personal en el viaje personal -> 201 Created
+      const createExpRes = await req('POST', '/expenses', {
+        user: member17,
+        body: {
+          trip: String(tripPersonalId),
+          description: 'Cena personal',
+          amount: 50,
+          category: 'comida',
+        },
+      });
+      assert(createExpRes.status === 201, `Crear gasto personal respondió ${createExpRes.status}, se esperaba 201`);
+      const expensePersonalId = createExpRes.json?.data?.expense?._id;
+      assert(expensePersonalId, 'No se recibió ID de gasto personal creado');
+
+      // 4. Editar gasto personal -> 200 OK
+      const editExpRes = await req('PATCH', `/expenses/${expensePersonalId}`, {
+        user: member17,
+        body: { amount: 75 },
+      });
+      assert(editExpRes.status === 200, `Editar gasto personal respondió ${editExpRes.status}, se esperaba 200`);
+
+      // 5. Borrar gasto personal -> 200 OK
+      const deleteExpRes = await req('DELETE', `/expenses/${expensePersonalId}`, {
+        user: member17,
+      });
+      assert(deleteExpRes.status === 200, `Borrar gasto personal respondió ${deleteExpRes.status}, se esperaba 200`);
+
+      // 6. Crear cliente personal -> 201 Created
+      const createClientRes = await req('POST', '/clients', {
+        user: member17,
+        body: {
+          nombre: 'Cliente Personal 17',
+          email: 'cliente17@personal.test',
+          telefono: '+5411223344',
+          esPersonal: true,
+        },
+      });
+      assert(createClientRes.status === 201, `Crear cliente personal respondió ${createClientRes.status}, se esperaba 201`);
+      const clientPersonalId = createClientRes.json?.data?.cliente?._id;
+      assert(clientPersonalId, 'No se recibió ID de cliente personal creado');
+      const clientCreado = await Client.findById(clientPersonalId);
+      assert(clientCreado.agency === null, 'El cliente personal no tiene agency: null');
+
+      // 7. Editar cliente personal -> 200 OK
+      const editClientRes = await req('PATCH', `/clients/${clientPersonalId}`, {
+        user: member17,
+        body: { notas: 'Notas privadas personales' },
+      });
+      assert(editClientRes.status === 200, `Editar cliente personal respondió ${editClientRes.status}, se esperaba 200`);
+
+      // 8. Borrar cliente personal -> 200 OK
+      const deleteClientRes = await req('DELETE', `/clients/${clientPersonalId}`, {
+        user: member17,
+      });
+      assert(deleteClientRes.status === 200, `Borrar cliente personal respondió ${deleteClientRes.status}, se esperaba 200`);
+
+      // 9. Crear plantilla personal directamente -> guardada con agency: null
+      const templatePersonal = await ItineraryTemplate.create({
+        agency: null,
+        user: member17._id,
+        name: 'Plantilla Personal 17',
+        destination: { name: 'Mendoza' },
+        days: [{ dayNumber: 1, title: 'Dia 1' }],
+      });
+      assert(templatePersonal.agency === null, 'La plantilla personal no tiene agency: null');
+
+      // 10. Borrar plantilla personal -> 200 OK
+      const deleteTemplateRes = await req('DELETE', `/templates/${templatePersonal._id}`, {
+        user: member17,
+      });
+      assert(deleteTemplateRes.status === 200, `Borrar plantilla personal respondió ${deleteTemplateRes.status}, se esperaba 200`);
+
+      // 11. Borrar viaje personal -> 200 OK
+      const deleteTripRes = await req('DELETE', `/trips/${tripPersonalId}`, {
+        user: member17,
+      });
+      assert(deleteTripRes.status === 200, `Borrar viaje personal respondió ${deleteTripRes.status}, se esperaba 200`);
+    });
+
+    // -------------------------------------------------------------
+    // CASO 18: Concurrencia Real y Control Optimista por Versión
+    // -------------------------------------------------------------
+    await runTest('18. Concurrencia P02: Bloqueo optimista por versión ante solicitudes simultáneas y aceptación vs expulsión', async () => {
+      // 1. Solicitudes de transferencia simultáneas
+      const owner18 = await crearUsuario(`owner18_${TAG}@test.com`, 'Owner 18', 'dueno_agencia');
+      const member18a = await crearUsuario(`member18a_${TAG}@test.com`, 'Member 18a', 'agente');
+      const member18b = await crearUsuario(`member18b_${TAG}@test.com`, 'Member 18b', 'agente');
+      const agency18 = await Agency.create({
+        agencyName: `Agencia 18 Concurrencia ${TAG}`,
+        owner: owner18._id,
+        members: [
+          { user: member18a._id, role: 'agente', joinedAt: new Date() },
+          { user: member18b._id, role: 'agente', joinedAt: new Date() },
+        ],
+        status: 'activa',
+        version: 1,
+      });
+      owner18.agency = agency18._id;
+      await owner18.save();
+      member18a.agency = agency18._id;
+      await member18a.save();
+      member18b.agency = agency18._id;
+      await member18b.save();
+
+      // Lanzar 2 peticiones paralelas de solicitud de transferencia
+      const [resSolA, resSolB] = await Promise.all([
+        req('POST', '/agency/transferir/solicitar', {
+          user: owner18,
+          body: { destinatarioId: String(member18a._id), password: 'Password123!' },
+        }),
+        req('POST', '/agency/transferir/solicitar', {
+          user: owner18,
+          body: { destinatarioId: String(member18b._id), password: 'Password123!' },
+        }),
+      ]);
+
+      const statuses = [resSolA.status, resSolB.status].sort();
+      // Una debe ser exitosa (200) y la otra debe ser conflicto (409)
+      assert(statuses[0] === 200 && statuses[1] === 409, `Se esperaba un 200 y un 409 en solicitudes concurrentes, pero se obtuvo ${resSolA.status} y ${resSolB.status}`);
+
+      // 2. Aceptación vs. Expulsión del miembro destinatario
+      // Tenemos una transferencia pendiente hacia el ganador
+      const agenciaActual = await Agency.findById(agency18._id);
+      const destinatarioId = agenciaActual.transferenciaPendiente.destinatario;
+      const destinatarioUser = String(destinatarioId) === String(member18a._id) ? member18a : member18b;
+
+      // El dueño expulsa al destinatario
+      const expulsarRes = await req('DELETE', `/agency/miembros/${destinatarioUser._id}`, { user: owner18 });
+      assert(expulsarRes.status === 200, `Expulsar miembro respondió ${expulsarRes.status}`);
+
+      // El destinatario expulsado intenta aceptar con su sesión
+      const aceptarExpulsadoRes = await req('POST', '/agency/transferir/aceptar', { user: destinatarioUser });
+      assert(
+        aceptarExpulsadoRes.status === 400 || aceptarExpulsadoRes.status === 404,
+        `Aceptar transferencia tras expulsión respondió ${aceptarExpulsadoRes.status}, se esperaba 400 o 404`
+      );
+
+      // La agencia debe seguir perteneciendo al owner original
+      const checkAgencia18 = await Agency.findById(agency18._id);
+      assert(String(checkAgencia18.owner) === String(owner18._id), 'El owner cambió indebidamente tras expulsión');
+      assert(!checkAgencia18.transferenciaPendiente?.destinatario, 'La transferencia pendiente no fue limpiada');
+    });
+
+    // -------------------------------------------------------------
+    // CASO 19: Migración Segura de Agencias Legacy
+    // -------------------------------------------------------------
+    await runTest('19. Migración P02: Detección, dry-run y confirmación atómica para agencias legacy sin status ni version', async () => {
+      const owner19 = await crearUsuario(`owner19_${TAG}@test.com`, 'Owner 19', 'dueno_agencia');
+      const member19 = await crearUsuario(`member19_${TAG}@test.com`, 'Member 19', 'agente');
+
+      // Insertar agencia legacy DIRECTAMENTE sin campos status ni version
+      const legacyId = new mongoose.Types.ObjectId();
+      await mongoose.connection.collection('agencies').insertOne({
+        _id: legacyId,
+        agencyName: `Agencia Legacy 19 ${TAG}`,
+        owner: owner19._id,
+        members: [{ user: member19._id, role: 'agente', joinedAt: new Date() }],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      owner19.agency = legacyId;
+      await owner19.save();
+      member19.agency = legacyId;
+      await member19.save();
+
+      // Verificar que el documento carece de status y version
+      const docRawAntes = await mongoose.connection.collection('agencies').findOne({ _id: legacyId });
+      assert(docRawAntes.status === undefined, 'El doc legacy no debería tener status');
+      assert(docRawAntes.version === undefined, 'El doc legacy no debería tener version');
+
+      // Ejecutar script en dry-run
+      const scriptMigracion = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'migracion-p02-status-agencias.mjs');
+      const { stdout: dryRunStdout } = await execFileAsync(
+        process.execPath,
+        [scriptMigracion],
+        {
+          cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: process.env.MONGO_URI,
+          },
+        }
+      );
+      assert(dryRunStdout.includes('DRY-RUN'), 'No indicó modo DRY-RUN');
+      assert(dryRunStdout.includes('candidatas a migrar'), 'No reportó candidatas');
+
+      // Verificar que en dry-run no se modificó nada
+      const docRawDryRun = await mongoose.connection.collection('agencies').findOne({ _id: legacyId });
+      assert(docRawDryRun.status === undefined, 'Dry-run no debió asignar status');
+
+      // Ejecutar script con --confirmar
+      const { stdout: confirmarStdout } = await execFileAsync(
+        process.execPath,
+        [scriptMigracion, '--confirmar'],
+        {
+          cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
+          env: {
+            ...process.env,
+            MONGO_URI_TEST: process.env.MONGO_URI,
+          },
+        }
+      );
+      assert(confirmarStdout.includes('MIGRACIÓN COMPLETADA EXITOSAMENTE'), 'No confirmó éxito de la migración');
+
+      // Verificar que el documento ahora tiene status='activa' y version=1
+      const docMigrado = await mongoose.connection.collection('agencies').findOne({ _id: legacyId });
+      assert(docMigrado.status === 'activa', `Status esperado 'activa', obtenido: ${docMigrado.status}`);
+      assert(docMigrado.version === 1, `Version esperada 1, obtenida: ${docMigrado.version}`);
+
+      // Comprobar que la agencia migrada puede ser transferida y archivada en el ciclo de vida
+      const transferRes = await req('POST', '/agency/transferir/solicitar', {
+        user: owner19,
+        body: { destinatarioId: String(member19._id), password: 'Password123!' },
+      });
+      assert(transferRes.status === 200, `Transferencia en migrada respondió ${transferRes.status}`);
+
+      const acceptRes = await req('POST', '/agency/transferir/aceptar', { user: member19 });
+      assert(acceptRes.status === 200, `Aceptar transferencia en migrada respondió ${acceptRes.status}`);
+
+      const archivarRes = await req('POST', '/agency/archivar', {
+        user: member19,
+        body: { password: 'Password123!', confirmacion: 'ARCHIVAR' },
+      });
+      assert(archivarRes.status === 200, `Archivar agencia migrada respondió ${archivarRes.status}`);
+
+      const docFinal = await Agency.findById(legacyId);
+      assert(docFinal.status === 'archivada', 'La agencia migrada no quedó en status archivada');
     });
 
   } finally {

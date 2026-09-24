@@ -1,39 +1,71 @@
-import { Agency } from '../models/index.js';
+import { Agency, Trip, Expense, Client, ItineraryTemplate } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { esAdmin } from '../utils/esAdmin.js';
 
 /**
- * Bloquea crear o editar viajes, itinerarios y gastos si la agencia del
- * usuario no tiene un plan activo, sin borrar ni ocultar nada de lo que ya
- * existe.
+ * Bloquea crear o editar contenido corporativo (viajes, itinerarios y gastos)
+ * si la agencia del usuario no tiene un plan activo o está archivada.
  *
- * A diferencia de antes, esto ya no exime al dueño mientras este solo en su
- * agencia: crear una agencia es gratis, pero usarla (crear/editar viajes)
- * requiere un plan activo desde el primer agente, sea el dueño solo o no. El
- * uso sin marca de agencia (branding personal, sin Agency de por medio) sigue
- * siendo gratis siempre — este candado solo aplica a quien ya tiene una
- * agencia creada. La cuenta admin (ADMIN_EMAIL) tampoco se congela nunca.
+ * Reglas P02:
+ * 1. Pertenecer a una agencia archivada o congelada NO debe impedir editar o
+ *    borrar viajes, gastos, clientes o plantillas verdaderamente personales (agency === null).
+ * 2. Si la agencia está archivada, ninguna operación corporativa está permitida,
+ *    y la cuenta administradora (admin) NUNCA debe saltarse el archivo.
  */
 export const soloLecturaSiCongelada = asyncHandler(async (req, res, next) => {
-  // Revocar un enlace compartido es una accion de seguridad/privacidad, no
-  // "usar" el producto de pago -- sin esta excepcion, una agencia vencida no
-  // podia dejar de exponer un itinerario publico solo porque se le vencio el
-  // plan, justo cuando mas podria importarle cerrarlo.
+  // Revocar un enlace compartido es una acción de seguridad/privacidad
   const esRevocarCompartir = req.method === 'DELETE' && req.originalUrl.endsWith('/itinerary/share');
-  if (!req.user.agency || req.method === 'GET' || esAdmin(req.user) || esRevocarCompartir) return next();
+  if (!req.user.agency || req.method === 'GET' || esRevocarCompartir) return next();
+
+  // P02: Si la petición está operando sobre un recurso por :id, verificar si es personal
+  const path = req.path || '';
+  const matchId = path.match(/^\/([0-9a-fA-F]{24})/);
+  if (matchId) {
+    const id = matchId[1];
+    const baseUrl = req.baseUrl || '';
+    if (baseUrl.includes('trips')) {
+      const trip = await Trip.findById(id).select('agency');
+      if (trip && !trip.agency) return next();
+    } else if (baseUrl.includes('expenses')) {
+      const exp = await Expense.findById(id).select('trip');
+      if (exp) {
+        const trip = await Trip.findById(exp.trip).select('agency');
+        if (trip && !trip.agency) return next();
+      }
+    } else if (baseUrl.includes('clients')) {
+      const client = await Client.findById(id).select('agency');
+      if (client && !client.agency) return next();
+    } else if (baseUrl.includes('templates')) {
+      const tpl = await ItineraryTemplate.findById(id).select('agency');
+      if (tpl && !tpl.agency) return next();
+    }
+  }
+
+  // P02: Creaciones personales
+  if (req.method === 'POST') {
+    if (req.body?.esPersonal === true || req.body?.personal === true) {
+      return next();
+    }
+    const baseUrl = req.baseUrl || '';
+    if (baseUrl.includes('expenses') && req.body?.trip) {
+      const trip = await Trip.findById(req.body.trip).select('agency');
+      if (trip && !trip.agency) return next();
+    }
+  }
 
   const agencia = await Agency.findById(req.user.agency).select('status billing createdAt');
   if (!agencia) return next();
 
-  // Regla P02: Si la agencia está archivada, ninguna operación de escritura corporativa está permitida,
-  // y el bypass administrativo no debe saltarse el archivo.
+  // Regla P02: Si la agencia está archivada, ninguna operación de escritura corporativa está permitida.
+  // El bypass administrativo no debe saltarse el archivo bajo ninguna circunstancia.
   if (agencia.status === 'archivada') {
     throw ApiError.forbidden(
       'Esta agencia se encuentra archivada. No se permite crear, editar ni eliminar contenido corporativo.'
     );
   }
 
+  // Bypass de admin solo aplica a restricciones comerciales de facturación
   if (esAdmin(req.user)) return next();
   if (agencia.tieneAccesoActivo) return next();
 
