@@ -72,6 +72,8 @@ export const env = {
       process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
     ),
   },
+  visualTemplatesEnabled: process.env.VISUAL_TEMPLATES_ENABLED === 'true'
+    || ((process.env.NODE_ENV || 'development') !== 'production' && process.env.VISUAL_TEMPLATES_ENABLED !== 'false'),
   // Cobro a agencias. Sin STRIPE_SECRET_KEY, /agency/billing responde 503 con
   // un aviso claro: el resto de la app (uso personal, agencia con un solo
   // dueño) sigue funcionando igual.

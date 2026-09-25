@@ -494,6 +494,9 @@ export default function Itinerario() {
             <Boton variante="secundario" onClick={() => window.print()}>
               <Icono nombre="descarga" tamano={15} /> {t('descargarPdf')}
             </Boton>
+            {(import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true') && user?.agency && <Link className="boton secundario" to={`/viajes/${id}/propuesta`}>
+              {t('propuestaVisual')}
+            </Link>}
             {viaje.durationDays <= LIMITE_DIAS_IA && (
               <Boton
                 variante="secundario"

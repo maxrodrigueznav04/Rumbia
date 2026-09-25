@@ -17,6 +17,7 @@ import Perfil from './pages/Perfil.jsx';
 import Plantillas from './pages/Plantillas.jsx';
 import VisualTemplates from './pages/VisualTemplates.jsx';
 import VisualTemplateEditor from './pages/VisualTemplateEditor.jsx';
+import VisualProposal from './pages/VisualProposal.jsx';
 
 const visualTemplatesEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true';
 import Clientes from './pages/Clientes.jsx';
@@ -111,6 +112,7 @@ export default function App() {
               <Route path="/plantillas" element={<Plantillas />} />
               {visualTemplatesEnabled && <Route path="/plantillas-visuales" element={<VisualTemplates />} />}
               {visualTemplatesEnabled && <Route path="/plantillas-visuales/:id" element={<VisualTemplateEditor />} />}
+              {visualTemplatesEnabled && <Route path="/viajes/:id/propuesta" element={<VisualProposal />} />}
               <Route path="/perfil" element={<Perfil />} />
             </Route>
 

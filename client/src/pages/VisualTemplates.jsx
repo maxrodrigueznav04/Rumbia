@@ -40,7 +40,7 @@ export default function VisualTemplates() {
       if (action === 'duplicate') await visualTemplatesApi.duplicate(item._id);
       else await visualTemplatesApi.update(item._id, {
         revision: item.revision,
-        status: action === 'archive' ? 'archived' : 'draft',
+        status: action === 'archive' ? 'archived' : action === 'publish' ? 'published' : 'draft',
       });
       recargar();
     } catch (err) {
@@ -59,6 +59,7 @@ export default function VisualTemplates() {
     {cargando && <Esqueleto alto={110} />}
     {data && user?.agency && <>
       <p className="suave" style={{ margin: 0 }}>{t('quota', { count: activeCount, limit: data.limit })}</p>
+      {activeCount > data.limit && <Aviso tipo="info">{t('overLimit', { count: activeCount - data.limit })}</Aviso>}
       {actionError && <Aviso tipo="error">{actionError}</Aviso>}
       {canEdit && <Tarjeta titulo={t('newTitle')}>
         <form onSubmit={create} className="fila" style={{ gap: 12, alignItems: 'end', flexWrap: 'wrap' }}>
@@ -72,8 +73,9 @@ export default function VisualTemplates() {
         {templates.map((item) => <Tarjeta key={item._id} titulo={item.name}>
           <p className="suave">{t(`status.${item.status}`)} · {t('revision', { number: item.revision })}</p>
           <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <Link className="boton secundario chico" to={`/plantillas-visuales/${item._id}`}>{canEdit ? t('edit') : t('view')}</Link>
+            <Link className="boton secundario chico" to={`/plantillas-visuales/${item._id}`}>{canEdit && item.status !== 'archived' ? t('edit') : t('view')}</Link>
             {canEdit && <>
+              {item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'published' ? 'draft' : 'publish')} cargando={actionId === item._id}>{item.status === 'published' ? t('unpublish') : t('publish')}</Boton>}
               <Boton chico variante="secundario" onClick={() => runAction(item, 'duplicate')} cargando={actionId === item._id} disabled={activeCount >= data.limit}>{t('duplicate')}</Boton>
               <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'archived' ? 'restore' : 'archive')} cargando={actionId === item._id} disabled={item.status === 'archived' && activeCount >= data.limit}>{item.status === 'archived' ? t('restore') : t('archive')}</Boton>
             </>}

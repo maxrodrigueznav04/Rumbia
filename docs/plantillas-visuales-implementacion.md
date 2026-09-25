@@ -8,23 +8,26 @@ Estado: **en desarrollo, sin habilitar en producción**. Esta página registra e
 - API para listar, crear, leer, editar, duplicar y archivar; solo el dueño de la agencia modifica la plantilla maestra.
 - Cupos por plan y reserva de posición activa para evitar que dos creaciones simultáneas excedan el límite.
 - Documento de diseño validado: páginas A4 fijas con texto, campos permitidos y formas; sin acceso a costos netos ni notas internas.
-- Editor de borrador para páginas fijas con movimiento, tamaño, color, texto, campos, deshacer/rehacer y guardado. Disponible en desarrollo y oculto en producción salvo `VITE_ENABLE_VISUAL_TEMPLATES=true`.
-- El diseño inicial omite la foto interior. Las imágenes todavía no se pueden subir ni insertar; el esquema reserva su tipo, pero la API rechaza esos elementos hasta tener biblioteca con control de pertenencia.
+- Editor de borrador para páginas fijas con movimiento, tamaño, color, texto, campos, orden de capas, alineación, tipografías, deshacer/rehacer y guardado. Disponible en desarrollo y oculto en producción salvo `VITE_ENABLE_VISUAL_TEMPLATES=true`.
+- El diseño inicial omite la foto interior.
 
-## Etapa 2: activos y diseño completo (pendiente)
+## Etapa 2: activos y diseño completo (parcial)
 
-- Biblioteca de imágenes por agencia con confirmación de derechos, verificación de archivo, límites y conservación de origen/licencia.
-- Imagen de portada y fotos interiores opcionales, sin cuadros vacíos cuando se omitan.
-- Más herramientas del lienzo: capas, guías, alineación, tipografías, fondos y controles de secciones variables del itinerario.
+- Biblioteca de imágenes por agencia con confirmación de derechos, verificación básica del contenido real, límites y conservación de origen/licencia (implementada; falta probarla con la configuración real de Cloudinary y completar el borrado al eliminar una agencia).
+- Imagen de portada y fotos interiores opcionales, sin cuadros vacíos cuando se omitan (implementado en el editor de borrador; falta comprobar la misma composición en PDF).
+- El lienzo permite reordenar capas, alinear elementos, moverlos con flechas y cambiar la tipografía de títulos y texto. La sección variable del itinerario admite título, color de acento, tamaños y visibilidad de horarios/descripciones. Faltan guías visuales, controles de espaciado y una previsualización de esa sección dentro del editor.
 - Previsualización con datos reales y casos corto/largo; la muestra actual del editor usa valores de ejemplo.
 
-## Etapa 3: propuesta por viaje y PDF (pendiente)
+## Etapa 3: propuesta por viaje y PDF (implementación local, pendiente de validación operativa)
 
-- Elegir plantilla dentro de un viaje y guardar una instancia editable sin cambiar la maestra.
-- Crear una revisión inmutable al emitir, con versión de diseño y datos públicos autorizados. Modelo preparado para admitir varias propuestas por viaje después.
-- Generar vista previa y PDF desde el mismo modelo. Ejecutar Chromium con Playwright en un proceso/servicio aislado de la API y medir su operación en la infraestructura real.
+- Elegir plantilla publicada dentro de un viaje y guardar una instancia editable sin cambiar la maestra (implementado). La instancia permite ajustar título, mensaje e imagen de portada; falta ampliar los ajustes propios del viaje.
+- Crear una revisión inmutable al emitir, con versión de diseño, datos públicos autorizados y el PDF final archivado en GridFS (implementado). Descargar una versión recupera los mismos bytes y comprueba su hash. El modelo tiene `variantSlot` para varias propuestas por viaje en el futuro; la interfaz usa solo una.
+- Generar vista previa y PDF desde el mismo HTML seguro (implementado). Playwright controla Chromium en un proceso hijo con límite de concurrencia. Se probaron PDFs locales de 3 y 15 días; falta medir memoria, tiempo y costo en la infraestructura real y provisionar Chromium allí.
+- Las imágenes subidas necesitan credenciales Cloudinary configuradas. La API verifica agencia y derecho declarado, y bloquea borrar una imagen utilizada por plantillas, propuestas o versiones emitidas. Falta probar subida/borrado contra la cuenta real de Cloudinary.
+- Las rutas del servidor también están desactivadas en producción salvo `VISUAL_TEMPLATES_ENABLED=true`; activar solo la bandera del cliente no habilita la API.
+- Prueba de integración con MongoDB temporal y Chrome local: dos agencias, dueño/agente, límite de Inicio, cambio de plan, selección, vista previa, emisión, descarga idéntica y rechazo de acceso ajeno.
 - Mantener la impresión heredada y el itinerario web como entregables distintos hasta que el nuevo PDF esté comprobado.
 
 ## Puerta de publicación
 
-No activar `VITE_ENABLE_VISUAL_TEMPLATES` en producción hasta completar las etapas 2 y 3 y verificar: reutilización en dos viajes, PDFs de 3 y 15 días, ausencia de desbordes, vista previa concordante, permisos de agencia y cero exposición de campos internos.
+No activar `VITE_ENABLE_VISUAL_TEMPLATES` ni `VISUAL_TEMPLATES_ENABLED` en producción hasta verificar con datos reales: reutilización en dos viajes, PDFs de 3 y 15 días con textos e imágenes variables, ausencia de desbordes, vista previa concordante, permisos de agencia, cupos tras cambio de plan, cero exposición de campos internos y operación de Chromium/Cloudinary en el entorno de despliegue. La impresión heredada y el itinerario web siguen disponibles como entregables separados.

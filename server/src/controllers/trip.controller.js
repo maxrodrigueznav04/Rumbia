@@ -1,5 +1,6 @@
-import { Trip, Itinerary, Expense, Client, TripChat } from '../models/index.js';
+import { Trip, Itinerary, Expense, Client, TripChat, VisualProposal, VisualProposalIssue } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
+import { deleteArchivedVisualPdf } from '../services/visualPdfArchive.service.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { convertirTotales } from '../services/exchange.service.js';
@@ -417,12 +418,16 @@ export const deleteTrip = asyncHandler(async (req, res) => {
 
   // Sin transacciones (Atlas free soporta replica set, pero no lo damos por hecho):
   // se borran los hijos primero para no dejar huerfanos si algo falla.
+  const issuedPdfs = await VisualProposalIssue.find({ trip: trip._id }).select('pdfFileId').lean();
   await Promise.all([
     Itinerary.deleteOne({ trip: trip._id }),
     Expense.deleteMany({ trip: trip._id }),
     TripChat.deleteOne({ trip: trip._id }),
+    VisualProposal.deleteMany({ trip: trip._id }),
+    VisualProposalIssue.deleteMany({ trip: trip._id }),
   ]);
   await trip.deleteOne();
+  await Promise.allSettled(issuedPdfs.map((issue) => deleteArchivedVisualPdf(issue.pdfFileId)));
 
   res.json({ success: true, message: 'Viaje eliminado.' });
 });

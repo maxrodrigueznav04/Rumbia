@@ -171,6 +171,21 @@ export const visualTemplatesApi = {
   duplicate: (id) => api.post(`/visual-templates/${id}/duplicate`),
 };
 
+export const visualAssetsApi = {
+  list: (opts) => api.get('/visual-assets', opts),
+  upload: (formData) => api.post('/visual-assets', formData),
+  remove: (id) => api.delete(`/visual-assets/${id}`),
+};
+
+export const visualProposalsApi = {
+  get: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal`, opts),
+  select: (tripId, templateId) => api.post(`/trips/${tripId}/visual-proposal`, { templateId }),
+  update: (tripId, payload) => api.patch(`/trips/${tripId}/visual-proposal`, payload),
+  preview: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal/preview`, opts),
+  issue: (tripId, revision, previewHash) => api.post(`/trips/${tripId}/visual-proposal/issue`, { revision, previewHash }, { timeout: 70000 }),
+  pdfUrl: (tripId, issueId) => `${BASE_URL}/trips/${tripId}/visual-proposal/issues/${issueId}/pdf`,
+};
+
 export const expensesApi = {
   list: (params, opts) => api.get(`/expenses${qs(params)}`, opts),
   create: (payload) => api.post('/expenses', payload),

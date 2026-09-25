@@ -5,6 +5,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { defaultVisualDesign } from '../validators/visualTemplate.js';
 import { freeVisualTemplateSlot, visualTemplateCanEdit, visualTemplateLimit } from '../services/visualTemplates.service.js';
+import { loadVisualDesignAssets } from '../services/visualDesignAssets.service.js';
 
 async function currentAgency(user) {
   if (!user.agency) throw ApiError.forbidden('Las plantillas visuales pertenecen a una agencia.');
@@ -33,15 +34,6 @@ async function ownedTemplate(id, agency) {
   return template;
 }
 
-function rejectUnavailableAssets(design) {
-  // El esquema conoce el tipo imagen para no tener que migrar todos los
-  // diseños cuando llegue la biblioteca. Hasta entonces, no se acepta un id
-  // inventado que después podría resolver a un archivo de otra agencia.
-  if (design.pages.some((page) => page.elements.some((element) => element.type === 'image'))) {
-    throw ApiError.badRequest('La biblioteca de imágenes todavía no está disponible en el editor.');
-  }
-}
-
 export const list = asyncHandler(async (req, res) => {
   if (!req.user.agency) {
     return res.json({ success: true, data: { templates: [], canEdit: false, limit: 0 } });
@@ -68,7 +60,7 @@ export const create = asyncHandler(async (req, res) => {
   requireOwner(agency, req.user);
   requireActive(agency);
   const design = req.body.design || defaultVisualDesign();
-  rejectUnavailableAssets(design);
+  await loadVisualDesignAssets(design, agency._id);
   const activeSlot = await freeVisualTemplateSlot(agency);
   try {
     const template = await VisualTemplate.create({
@@ -90,9 +82,6 @@ export const update = asyncHandler(async (req, res) => {
     throw ApiError.conflict('Esta plantilla cambió en otra pestaña. Actualízala antes de guardar.');
   }
   const nextStatus = req.body.status || template.status;
-  if (nextStatus === 'published') {
-    throw ApiError.conflict('La publicación estará disponible cuando la exportación PDF esté lista.');
-  }
   // Archivar libera un cupo incluso si el plan caducó. Cualquier otra
   // modificación espera a que la agencia vuelva a tener acceso activo.
   if (nextStatus !== 'archived' || req.body.name !== undefined || req.body.design !== undefined) requireActive(agency);
@@ -102,7 +91,7 @@ export const update = asyncHandler(async (req, res) => {
     template.activeSlot = null;
   }
   if (req.body.design) {
-    rejectUnavailableAssets(req.body.design);
+    await loadVisualDesignAssets(req.body.design, agency._id);
     template.design = req.body.design;
     template.markModified('design');
   }

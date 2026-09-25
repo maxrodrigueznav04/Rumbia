@@ -6,6 +6,8 @@ import { protect } from '../middleware/auth.js';
 import { soloLecturaSiCongelada } from '../middleware/billing.js';
 import validate from '../middleware/validate.js';
 import itineraryRoutes from './itinerary.routes.js';
+import visualProposalRoutes from './visualProposals.routes.js';
+import env from '../config/env.js';
 import {
   createTripSchema,
   updateTripSchema,
@@ -36,5 +38,6 @@ router.get('/:id/weather', getTripWeather);
 
 // /api/trips/:id/itinerary/...
 router.use('/:id/itinerary', itineraryRoutes);
+if (env.visualTemplatesEnabled) router.use('/:id/visual-proposal', visualProposalRoutes);
 
 export default router;

@@ -16,6 +16,20 @@
 .visual-canvas { position:relative; width:min(100%,560px); aspect-ratio:210/297; flex:none; container-type:inline-size; box-shadow:0 5px 30px #172b4833; overflow:hidden; touch-action:none; }
 .visual-element { position:absolute; overflow:hidden; white-space:pre-wrap; line-height:1.12; cursor:grab; user-select:none; border:1px solid transparent; touch-action:none; }
 .visual-element.selected { outline:2px solid #bc6954; outline-offset:1px; }
+.visual-element-image { display:block; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.visual-highlights { display:grid; grid-template-columns:repeat(3,1fr); gap:5%; padding:6%; height:100%; }
+.visual-highlights div { border-left:1px solid #ffffff55; padding-left:8%; }
+.visual-highlights small { display:block; font:400 .7em Arial,sans-serif; margin-bottom:.8em; }
+.visual-highlights b { display:block; font:400 1.1em Georgia,serif; }
 .visual-resize { position:absolute; right:0; bottom:0; width:13px; height:13px; background:#bc6954; border:2px solid white; cursor:nwse-resize; }
+.visual-assets { display:grid; gap:9px; border-top:1px solid var(--border); padding-top:12px; }
+.visual-asset-list { display:flex; flex-wrap:wrap; gap:5px; }
+.visual-asset-list button { width:54px; height:54px; padding:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; cursor:pointer; }
+.visual-asset-list img { width:100%; height:100%; object-fit:cover; }
+.visual-upload-form { display:grid; gap:9px; }
+.visual-rights { font-size:.78rem; line-height:1.4; }
+.visual-inspector-actions { display:flex; gap:5px; flex-wrap:wrap; }
+.visual-inspector-actions button:not(.boton) { border:1px solid var(--border); border-radius:6px; background:var(--surface); color:inherit; padding:5px 8px; cursor:pointer; font-size:.78rem; }
+.visual-inspector-actions button:not(.boton):hover { border-color:#bc6954; }
 @media(max-width:1000px) { .visual-editor-layout { grid-template-columns:minmax(180px,1fr) minmax(300px,2fr); } .visual-editor-inspector { grid-column:1/-1; } }
 @media(max-width:650px) { .visual-editor-layout { grid-template-columns:1fr; } .visual-editor-inspector { grid-column:auto; } .visual-canvas-wrap { padding:10px; } }
