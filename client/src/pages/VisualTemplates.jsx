@@ -9,12 +9,19 @@ import './visualTemplates.css';
 
 const previewFields = {
   'agency.name': 'TU AGENCIA',
-  'trip.title': 'Un viaje a tu medida',
   'trip.destination': 'Tu próximo destino',
   'trip.dates': 'Octubre 2026',
 };
 
-function PresetPreview({ design }) {
+const presetCategories = {
+  editorial: 'versatile', minimal: 'versatile', aventura: 'experiences',
+  romance: 'getaways', familia: 'occasions', lujo: 'occasions', costa: 'getaways',
+  ciudad: 'getaways', naturaleza: 'experiences', sabores: 'experiences',
+  celebracion: 'occasions', ruta: 'experiences', bienestar: 'getaways',
+};
+const categoryIds = ['all', 'getaways', 'experiences', 'occasions', 'versatile'];
+
+function PresetPreview({ design, sampleTitle }) {
   const cover = design.pages[0];
   return <div className="visual-preset-preview"><div className="visual-preset-page" style={{ background: cover.background }}>
     {cover.elements.map((item) => <div key={item.id} className="visual-preset-element" style={{
@@ -26,7 +33,7 @@ function PresetPreview({ design }) {
         ? (design.theme.headingFont === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif')
         : (design.theme.bodyFont === 'classic' ? 'Georgia, serif' : 'Arial, sans-serif'),
       fontWeight: item.style.weight || 'normal',
-    }}>{item.type === 'field' ? previewFields[item.field] || '' : item.type === 'text' ? item.text : null}</div>)}
+    }}>{item.type === 'field' ? (item.field === 'trip.title' ? sampleTitle : previewFields[item.field] || '') : item.type === 'text' ? item.text : null}</div>)}
   </div></div>;
 }
 
@@ -40,10 +47,12 @@ export default function VisualTemplates() {
   const [actionId, setActionId] = useState(null);
   const [actionError, setActionError] = useState('');
   const [createdPreset, setCreatedPreset] = useState('');
+  const [category, setCategory] = useState('all');
   const templates = data?.templates || [];
   const canEdit = Boolean(data?.canEdit);
   const activeCount = templates.filter((item) => item.status !== 'archived').length;
   const canCreate = canEdit && activeCount < (data?.limit || 0);
+  const visiblePresets = (data?.presets || []).filter((preset) => category === 'all' || (presetCategories[preset.id] || 'versatile') === category);
 
   const createPreset = async (preset) => {
     setActionId(`preset-${preset.id}`);
@@ -107,8 +116,9 @@ export default function VisualTemplates() {
       {createdPreset && <Aviso tipo="exito">{t('presetReady', { name: createdPreset })} <Link to="/viajes">{t('goToTrips')}</Link></Aviso>}
       {canEdit && <section className="pila-sm">
         <div><h2>{t('readyDesigns')}</h2><p className="suave">{t('readyDesignsHint')}</p></div>
-        <div className="visual-preset-gallery">{(data.presets || []).map((preset) => <article className="visual-preset-card" key={preset.id}>
-          <PresetPreview design={preset.design} />
+        <div className="visual-preset-filters" aria-label={t('categories.label')}>{categoryIds.map((id) => <button type="button" key={id} className={category === id ? 'active' : ''} aria-pressed={category === id} onClick={() => setCategory(id)}>{t(`categories.${id}`)}</button>)}</div>
+        <div className="visual-preset-gallery">{visiblePresets.map((preset) => <article className="visual-preset-card" key={preset.id}>
+          <PresetPreview design={preset.design} sampleTitle={t(`presets.${preset.id}.sampleTitle`)} />
           <div className="visual-preset-copy"><h3>{t(`presets.${preset.id}.name`)}</h3><p className="suave">{t(`presets.${preset.id}.description`)}</p>
             <Boton onClick={() => createPreset(preset)} cargando={actionId === `preset-${preset.id}`} disabled={!canCreate || Boolean(actionId)}>{t('useReadyDesign')}</Boton>
           </div>

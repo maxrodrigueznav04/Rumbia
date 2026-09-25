@@ -8,6 +8,20 @@ const mmX = (n) => `${(n / 1000 * 210).toFixed(3)}mm`;
 const mmY = (n) => `${(n / 1000 * 297).toFixed(3)}mm`;
 const pt = (n) => `${n || 18}pt`;
 
+function fittedFieldFontSize(element, text) {
+  const original = element.style?.fontSize || 18;
+  if (element.type !== 'field' || !['trip.title', 'trip.destination'].includes(element.field)) return original;
+  const value = String(text || '');
+  const widthPt = element.width * 0.595 * 0.9;
+  const heightPt = element.height * 0.842 * 0.9;
+  const weightedLength = [...value].reduce((sum, char) => sum + ('il.,:;!| '.includes(char) ? 0.45 : 'MWÁÉÍÓÚ'.includes(char) ? 1.25 : 1), 0);
+  for (let size = original; size >= 12; size -= 1) {
+    const lines = Math.max(1, Math.ceil(weightedLength * size * 0.56 / widthPt));
+    if (lines * size * 1.18 <= heightPt) return size;
+  }
+  return 12;
+}
+
 function fixedElement(element, page, data, design) {
   const style = element.style || {};
   const box = `left:${mmX(element.x)};top:${mmY(element.y)};width:${mmX(element.width)};height:${mmY(element.height)};`;
@@ -23,7 +37,8 @@ function fixedElement(element, page, data, design) {
   }
   const text = element.type === 'field' ? data.fields[element.field] : element.text;
   const font = (style.fontSize || 18) >= 25 ? headingFont[design.theme.headingFont] : bodyFont[design.theme.bodyFont];
-  return `<div class="fixed-element text" style="${box}color:${style.color || design.theme.ink};font:${style.weight === 'bold' ? 'bold ' : ''}${pt(style.fontSize)} ${font};text-align:${style.align || 'left'};">${esc(text)}</div>`;
+  const fontSize = fittedFieldFontSize(element, text);
+  return `<div class="fixed-element text" style="${box}color:${style.color || design.theme.ink};font:${style.weight === 'bold' ? 'bold ' : ''}${pt(fontSize)} ${font};text-align:${style.align || 'left'};">${esc(text)}</div>`;
 }
 
 export function renderVisualProposalHtml(design, data) {

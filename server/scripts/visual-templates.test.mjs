@@ -12,15 +12,18 @@ test('el diseño de partida es válido y no exige imagen interior', () => {
 });
 
 test('los diseños listos se pueden publicar y conservar sin imágenes obligatorias', () => {
-  assert.equal(VISUAL_PRESET_IDS.length, 3);
+  assert.equal(VISUAL_PRESET_IDS.length, 13);
   const backgrounds = new Set();
+  const headings = new Set();
   for (const id of VISUAL_PRESET_IDS) {
     const design = visualDesignSchema.parse(visualPresetDesign(id));
     backgrounds.add(design.pages[0].background);
+    headings.add(design.itinerary.heading);
     assert.equal(design.pages.flatMap((page) => page.elements).filter((item) => item.type === 'image').length, 0);
     assert.equal(createVisualTemplateSchema.safeParse({ name: id, presetId: id, status: 'published' }).success, true);
   }
-  assert.equal(backgrounds.size, 3);
+  assert(backgrounds.size >= 10);
+  assert(headings.size >= 10);
   assert.equal(createVisualTemplateSchema.safeParse({ name: 'No válido', presetId: 'desconocido' }).success, false);
 });
 

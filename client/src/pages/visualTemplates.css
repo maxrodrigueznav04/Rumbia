@@ -1,4 +1,8 @@
 .visual-preset-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.visual-preset-filters { display:flex; flex-wrap:wrap; gap:8px; }
+.visual-preset-filters button { border:1px solid var(--border); border-radius:999px; background:var(--surface); color:inherit; cursor:pointer; padding:8px 14px; font:inherit; font-size:.9rem; }
+.visual-preset-filters button.active { color:#ffffff; border-color:#1c705d; background:#1c705d; }
+.visual-preset-filters button:focus-visible { outline:3px solid #ca766e; outline-offset:2px; }
 .visual-preset-card { display:flex; flex-direction:column; overflow:hidden; border:1px solid var(--border); border-radius:16px; background:var(--surface); }
 .visual-preset-preview { min-height:235px; display:flex; justify-content:center; align-items:center; padding:14px; background:#eae7df; }
 .visual-preset-page { position:relative; width:145px; aspect-ratio:210/297; overflow:hidden; box-shadow:0 7px 24px #172b482e; container-type:inline-size; }
