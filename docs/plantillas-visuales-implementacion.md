@@ -26,6 +26,7 @@ Estado: **en desarrollo, sin habilitar en producción**. Esta página registra e
 - Las imágenes subidas necesitan credenciales Cloudinary configuradas. La API verifica agencia y derecho declarado, y bloquea borrar una imagen utilizada por plantillas, propuestas o versiones emitidas. Falta probar subida/borrado contra la cuenta real de Cloudinary.
 - Las rutas del servidor también están desactivadas en producción salvo `VISUAL_TEMPLATES_ENABLED=true`; activar solo la bandera del cliente no habilita la API.
 - Prueba de integración con MongoDB temporal y Chrome local: dos agencias, dueño/agente, límite de Inicio, cambio de plan, selección, vista previa, emisión, descarga idéntica y rechazo de acceso ajeno.
+- Revisión visual local en Chrome de la lista, editor, guardado y recarga de una plantilla, selección para un viaje y vista previa; sin errores de consola. La sesión y los datos usados eran temporales.
 - Mantener la impresión heredada y el itinerario web como entregables distintos hasta que el nuevo PDF esté comprobado.
 
 ## Puerta de publicación
