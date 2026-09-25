@@ -3,7 +3,7 @@ import Agency from '../models/Agency.js';
 import VisualTemplate from '../models/VisualTemplate.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
-import { defaultVisualDesign } from '../validators/visualTemplate.js';
+import { defaultVisualDesign, VISUAL_PRESET_IDS, visualPresetDesign } from '../validators/visualTemplate.js';
 import { freeVisualTemplateSlot, visualTemplateCanEdit, visualTemplateLimit } from '../services/visualTemplates.service.js';
 import { loadVisualDesignAssets } from '../services/visualDesignAssets.service.js';
 
@@ -36,7 +36,7 @@ async function ownedTemplate(id, agency) {
 
 export const list = asyncHandler(async (req, res) => {
   if (!req.user.agency) {
-    return res.json({ success: true, data: { templates: [], canEdit: false, limit: 0 } });
+    return res.json({ success: true, data: { templates: [], canEdit: false, limit: 0, presets: VISUAL_PRESET_IDS.map((id) => ({ id, design: visualPresetDesign(id) })) } });
   }
   const agency = await currentAgency(req.user);
   const templates = await VisualTemplate.find({ agency: agency._id })
@@ -46,6 +46,7 @@ export const list = asyncHandler(async (req, res) => {
     templates,
     canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo,
     limit: visualTemplateLimit(agency),
+    presets: VISUAL_PRESET_IDS.map((id) => ({ id, design: visualPresetDesign(id) })),
   } });
 });
 
@@ -59,13 +60,13 @@ export const create = asyncHandler(async (req, res) => {
   const agency = await currentAgency(req.user);
   requireOwner(agency, req.user);
   requireActive(agency);
-  const design = req.body.design || defaultVisualDesign();
+  const design = req.body.presetId ? visualPresetDesign(req.body.presetId) : (req.body.design || defaultVisualDesign());
   await loadVisualDesignAssets(design, agency._id);
   const activeSlot = await freeVisualTemplateSlot(agency);
   try {
     const template = await VisualTemplate.create({
       agency: agency._id, createdBy: req.user._id,
-      name: req.body.name, design, activeSlot,
+      name: req.body.name, design, activeSlot, status: req.body.status || 'draft',
     });
     res.status(201).json({ success: true, data: { template } });
   } catch (err) {

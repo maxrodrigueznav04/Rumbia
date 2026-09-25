@@ -5,6 +5,30 @@ import { visualTemplatesApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Aviso, Boton, Campo, ErrorCarga, Esqueleto, Tarjeta, Vacio } from '../components/ui.jsx';
+import './visualTemplates.css';
+
+const previewFields = {
+  'agency.name': 'TU AGENCIA',
+  'trip.title': 'Un viaje a tu medida',
+  'trip.destination': 'Tu próximo destino',
+  'trip.dates': 'Octubre 2026',
+};
+
+function PresetPreview({ design }) {
+  const cover = design.pages[0];
+  return <div className="visual-preset-preview"><div className="visual-preset-page" style={{ background: cover.background }}>
+    {cover.elements.map((item) => <div key={item.id} className="visual-preset-element" style={{
+      left: `${item.x / 10}%`, top: `${item.y / 10}%`, width: `${item.width / 10}%`, height: `${item.height / 10}%`,
+      background: item.type === 'shape' ? item.style.background : undefined,
+      color: item.style.color || design.theme.ink,
+      fontSize: `${((item.style.fontSize || 18) / 595) * 100}cqw`,
+      fontFamily: (item.style.fontSize || 0) >= 25
+        ? (design.theme.headingFont === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif')
+        : (design.theme.bodyFont === 'classic' ? 'Georgia, serif' : 'Arial, sans-serif'),
+      fontWeight: item.style.weight || 'normal',
+    }}>{item.type === 'field' ? previewFields[item.field] || '' : item.type === 'text' ? item.text : null}</div>)}
+  </div></div>;
+}
 
 export default function VisualTemplates() {
   const { t } = useTranslation('visualTemplates');
@@ -15,9 +39,28 @@ export default function VisualTemplates() {
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [actionError, setActionError] = useState('');
+  const [createdPreset, setCreatedPreset] = useState('');
   const templates = data?.templates || [];
   const canEdit = Boolean(data?.canEdit);
   const activeCount = templates.filter((item) => item.status !== 'archived').length;
+  const canCreate = canEdit && activeCount < (data?.limit || 0);
+
+  const createPreset = async (preset) => {
+    setActionId(`preset-${preset.id}`);
+    setActionError('');
+    setCreatedPreset('');
+    try {
+      const result = await visualTemplatesApi.create({
+        name: t(`presets.${preset.id}.name`), presetId: preset.id, status: 'published',
+      });
+      setCreatedPreset(result.template.name);
+      recargar();
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setActionId(null);
+    }
+  };
 
   const create = async (event) => {
     event.preventDefault();
@@ -61,14 +104,25 @@ export default function VisualTemplates() {
       <p className="suave" style={{ margin: 0 }}>{t('quota', { count: activeCount, limit: data.limit })}</p>
       {activeCount > data.limit && <Aviso tipo="info">{t('overLimit', { count: activeCount - data.limit })}</Aviso>}
       {actionError && <Aviso tipo="error">{actionError}</Aviso>}
-      {canEdit && <Tarjeta titulo={t('newTitle')}>
-        <form onSubmit={create} className="fila" style={{ gap: 12, alignItems: 'end', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 240px' }}><Campo label={t('name')} value={name} maxLength={80} required onChange={(event) => setName(event.target.value)} /></div>
-          <Boton type="submit" cargando={saving} disabled={!name.trim() || activeCount >= data.limit}>{t('create')}</Boton>
-        </form>
-      </Tarjeta>}
+      {createdPreset && <Aviso tipo="exito">{t('presetReady', { name: createdPreset })} <Link to="/viajes">{t('goToTrips')}</Link></Aviso>}
+      {canEdit && <section className="pila-sm">
+        <div><h2>{t('readyDesigns')}</h2><p className="suave">{t('readyDesignsHint')}</p></div>
+        <div className="visual-preset-gallery">{(data.presets || []).map((preset) => <article className="visual-preset-card" key={preset.id}>
+          <PresetPreview design={preset.design} />
+          <div className="visual-preset-copy"><h3>{t(`presets.${preset.id}.name`)}</h3><p className="suave">{t(`presets.${preset.id}.description`)}</p>
+            <Boton onClick={() => createPreset(preset)} cargando={actionId === `preset-${preset.id}`} disabled={!canCreate || Boolean(actionId)}>{t('useReadyDesign')}</Boton>
+          </div>
+        </article>)}</div>
+        <details className="visual-from-scratch"><summary>{t('fromScratch')}</summary>
+          <form onSubmit={create} className="fila" style={{ gap: 12, alignItems: 'end', flexWrap: 'wrap', paddingTop: 16 }}>
+            <div style={{ flex: '1 1 240px' }}><Campo label={t('name')} value={name} maxLength={80} required onChange={(event) => setName(event.target.value)} /></div>
+            <Boton type="submit" cargando={saving} disabled={!name.trim() || !canCreate}>{t('create')}</Boton>
+          </form>
+        </details>
+      </section>}
       {!canEdit && <Aviso tipo="info">{t('readOnly')}</Aviso>}
       {!templates.length && <Vacio icono="🎨" titulo={t('emptyTitle')}>{t('emptyText')}</Vacio>}
+      {!!templates.length && <h2>{t('yourTemplates')}</h2>}
       <div className="rejilla rejilla-2">
         {templates.map((item) => <Tarjeta key={item._id} titulo={item.name}>
           <p className="suave">{t(`status.${item.status}`)} · {t('revision', { number: item.revision })}</p>

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { defaultVisualDesign } from '../src/validators/visualTemplate.js';
+import { VISUAL_PRESET_IDS, visualPresetDesign } from '../src/validators/visualTemplate.js';
 import { renderVisualProposalHtml } from '../src/services/visualProposalHtml.service.js';
 import { renderVisualPdf } from '../src/services/visualPdf.service.js';
 
@@ -39,9 +39,11 @@ for (const count of [3, 15]) {
       ],
     })),
   };
-  const html = renderVisualProposalHtml(defaultVisualDesign(), data);
-  const pdf = await renderVisualPdf(html);
-  const target = path.join(outDir, `plantilla-visual-${count}-dias-prueba.pdf`);
-  await fs.writeFile(target, pdf);
-  console.log(`${count} días: ${pdf.length} bytes → ${target}`);
+  for (const presetId of VISUAL_PRESET_IDS) {
+    const html = renderVisualProposalHtml(visualPresetDesign(presetId), data);
+    const pdf = await renderVisualPdf(html);
+    const target = path.join(outDir, `plantilla-visual-${presetId}-${count}-dias-prueba.pdf`);
+    await fs.writeFile(target, pdf);
+    console.log(`${presetId}, ${count} días: ${pdf.length} bytes → ${target}`);
+  }
 }

@@ -277,28 +277,13 @@ export default function VisualTemplateEditor() {
     <Link to="/plantillas-visuales" className="volver">{t('editor.back')}</Link>
     <header className="visual-editor-header">
       <div><h1>{name}</h1><p className="suave">{t(`status.${template.status}`)} · {t('revision', { number: template.revision })}</p></div>
-      <div className="fila" style={{ gap: 8 }}>
-        <Boton variante="secundario" onClick={undo} disabled={!canEdit || !history.past.length}>{t('editor.undo')}</Boton>
-        <Boton variante="secundario" onClick={redo} disabled={!canEdit || !history.future.length}>{t('editor.redo')}</Boton>
-        <Boton onClick={save} cargando={saving} disabled={!canEdit || !dirty || !name.trim()}>{t('editor.save')}</Boton>
-      </div>
     </header>
-    <Aviso tipo="info">{t('editor.draftNotice')}</Aviso>
     {saveError && <Aviso tipo="error">{saveError}</Aviso>}
     {saved && <Aviso tipo="exito">{t('editor.saved')}</Aviso>}
     <div className="visual-editor-layout">
       <aside className="visual-editor-tools">
         <Campo label={t('name')} value={name} maxLength={80} disabled={!canEdit} onChange={(event) => setName(event.target.value)} />
-        <div className="visual-pages">
-          {present.pages.map((item) => <button type="button" key={item.id} className={item.id === pageId ? 'active' : ''} onClick={() => { setPageId(item.id); setSelectedId(null); }}>{item.label}</button>)}
-        </div>
-        {canEdit && <div className="visual-tool-buttons">
-          <Boton chico variante="secundario" onClick={() => addElement('text')} disabled={page.elements.length >= 50}>{t('editor.addText')}</Boton>
-          <Boton chico variante="secundario" onClick={() => addElement('field')} disabled={page.elements.length >= 50}>{t('editor.addField')}</Boton>
-          <Boton chico variante="secundario" onClick={() => addElement('shape')} disabled={page.elements.length >= 50}>{t('editor.addShape')}</Boton>
-          <Boton chico variante="secundario" onClick={() => addElement('highlights')} disabled={page.elements.length >= 50}>{t('editor.addHighlights')}</Boton>
-          <Boton chico variante="secundario" onClick={addPage} disabled={present.pages.length >= 5}>{t('editor.addPage')}</Boton>
-        </div>}
+        <details className="visual-advanced"><summary>{t('editor.advanced')}</summary>
         <p className="suave" style={{ fontSize: '.85rem' }}>{t('editor.imageOptional')}</p>
         {canEdit && <div className="visual-assets">
           <strong>{t('editor.images')}</strong>
@@ -324,10 +309,30 @@ export default function VisualTemplateEditor() {
           <Campo label={t('editor.headingFont')}><select value={present.theme.headingFont} disabled={!canEdit} onChange={(event) => updateTheme('headingFont', event.target.value)}><option value="editorial">Editorial</option><option value="modern">Moderna</option><option value="classic">Clásica</option></select></Campo>
           <Campo label={t('editor.bodyFont')}><select value={present.theme.bodyFont} disabled={!canEdit} onChange={(event) => updateTheme('bodyFont', event.target.value)}><option value="modern">Moderna</option><option value="classic">Clásica</option></select></Campo>
         </fieldset>
+        </details>
       </aside>
-      <div className="visual-canvas-wrap">
+      <div className="visual-canvas-column">
+        <div className="visual-editor-toolbar">
+          <div className="visual-pages" aria-label={t('editor.pageOptions')}>
+            {present.pages.map((item) => <button type="button" key={item.id} className={item.id === pageId ? 'active' : ''} onClick={() => { setPageId(item.id); setSelectedId(null); }}>{item.label}</button>)}
+            {canEdit && <button type="button" onClick={addPage} disabled={present.pages.length >= 5}>+ {t('editor.addPage')}</button>}
+          </div>
+          <div className="visual-editor-toolbar-actions">
+            <Boton chico variante="secundario" onClick={undo} aria-label={t('editor.undo')} title={t('editor.undo')} disabled={!canEdit || !history.past.length}>↶ <span className="visual-action-label">{t('editor.undo')}</span></Boton>
+            <Boton chico variante="secundario" onClick={redo} aria-label={t('editor.redo')} title={t('editor.redo')} disabled={!canEdit || !history.future.length}>↷ <span className="visual-action-label">{t('editor.redo')}</span></Boton>
+            <Boton chico onClick={save} cargando={saving} disabled={!canEdit || !dirty || !name.trim()}>{t('editor.save')}</Boton>
+          </div>
+        </div>
+        {canEdit && <details className="visual-quick-add"><summary>+ {t('editor.add')}</summary><div className="visual-tool-buttons">
+            <Boton chico variante="secundario" onClick={() => addElement('text')} disabled={page.elements.length >= 50}>{t('editor.addText')}</Boton>
+            <Boton chico variante="secundario" onClick={() => addElement('field')} disabled={page.elements.length >= 50}>{t('editor.addField')}</Boton>
+            <Boton chico variante="secundario" onClick={() => addElement('shape')} disabled={page.elements.length >= 50}>{t('editor.addShape')}</Boton>
+            <Boton chico variante="secundario" onClick={() => addElement('highlights')} disabled={page.elements.length >= 50}>{t('editor.addHighlights')}</Boton>
+          </div></details>}
+        <div className="visual-canvas-wrap">
         <div ref={canvasRef} className="visual-canvas" style={{ background: page.background }} onPointerDown={() => setSelectedId(null)}>
           {page.elements.map((item) => <CanvasElement key={item.id} element={item} selected={item.id === selectedId} onPointerDown={onPointerDown} onKeyDown={onElementKeyDown} assetUrl={assetUrls[item.assetId]} pageKind={page.kind} theme={present.theme} t={t} />)}
+        </div>
         </div>
       </div>
       <aside className="visual-editor-inspector">
@@ -345,11 +350,13 @@ export default function VisualTemplateEditor() {
             <label><input type="checkbox" checked={element.style.weight === 'bold'} disabled={!canEdit} onChange={(event) => updateStyle('weight', event.target.checked ? 'bold' : 'normal')} /> {t('editor.bold')}</label>
           </>}
           {['shape', 'highlights'].includes(element.type) && <Campo label={t('editor.color')} type="color" value={element.style.background || '#f4eee5'} disabled={!canEdit} onChange={(event) => updateStyle('background', event.target.value)} />}
+          <details className="visual-advanced"><summary>{t('editor.positionLayers')}</summary>
           {canEdit && <><div className="visual-inspector-actions"><Boton chico variante="secundario" onClick={() => moveLayer(-1)} disabled={page.elements[0]?.id === selectedId}>{t('editor.layerBack')}</Boton><Boton chico variante="secundario" onClick={() => moveLayer(1)} disabled={page.elements.at(-1)?.id === selectedId}>{t('editor.layerFront')}</Boton></div><div className="visual-inspector-actions">{['left', 'center', 'right', 'top', 'middle', 'bottom'].map((axis) => <button type="button" key={axis} onClick={() => alignElement(axis)}>{t(`editor.align.${axis}`)}</button>)}</div></>}
           {['x', 'y', 'width', 'height'].map((key) => <Campo key={key} label={t(`editor.${key}`)} type="number" min={key === 'x' || key === 'y' ? 0 : 10} max="1000" value={element[key]} disabled={!canEdit} onChange={(event) => {
             const max = key === 'x' ? 1000 - element.width : key === 'y' ? 1000 - element.height : key === 'width' ? 1000 - element.x : 1000 - element.y;
             updateElement(key, Math.round(clamp(Number(event.target.value) || 0, key === 'x' || key === 'y' ? 0 : 10, max)));
           }} />)}
+          </details>
           {canEdit && <Boton chico variante="peligro-texto" onClick={() => { commit((next) => { next.pages[pageIndex].elements = next.pages[pageIndex].elements.filter((item) => item.id !== selectedId); }); setSelectedId(null); }}>{t('editor.removeElement')}</Boton>}
         </> : <p className="suave">{t('editor.noElement')}</p>}
       </aside>

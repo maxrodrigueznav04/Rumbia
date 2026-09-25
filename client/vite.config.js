@@ -9,7 +9,7 @@ export default defineConfig({
     // asi no hay CORS ni hace falta VITE_API_URL en local.
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: process.env.VITE_DEV_API_TARGET || 'http://localhost:4000',
         changeOrigin: true,
       },
     },

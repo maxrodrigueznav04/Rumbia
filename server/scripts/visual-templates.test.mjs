@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultVisualDesign, visualDesignSchema } from '../src/validators/visualTemplate.js';
+import { defaultVisualDesign, visualDesignSchema, VISUAL_PRESET_IDS, visualPresetDesign, createVisualTemplateSchema } from '../src/validators/visualTemplate.js';
 import { visualTemplateCanEdit, visualTemplateLimit } from '../src/services/visualTemplates.service.js';
 import { renderVisualProposalHtml } from '../src/services/visualProposalHtml.service.js';
 
@@ -9,6 +9,19 @@ test('el diseño de partida es válido y no exige imagen interior', () => {
   assert.equal(design.pages[0].kind, 'cover');
   assert.equal(design.pages[1].kind, 'narrative');
   assert.equal(design.pages.flatMap((page) => page.elements).filter((item) => item.type === 'image').length, 0);
+});
+
+test('los diseños listos se pueden publicar y conservar sin imágenes obligatorias', () => {
+  assert.equal(VISUAL_PRESET_IDS.length, 3);
+  const backgrounds = new Set();
+  for (const id of VISUAL_PRESET_IDS) {
+    const design = visualDesignSchema.parse(visualPresetDesign(id));
+    backgrounds.add(design.pages[0].background);
+    assert.equal(design.pages.flatMap((page) => page.elements).filter((item) => item.type === 'image').length, 0);
+    assert.equal(createVisualTemplateSchema.safeParse({ name: id, presetId: id, status: 'published' }).success, true);
+  }
+  assert.equal(backgrounds.size, 3);
+  assert.equal(createVisualTemplateSchema.safeParse({ name: 'No válido', presetId: 'desconocido' }).success, false);
 });
 
 test('rechaza campos internos y elementos que desbordan la página', () => {

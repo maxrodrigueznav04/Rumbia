@@ -78,7 +78,11 @@ export const visualDesignSchema = z.object({
 export const createVisualTemplateSchema = z.object({
   name: z.string().trim().min(1).max(80),
   design: visualDesignSchema.optional(),
-}).strict();
+  presetId: z.enum(['editorial', 'minimal', 'aventura']).optional(),
+  status: z.enum(['draft', 'published']).optional(),
+}).strict().refine((value) => !value.design || !value.presetId, {
+  message: 'Elige un diseño predeterminado o envía uno propio.',
+});
 
 export const updateVisualTemplateSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
@@ -125,4 +129,48 @@ export function defaultVisualDesign() {
     ],
     itinerary: { accent: '#bc6954', heading: 'El viaje, día a día', headingFontSize: 30, dayFontSize: 18, bodyFontSize: 8, showTimes: true, showDescriptions: true },
   };
+}
+
+export const VISUAL_PRESET_IDS = ['editorial', 'minimal', 'aventura'];
+
+export function visualPresetDesign(id) {
+  const design = defaultVisualDesign();
+  if (id === 'editorial') return design;
+  if (id === 'minimal') {
+    design.theme = { ink: '#253744', accent: '#a97054', muted: '#65747a', headingFont: 'modern', bodyFont: 'modern' };
+    design.pages[0] = { id: 'cover', label: 'Portada', kind: 'cover', background: '#f7f5ef', elements: [
+      { id: 'agency', type: 'field', field: 'agency.name', x: 70, y: 65, width: 680, height: 55, style: { color: '#253744', fontSize: 18, weight: 'bold' } },
+      { id: 'accent-line', type: 'shape', x: 70, y: 370, width: 160, height: 10, style: { background: '#a97054' } },
+      { id: 'dates', type: 'field', field: 'trip.dates', x: 70, y: 440, width: 750, height: 40, style: { color: '#a97054', fontSize: 13 } },
+      { id: 'title', type: 'field', field: 'trip.title', x: 70, y: 515, width: 860, height: 235, style: { color: '#253744', fontSize: 52 } },
+      { id: 'destination', type: 'field', field: 'trip.destination', x: 70, y: 790, width: 820, height: 70, style: { color: '#65747a', fontSize: 22 } },
+      { id: 'bottom-line', type: 'shape', x: 70, y: 930, width: 860, height: 10, style: { background: '#253744' } },
+    ] };
+    design.pages[1].background = '#ffffff';
+    design.pages[1].elements.find((item) => item.id === 'intro-heading').style.color = '#253744';
+    design.pages[1].elements.find((item) => item.id === 'intro-destination').style.color = '#a97054';
+    design.pages[1].elements.find((item) => item.id === 'intro-highlights').style.background = '#253744';
+    design.pages[1].elements.find((item) => item.id === 'intro-price').style.color = '#253744';
+    design.itinerary.accent = '#a97054';
+    return design;
+  }
+  if (id === 'aventura') {
+    design.theme = { ink: '#173e3b', accent: '#d9a957', muted: '#5e716b', headingFont: 'editorial', bodyFont: 'modern' };
+    design.pages[0] = { id: 'cover', label: 'Portada', kind: 'cover', background: '#173e3b', elements: [
+      { id: 'top-band', type: 'shape', x: 0, y: 0, width: 1000, height: 20, style: { background: '#d9a957' } },
+      { id: 'agency', type: 'field', field: 'agency.name', x: 70, y: 70, width: 700, height: 60, style: { color: '#ffffff', fontSize: 20, weight: 'bold' } },
+      { id: 'accent-line', type: 'shape', x: 70, y: 535, width: 180, height: 10, style: { background: '#d9a957' } },
+      { id: 'dates', type: 'field', field: 'trip.dates', x: 70, y: 580, width: 700, height: 40, style: { color: '#e7c88d', fontSize: 13 } },
+      { id: 'title', type: 'field', field: 'trip.title', x: 70, y: 650, width: 860, height: 180, style: { color: '#ffffff', fontSize: 50 } },
+      { id: 'destination', type: 'field', field: 'trip.destination', x: 70, y: 860, width: 820, height: 65, style: { color: '#e7e9d6', fontSize: 21 } },
+    ] };
+    design.pages[1].background = '#f8f6ee';
+    design.pages[1].elements.find((item) => item.id === 'intro-heading').style.color = '#173e3b';
+    design.pages[1].elements.find((item) => item.id === 'intro-destination').style.color = '#a66a3c';
+    design.pages[1].elements.find((item) => item.id === 'intro-highlights').style.background = '#173e3b';
+    design.pages[1].elements.find((item) => item.id === 'intro-price').style.color = '#173e3b';
+    design.itinerary.accent = '#a66a3c';
+    return design;
+  }
+  throw new Error('Diseño predeterminado desconocido.');
 }

@@ -1,0 +1,11 @@
+.visual-preset-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.visual-preset-card { display:flex; flex-direction:column; overflow:hidden; border:1px solid var(--border); border-radius:16px; background:var(--surface); }
+.visual-preset-preview { min-height:235px; display:flex; justify-content:center; align-items:center; padding:14px; background:#eae7df; }
+.visual-preset-page { position:relative; width:145px; aspect-ratio:210/297; overflow:hidden; box-shadow:0 7px 24px #172b482e; container-type:inline-size; }
+.visual-preset-element { position:absolute; overflow:hidden; white-space:pre-wrap; line-height:1.12; }
+.visual-preset-copy { display:flex; flex:1; flex-direction:column; align-items:flex-start; gap:8px; padding:18px; }
+.visual-preset-copy h3 { margin:0; }
+.visual-preset-copy p { margin:0 0 10px; font-size:.91rem; }
+.visual-preset-copy .boton { margin-top:auto; }
+.visual-from-scratch { border:1px solid var(--border); border-radius:12px; padding:14px 18px; background:var(--surface); }
+.visual-from-scratch summary { cursor:pointer; font-weight:700; }

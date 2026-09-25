@@ -92,8 +92,10 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
       assert.deepEqual(Buffer.from(await download2.arrayBuffer()), bytes1);
     }
     await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.plan': 'pro_mensual' } });
-    const extra = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Plantilla extra' }) });
+    const extra = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Minimalista', presetId: 'minimal', status: 'published' }) });
     assert.equal(extra.status, 201, JSON.stringify(extra.body));
+    assert.equal(extra.body.data.template.status, 'published');
+    assert.equal(extra.body.data.template.design.pages[0].background, '#f7f5ef');
     await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.plan': 'inicio_mensual' } });
     assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
       method: 'POST', body: JSON.stringify({ templateId }),
