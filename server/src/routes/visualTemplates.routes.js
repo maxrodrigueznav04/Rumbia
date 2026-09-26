@@ -7,6 +7,7 @@ import { createVisualTemplateSchema, updateVisualTemplateSchema } from '../valid
 const router = Router();
 router.use(protect);
 router.get('/', ctrl.list);
+router.get('/art/:artId', ctrl.art);
 router.post('/', validate(createVisualTemplateSchema), ctrl.create);
 router.get('/:id', ctrl.get);
 router.patch('/:id', validate(updateVisualTemplateSchema), ctrl.update);

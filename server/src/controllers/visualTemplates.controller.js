@@ -6,6 +6,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { defaultVisualDesign, VISUAL_PRESET_IDS, visualPresetDesign } from '../validators/visualTemplate.js';
 import { freeVisualTemplateSlot, visualTemplateCanEdit, visualTemplateLimit } from '../services/visualTemplates.service.js';
 import { loadVisualDesignAssets } from '../services/visualDesignAssets.service.js';
+import { visualPresetArt } from '../services/visualPresetArt.service.js';
 
 async function currentAgency(user) {
   if (!user.agency) throw ApiError.forbidden('Las plantillas visuales pertenecen a una agencia.');
@@ -48,6 +49,12 @@ export const list = asyncHandler(async (req, res) => {
     limit: visualTemplateLimit(agency),
     presets: VISUAL_PRESET_IDS.map((id) => ({ id, design: visualPresetDesign(id) })),
   } });
+});
+
+export const art = asyncHandler(async (req, res) => {
+  const bytes = visualPresetArt(req.params.artId);
+  if (!bytes) throw ApiError.notFound('Arte no encontrado.');
+  res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=86400' }).send(bytes);
 });
 
 export const get = asyncHandler(async (req, res) => {

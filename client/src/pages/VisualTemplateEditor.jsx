@@ -42,7 +42,7 @@ function CanvasElement({ element, selected, onPointerDown, onKeyDown, assetUrl, 
     onPointerDown={(event) => onPointerDown(event, element.id, 'move')}
     onKeyDown={(event) => onKeyDown(event, element.id)}
   >
-    {element.type === 'image' ? <img src={assetUrl} alt="" className="visual-element-image" style={{ filter: pageKind === 'cover' ? 'brightness(.58)' : undefined }} /> : element.type === 'highlights' ? <div className="visual-highlights"><div><small>16 OCT</small><b>La Jolla Cove</b></div><div><small>18 OCT</small><b>Coronado</b></div><div><small>21 OCT</small><b>Galaxy’s Edge</b></div></div> : element.type !== 'shape' && content}
+    {element.type === 'image' ? <img src={assetUrl} alt="" className="visual-element-image" style={{ filter: pageKind === 'cover' ? 'brightness(.58)' : undefined }} /> : element.type === 'artwork' ? <><img src={assetUrl || `/api/visual-templates/art/${element.artId}`} alt="" className="visual-element-image" />{style.overlay && <span className="visual-art-shade" />}</> : element.type === 'highlights' ? <div className={`visual-highlights${style.layout === 'stack' ? ' stack' : ''}`}><div><small>16 OCT</small><b>La Jolla Cove</b></div><div><small>18 OCT</small><b>Coronado</b></div><div><small>21 OCT</small><b>Galaxy’s Edge</b></div></div> : element.type !== 'shape' && content}
     {selected && <span className="visual-resize" aria-hidden="true" onPointerDown={(event) => onPointerDown(event, element.id, 'resize')} />}
   </div>;
 }
@@ -197,6 +197,12 @@ export default function VisualTemplateEditor() {
   };
 
   const addImage = (assetId) => {
+    const artwork = page.kind === 'cover' ? page.elements.find((item) => item.type === 'artwork') : null;
+    if (artwork) {
+      commit((next) => { next.pages[pageIndex].elements.find((item) => item.id === artwork.id).assetId = assetId; });
+      setSelectedId(artwork.id);
+      return;
+    }
     const id = newId();
     commit((next) => {
       const target = next.pages[pageIndex];
@@ -344,12 +350,13 @@ export default function VisualTemplateEditor() {
           <h3>{t('editor.element')}</h3>
           {element.type === 'text' && <Campo label={t('editor.text')}><textarea value={element.text || ''} maxLength={700} disabled={!canEdit} onChange={(event) => updateElement('text', event.target.value)} /></Campo>}
           {element.type === 'field' && <Campo label={t('editor.field')}><select value={element.field} disabled={!canEdit} onChange={(event) => updateElement('field', event.target.value)}>{FIELDS.map((field) => <option key={field} value={field}>{t(`editor.fields.${field}`)}</option>)}</select></Campo>}
-          {element.type !== 'shape' && <><Campo label={t('editor.fontSize')} type="number" min="7" max="80" value={element.style.fontSize || 18} disabled={!canEdit} onChange={(event) => updateStyle('fontSize', clamp(Number(event.target.value) || 7, 7, 80))} /><Campo label={t('editor.color')} type="color" value={element.style.color || '#172b48'} disabled={!canEdit} onChange={(event) => updateStyle('color', event.target.value)} /></>}
+          {['text', 'field'].includes(element.type) && <><Campo label={t('editor.fontSize')} type="number" min="7" max="80" value={element.style.fontSize || 18} disabled={!canEdit} onChange={(event) => updateStyle('fontSize', clamp(Number(event.target.value) || 7, 7, 80))} /><Campo label={t('editor.color')} type="color" value={element.style.color || '#172b48'} disabled={!canEdit} onChange={(event) => updateStyle('color', event.target.value)} /></>}
           {['text', 'field'].includes(element.type) && <>
             <Campo label={t('editor.textAlign')}><select value={element.style.align || 'left'} disabled={!canEdit} onChange={(event) => updateStyle('align', event.target.value)}><option value="left">{t('editor.alignLeft')}</option><option value="center">{t('editor.alignCenter')}</option><option value="right">{t('editor.alignRight')}</option></select></Campo>
             <label><input type="checkbox" checked={element.style.weight === 'bold'} disabled={!canEdit} onChange={(event) => updateStyle('weight', event.target.checked ? 'bold' : 'normal')} /> {t('editor.bold')}</label>
           </>}
           {['shape', 'highlights'].includes(element.type) && <Campo label={t('editor.color')} type="color" value={element.style.background || '#f4eee5'} disabled={!canEdit} onChange={(event) => updateStyle('background', event.target.value)} />}
+          {element.type === 'artwork' && element.assetId && canEdit && <Boton chico variante="secundario" onClick={() => commit((next) => { delete next.pages[pageIndex].elements.find((item) => item.id === selectedId).assetId; })}>{t('editor.restoreArtwork')}</Boton>}
           <details className="visual-advanced"><summary>{t('editor.positionLayers')}</summary>
           {canEdit && <><div className="visual-inspector-actions"><Boton chico variante="secundario" onClick={() => moveLayer(-1)} disabled={page.elements[0]?.id === selectedId}>{t('editor.layerBack')}</Boton><Boton chico variante="secundario" onClick={() => moveLayer(1)} disabled={page.elements.at(-1)?.id === selectedId}>{t('editor.layerFront')}</Boton></div><div className="visual-inspector-actions">{['left', 'center', 'right', 'top', 'middle', 'bottom'].map((axis) => <button type="button" key={axis} onClick={() => alignElement(axis)}>{t(`editor.align.${axis}`)}</button>)}</div></>}
           {['x', 'y', 'width', 'height'].map((key) => <Campo key={key} label={t(`editor.${key}`)} type="number" min={key === 'x' || key === 'y' ? 0 : 10} max="1000" value={element[key]} disabled={!canEdit} onChange={(event) => {

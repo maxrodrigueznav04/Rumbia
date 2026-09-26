@@ -27,7 +27,8 @@ export default function VisualProposal() {
   const intro = design?.pages?.find((page) => page.id === 'intro');
   const coverTitle = cover?.elements.find((item) => item.id === 'title');
   const introHeading = intro?.elements.find((item) => item.id === 'intro-heading');
-  const coverImage = cover?.elements.find((item) => item.type === 'image');
+  const coverArt = cover?.elements.find((item) => item.type === 'artwork');
+  const coverImage = coverArt || cover?.elements.find((item) => item.type === 'image');
 
   useEffect(() => {
     setDesign(proposal ? clone(proposal.design) : null);
@@ -63,6 +64,12 @@ export default function VisualProposal() {
   const changeCoverImage = (assetId) => changeDesign((next) => {
     const page = next.pages.find((item) => item.kind === 'cover');
     if (!page) return;
+    const artwork = page.elements.find((item) => item.type === 'artwork');
+    if (artwork) {
+      if (assetId) artwork.assetId = assetId;
+      else delete artwork.assetId;
+      return;
+    }
     page.elements = page.elements.filter((item) => item.type !== 'image');
     if (assetId) page.elements.unshift({ id: `cover_${crypto.randomUUID().slice(0, 12)}`, type: 'image', assetId, x: 0, y: 0, width: 1000, height: 1000, style: {} });
   });
@@ -109,7 +116,7 @@ export default function VisualProposal() {
         <div className="rejilla rejilla-2">
           {coverTitle && <Campo label={t('proposal.coverTitle')} ayuda={t('proposal.coverTitleHint')} value={coverTitle.type === 'text' ? coverTitle.text || '' : ''} maxLength={140} onChange={(event) => changeTitle(event.target.value)} />}
           {introHeading && <Campo label={t('proposal.introMessage')} value={introHeading.text || ''} maxLength={140} onChange={(event) => changeMessage(event.target.value)} />}
-          {cover && <Campo label={t('proposal.coverImage')}><select value={coverImage?.assetId || ''} onChange={(event) => changeCoverImage(event.target.value)}><option value="">{t('proposal.noImage')}</option>{assets.map((asset, index) => <option key={asset._id} value={asset._id}>{t('proposal.imageNumber', { number: index + 1 })}</option>)}</select></Campo>}
+          {cover && <Campo label={t('proposal.coverImage')}><select value={coverImage?.assetId || ''} onChange={(event) => changeCoverImage(event.target.value)}><option value="">{t(coverArt ? 'proposal.includedArt' : 'proposal.noImage')}</option>{assets.map((asset, index) => <option key={asset._id} value={asset._id}>{t('proposal.imageNumber', { number: index + 1 })}</option>)}</select></Campo>}
         </div>
         {assetsReq.error && <Aviso tipo="error">{assetsReq.error.message}</Aviso>}
         <div className="fila" style={{ gap: 8, marginTop: 16, flexWrap: 'wrap' }}>

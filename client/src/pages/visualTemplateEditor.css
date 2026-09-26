@@ -28,7 +28,10 @@
 .visual-element { position:absolute; overflow:hidden; white-space:pre-wrap; line-height:1.12; cursor:grab; user-select:none; border:1px solid transparent; touch-action:none; }
 .visual-element.selected { outline:2px solid #bc6954; outline-offset:1px; }
 .visual-element-image { display:block; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.visual-art-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 30%,#06111b2e 52%,#06111bd1 100%); pointer-events:none; }
 .visual-highlights { display:grid; grid-template-columns:repeat(3,1fr); gap:5%; padding:6%; height:100%; }
+.visual-highlights.stack { grid-template-columns:1fr; grid-template-rows:repeat(3,1fr); gap:0; }
+.visual-highlights.stack div { border-left:0; border-top:1px solid #ffffff55; padding:5% 0 0; }
 .visual-highlights div { border-left:1px solid #ffffff55; padding-left:8%; }
 .visual-highlights small { display:block; font:400 .7em Arial,sans-serif; margin-bottom:.8em; }
 .visual-highlights b { display:block; font:400 1.1em Georgia,serif; }

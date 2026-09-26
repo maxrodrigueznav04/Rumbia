@@ -33,7 +33,7 @@ function PresetPreview({ design, sampleTitle }) {
         ? (design.theme.headingFont === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif')
         : (design.theme.bodyFont === 'classic' ? 'Georgia, serif' : 'Arial, sans-serif'),
       fontWeight: item.style.weight || 'normal',
-    }}>{item.type === 'field' ? (item.field === 'trip.title' ? sampleTitle : previewFields[item.field] || '') : item.type === 'text' ? item.text : null}</div>)}
+    }}>{item.type === 'artwork' ? <><img className="visual-preset-art" src={`/api/visual-templates/art/${item.artId}`} alt="" loading="lazy" />{item.style.overlay && <span className="visual-art-shade" />}</> : item.type === 'field' ? (item.field === 'trip.title' ? sampleTitle : previewFields[item.field] || '') : item.type === 'text' ? item.text : null}</div>)}
   </div></div>;
 }
 

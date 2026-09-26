@@ -1,3 +1,5 @@
+import { visualPresetArtDataUri } from './visualPresetArt.service.js';
+
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 })[char]);
@@ -10,7 +12,7 @@ const pt = (n) => `${n || 18}pt`;
 
 function fittedFieldFontSize(element, text) {
   const original = element.style?.fontSize || 18;
-  if (element.type !== 'field' || !['trip.title', 'trip.destination'].includes(element.field)) return original;
+  if (element.type !== 'field' || !['trip.title', 'trip.destination', 'agency.name'].includes(element.field)) return original;
   const value = String(text || '');
   const widthPt = element.width * 0.595 * 0.9;
   const heightPt = element.height * 0.842 * 0.9;
@@ -30,10 +32,15 @@ function fixedElement(element, page, data, design) {
     if (!asset) return '';
     return `<div class="fixed-element image" style="${box}"><img src="${esc(asset.url)}" alt="" style="${page.kind === 'cover' ? 'filter:brightness(.58);' : ''}"></div>`;
   }
+  if (element.type === 'artwork') {
+    const src = (element.assetId && data.assets[element.assetId]?.url) || visualPresetArtDataUri(element.artId);
+    if (!src) return '';
+    return `<div class="fixed-element artwork" style="${box}"><img src="${esc(src)}" alt="">${style.overlay ? '<span class="artwork-shade"></span>' : ''}</div>`;
+  }
   if (element.type === 'shape') return `<div class="fixed-element" style="${box}background:${style.background || design.theme.accent};"></div>`;
   if (element.type === 'highlights') {
     const items = data.highlights.slice(0, 3).map((item) => `<div><small>${esc(item.date)}</small><strong>${esc(item.title)}</strong><p>${esc(item.summary)}</p></div>`).join('');
-    return `<div class="fixed-element highlights" style="${box}background:${style.background || design.theme.ink};color:${style.color || '#ffffff'};">${items}</div>`;
+    return `<div class="fixed-element highlights${style.layout === 'stack' ? ' stack' : ''}" style="${box}background:${style.background || design.theme.ink};color:${style.color || '#ffffff'};">${items}</div>`;
   }
   const text = element.type === 'field' ? data.fields[element.field] : element.text;
   const font = (style.fontSize || 18) >= 25 ? headingFont[design.theme.headingFont] : bodyFont[design.theme.bodyFont];
@@ -59,8 +66,15 @@ export function renderVisualProposalHtml(design, data) {
     .fixed-element { position:absolute; overflow:hidden; }
     .fixed-element.text { white-space:pre-wrap; line-height:1.12; }
     .fixed-element.image img { display:block; width:100%; height:100%; object-fit:cover; }
+    .fixed-element.artwork img { display:block; width:100%; height:100%; object-fit:cover; }
+    .artwork-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(6,17,27,0) 30%,rgba(6,17,27,.18) 52%,rgba(6,17,27,.82) 100%); }
     .highlights { display:grid; grid-template-columns:repeat(3,1fr); gap:4mm; padding:7mm; font:9pt ${bodyFont[design.theme.bodyFont]}; }
     .highlights>div { border-left:1px solid #ffffff88; padding-left:4mm; }
+    .highlights.stack { grid-template-columns:1fr; grid-template-rows:repeat(3,minmax(0,1fr)); gap:0; padding:5mm 7mm; }
+    .highlights.stack>div { border-left:0; border-top:1px solid #ffffff88; padding:3mm 0 0; overflow:hidden; }
+    .highlights.stack strong { font-size:13pt; }
+    .highlights.stack small { margin-bottom:2mm; }
+    .highlights.stack p { margin-top:2mm; }
     .highlights small { display:block; font:7pt ${bodyFont[design.theme.bodyFont]}; letter-spacing:.12em; margin-bottom:7mm; text-transform:uppercase; }
     .highlights strong { display:block; font:16pt ${headingFont[design.theme.headingFont]}; line-height:1.15; }
     .highlights p { font:8pt/1.45 ${bodyFont[design.theme.bodyFont]}; margin:4mm 0 0; }

@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultVisualDesign, visualDesignSchema, VISUAL_PRESET_IDS, visualPresetDesign, createVisualTemplateSchema } from '../src/validators/visualTemplate.js';
+import { defaultVisualDesign, visualDesignSchema, VISUAL_PRESET_IDS, VISUAL_ART_IDS, visualPresetDesign, createVisualTemplateSchema } from '../src/validators/visualTemplate.js';
 import { visualTemplateCanEdit, visualTemplateLimit } from '../src/services/visualTemplates.service.js';
 import { renderVisualProposalHtml } from '../src/services/visualProposalHtml.service.js';
+import { visualPresetArt } from '../src/services/visualPresetArt.service.js';
 
 test('el diseño de partida es válido y no exige imagen interior', () => {
   const design = visualDesignSchema.parse(defaultVisualDesign());
@@ -20,10 +21,16 @@ test('los diseños listos se pueden publicar y conservar sin imágenes obligator
     backgrounds.add(design.pages[0].background);
     headings.add(design.itinerary.heading);
     assert.equal(design.pages.flatMap((page) => page.elements).filter((item) => item.type === 'image').length, 0);
+    const includedArt = design.pages[0].elements.filter((item) => item.type === 'artwork');
+    assert.equal(includedArt.length, 1);
+    assert(VISUAL_ART_IDS.includes(includedArt[0].artId));
+    assert(!includedArt[0].assetId);
     assert.equal(createVisualTemplateSchema.safeParse({ name: id, presetId: id, status: 'published' }).success, true);
   }
   assert(backgrounds.size >= 10);
   assert(headings.size >= 10);
+  for (const id of VISUAL_ART_IDS) assert(visualPresetArt(id).length > 10000);
+  assert.equal(visualPresetArt('../secret'), null);
   assert.equal(createVisualTemplateSchema.safeParse({ name: 'No válido', presetId: 'desconocido' }).success, false);
 });
 

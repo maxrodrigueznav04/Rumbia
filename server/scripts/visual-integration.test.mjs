@@ -95,7 +95,15 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     const extra = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Para dos', presetId: 'romance', status: 'published' }) });
     assert.equal(extra.status, 201, JSON.stringify(extra.body));
     assert.equal(extra.body.data.template.status, 'published');
-    assert.equal(extra.body.data.template.design.pages[0].background, '#fff6f1');
+    assert.equal(extra.body.data.template.design.pages[0].background, '#fcf6f2');
+    const selectedArt = await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'POST', body: JSON.stringify({ templateId: extra.body.data.template._id }),
+    });
+    assert.equal(selectedArt.status, 200, JSON.stringify(selectedArt.body));
+    const artPreview = await request(`/trips/${trip}/visual-proposal/preview`, owner1);
+    assert.equal(artPreview.status, 200, JSON.stringify(artPreview.body));
+    assert.match(artPreview.body.data.html, /class="fixed-element artwork"/);
+    assert.match(artPreview.body.data.html, /data:image\/jpeg;base64,/);
     await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.plan': 'inicio_mensual' } });
     assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
       method: 'POST', body: JSON.stringify({ templateId }),
