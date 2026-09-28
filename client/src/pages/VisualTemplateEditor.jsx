@@ -75,6 +75,7 @@ export default function VisualTemplateEditor() {
   const assets = assetsReq.data?.assets || [];
   const assetUrls = Object.fromEntries(assets.map((asset) => [asset._id, asset.url]));
   const element = page?.elements.find((item) => item.id === selectedId);
+  const copyElements = page?.elements.filter((item) => item.type === 'text') || [];
   const canEdit = Boolean(data?.canEdit && user?.agency && String(user.agency.owner) === String(user._id) && template?.status !== 'archived');
   const dirty = Boolean(template && present && (name !== template.name || JSON.stringify(present) !== JSON.stringify(template.design)));
 
@@ -101,6 +102,10 @@ export default function VisualTemplateEditor() {
   const updateElement = (key, value) => commit((next) => {
     const item = next.pages[pageIndex].elements.find((entry) => entry.id === selectedId);
     if (item) item[key] = value;
+  });
+  const updatePageText = (id, value) => commit((next) => {
+    const item = next.pages[pageIndex].elements.find((entry) => entry.id === id);
+    if (item) item.text = value;
   });
   const updateStyle = (key, value) => commit((next) => {
     const item = next.pages[pageIndex].elements.find((entry) => entry.id === selectedId);
@@ -289,7 +294,11 @@ export default function VisualTemplateEditor() {
     <div className="visual-editor-layout">
       <aside className="visual-editor-tools">
         <Campo label={t('name')} value={name} maxLength={80} disabled={!canEdit} onChange={(event) => setName(event.target.value)} />
-        <details className="visual-advanced"><summary>{t('editor.advanced')}</summary>
+        {copyElements.length > 0 && <fieldset className="visual-copy-fields"><legend>{t('editor.phrases')}</legend>
+          <p className="suave">{t('editor.phrasesHint')}</p>
+          {copyElements.map((item) => <Campo key={item.id} label={t(`editor.copyLabels.${item.id}`, { defaultValue: t('editor.text') })}><textarea value={item.text || ''} maxLength={700} rows={item.id === 'intro-copy' ? 4 : 2} disabled={!canEdit} onChange={(event) => updatePageText(item.id, event.target.value)} /></Campo>)}
+        </fieldset>}
+        <details className="visual-advanced"><summary>{t('editor.imagesPanel')}</summary>
         <p className="suave" style={{ fontSize: '.85rem' }}>{t('editor.imageOptional')}</p>
         {canEdit && <div className="visual-assets">
           <strong>{t('editor.images')}</strong>
@@ -304,6 +313,8 @@ export default function VisualTemplateEditor() {
             <Boton chico type="submit" variante="secundario" cargando={uploading} disabled={!file || !rightsConfirmed || page.elements.length >= 50}>{t('editor.uploadAndInsert')}</Boton>
           </form>
         </div>}
+        </details>
+        <details className="visual-advanced"><summary>{t('editor.advanced')}</summary>
         <fieldset className="visual-itinerary-settings"><legend>{t('editor.itinerary')}</legend>
           <Campo label={t('editor.itineraryHeading')} value={present.itinerary.heading || 'El viaje, día a día'} maxLength={80} disabled={!canEdit} onChange={(event) => updateItinerary('heading', event.target.value)} />
           <Campo label={t('editor.accent')} type="color" value={present.itinerary.accent} disabled={!canEdit} onChange={(event) => updateItinerary('accent', event.target.value)} />

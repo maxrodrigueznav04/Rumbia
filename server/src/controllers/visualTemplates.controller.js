@@ -54,7 +54,7 @@ export const list = asyncHandler(async (req, res) => {
 export const art = asyncHandler(async (req, res) => {
   const bytes = visualPresetArt(req.params.artId);
   if (!bytes) throw ApiError.notFound('Arte no encontrado.');
-  res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=86400' }).send(bytes);
+  res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, no-cache' }).send(bytes);
 });
 
 export const get = asyncHandler(async (req, res) => {

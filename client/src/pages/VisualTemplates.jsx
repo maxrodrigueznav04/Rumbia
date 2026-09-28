@@ -46,7 +46,7 @@ export default function VisualTemplates() {
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [actionError, setActionError] = useState('');
-  const [createdPreset, setCreatedPreset] = useState('');
+  const [createdPreset, setCreatedPreset] = useState(null);
   const [category, setCategory] = useState('all');
   const templates = data?.templates || [];
   const canEdit = Boolean(data?.canEdit);
@@ -57,12 +57,12 @@ export default function VisualTemplates() {
   const createPreset = async (preset) => {
     setActionId(`preset-${preset.id}`);
     setActionError('');
-    setCreatedPreset('');
+    setCreatedPreset(null);
     try {
       const result = await visualTemplatesApi.create({
         name: t(`presets.${preset.id}.name`), presetId: preset.id, status: 'published',
       });
-      setCreatedPreset(result.template.name);
+      setCreatedPreset({ name: result.template.name, id: result.template._id });
       recargar();
     } catch (err) {
       setActionError(err.message);
@@ -113,7 +113,7 @@ export default function VisualTemplates() {
       <p className="suave" style={{ margin: 0 }}>{t('quota', { count: activeCount, limit: data.limit })}</p>
       {activeCount > data.limit && <Aviso tipo="info">{t('overLimit', { count: activeCount - data.limit })}</Aviso>}
       {actionError && <Aviso tipo="error">{actionError}</Aviso>}
-      {createdPreset && <Aviso tipo="exito">{t('presetReady', { name: createdPreset })} <Link to="/viajes">{t('goToTrips')}</Link></Aviso>}
+      {createdPreset && <Aviso tipo="exito">{t('presetReady', { name: createdPreset.name })} <Link to={`/plantillas-visuales/${createdPreset.id}`}>{t('editCopy')}</Link> · <Link to="/viajes">{t('goToTrips')}</Link></Aviso>}
       {canEdit && <section className="pila-sm">
         <div><h2>{t('readyDesigns')}</h2><p className="suave">{t('readyDesignsHint')}</p></div>
         <div className="visual-preset-filters" aria-label={t('categories.label')}>{categoryIds.map((id) => <button type="button" key={id} className={category === id ? 'active' : ''} aria-pressed={category === id} onClick={() => setCategory(id)}>{t(`categories.${id}`)}</button>)}</div>
