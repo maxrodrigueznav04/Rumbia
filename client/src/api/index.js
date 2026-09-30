@@ -164,6 +164,7 @@ export const templatesApi = {
 };
 
 export const visualTemplatesApi = {
+  artUrl: (id) => `${BASE_URL}/visual-templates/art/${encodeURIComponent(id)}`,
   list: (opts) => api.get('/visual-templates', opts),
   get: (id, opts) => api.get(`/visual-templates/${id}`, opts),
   create: (payload) => api.post('/visual-templates', payload),

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { protect } from '../middleware/auth.js';
+import { requireVisualAccess } from '../middleware/visualAccess.js';
 import validate from '../middleware/validate.js';
 import * as ctrl from '../controllers/visualTemplates.controller.js';
 import { createVisualTemplateSchema, updateVisualTemplateSchema } from '../validators/visualTemplate.js';
 
 const router = Router();
-router.use(protect);
+router.use(protect, requireVisualAccess);
 router.get('/', ctrl.list);
 router.get('/art/:artId', ctrl.art);
 router.post('/', validate(createVisualTemplateSchema), ctrl.create);

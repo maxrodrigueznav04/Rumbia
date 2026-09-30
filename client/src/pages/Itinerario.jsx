@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { canUseVisualTemplates } from '../config/visualTemplates.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { tripsApi, itineraryApi } from '../api/index.js';
@@ -494,7 +495,7 @@ export default function Itinerario() {
             <Boton variante="secundario" onClick={() => window.print()}>
               <Icono nombre="descarga" tamano={15} /> {t('descargarPdf')}
             </Boton>
-            {(import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true') && user?.agency && <Link className="boton secundario" to={`/viajes/${id}/propuesta`}>
+            {canUseVisualTemplates(user) && user?.agency && <Link className="boton secundario" to={`/viajes/${id}/propuesta`}>
               {t('propuestaVisual')}
             </Link>}
             {viaje.durationDays <= LIMITE_DIAS_IA && (

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LimiteDeError from './components/LimiteDeError.jsx';
@@ -15,11 +16,11 @@ import DetalleViaje from './pages/DetalleViaje.jsx';
 import Itinerario from './pages/Itinerario.jsx';
 import Perfil from './pages/Perfil.jsx';
 import Plantillas from './pages/Plantillas.jsx';
-import VisualTemplates from './pages/VisualTemplates.jsx';
-import VisualTemplateEditor from './pages/VisualTemplateEditor.jsx';
-import VisualProposal from './pages/VisualProposal.jsx';
+const VisualTemplates = lazy(() => import('./pages/VisualTemplates.jsx'));
+const VisualTemplateEditor = lazy(() => import('./pages/VisualTemplateEditor.jsx'));
+const VisualProposal = lazy(() => import('./pages/VisualProposal.jsx'));
+import { canUseVisualTemplates } from './config/visualTemplates.js';
 
-const visualTemplatesEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true';
 import Clientes from './pages/Clientes.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Probar from './pages/Probar.jsx';
@@ -28,7 +29,7 @@ import Terminos from './pages/Terminos.jsx';
 import ItinerarioCompartido from './pages/ItinerarioCompartido.jsx';
 import Cookies from './pages/Cookies.jsx';
 import Acerca from './pages/Acerca.jsx';
-import { Vacio } from './components/ui.jsx';
+import { Vacio, Esqueleto } from './components/ui.jsx';
 
 function NoEncontrado() {
   // Alcanzable con o sin sesion (no vive bajo RutaProtegida): mandar a
@@ -49,6 +50,11 @@ function NoEncontrado() {
       </Vacio>
     </div>
   );
+}
+
+function VisualBetaRoute({ children }) {
+  const { user } = useAuth();
+  return canUseVisualTemplates(user) ? <Suspense fallback={<Esqueleto alto={500} />}>{children}</Suspense> : <Navigate to="/plantillas" replace />;
 }
 
 export default function App() {
@@ -110,9 +116,9 @@ export default function App() {
               <Route path="/viajes/:id" element={<DetalleViaje />} />
               <Route path="/viajes/:id/itinerario" element={<Itinerario />} />
               <Route path="/plantillas" element={<Plantillas />} />
-              {visualTemplatesEnabled && <Route path="/plantillas-visuales" element={<VisualTemplates />} />}
-              {visualTemplatesEnabled && <Route path="/plantillas-visuales/:id" element={<VisualTemplateEditor />} />}
-              {visualTemplatesEnabled && <Route path="/viajes/:id/propuesta" element={<VisualProposal />} />}
+              <Route path="/plantillas-visuales" element={<VisualBetaRoute><VisualTemplates /></VisualBetaRoute>} />
+              <Route path="/plantillas-visuales/:id" element={<VisualBetaRoute><VisualTemplateEditor /></VisualBetaRoute>} />
+              <Route path="/viajes/:id/propuesta" element={<VisualBetaRoute><VisualProposal /></VisualBetaRoute>} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
 

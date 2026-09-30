@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import { requireVisualAccess } from '../middleware/visualAccess.js';
 import validate from '../middleware/validate.js';
 import * as ctrl from '../controllers/visualProposals.controller.js';
 import { selectVisualTemplateSchema, updateVisualProposalSchema, issueVisualProposalSchema } from '../validators/visualTemplate.js';
 
 const router = Router({ mergeParams: true });
+router.use(requireVisualAccess);
 router.get('/', ctrl.get);
 router.post('/', validate(selectVisualTemplateSchema), ctrl.selectTemplate);
 router.patch('/', validate(updateVisualProposalSchema), ctrl.update);

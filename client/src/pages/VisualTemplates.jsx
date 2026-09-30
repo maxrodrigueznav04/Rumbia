@@ -6,6 +6,8 @@ import useFetch from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Aviso, Boton, Campo, ErrorCarga, Esqueleto, Tarjeta, Vacio } from '../components/ui.jsx';
 import './visualTemplates.css';
+import { visualHeadingFonts, visualBodyFonts } from '../config/visualFonts.js';
+import { fittedFieldFontSize } from '../config/visualFieldSizing.js';
 
 const previewFields = {
   'agency.name': 'TU AGENCIA',
@@ -28,12 +30,12 @@ function PresetPreview({ design, sampleTitle }) {
       left: `${item.x / 10}%`, top: `${item.y / 10}%`, width: `${item.width / 10}%`, height: `${item.height / 10}%`,
       background: item.type === 'shape' ? item.style.background : undefined,
       color: item.style.color || design.theme.ink,
-      fontSize: `${((item.style.fontSize || 18) / 595) * 100}cqw`,
+      fontSize: `${(fittedFieldFontSize(item, item.field === 'trip.title' ? sampleTitle : previewFields[item.field]) / 595) * 100}cqw`,
       fontFamily: (item.style.fontSize || 0) >= 25
-        ? (design.theme.headingFont === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif')
-        : (design.theme.bodyFont === 'classic' ? 'Georgia, serif' : 'Arial, sans-serif'),
+        ? visualHeadingFonts[design.theme.headingFont]
+        : visualBodyFonts[design.theme.bodyFont],
       fontWeight: item.style.weight || 'normal',
-    }}>{item.type === 'artwork' ? <><img className="visual-preset-art" src={`/api/visual-templates/art/${item.artId}`} alt="" loading="lazy" />{item.style.overlay && <span className="visual-art-shade" />}</> : item.type === 'field' ? (item.field === 'trip.title' ? sampleTitle : previewFields[item.field] || '') : item.type === 'text' ? item.text : null}</div>)}
+    }}>{item.type === 'artwork' ? <><img className="visual-preset-art" src={visualTemplatesApi.artUrl(item.artId)} crossOrigin="use-credentials" alt="" loading="lazy" />{item.style.overlay && <span className="visual-art-shade" />}</> : item.type === 'field' ? (item.field === 'trip.title' ? sampleTitle : previewFields[item.field] || '') : item.type === 'text' ? item.text : null}</div>)}
   </div></div>;
 }
 

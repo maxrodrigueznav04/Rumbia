@@ -54,7 +54,8 @@ export const list = asyncHandler(async (req, res) => {
 export const art = asyncHandler(async (req, res) => {
   const bytes = visualPresetArt(req.params.artId);
   if (!bytes) throw ApiError.notFound('Arte no encontrado.');
-  res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, no-cache' }).send(bytes);
+  // The web and API live on sibling subdomains; Helmet's same-origin default blocks these images.
+  res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, no-cache', 'Cross-Origin-Resource-Policy': 'same-site' }).send(bytes);
 });
 
 export const get = asyncHandler(async (req, res) => {

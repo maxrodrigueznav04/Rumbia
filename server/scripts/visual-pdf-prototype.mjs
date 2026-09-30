@@ -6,6 +6,7 @@ import { renderVisualPdf } from '../src/services/visualPdf.service.js';
 
 const outDir = path.resolve('../output/pdf');
 await fs.mkdir(outDir, { recursive: true });
+let failures = 0;
 for (const count of [3, 15]) {
   const data = {
     fields: {
@@ -41,9 +42,12 @@ for (const count of [3, 15]) {
   };
   for (const presetId of VISUAL_PRESET_IDS) {
     const html = renderVisualProposalHtml(visualPresetDesign(presetId), data);
-    const pdf = await renderVisualPdf(html);
+    let pdf;
+    try { pdf = await renderVisualPdf(html); }
+    catch (err) { failures += 1; console.error(`${presetId}, ${count} días: ${err.message}`); continue; }
     const target = path.join(outDir, `plantilla-visual-${presetId}-${count}-dias-prueba.pdf`);
     await fs.writeFile(target, pdf);
     console.log(`${presetId}, ${count} días: ${pdf.length} bytes → ${target}`);
   }
 }
+if (failures) { console.error(`${failures} documentos fallaron.`); process.exitCode = 1; }

@@ -8,11 +8,15 @@
     "node": ">=18"
   },
   "scripts": {
+    "build:render": "node scripts/build-render.mjs",
+    "browser:install": "node scripts/install-visual-browser.mjs",
+    "check:visual-runtime": "node scripts/check-visual-runtime.mjs",
+    "beta:start": "node scripts/start-visual-beta.mjs",
     "dev": "node --watch-path=./src --watch-preserve-output src/server.js",
     "start": "node src/server.js",
     "seed": "node scripts/seed.js",
     "seed:reset": "node scripts/seed.js --reset",
-    "test": "node scripts/smoke-test.mjs && node --test scripts/resilience.test.mjs scripts/visual-templates.test.mjs scripts/visual-integration.test.mjs",
+    "test": "node scripts/smoke-test.mjs && node --test scripts/resilience.test.mjs scripts/visual-templates.test.mjs scripts/visual-integration.test.mjs scripts/visual-release.test.mjs",
     "test:carga": "node scripts/load-test.mjs",
     "test:api": "node scripts/prueba-api.mjs && node scripts/prueba-edicion.mjs",
     "test:recuperacion": "node scripts/prueba-recuperacion.mjs",

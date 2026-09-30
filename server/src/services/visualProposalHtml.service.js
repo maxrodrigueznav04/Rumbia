@@ -1,28 +1,16 @@
+import { fittedFieldFontSize } from './visualFieldSizing.js';
 import { visualPresetArtDataUri } from './visualPresetArt.service.js';
+import { visualFontCss } from './visualFonts.service.js';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 })[char]);
 
-const headingFont = { editorial: 'Georgia, serif', classic: 'Georgia, serif', modern: 'Arial, sans-serif' };
-const bodyFont = { modern: 'Arial, sans-serif', classic: 'Georgia, serif' };
+const headingFont = { editorial: "'Playfair Display', serif", classic: "'Libre Baskerville', serif", modern: "'Work Sans', sans-serif" };
+const bodyFont = { modern: "'Work Sans', sans-serif", classic: "'Libre Baskerville', serif" };
 const mmX = (n) => `${(n / 1000 * 210).toFixed(3)}mm`;
 const mmY = (n) => `${(n / 1000 * 297).toFixed(3)}mm`;
 const pt = (n) => `${n || 18}pt`;
-
-function fittedFieldFontSize(element, text) {
-  const original = element.style?.fontSize || 18;
-  if (element.type !== 'field' || !['trip.title', 'trip.destination', 'agency.name'].includes(element.field)) return original;
-  const value = String(text || '');
-  const widthPt = element.width * 0.595 * 0.9;
-  const heightPt = element.height * 0.842 * 0.9;
-  const weightedLength = [...value].reduce((sum, char) => sum + ('il.,:;!| '.includes(char) ? 0.45 : 'MWÁÉÍÓÚ'.includes(char) ? 1.25 : 1), 0);
-  for (let size = original; size >= 12; size -= 1) {
-    const lines = Math.max(1, Math.ceil(weightedLength * size * 0.56 / widthPt));
-    if (lines * size * 1.18 <= heightPt) return size;
-  }
-  return 12;
-}
 
 function fixedElement(element, page, data, design) {
   const style = element.style || {};
@@ -58,6 +46,7 @@ export function renderVisualProposalHtml(design, data) {
     <div class="activities">${day.activities.map((activity) => `<div class="activity">${design.itinerary.showTimes && activity.time ? `<time>${esc(activity.time)}</time>` : ''}<div><strong>${esc(activity.title)}</strong>${design.itinerary.showDescriptions && activity.description ? `<p>${esc(activity.description)}</p>` : ''}</div></div>`).join('')}</div>
     </div></article>`).join('');
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(data.fields['trip.title'])}</title><style>
+    ${visualFontCss()}
     @page fixed { size:A4; margin:0; }
     @page itinerary { size:A4; margin:14mm; }
     * { box-sizing:border-box; }

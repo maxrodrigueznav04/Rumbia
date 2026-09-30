@@ -7,7 +7,7 @@ const MAX_PDF_BYTES = 25 * 1024 * 1024;
 let activeRenders = 0;
 
 export function renderVisualPdf(html) {
-  if (activeRenders >= 2) return Promise.reject(ApiError.tooMany('El generador de PDF está ocupado. Intenta de nuevo en un momento.'));
+  if (activeRenders >= 1) return Promise.reject(ApiError.tooMany('El generador de PDF está ocupado. Intenta de nuevo en un momento.'));
   activeRenders += 1;
   return new Promise((resolve, reject) => {
     if (Buffer.byteLength(html, 'utf8') > 2 * 1024 * 1024) {

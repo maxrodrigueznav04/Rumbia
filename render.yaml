@@ -6,12 +6,16 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm ci
+    buildCommand: npm ci && npm run build:render
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VISUAL_TEMPLATES_ENABLED
+        value: false
+      - key: VISUAL_TEMPLATES_AGENCIES
+        value: ""
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET

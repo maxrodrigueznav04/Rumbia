@@ -6,6 +6,8 @@ import useFetch from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Aviso, Boton, Campo, ErrorCarga, Esqueleto } from '../components/ui.jsx';
 import './visualTemplateEditor.css';
+import { visualHeadingFonts, visualBodyFonts } from '../config/visualFonts.js';
+import { fittedFieldFontSize } from '../config/visualFieldSizing.js';
 
 const FIELDS = ['trip.title', 'trip.destination', 'trip.dates', 'trip.travelers', 'agency.name', 'agency.contact', 'proposal.price'];
 const sample = {
@@ -33,16 +35,18 @@ function CanvasElement({ element, selected, onPointerDown, onKeyDown, assetUrl, 
     style={{
       left: `${x / 10}%`, top: `${y / 10}%`, width: `${width / 10}%`, height: `${height / 10}%`,
       color: style.color || '#172b48', background: ['shape', 'highlights'].includes(element.type) ? (style.background || '#f4eee5') : undefined,
-      fontSize: `${((style.fontSize || 18) / 595) * 100}cqw`,
+      fontSize: `${(fittedFieldFontSize(element, content) / 595) * 100}cqw`,
+      '--visual-heading-font': visualHeadingFonts[theme.headingFont],
+      '--visual-body-font': visualBodyFonts[theme.bodyFont],
       fontFamily: (style.fontSize || 0) >= 25
-        ? (theme.headingFont === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif')
-        : (theme.bodyFont === 'classic' ? 'Georgia, serif' : 'Arial, sans-serif'),
+        ? visualHeadingFonts[theme.headingFont]
+        : visualBodyFonts[theme.bodyFont],
       fontWeight: style.weight || 'normal', textAlign: style.align || 'left',
     }}
     onPointerDown={(event) => onPointerDown(event, element.id, 'move')}
     onKeyDown={(event) => onKeyDown(event, element.id)}
   >
-    {element.type === 'image' ? <img src={assetUrl} alt="" className="visual-element-image" style={{ filter: pageKind === 'cover' ? 'brightness(.58)' : undefined }} /> : element.type === 'artwork' ? <><img src={assetUrl || `/api/visual-templates/art/${element.artId}`} alt="" className="visual-element-image" />{style.overlay && <span className="visual-art-shade" />}</> : element.type === 'highlights' ? <div className={`visual-highlights${style.layout === 'stack' ? ' stack' : ''}`}><div><small>16 OCT</small><b>La Jolla Cove</b></div><div><small>18 OCT</small><b>Coronado</b></div><div><small>21 OCT</small><b>Galaxy’s Edge</b></div></div> : element.type !== 'shape' && content}
+    {element.type === 'image' ? <img src={assetUrl} alt="" className="visual-element-image" style={{ filter: pageKind === 'cover' ? 'brightness(.58)' : undefined }} /> : element.type === 'artwork' ? <><img src={assetUrl || visualTemplatesApi.artUrl(element.artId)} crossOrigin={assetUrl ? undefined : 'use-credentials'} alt="" className="visual-element-image" />{style.overlay && <span className="visual-art-shade" />}</> : element.type === 'highlights' ? <div className={`visual-highlights${style.layout === 'stack' ? ' stack' : ''}`}><div><small>16 OCT</small><b>La Jolla Cove</b></div><div><small>18 OCT</small><b>Coronado</b></div><div><small>21 OCT</small><b>Galaxy’s Edge</b></div></div> : element.type !== 'shape' && content}
     {selected && <span className="visual-resize" aria-hidden="true" onPointerDown={(event) => onPointerDown(event, element.id, 'resize')} />}
   </div>;
 }

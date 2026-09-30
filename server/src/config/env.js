@@ -74,6 +74,9 @@ export const env = {
   },
   visualTemplatesEnabled: process.env.VISUAL_TEMPLATES_ENABLED === 'true'
     || ((process.env.NODE_ENV || 'development') !== 'production' && process.env.VISUAL_TEMPLATES_ENABLED !== 'false'),
+  visualTemplateAgencies: (process.env.VISUAL_TEMPLATES_AGENCIES
+    ?? ((process.env.NODE_ENV || 'development') === 'production' ? '' : '*'))
+    .split(',').map((id) => id.trim()).filter(Boolean),
   // Cobro a agencias. Sin STRIPE_SECRET_KEY, /agency/billing responde 503 con
   // un aviso claro: el resto de la app (uso personal, agencia con un solo
   // dueño) sigue funcionando igual.

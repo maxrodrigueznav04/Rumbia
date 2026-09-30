@@ -73,7 +73,7 @@ export async function uploadProposalImage({ buffer, mimeType, agencyId }) {
 }
 
 export async function deleteProposalImage(publicId) {
-  if (!env.cloudinary.enabled) return;
+  if (!env.cloudinary.enabled) throw ApiError.serviceUnavailable('La biblioteca de imágenes no está configurada.');
   const params = { public_id: publicId, timestamp: Math.floor(Date.now() / 1000) };
   const form = new FormData();
   form.append('public_id', publicId);
@@ -84,7 +84,10 @@ export async function deleteProposalImage(publicId) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const response = await fetch(API(env.cloudinary.cloudName, 'destroy'), { method: 'POST', body: form, signal: controller.signal });
-    if (!response.ok) throw new Error(`Cloudinary ${response.status}`);
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !['ok', 'not found'].includes(result?.result)) {
+      throw ApiError.serviceUnavailable('No se pudo eliminar la imagen. Intenta de nuevo.');
+    }
   } finally {
     clearTimeout(timer);
   }

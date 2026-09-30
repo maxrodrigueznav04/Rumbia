@@ -1,4 +1,4 @@
-import { chromium } from 'playwright-core';
+import { launchVisualBrowser } from '../services/visualBrowser.service.js';
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
 const chunks = [];
@@ -11,9 +11,10 @@ for await (const chunk of process.stdin) {
 const html = Buffer.concat(chunks).toString('utf8');
 let browser;
 try {
-  browser = await chromium.launch({
-    ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : { channel: 'chrome' }),
-    headless: true,
+  browser = await launchVisualBrowser();
+  process.once('SIGTERM', async () => {
+    await browser?.close().catch(() => {});
+    process.exit(1);
   });
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
@@ -28,12 +29,13 @@ try {
     return route.abort();
   });
   await page.setContent(html, { waitUntil: 'networkidle', timeout: 20000 });
+  await page.evaluate(() => document.fonts.ready);
   const imagesOk = await page.evaluate(async () => {
     await Promise.all([...document.images].map((img) => img.decode().catch(() => null)));
     return [...document.images].every((img) => img.naturalWidth > 0);
   });
   if (!imagesOk) throw new Error('No se pudo cargar una imagen de la propuesta.');
-  const overflow = await page.evaluate(() => [...document.querySelectorAll('.fixed-element.text,.fixed-element.highlights')]
+  const overflow = await page.evaluate(() => [...document.querySelectorAll('.fixed-element.text,.fixed-element.highlights,.highlights>div')]
     .map((element, index) => ({ index, extraHeight: element.scrollHeight - element.clientHeight, extraWidth: element.scrollWidth - element.clientWidth }))
     .find((item) => item.extraHeight > 2 || item.extraWidth > 2));
   if (overflow) throw new Error(`Hay contenido que no cabe en una página fija (${overflow.index}, +${overflow.extraHeight}px de alto).`);

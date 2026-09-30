@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { canUseVisualTemplates } from '../config/visualTemplates.js';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { templatesApi, tripsApi } from '../api/index.js';
@@ -41,7 +42,7 @@ export default function Plantillas() {
   const [elegirViaje, setElegirViaje] = useState(false);
 
   const plantillas = data?.templates || [];
-  const visualTemplatesEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_VISUAL_TEMPLATES === 'true';
+  const visualTemplatesEnabled = canUseVisualTemplates(user);
 
   return (
     <div className="pila">

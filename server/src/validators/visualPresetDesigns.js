@@ -96,7 +96,7 @@ function introPage(preset) {
       text('folio', 'PROPUESTA PERSONAL', 700, 75, 230, 30, muted, 11, { align: 'right', weight: 'bold' }),
       shape('head-rule', 70, 130, 860, 10, soft),
       text('intro-heading', intro, 70, 175, 530, 180, ink, 40),
-      text('intro-copy', copy, 620, 190, 300, 165, muted, 17),
+      text('intro-copy', copy, 620, 190, 300, 195, muted, 17),
       highlights(70, 410, 860, 275, ink),
       text('price-label', 'TU PROPUESTA', 70, 760, 450, 35, accent, 13, { weight: 'bold' }),
       field('intro-price', 'proposal.price', 70, 805, 470, 105, ink, 28),

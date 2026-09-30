@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { existsSync } from 'node:fs';
 
 process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/rumbia-visual-test';
 process.env.JWT_SECRET = 'visual-integration-test-secret-000000000000000000000';
 process.env.VISUAL_TEMPLATES_ENABLED = 'true';
+process.env.VISUAL_TEMPLATES_AGENCIES = '*';
 
 test('plantillas de agencia y archivo PDF conservan permisos y versiones', async () => {
   const mongo = await MongoMemoryServer.create();
@@ -51,6 +51,17 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     await itineraries.insertOne({ trip, user: owner1, days: [
       { dayNumber: 1, date: new Date('2026-10-10T00:00:00Z'), title: 'Llegada a Oaxaca', activities: [{ time: '10:00', title: 'Paseo por el centro', estimatedCost: 200 }] },
     ] });
+    const { default: env } = await import('../src/config/env.js');
+    env.visualTemplateAgencies = [String(agency1)];
+    assert.equal((await request('/visual-templates', owner2)).status, 404);
+    assert.equal((await request('/visual-assets', owner2)).status, 404);
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner2)).status, 404);
+    assert.equal((await request('/auth/me', owner1)).body.data.user.features.visualTemplates, true);
+    assert.equal((await request('/auth/me', owner2)).body.data.user.features.visualTemplates, false);
+    const art = await fetch(`http://127.0.0.1:${port}/api/visual-templates/art/arch`, { headers: { cookie: cookie(owner1) } });
+    assert.equal(art.status, 200);
+    assert.equal(art.headers.get('cross-origin-resource-policy'), 'same-site');
+    env.visualTemplateAgencies = ['*'];
     const created = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Mi propuesta' }) });
     assert.equal(created.status, 201, JSON.stringify(created.body));
     const templateId = created.body.data.template._id;
@@ -73,9 +84,7 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     const preview = await request(`/trips/${trip}/visual-proposal/preview`, owner1);
     assert.equal(preview.status, 200, JSON.stringify(preview.body));
     assert(!preview.body.data.html.includes('margen'));
-    const chrome = process.env.CHROMIUM_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-    if (existsSync(chrome)) {
-      process.env.CHROMIUM_PATH = chrome;
+    {
       const issued = await request(`/trips/${trip}/visual-proposal/issue`, owner1, {
         method: 'POST', body: JSON.stringify({ revision: selected.body.data.proposal.revision, previewHash: preview.body.data.previewHash }),
       });
@@ -90,6 +99,33 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
       assert.equal(bytes1.subarray(0, 5).toString(), '%PDF-');
       const download2 = await getPdf(owner1);
       assert.deepEqual(Buffer.from(await download2.arrayBuffer()), bytes1);
+
+      // Reuse the same master on another trip; edits to that proposal are isolated.
+      const trip2 = id();
+      const secondTrip = { ...(await trips.findOne({ _id: trip })), _id: trip2, title: 'Quince días por Yucatán', destination: { name: 'Mérida y Valladolid' }, endDate: new Date('2026-10-24T00:00:00Z') };
+      await trips.insertOne(secondTrip);
+      await itineraries.insertOne({ trip: trip2, user: owner1, days: Array.from({ length: 15 }, (_, index) => ({
+        dayNumber: index + 1, date: new Date(Date.UTC(2026, 9, 10 + index)), title: `Parada ${index + 1}`,
+        activities: [{ time: '10:00', title: 'Recorrido y comida local', description: 'Tiempo para conocer el lugar y volver al alojamiento.' }],
+      })) });
+      const second = await request(`/trips/${trip2}/visual-proposal`, member1, { method: 'POST', body: JSON.stringify({ templateId }) });
+      assert.equal(second.status, 200, JSON.stringify(second.body));
+      const design = structuredClone(second.body.data.proposal.design);
+      const phrase = design.pages.flatMap((p) => p.elements).find((e) => e.type === 'text');
+      phrase.text = 'Tu viaje por Yucatán';
+      const changed = await request(`/trips/${trip2}/visual-proposal`, member1, { method: 'PATCH', body: JSON.stringify({ revision: second.body.data.proposal.revision, design }) });
+      assert.equal(changed.status, 200, JSON.stringify(changed.body));
+      assert(!(await request(`/visual-templates/${templateId}`, owner1)).body.data.template.design.pages.some((p) => p.elements.some((e) => e.text === phrase.text)));
+      assert(!(await request(`/trips/${trip}/visual-proposal`, owner1)).body.data.proposal.design.pages.some((p) => p.elements.some((e) => e.text === phrase.text)));
+      const preview2 = await request(`/trips/${trip2}/visual-proposal/preview`, member1);
+      assert.equal(preview2.status, 200, JSON.stringify(preview2.body));
+      assert(preview2.body.data.html.includes('Mérida y Valladolid'));
+      const issued2 = await request(`/trips/${trip2}/visual-proposal/issue`, member1, { method: 'POST', body: JSON.stringify({ revision: changed.body.data.proposal.revision, previewHash: preview2.body.data.previewHash }) });
+      assert.equal(issued2.status, 201, JSON.stringify(issued2.body));
+      const secondPdf = await fetch(`http://127.0.0.1:${port}/api/trips/${trip2}/visual-proposal/issues/${issued2.body.data.issue._id}/pdf`, { headers: { cookie: cookie(member1) } });
+      assert.equal(secondPdf.status, 200);
+      assert.equal(Buffer.from(await secondPdf.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
+      assert.deepEqual(Buffer.from(await (await getPdf(owner1)).arrayBuffer()), bytes1);
     }
     await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.plan': 'pro_mensual' } });
     const extra = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Para dos', presetId: 'romance', status: 'published' }) });
