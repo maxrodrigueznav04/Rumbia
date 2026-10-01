@@ -180,10 +180,10 @@ export const visualAssetsApi = {
 
 export const visualProposalsApi = {
   get: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal`, opts),
-  select: (tripId, templateId) => api.post(`/trips/${tripId}/visual-proposal`, { templateId }),
+  select: (tripId, templateId, revision = 0) => api.post(`/trips/${tripId}/visual-proposal`, { templateId, revision }),
   update: (tripId, payload) => api.patch(`/trips/${tripId}/visual-proposal`, payload),
   preview: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal/preview`, opts),
-  issue: (tripId, revision, previewHash) => api.post(`/trips/${tripId}/visual-proposal/issue`, { revision, previewHash }, { timeout: 70000 }),
+  issue: (tripId, revision, previewHash, requestId) => api.post(`/trips/${tripId}/visual-proposal/issue`, { revision, previewHash, requestId }, { timeout: 70000 }),
   pdfUrl: (tripId, issueId) => `${BASE_URL}/trips/${tripId}/visual-proposal/issues/${issueId}/pdf`,
 };
 

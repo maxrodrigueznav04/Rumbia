@@ -119,10 +119,24 @@
       "proposal.price": "Precio comercial"
     }
   },
+  "draft": {
+    "found": "Hay cambios sin guardar de tu última visita en esta pestaña. ¿Quieres recuperarlos?",
+    "stale": "Hay un borrador local, pero la versión guardada cambió. Puedes recuperarlo para revisarlo antes de guardar, o conservar la versión actual.",
+    "recover": "Recuperar borrador",
+    "discard": "Conservar versión guardada",
+    "unavailable": "El navegador no pudo conservar un borrador local. Guarda tus cambios antes de salir."
+  },
   "proposal": {
     "back": "Volver al itinerario",
     "title": "Propuesta visual del viaje",
     "subtitle": "Elige una plantilla de tu agencia, ajusta esta propuesta y revisa el documento antes de emitir el PDF.",
+    "optional": "Usar una plantilla es opcional. También puedes volver al itinerario para descargar el PDF habitual o compartir su enlace.",
+    "classicPdf": "Volver al PDF habitual",
+    "readOnly": "Tu agencia no tiene acceso activo para editar o emitir propuestas nuevas. Puedes consultar y descargar las versiones que ya emitiste.",
+    "unavailableMaster": "Plantilla original archivada o sin publicar",
+    "replaceWarning": "Cambiar de plantilla reemplazará los ajustes de esta propuesta, incluidos los cambios sin guardar. Los PDF ya emitidos se conservarán.",
+    "saveFirst": "Guarda estos cambios antes de revisar la vista previa o emitir el PDF.",
+    "overQuota": "Tu agencia tiene más plantillas activas de las que permite su plan. El dueño debe archivar las sobrantes para elegir plantillas o emitir propuestas nuevas. Los PDF anteriores se conservan.",
     "chooseTemplate": "Elegir plantilla",
     "noPublished": "Tu agencia aún no tiene una plantilla visual publicada. Puedes crearla en",
     "template": "Plantilla visual",

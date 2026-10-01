@@ -1,6 +1,6 @@
 # Implementación de plantillas visuales
 
-Estado: **beta preparada en una rama separada, sin habilitar en producción**. Esta página registra el trabajo real y lo que falta antes de ofrecer la función a agencias. Los pasos del entorno separado están en [la guía de despliegue beta](plantillas-visuales-beta-despliegue.md).
+Estado: **beta desplegada y probada por el usuario, sin habilitar en la aplicación principal**. Se revisaron los PDF cortos y el de 15 días. La revisión del 1 de octubre cerró casos de cambios sin guardar, sustitución de plantilla, concurrencia, reintentos y páginas vacías; los resultados y límites están en [la matriz de casos](plantillas-visuales-casos-y-publicacion.md). Los pasos del entorno separado están en [la guía de despliegue beta](plantillas-visuales-beta-despliegue.md).
 
 ## Etapa 1: base guardable (hecha en esta rama)
 

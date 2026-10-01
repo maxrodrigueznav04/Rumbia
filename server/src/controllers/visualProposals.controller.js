@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
-import { Agency, Trip, Itinerary, VisualTemplate, VisualProposal, VisualProposalIssue } from '../models/index.js';
+import { Agency, Trip, User, Itinerary, VisualTemplate, VisualProposal, VisualProposalIssue } from '../models/index.js';
 import { findOwnedTrip } from './trip.controller.js';
 import { buildVisualProposalData } from '../services/visualProposalData.service.js';
 import { renderVisualProposalHtml } from '../services/visualProposalHtml.service.js';
@@ -12,6 +12,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 async function context(req, requireActive = false) {
+  if (!mongoose.isValidObjectId(req.params.id)) throw ApiError.notFound('Viaje no encontrado.');
   const trip = await findOwnedTrip(req.params.id, req.user);
   if (!trip.agency || String(trip.agency) !== String(req.user.agency)) {
     throw ApiError.forbidden('Las propuestas visuales solo están disponibles para viajes de tu agencia.');
@@ -32,6 +33,9 @@ async function currentProposal(trip, agency) {
 async function snapshotData(trip, agency, design) {
   const itinerary = await Itinerary.findOne({ trip: trip._id });
   if (!itinerary || !itinerary.days?.length) throw ApiError.conflict('El viaje necesita un itinerario antes de preparar la propuesta.');
+  if (itinerary.days.some((day) => day.dayNumber > trip.durationDays)) {
+    throw ApiError.conflict('El itinerario tiene días fuera de las fechas del viaje. Revísalos antes de preparar la propuesta.');
+  }
   const assets = await loadVisualDesignAssets(design, agency._id);
   return buildVisualProposalData({ trip, itinerary, agency, assets });
 }
@@ -46,7 +50,7 @@ export const get = asyncHandler(async (req, res) => {
     .select('template templateRevision revision design createdAt updatedAt').lean();
   const issues = proposal ? await VisualProposalIssue.find({ proposal: proposal._id })
     .select('sequence createdAt templateRevision').sort({ sequence: -1 }).lean() : [];
-  res.json({ success: true, data: { proposal, issues } });
+  res.json({ success: true, data: { proposal, issues, canEdit: agency.status !== 'archivada' && agency.tieneAccesoActivo } });
 });
 
 export const selectTemplate = asyncHandler(async (req, res) => {
@@ -55,6 +59,12 @@ export const selectTemplate = asyncHandler(async (req, res) => {
   const template = await VisualTemplate.findOne({ _id: req.body.templateId, agency: agency._id, status: 'published' });
   if (!template) throw ApiError.notFound('La plantilla publicada no está disponible para tu agencia.');
   let proposal = await VisualProposal.findOne({ trip: trip._id, agency: agency._id, active: true, variantSlot: 1 });
+  if (proposal && req.body.revision !== proposal.revision) {
+    throw ApiError.conflict('La propuesta cambió en otra pestaña. Actualiza antes de elegir otra plantilla.');
+  }
+  if (!proposal && req.body.revision > 0) {
+    throw ApiError.conflict('La propuesta ya no está disponible. Actualiza la página.');
+  }
   if (proposal) {
     proposal.template = template._id;
     proposal.templateRevision = template.revision;
@@ -109,6 +119,11 @@ export const issue = asyncHandler(async (req, res) => {
   const { trip, agency } = await context(req, true);
   await ensureVisualTemplateAllowance(agency);
   const proposal = await currentProposal(trip, agency);
+  const reply = (record) => res.status(201).json({ success: true, data: { issue: { _id: record._id, sequence: record.sequence } } });
+  if (req.body.requestId) {
+    const existing = await VisualProposalIssue.findOne({ proposal: proposal._id, requestId: req.body.requestId });
+    if (existing) return reply(existing);
+  }
   if (proposal.revision !== req.body.revision) throw ApiError.conflict('La propuesta cambió antes de emitir el PDF. Revisa la vista previa.');
   const data = await snapshotData(trip, agency, proposal.design);
   const design = structuredClone(proposal.design);
@@ -121,7 +136,13 @@ export const issue = asyncHandler(async (req, res) => {
   if (current?.revision !== proposal.revision) throw ApiError.conflict('La propuesta cambió mientras se generaba el PDF. Revísala de nuevo.');
   const freshTrip = await Trip.findById(trip._id);
   if (!freshTrip) throw ApiError.conflict('El viaje se eliminó mientras se generaba el PDF.');
-  const freshData = await snapshotData(freshTrip, agency, design);
+  const freshAgency = await Agency.findById(agency._id);
+  if (!freshAgency || freshAgency.status === 'archivada' || !freshAgency.tieneAccesoActivo ||
+    String(freshTrip.agency) !== String(agency._id) || !await User.exists({ _id: req.user._id, agency: agency._id })) {
+    throw ApiError.conflict('El acceso a la agencia cambió mientras se generaba el PDF. Actualiza la página.');
+  }
+  await ensureVisualTemplateAllowance(freshAgency);
+  const freshData = await snapshotData(freshTrip, freshAgency, design);
   if (previewHash(design, freshData) !== req.body.previewHash) {
     throw ApiError.conflict('El viaje cambió mientras se generaba el PDF. Revísalo de nuevo.');
   }
@@ -132,15 +153,20 @@ export const issue = asyncHandler(async (req, res) => {
     issueRecord = await VisualProposalIssue.create({
       agency: agency._id, trip: trip._id, proposal: proposal._id,
       sequence: (latest?.sequence || 0) + 1, issuedBy: req.user._id,
+      requestId: req.body.requestId,
       templateRevision: proposal.templateRevision, design, data,
       pdfFileId: archived.fileId, pdfSha256: archived.sha256, pdfBytes: archived.bytes,
     });
   } catch (err) {
     await deleteArchivedVisualPdf(archived.fileId).catch(() => {});
+    if (err.code === 11000 && req.body.requestId) {
+      const existing = await VisualProposalIssue.findOne({ proposal: proposal._id, requestId: req.body.requestId });
+      if (existing) return reply(existing);
+    }
     if (err.code === 11000) throw ApiError.conflict('Se emitió otra revisión al mismo tiempo. Actualiza la lista.');
     throw err;
   }
-  res.status(201).json({ success: true, data: { issue: { _id: issueRecord._id, sequence: issueRecord.sequence } } });
+  reply(issueRecord);
 });
 
 export const download = asyncHandler(async (req, res) => {

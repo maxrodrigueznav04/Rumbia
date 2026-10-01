@@ -80,6 +80,6 @@
     "presupuesto": "Presupuesto"
   },
   "eliminarViajeTitulo": "Eliminar viaje",
-  "eliminarViajeMensaje": "Se va a borrar \"{{titulo}}\" junto con su itinerario y sus gastos. Esta acción no se puede deshacer.",
+  "eliminarViajeMensaje": "Se va a borrar \"{{titulo}}\" junto con su itinerario, sus gastos y sus propuestas PDF guardadas. Esta acción no se puede deshacer.",
   "eliminarMensaje": "Se va a quitar \"{{nombre}}\" del viaje."
 }

@@ -1,6 +1,7 @@
 import { fittedFieldFontSize } from './visualFieldSizing.js';
 import { visualPresetArtDataUri } from './visualPresetArt.service.js';
 import { visualFontCss } from './visualFonts.service.js';
+import ApiError from '../utils/ApiError.js';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -38,12 +39,19 @@ function fixedElement(element, page, data, design) {
 
 export function renderVisualProposalHtml(design, data) {
   const itinerary = design.itinerary;
+  for (const page of design.pages) {
+    const hasContent = page.elements.some((element) =>
+      ['image', 'artwork'].includes(element.type) ||
+      (element.type === 'highlights' && data.highlights.length > 0) ||
+      (['text', 'field'].includes(element.type) && String(element.type === 'field' ? data.fields[element.field] || '' : element.text || '').trim()));
+    if (!hasContent) throw ApiError.badRequest(`La página "${page.label}" no tiene texto ni imagen. Complétala o elimínala antes de emitir.`);
+  }
   const pages = design.pages.map((page) => `<section class="fixed-page" style="background:${page.background};">${page.elements.map((element) => fixedElement(element, page, data, design)).join('')}</section>`).join('');
   const days = data.days.map((day) => `<article class="day">
     <div class="day-number">${String(day.number).padStart(2, '0')}</div>
     <div class="day-body"><div class="day-date">${esc(day.date)}</div><h2>${esc(day.title)}</h2>
     ${day.summary ? `<p class="day-summary">${esc(day.summary)}</p>` : ''}
-    <div class="activities">${day.activities.map((activity) => `<div class="activity">${design.itinerary.showTimes && activity.time ? `<time>${esc(activity.time)}</time>` : ''}<div><strong>${esc(activity.title)}</strong>${design.itinerary.showDescriptions && activity.description ? `<p>${esc(activity.description)}</p>` : ''}</div></div>`).join('')}</div>
+    <div class="activities">${day.activities.map((activity) => `<div class="activity${design.itinerary.showTimes && activity.time ? ' with-time' : ''}">${design.itinerary.showTimes && activity.time ? `<time>${esc(activity.time)}</time>` : ''}<div><strong>${esc(activity.title)}</strong>${design.itinerary.showDescriptions && activity.description ? `<p>${esc(activity.description)}</p>` : ''}</div></div>`).join('')}</div>
     </div></article>`).join('');
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(data.fields['trip.title'])}</title><style>
     ${visualFontCss()}
@@ -73,10 +81,12 @@ export function renderVisualProposalHtml(design, data) {
     .itinerary-heading h1 { font:${itinerary.headingFontSize || 30}pt ${headingFont[design.theme.headingFont]}; margin:5mm 0 0; }
     .day { display:grid; grid-template-columns:20mm 1fr; gap:5mm; margin-bottom:9mm; break-inside:avoid; page-break-inside:avoid; }
     .day-number { border-top:2px solid ${design.itinerary.accent}; padding-top:2mm; font:24pt ${headingFont[design.theme.headingFont]}; color:${design.itinerary.accent}; }
+    .day-body, .activity>div { min-width:0; overflow-wrap:anywhere; }
     .day-date { font-size:7pt; color:${design.theme.muted}; text-transform:uppercase; letter-spacing:.08em; }
     .day h2 { font:${itinerary.dayFontSize || 18}pt ${headingFont[design.theme.headingFont]}; margin:2mm 0 3mm; break-after:avoid; }
     .day-summary { font:9pt/1.45 ${bodyFont[design.theme.bodyFont]}; color:${design.theme.muted}; margin:0 0 4mm; }
-    .activity { display:grid; grid-template-columns:${design.itinerary.showTimes ? '15mm 1fr' : '1fr'}; gap:3mm; border-top:1px solid #e2e6ea; padding:2.5mm 0; break-inside:avoid; page-break-inside:avoid; font-size:${itinerary.bodyFontSize || 8}pt; }
+    .activity { display:grid; grid-template-columns:1fr; gap:3mm; border-top:1px solid #e2e6ea; padding:2.5mm 0; break-inside:avoid; page-break-inside:avoid; font-size:${itinerary.bodyFontSize || 8}pt; }
+    .activity.with-time { grid-template-columns:15mm 1fr; }
     .activity time { color:${design.itinerary.accent}; font-weight:bold; }
     .activity p { margin:1mm 0 0; color:${design.theme.muted}; line-height:1.4; }
     .credit { border-top:1px solid #d8dfe5; padding-top:5mm; margin-top:12mm; color:${design.theme.muted}; font-size:7pt; }

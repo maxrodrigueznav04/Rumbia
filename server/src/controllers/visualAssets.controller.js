@@ -12,6 +12,7 @@ async function agencyOf(user, requireActive = false) {
   if (!user.agency) throw ApiError.forbidden('Necesitas pertenecer a una agencia.');
   const agency = await Agency.findById(user.agency);
   if (!agency) throw ApiError.notFound('Agencia no encontrada.');
+  if (requireActive && agency.status === 'archivada') throw ApiError.forbidden('La agencia está archivada.');
   if (requireActive && !agency.tieneAccesoActivo) throw ApiError.forbidden('Tu agencia necesita una prueba o plan activo para subir imágenes.');
   return agency;
 }

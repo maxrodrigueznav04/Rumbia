@@ -115,7 +115,7 @@ Render gratuito puede suspender servicios por inactividad y comparte el cupo gra
 
 ## 5. Paso posterior a producción
 
-Pendiente: validar el arranque y consumo en Render, Cloudinary real y la sesión en los dominios beta. Las pruebas locales y las de GitHub no sustituyen esos pasos.
+La sesión en los dominios beta, la conexión API/web y la emisión de PDF fueron comprobadas; el usuario confirmó sus pruebas satisfactorias. La revisión de casos adicionales y las comprobaciones operativas pendientes se registran en [casos de uso y preparación de publicación](plantillas-visuales-casos-y-publicacion.md). Falta medir el consumo de Render y confirmar el borrado de una imagen no utilizada con Cloudinary real antes del piloto principal.
 
 Cuando pase la prueba, se puede integrar la rama y habilitar una agencia piloto con `VISUAL_TEMPLATES_AGENCIES=<id>`. El servicio real usa `npm start`, conserva su base y sus suscripciones, y requiere un build nuevo con `VISUAL_TEMPLATES_ENABLED=true` para instalar Chromium. La web necesita un build con `VITE_ENABLE_VISUAL_TEMPLATES=true`. Las agencias fuera de la lista no ven la función.
 

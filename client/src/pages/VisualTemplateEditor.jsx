@@ -8,6 +8,8 @@ import { Aviso, Boton, Campo, ErrorCarga, Esqueleto } from '../components/ui.jsx
 import './visualTemplateEditor.css';
 import { visualHeadingFonts, visualBodyFonts } from '../config/visualFonts.js';
 import { fittedFieldFontSize } from '../config/visualFieldSizing.js';
+import useVisualDraft from '../hooks/useVisualDraft.js';
+import VisualDraftNotice from '../components/VisualDraftNotice.jsx';
 
 const FIELDS = ['trip.title', 'trip.destination', 'trip.dates', 'trip.travelers', 'agency.name', 'agency.contact', 'proposal.price'];
 const sample = {
@@ -52,6 +54,11 @@ function CanvasElement({ element, selected, onPointerDown, onKeyDown, assetUrl, 
 }
 
 export default function VisualTemplateEditor() {
+  const { id } = useParams();
+  return <VisualTemplateEditorContent key={id} />;
+}
+
+function VisualTemplateEditorContent() {
   const { t } = useTranslation('visualTemplates');
   const { id } = useParams();
   const { user } = useAuth();
@@ -80,8 +87,13 @@ export default function VisualTemplateEditor() {
   const assetUrls = Object.fromEntries(assets.map((asset) => [asset._id, asset.url]));
   const element = page?.elements.find((item) => item.id === selectedId);
   const copyElements = page?.elements.filter((item) => item.type === 'text') || [];
-  const canEdit = Boolean(data?.canEdit && user?.agency && String(user.agency.owner) === String(user._id) && template?.status !== 'archived');
+  const mayEdit = Boolean(data?.canEdit && user?.agency && String(user.agency.owner) === String(user._id) && template?.status !== 'archived');
   const dirty = Boolean(template && present && (name !== template.name || JSON.stringify(present) !== JSON.stringify(template.design)));
+  const backup = useVisualDraft({
+    storageKey: user ? `rumbia:visual-draft:${user._id}:${user.agency?._id || user.agency}:template:${id}` : null,
+    ready: Boolean(template && present), revision: template?.revision, value: { name, design: present }, dirty,
+  });
+  const canEdit = mayEdit && !backup.draft;
 
   useEffect(() => {
     if (!data?.template) return;
@@ -284,6 +296,16 @@ export default function VisualTemplateEditor() {
     }
   };
 
+  const recoverDraft = () => {
+    const value = backup.recover();
+    if (!value?.design?.pages?.length) return;
+    setName(value.name);
+    setHistory({ past: [], present: value.design, future: [] });
+    setPageId(value.design.pages[0].id);
+    setSelectedId(null);
+    setSaved(false);
+  };
+
   if (cargando && !template) return <Esqueleto alto={500} />;
   if (error) return <ErrorCarga error={error} onReintentar={recargar} />;
   if (!present || !page) return null;
@@ -295,6 +317,7 @@ export default function VisualTemplateEditor() {
     </header>
     {saveError && <Aviso tipo="error">{saveError}</Aviso>}
     {saved && <Aviso tipo="exito">{t('editor.saved')}</Aviso>}
+    <VisualDraftNotice backup={backup} onRecover={recoverDraft} canRecover={mayEdit} />
     <div className="visual-editor-layout">
       <aside className="visual-editor-tools">
         <Campo label={t('name')} value={name} maxLength={80} disabled={!canEdit} onChange={(event) => setName(event.target.value)} />

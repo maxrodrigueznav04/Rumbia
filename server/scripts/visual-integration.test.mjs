@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
+import { randomUUID } from 'node:crypto';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/rumbia-visual-test';
@@ -62,9 +63,24 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     assert.equal(art.status, 200);
     assert.equal(art.headers.get('cross-origin-resource-policy'), 'same-site');
     env.visualTemplateAgencies = ['*'];
+    await agencies.updateOne({ _id: agency2 }, { $set: { 'billing.plan': 'inicio_mensual' } });
+    const concurrentTemplates = await Promise.all(['Primera', 'Segunda'].map((name) => request('/visual-templates', owner2, {
+      method: 'POST', body: JSON.stringify({ name }),
+    })));
+    assert.deepEqual(concurrentTemplates.map((response) => response.status).sort(), [201, 409]);
+    assert.equal(await VisualTemplate.countDocuments({ agency: agency2, activeSlot: { $ne: null } }), 1);
+    const emptyProposal = await request(`/trips/${trip}/visual-proposal`, owner1);
+    assert.equal(emptyProposal.status, 200);
+    assert.equal(emptyProposal.body.data.proposal, null);
+    assert.deepEqual(emptyProposal.body.data.issues, []);
+    assert.equal((await request(`/trips/${trip}/visual-proposal/preview`, owner1)).status, 404);
+    assert.equal((await request('/trips/invalid/visual-proposal', owner1)).status, 404);
     const created = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Mi propuesta' }) });
     assert.equal(created.status, 201, JSON.stringify(created.body));
     const templateId = created.body.data.template._id;
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'POST', body: JSON.stringify({ templateId, revision: 0 }),
+    })).status, 404); // A draft is not offered for a client proposal.
     assert.equal((await request('/visual-templates', member1, { method: 'POST', body: JSON.stringify({ name: 'Sin permiso' }) })).status, 403);
     assert.equal((await request(`/visual-templates/${templateId}`, owner2)).status, 404);
     assert.equal((await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Excede Inicio' }) })).status, 409);
@@ -81,15 +97,41 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
       method: 'POST', body: JSON.stringify({ templateId }),
     });
     assert.equal(selected.status, 200, JSON.stringify(selected.body));
+    assert.equal((await request(`/visual-templates/${templateId}`, member1, {
+      method: 'PATCH', body: JSON.stringify({ revision: 2, name: 'Agente sin permiso' }),
+    })).status, 403);
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'POST', body: JSON.stringify({ templateId, revision: 0 }),
+    })).status, 409);
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'PATCH', body: JSON.stringify({ revision: 99, design: selected.body.data.proposal.design }),
+    })).status, 409);
     const preview = await request(`/trips/${trip}/visual-proposal/preview`, owner1);
     assert.equal(preview.status, 200, JSON.stringify(preview.body));
     assert(!preview.body.data.html.includes('margen'));
+    await itineraries.updateOne({ trip }, { $set: { 'days.0.title': 'Cambio después de la vista previa' } });
+    assert.equal((await request(`/trips/${trip}/visual-proposal/issue`, owner1, {
+      method: 'POST', body: JSON.stringify({ revision: 1, previewHash: preview.body.data.previewHash }),
+    })).status, 409);
+    await itineraries.updateOne({ trip }, { $set: { 'days.0.title': 'Llegada a Oaxaca' } });
+    await itineraries.updateOne({ trip }, { $set: { 'days.0.dayNumber': 2 } });
+    await trips.updateOne({ _id: trip }, { $set: { endDate: new Date('2026-10-10T00:00:00Z') } });
+    assert.equal((await request(`/trips/${trip}/visual-proposal/preview`, owner1)).status, 409);
+    await trips.updateOne({ _id: trip }, { $set: { endDate: new Date('2026-10-12T00:00:00Z') } });
+    await itineraries.updateOne({ trip }, { $set: { 'days.0.dayNumber': 1 } });
     {
+      const requestId = randomUUID();
       const issued = await request(`/trips/${trip}/visual-proposal/issue`, owner1, {
-        method: 'POST', body: JSON.stringify({ revision: selected.body.data.proposal.revision, previewHash: preview.body.data.previewHash }),
+        method: 'POST', body: JSON.stringify({ revision: selected.body.data.proposal.revision, previewHash: preview.body.data.previewHash, requestId }),
       });
       assert.equal(issued.status, 201, JSON.stringify(issued.body));
       const issueId = issued.body.data.issue._id;
+      const retried = await request(`/trips/${trip}/visual-proposal/issue`, owner1, {
+        method: 'POST', body: JSON.stringify({ revision: 1, previewHash: preview.body.data.previewHash, requestId }),
+      });
+      assert.equal(retried.status, 201);
+      assert.equal(retried.body.data.issue._id, issueId);
+      assert.equal(await VisualProposalIssue.countDocuments({ trip }), 1);
       const url = `http://127.0.0.1:${port}/api/trips/${trip}/visual-proposal/issues/${issueId}/pdf`;
       const getPdf = (userId) => fetch(url, { headers: { cookie: cookie(userId) } });
       assert.equal((await getPdf(owner2)).status, 403);
@@ -126,6 +168,19 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
       assert.equal(secondPdf.status, 200);
       assert.equal(Buffer.from(await secondPdf.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
       assert.deepEqual(Buffer.from(await (await getPdf(owner1)).arrayBuffer()), bytes1);
+      // Archive the master: existing copies and PDFs survive, but it cannot be selected again.
+      const archived = await request(`/visual-templates/${templateId}`, owner1, {
+        method: 'PATCH', body: JSON.stringify({ revision: 2, status: 'archived' }),
+      });
+      assert.equal(archived.status, 200);
+      assert.equal((await request(`/trips/${trip}/visual-proposal/preview`, owner1)).status, 200);
+      assert.deepEqual(Buffer.from(await (await getPdf(owner1)).arrayBuffer()), bytes1);
+      assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+        method: 'POST', body: JSON.stringify({ templateId, revision: 1 }),
+      })).status, 404);
+      assert.equal((await request(`/visual-templates/${templateId}`, owner1, {
+        method: 'PATCH', body: JSON.stringify({ revision: 3, status: 'published' }),
+      })).status, 200);
     }
     await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.plan': 'pro_mensual' } });
     const extra = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Para dos', presetId: 'romance', status: 'published' }) });
@@ -133,7 +188,7 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     assert.equal(extra.body.data.template.status, 'published');
     assert.equal(extra.body.data.template.design.pages[0].background, '#fcf6f2');
     const selectedArt = await request(`/trips/${trip}/visual-proposal`, owner1, {
-      method: 'POST', body: JSON.stringify({ templateId: extra.body.data.template._id }),
+      method: 'POST', body: JSON.stringify({ templateId: extra.body.data.template._id, revision: 1 }),
     });
     assert.equal(selectedArt.status, 200, JSON.stringify(selectedArt.body));
     const artPreview = await request(`/trips/${trip}/visual-proposal/preview`, owner1);
@@ -149,7 +204,40 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     });
     assert.equal(archivedExtra.status, 200, JSON.stringify(archivedExtra.body));
     assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
-      method: 'POST', body: JSON.stringify({ templateId }),
+      method: 'POST', body: JSON.stringify({ templateId, revision: selectedArt.body.data.proposal.revision }),
+    })).status, 200);
+
+    const beforeConcurrentEdit = (await request(`/trips/${trip}/visual-proposal`, owner1)).body.data.proposal;
+    const concurrentEdits = await Promise.all([owner1, member1].map((user, index) => {
+      const design = structuredClone(beforeConcurrentEdit.design);
+      design.pages.flatMap((page) => page.elements).find((item) => item.type === 'text').text = `Edición ${index}`;
+      return request(`/trips/${trip}/visual-proposal`, user, {
+        method: 'PATCH', body: JSON.stringify({ revision: beforeConcurrentEdit.revision, design }),
+      });
+    }));
+    assert.deepEqual(concurrentEdits.map((response) => response.status).sort(), [200, 409]);
+
+    const issuedHistory = (await request(`/trips/${trip}/visual-proposal`, owner1)).body.data.issues;
+    await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.status': 'cancelada' } });
+    const expired = await request(`/trips/${trip}/visual-proposal`, owner1);
+    assert.equal(expired.status, 200);
+    assert.equal(expired.body.data.canEdit, false);
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'POST', body: JSON.stringify({ templateId, revision: expired.body.data.proposal.revision }),
+    })).status, 403);
+    const downloadExpired = await fetch(`http://127.0.0.1:${port}/api/trips/${trip}/visual-proposal/issues/${issuedHistory[0]._id}/pdf`, { headers: { cookie: cookie(owner1) } });
+    assert.equal(downloadExpired.status, 200);
+    const expiredTemplates = (await request('/visual-templates', owner1)).body.data;
+    assert.equal(expiredTemplates.canEdit, false);
+    assert.equal(expiredTemplates.canArchive, true);
+    const currentTemplate = (await request(`/visual-templates/${templateId}`, owner1)).body.data.template;
+    assert.equal((await request(`/visual-templates/${templateId}`, owner1, {
+      method: 'PATCH', body: JSON.stringify({ revision: currentTemplate.revision, status: 'archived' }),
+    })).status, 200);
+    await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.status': 'activa' } });
+    const archivedTemplate = (await request(`/visual-templates/${templateId}`, owner1)).body.data.template;
+    assert.equal((await request(`/visual-templates/${templateId}`, owner1, {
+      method: 'PATCH', body: JSON.stringify({ revision: archivedTemplate.revision, status: 'published' }),
     })).status, 200);
 
     const pdf = Buffer.from('%PDF-1.4\npropuesta emitida\n%%EOF\n');

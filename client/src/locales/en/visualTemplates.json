@@ -119,8 +119,22 @@
       "proposal.price": "Commercial price"
     }
   },
+  "draft": {
+    "found": "There are unsaved changes from your last visit in this tab. Would you like to recover them?",
+    "stale": "There is a local draft, but the saved version has changed. Recover it to review before saving, or keep the current saved version.",
+    "recover": "Recover draft",
+    "discard": "Keep saved version",
+    "unavailable": "The browser could not keep a local draft. Save your changes before leaving."
+  },
   "proposal": {
     "back": "Back to itinerary",
+    "optional": "Templates are optional. You can also return to the itinerary to download the standard PDF or share its link.",
+    "classicPdf": "Back to standard PDF",
+    "readOnly": "Your agency has no active access to edit or issue new proposals. You can view and download previously issued versions.",
+    "unavailableMaster": "Original template archived or unpublished",
+    "replaceWarning": "Changing templates will replace the adjustments to this proposal, including unsaved changes. Previously issued PDFs will be kept.",
+    "saveFirst": "Save these changes before reviewing the preview or issuing the PDF.",
+    "overQuota": "Your agency has more active templates than its plan allows. The owner must archive the extras to select templates or issue new proposals. Existing PDFs are kept.",
     "title": "Visual trip proposal",
     "subtitle": "Choose an agency template, adjust this proposal, and review the document before issuing the PDF.",
     "chooseTemplate": "Choose template",

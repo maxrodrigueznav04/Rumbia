@@ -45,7 +45,8 @@ export const list = asyncHandler(async (req, res) => {
     .sort({ updatedAt: -1 }).lean();
   res.json({ success: true, data: {
     templates,
-    canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo,
+    canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo && agency.status !== 'archivada',
+    canArchive: visualTemplateCanEdit(agency, req.user) && agency.status !== 'archivada',
     limit: visualTemplateLimit(agency),
     presets: VISUAL_PRESET_IDS.map((id) => ({ id, design: visualPresetDesign(id) })),
   } });
@@ -61,7 +62,7 @@ export const art = asyncHandler(async (req, res) => {
 export const get = asyncHandler(async (req, res) => {
   const agency = await currentAgency(req.user);
   const template = await ownedTemplate(req.params.id, agency);
-  res.json({ success: true, data: { template, canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo } });
+  res.json({ success: true, data: { template, canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo && agency.status !== 'archivada' } });
 });
 
 export const create = asyncHandler(async (req, res) => {

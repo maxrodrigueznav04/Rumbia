@@ -80,6 +80,6 @@
     "presupuesto": "Budget"
   },
   "eliminarViajeTitulo": "Delete trip",
-  "eliminarViajeMensaje": "\"{{titulo}}\" will be deleted along with its itinerary and expenses. This action cannot be undone.",
+  "eliminarViajeMensaje": "\"{{titulo}}\" will be deleted along with its itinerary, expenses and stored PDF proposals. This action cannot be undone.",
   "eliminarMensaje": "\"{{nombre}}\" will be removed from the trip."
 }

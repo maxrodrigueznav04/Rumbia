@@ -145,6 +145,7 @@ export default function VisualTemplates() {
               <Boton chico variante="secundario" onClick={() => runAction(item, 'duplicate')} cargando={actionId === item._id} disabled={activeCount >= data.limit}>{t('duplicate')}</Boton>
               <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'archived' ? 'restore' : 'archive')} cargando={actionId === item._id} disabled={item.status === 'archived' && activeCount >= data.limit}>{item.status === 'archived' ? t('restore') : t('archive')}</Boton>
             </>}
+            {!canEdit && data.canArchive && item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, 'archive')} cargando={actionId === item._id}>{t('archive')}</Boton>}
           </div>
         </Tarjeta>)}
       </div>

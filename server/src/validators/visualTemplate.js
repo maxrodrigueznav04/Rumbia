@@ -103,6 +103,7 @@ export const updateVisualTemplateSchema = z.object({
 
 export const selectVisualTemplateSchema = z.object({
   templateId: z.string().regex(/^[a-fA-F0-9]{24}$/),
+  revision: z.number().int().nonnegative().optional(),
 }).strict();
 
 export const updateVisualProposalSchema = z.object({
@@ -113,6 +114,7 @@ export const updateVisualProposalSchema = z.object({
 export const issueVisualProposalSchema = z.object({
   revision: z.number().int().positive(),
   previewHash: z.string().regex(/^[a-f0-9]{64}$/),
+  requestId: z.string().uuid().optional(),
 }).strict();
 
 export function defaultVisualDesign() {

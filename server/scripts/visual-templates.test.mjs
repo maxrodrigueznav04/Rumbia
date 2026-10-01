@@ -77,6 +77,52 @@ test('la propuesta escapa texto externo y conserva solo campos públicos', () =>
   assert(!html.includes('trip.margen'));
 });
 
+test('una página vacía pide completarla y una actividad sin horario usa todo el ancho', () => {
+  const design = defaultVisualDesign();
+  const data = { fields: { 'trip.title': 'Oaxaca', 'agency.name': 'Agencia' }, highlights: [], assets: {},
+    days: [{ number: 1, title: 'Llegada', activities: [
+      { title: 'Paseo sin hora', description: 'Puedes recorrerlo a tu ritmo.' },
+      { time: '10:00', title: 'Visita con hora' },
+    ] }], showBrandCredit: false };
+  const html = renderVisualProposalHtml(design, data);
+  assert.match(html, /class="activity"><div><strong>Paseo sin hora/);
+  assert.match(html, /class="activity with-time"><time>10:00/);
+  design.pages.push({ id: 'empty', label: 'Mi página vacía', background: '#ffffff', elements: [] });
+  assert.throws(() => renderVisualProposalHtml(design, data), /Mi página vacía.*no tiene texto ni imagen/);
+});
+
+test('falta de precio usa un aviso y los campos privados no llegan al documento', async () => {
+  process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia-test';
+  process.env.JWT_SECRET ||= 'local-test-secret-only-000000000000000000000';
+  const { buildVisualProposalData } = await import('../src/services/visualProposalData.service.js');
+  const data = buildVisualProposalData({
+    trip: { title: 'Oaxaca', destination: { name: 'Oaxaca' }, startDate: '2026-10-01', endDate: '2026-10-01', budget: { currency: 'MXN' }, coreCosts: { total: 0 }, notasInternas: 'PRIVADO', margen: { tipo: 'fijo', monto: 0 } },
+    itinerary: { totalEstimatedCost: 0, days: [{ dayNumber: 1, date: '2026-10-01', title: 'Llegada', activities: [{ title: 'Paseo', description: 'Una tarde libre', notasInternas: 'PRIVADO', costoNeto: 9999 }] }] },
+    agency: { agencyName: 'Mi agencia' },
+  });
+  assert.equal(data.fields['proposal.price'], 'Precio por confirmar');
+  assert(!JSON.stringify(data).includes('PRIVADO'));
+  assert(!JSON.stringify(data).includes('costoNeto'));
+  assert.equal(data.fields['trip.travelers'], '1 viajero');
+});
+
+test('el generador recupera su capacidad tras rechazar un documento grande y limita emisiones simultáneas', async () => {
+  const { renderVisualPdf } = await import('../src/services/visualPdf.service.js');
+  await assert.rejects(renderVisualPdf('x'.repeat(2 * 1024 * 1024 + 1)), /demasiado grande/);
+  const first = renderVisualPdf('<html><body><p>Documento válido después de un error</p></body></html>');
+  await assert.rejects(renderVisualPdf('<p>Segunda emisión simultánea</p>'), /ocupado/);
+  const pdf = await first;
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+});
+
+test('rechaza texto recortado e imágenes inaccesibles y permite emitir después del fallo', async () => {
+  const { renderVisualPdf } = await import('../src/services/visualPdf.service.js');
+  await assert.rejects(renderVisualPdf('<html><body><div class="fixed-element text" style="width:10px;height:10px;overflow:hidden;font-size:30px">Texto que no cabe en su cuadro</div></body></html>'), /texto que no cabe/);
+  await assert.rejects(renderVisualPdf('<html><body><img src="https://example.invalid/photo.png"></body></html>'), /imagen.*no pudo cargarse/);
+  const pdf = await renderVisualPdf('<html><body><p>Emisión válida después de corregir la imagen</p></body></html>');
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+});
+
 test('inspección de imágenes rechaza dimensiones peligrosas', async () => {
   process.env.MONGO_URI ||= 'mongodb://127.0.0.1:27017/rumbia-test';
   process.env.JWT_SECRET ||= 'local-test-secret-only-000000000000000000000';
