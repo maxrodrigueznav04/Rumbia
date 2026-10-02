@@ -63,6 +63,10 @@ La aplicación principal aún no tiene activada esta función. Las comprobacione
 | Edita el viaje después de emitir | El PDF anterior recupera los bytes archivados; una emisión nueva puede recoger los datos actuales. | API y hash del archivo. |
 | Se daña o falta el PDF archivado | Se muestra un error; no se reconstruye un documento distinto bajo el mismo número. | Archivo y hash. |
 | Archiva la plantilla maestra | Libera cupo, impide nuevas selecciones y conserva las copias y PDF anteriores. | API/pantalla. |
+| Elimina una plantilla completa | El dueño confirma una eliminación definitiva de borrador, publicada o archivada. Libera cupo y conserva copias de viajes, PDF y biblioteca; no se restaura la maestra. | Pantalla y API con MongoDB real temporal; descarga histórica idéntica, edición y nueva emisión tras borrar. |
+| Cancela eliminar o falla la petición | Cancelar no envía el borrado; un error conserva la plantilla y se muestra en la confirmación. | Pruebas de pantalla. |
+| Otra pestaña modifica o elimina antes de confirmar | La revisión vista es obligatoria; una revisión antigua se rechaza, dos borrados simultáneos solo producen una eliminación exitosa. | API, revisión de filtro atómico y concurrencia real. |
+| Un agente o una agencia ajena intenta eliminar | No tiene permiso; el dueño puede eliminar también si vence el plan. | Pantalla y API. |
 | Restaura una plantilla | Necesita cupo y acceso activo; se restaura como borrador y puede publicarla después. | Código de lista y validación de cupo. |
 | Llega al cupo de su plan | No puede crear/duplicar/restaurar otra activa; puede archivar para liberar lugar. | API. |
 | Dos creaciones compiten por el último cupo | Una prospera; la otra se rechaza. | Dos peticiones concurrentes con índice único real. |
@@ -83,7 +87,7 @@ La aplicación principal aún no tiene activada esta función. Las comprobacione
 
 ## Pendientes antes de habilitar la aplicación principal
 
-1. **Comprobar el despliegue actualizado de esta revisión** en la beta y repetir solo los cambios nuevos: recuperar borrador, cancelar un cambio de plantilla y emitir tras la nueva vista previa.
+1. **Comprobar despliegue y prueba remota de Eliminar plantilla completa.** El usuario lo aclaró con una captura y el botón se implementó con confirmación, revisión y permisos; la conservación de propuestas y PDF pasó integración local. El usuario ya confirmó las tres protecciones anteriores: advertencia y recuperación del borrador, cancelación del cambio de plantilla y emisión el 2 de octubre. La revisión anterior `5915be3` quedó confirmada en Vercel y Live en Render; web y salud API respondieron HTTP 200.
 2. **Medir Render real:** tiempo de un PDF largo, memoria/CPU durante la emisión y registro de reinicios. Las emisiones exitosas del usuario prueban funcionamiento, no capacidad sostenida para varias agencias.
 3. **Comprobar Cloudinary real:** subir una foto, emitir con ella y borrar una foto de prueba que no esté utilizada. La limpieza con fallo/reintento se comprobó con una respuesta remota simulada.
 4. **Confirmar un respaldo de la base principal y el ID de la agencia piloto.** No usar la base, cuenta ni arranque sintético de la beta en el servicio real.

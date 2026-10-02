@@ -6,6 +6,8 @@ const visualProposalSchema = new mongoose.Schema({
   agency: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', required: true, index: true },
   trip: { type: mongoose.Schema.Types.ObjectId, ref: 'Trip', required: true, index: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // Referencia de origen; puede apuntar a una maestra eliminada. La copia de
+  // diseño y sus emisiones siguen funcionando sin consultar esa maestra.
   template: { type: mongoose.Schema.Types.ObjectId, ref: 'VisualTemplate', required: true },
   templateRevision: { type: Number, required: true, min: 1 },
   design: { type: mongoose.Schema.Types.Mixed, required: true },

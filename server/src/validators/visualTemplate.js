@@ -101,6 +101,10 @@ export const updateVisualTemplateSchema = z.object({
   message: 'No hay cambios para guardar.',
 });
 
+export const deleteVisualTemplateSchema = z.object({
+  revision: z.number().int().positive(),
+}).strict();
+
 export const selectVisualTemplateSchema = z.object({
   templateId: z.string().regex(/^[a-fA-F0-9]{24}$/),
   revision: z.number().int().nonnegative().optional(),

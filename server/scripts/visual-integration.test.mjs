@@ -250,6 +250,52 @@ test('plantillas de agencia y archivo PDF conservan permisos y versiones', async
     assert.deepEqual(await archive.readArchivedVisualPdf(stored.fileId), pdf);
     await archive.deleteArchivedVisualPdf(stored.fileId);
     assert.equal(await VisualTemplate.countDocuments({ agency: agency1, activeSlot: { $ne: null } }), 1);
+    // Eliminar la maestra conserva las copias, su edición y los bytes emitidos.
+    const deletePath = `/visual-templates/${templateId}`;
+    const deleteRevision = (await request(deletePath, owner1)).body.data.template.revision;
+    const deletion = (revision = deleteRevision) => ({ method: 'DELETE', body: JSON.stringify({ revision }) });
+    assert.equal((await request(deletePath, member1, deletion())).status, 403);
+    assert.equal((await request(deletePath, owner2, deletion())).status, 404);
+    assert.equal((await request('/visual-templates/invalid', owner1, deletion())).status, 404);
+    assert.equal((await request(deletePath, owner1, { method: 'DELETE', body: '{}' })).status, 400);
+    assert.equal((await request(deletePath, owner1, deletion(deleteRevision - 1))).status, 409);
+    assert.equal((await request(deletePath, owner1)).status, 200);
+    const historicalUrl = `http://127.0.0.1:${port}/api/trips/${trip}/visual-proposal/issues/${issuedHistory[0]._id}/pdf`;
+    const historicalBytes = Buffer.from(await (await fetch(historicalUrl, { headers: { cookie: cookie(owner1) } })).arrayBuffer());
+    const assetId = id();
+    await mongoose.connection.db.collection('visualassets').insertOne({ _id: assetId, agency: agency1, url: 'https://example.test/kept.jpg' });
+    assert.equal((await request('/visual-templates', member1)).body.data.canDelete, false);
+    assert.equal((await request('/visual-templates', owner1)).body.data.canDelete, true);
+    assert.equal((await request(deletePath, owner1, deletion())).status, 200);
+    assert.equal((await request(deletePath, owner1)).status, 404);
+    assert.equal((await request(deletePath, owner1, deletion())).status, 404);
+    assert(await mongoose.connection.db.collection('visualassets').findOne({ _id: assetId }));
+    assert.equal((await request(`/trips/${trip}/visual-proposal`, owner1, {
+      method: 'POST', body: JSON.stringify({ templateId, revision: 0 }),
+    })).status, 404);
+    const preserved = (await request(`/trips/${trip}/visual-proposal`, owner1)).body.data;
+    assert.equal(preserved.proposal.template, templateId);
+    assert.deepEqual(preserved.issues, issuedHistory);
+    assert.deepEqual(Buffer.from(await (await fetch(historicalUrl, { headers: { cookie: cookie(owner1) } })).arrayBuffer()), historicalBytes);
+    const keptEdit = await request(`/trips/${trip}/visual-proposal`, member1, {
+      method: 'PATCH', body: JSON.stringify({ revision: preserved.proposal.revision, design: preserved.proposal.design }),
+    });
+    assert.equal(keptEdit.status, 200);
+    const keptPreview = await request(`/trips/${trip}/visual-proposal/preview`, member1);
+    assert.equal(keptPreview.status, 200);
+    const keptIssue = await request(`/trips/${trip}/visual-proposal/issue`, member1, {
+      method: 'POST', body: JSON.stringify({ revision: keptEdit.body.data.proposal.revision, previewHash: keptPreview.body.data.previewHash }),
+    });
+    assert.equal(keptIssue.status, 201, JSON.stringify(keptIssue.body));
+    assert.equal(await VisualTemplate.countDocuments({ agency: agency1, activeSlot: { $ne: null } }), 0);
+    const replacement = await request('/visual-templates', owner1, { method: 'POST', body: JSON.stringify({ name: 'Cupo liberado' }) });
+    assert.equal(replacement.status, 201);
+    await agencies.updateOne({ _id: agency1 }, { $set: { 'billing.status': 'cancelada' } });
+    assert.equal((await request('/visual-templates', owner1)).body.data.canDelete, true);
+    assert.equal((await request(`/visual-templates/${extra.body.data.template._id}`, owner1, deletion(2))).status, 200);
+    const parallelDeletion = await Promise.all([0, 1].map(() => request(`/visual-templates/${replacement.body.data.template._id}`, owner1, deletion(1))));
+    assert.equal(parallelDeletion.filter((result) => result.status === 200).length, 1);
+    assert(parallelDeletion.some((result) => [404, 409].includes(result.status)));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     await mongoose.disconnect();

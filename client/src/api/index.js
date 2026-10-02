@@ -170,6 +170,7 @@ export const visualTemplatesApi = {
   create: (payload) => api.post('/visual-templates', payload),
   update: (id, payload) => api.patch(`/visual-templates/${id}`, payload),
   duplicate: (id) => api.post(`/visual-templates/${id}/duplicate`),
+  remove: (id, revision) => api.delete(`/visual-templates/${id}`, { body: { revision } }),
 };
 
 export const visualAssetsApi = {

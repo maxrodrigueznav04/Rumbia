@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { visualTemplatesApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Aviso, Boton, Campo, ErrorCarga, Esqueleto, Tarjeta, Vacio } from '../components/ui.jsx';
+import { Aviso, Boton, Campo, ErrorCarga, Esqueleto, Tarjeta, Vacio, ModalConfirmar } from '../components/ui.jsx';
 import './visualTemplates.css';
 import { visualHeadingFonts, visualBodyFonts } from '../config/visualFonts.js';
 import { fittedFieldFontSize } from '../config/visualFieldSizing.js';
@@ -43,17 +43,20 @@ export default function VisualTemplates() {
   const { t } = useTranslation('visualTemplates');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data, cargando, error, recargar } = useFetch(({ signal }) => visualTemplatesApi.list({ signal }), []);
+  const { data, cargando, error, recargar, setData } = useFetch(({ signal }) => visualTemplatesApi.list({ signal }), []);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [actionError, setActionError] = useState('');
   const [createdPreset, setCreatedPreset] = useState(null);
   const [category, setCategory] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletedName, setDeletedName] = useState('');
   const templates = data?.templates || [];
   const canEdit = Boolean(data?.canEdit);
   const activeCount = templates.filter((item) => item.status !== 'archived').length;
   const canCreate = canEdit && activeCount < (data?.limit || 0);
+  const busy = Boolean(actionId) || saving || cargando;
   const visiblePresets = (data?.presets || []).filter((preset) => category === 'all' || (presetCategories[preset.id] || 'versatile') === category);
 
   const createPreset = async (preset) => {
@@ -104,6 +107,21 @@ export default function VisualTemplates() {
     }
   };
 
+  const deleteTemplate = async () => {
+    const target = deleteTarget;
+    setActionId(target._id);
+    setActionError('');
+    try {
+      await visualTemplatesApi.remove(target._id, target.revision);
+      setData((current) => ({ ...current, templates: current.templates.filter((item) => item._id !== target._id) }));
+      setDeletedName(target.name);
+      setCreatedPreset((current) => current?.id === target._id ? null : current);
+      recargar();
+    } finally {
+      setActionId(null);
+    }
+  };
+
   return <div className="pila">
     <div><Link className="volver" to="/plantillas">{t('back')}</Link>
       <h1>{t('title')}</h1><p className="suave">{t('subtitle')}</p>
@@ -115,6 +133,7 @@ export default function VisualTemplates() {
       <p className="suave" style={{ margin: 0 }}>{t('quota', { count: activeCount, limit: data.limit })}</p>
       {activeCount > data.limit && <Aviso tipo="info">{t('overLimit', { count: activeCount - data.limit })}</Aviso>}
       {actionError && <Aviso tipo="error">{actionError}</Aviso>}
+      {deletedName && <Aviso tipo="exito">{t('deleted', { name: deletedName })}</Aviso>}
       {createdPreset && <Aviso tipo="exito">{t('presetReady', { name: createdPreset.name })} <Link to={`/plantillas-visuales/${createdPreset.id}`}>{t('editCopy')}</Link> · <Link to="/viajes">{t('goToTrips')}</Link></Aviso>}
       {canEdit && <section className="pila-sm">
         <div><h2>{t('readyDesigns')}</h2><p className="suave">{t('readyDesignsHint')}</p></div>
@@ -128,7 +147,7 @@ export default function VisualTemplates() {
         <details className="visual-from-scratch"><summary>{t('fromScratch')}</summary>
           <form onSubmit={create} className="fila" style={{ gap: 12, alignItems: 'end', flexWrap: 'wrap', paddingTop: 16 }}>
             <div style={{ flex: '1 1 240px' }}><Campo label={t('name')} value={name} maxLength={80} required onChange={(event) => setName(event.target.value)} /></div>
-            <Boton type="submit" cargando={saving} disabled={!name.trim() || !canCreate}>{t('create')}</Boton>
+            <Boton type="submit" cargando={saving} disabled={busy || !name.trim() || !canCreate}>{t('create')}</Boton>
           </form>
         </details>
       </section>}
@@ -141,14 +160,17 @@ export default function VisualTemplates() {
           <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
             <Link className="boton secundario chico" to={`/plantillas-visuales/${item._id}`}>{canEdit && item.status !== 'archived' ? t('edit') : t('view')}</Link>
             {canEdit && <>
-              {item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'published' ? 'draft' : 'publish')} cargando={actionId === item._id}>{item.status === 'published' ? t('unpublish') : t('publish')}</Boton>}
-              <Boton chico variante="secundario" onClick={() => runAction(item, 'duplicate')} cargando={actionId === item._id} disabled={activeCount >= data.limit}>{t('duplicate')}</Boton>
-              <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'archived' ? 'restore' : 'archive')} cargando={actionId === item._id} disabled={item.status === 'archived' && activeCount >= data.limit}>{item.status === 'archived' ? t('restore') : t('archive')}</Boton>
+              {item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'published' ? 'draft' : 'publish')} cargando={actionId === item._id} disabled={busy}>{item.status === 'published' ? t('unpublish') : t('publish')}</Boton>}
+              <Boton chico variante="secundario" onClick={() => runAction(item, 'duplicate')} cargando={actionId === item._id} disabled={busy || activeCount >= data.limit}>{t('duplicate')}</Boton>
+              <Boton chico variante="secundario" onClick={() => runAction(item, item.status === 'archived' ? 'restore' : 'archive')} cargando={actionId === item._id} disabled={busy || (item.status === 'archived' && activeCount >= data.limit)}>{item.status === 'archived' ? t('restore') : t('archive')}</Boton>
             </>}
-            {!canEdit && data.canArchive && item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, 'archive')} cargando={actionId === item._id}>{t('archive')}</Boton>}
+            {!canEdit && data.canArchive && item.status !== 'archived' && <Boton chico variante="secundario" onClick={() => runAction(item, 'archive')} cargando={actionId === item._id} disabled={busy}>{t('archive')}</Boton>}
+            {data.canDelete && <Boton chico variante="peligro-texto" onClick={() => setDeleteTarget(item)} disabled={busy}>{t('delete')}</Boton>}
           </div>
         </Tarjeta>)}
       </div>
     </>}
+    <ModalConfirmar abierto={Boolean(deleteTarget)} onCerrar={() => setDeleteTarget(null)} onConfirmar={deleteTemplate}
+      titulo={t('deleteTitle', { name: deleteTarget?.name || '' })} mensaje={t('deleteWarning')} textoConfirmar={t('delete')} />
   </div>;
 }

@@ -47,6 +47,7 @@ export const list = asyncHandler(async (req, res) => {
     templates,
     canEdit: visualTemplateCanEdit(agency, req.user) && agency.tieneAccesoActivo && agency.status !== 'archivada',
     canArchive: visualTemplateCanEdit(agency, req.user) && agency.status !== 'archivada',
+    canDelete: visualTemplateCanEdit(agency, req.user) && agency.status !== 'archivada',
     limit: visualTemplateLimit(agency),
     presets: VISUAL_PRESET_IDS.map((id) => ({ id, design: visualPresetDesign(id) })),
   } });
@@ -116,6 +117,21 @@ export const update = asyncHandler(async (req, res) => {
     throw err;
   }
   res.json({ success: true, data: { template } });
+});
+
+export const remove = asyncHandler(async (req, res) => {
+  const agency = await currentAgency(req.user);
+  requireOwner(agency, req.user);
+  const template = await ownedTemplate(req.params.id, agency);
+  // Eliminar solo la maestra: las propuestas guardan su diseño y los PDF sus
+  // bytes. No borrar imágenes de la biblioteca ni datos de viajes relacionados.
+  const result = await VisualTemplate.deleteOne({
+    _id: template._id, agency: agency._id, revision: req.body.revision,
+  });
+  if (!result.deletedCount) {
+    throw ApiError.conflict('Esta plantilla cambió o se eliminó en otra pestaña. Actualiza la lista antes de eliminarla.');
+  }
+  res.json({ success: true, message: 'Plantilla visual eliminada. Las propuestas y PDF de tus viajes se conservan.' });
 });
 
 export const duplicate = asyncHandler(async (req, res) => {
