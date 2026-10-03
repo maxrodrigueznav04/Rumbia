@@ -1,4 +1,6 @@
 import { Agency, User, Trip, AuditLog, Client, ItineraryTemplate } from '../models/index.js';
+import { hasVisualTemplateAccess } from '../services/visualAccess.service.js';
+import { deleteVisualAgencyData } from '../services/visualCleanup.service.js';
 import { subirLogo as subirLogoCloudinary, borrarLogo } from '../services/logo.service.js';
 import { cancelarSuscripcion } from '../services/stripe.service.js';
 import ApiError from '../utils/ApiError.js';
@@ -240,6 +242,7 @@ export const salirAgencia = asyncHandler(async (req, res) => {
         'Eres el dueño y todavía hay otros agentes en la agencia. Sácalos primero, o pídeles que salgan ellos mismos.'
       );
     }
+    await deleteVisualAgencyData(agencia._id);
     // Antes de borrar: el registro necesita agencyName/agencia._id mientras
     // el documento todavia existe.
     await AuditLog.registrar({
@@ -387,7 +390,7 @@ export async function agenciaComoDueno(req) {
  */
 async function usuarioConAgencia(user) {
   await user.populate({ path: 'agency', select: AGENCIA_PUBLICA });
-  return user.toJSON();
+  return { ...user.toJSON(), features: { visualTemplates: hasVisualTemplateAccess(user.agency) } };
 }
 
 export { usuarioConAgencia };

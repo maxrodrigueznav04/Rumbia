@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DaycoTravels · San Diego y Anaheim · Propuesta editorial</title>
+  <style>
+    :root { --ink:#172b48; --muted:#5e6c7d; --coral:#bc6954; --sand:#f4eee5; --line:#d8dfe5; font-family:'Segoe UI',Arial,sans-serif; color:var(--ink); background:#e9e7e3; }
+    * { box-sizing:border-box; }
+    body { margin:0; }
+    .document { width:210mm; margin:20px auto; background:#fff; }
+    .cover { height:269mm; position:relative; overflow:hidden; color:#fff; background:#142740 url('./la-jolla-editorial-cover.png') center center/cover no-repeat; }
+    .cover::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(12,27,47,.16) 0%,rgba(12,27,47,.04) 37%,rgba(10,25,45,.70) 72%,rgba(10,25,45,.94) 100%); }
+    .cover-brand,.cover-content,.cover-bottom { position:absolute; z-index:1; left:17mm; right:17mm; }
+    .cover-brand { top:16mm; display:flex; justify-content:space-between; align-items:start; }
+    .brand-card { background:white; padding:3mm 4mm 2mm; border-radius:1mm; }
+    .brand-card img { width:59mm; display:block; }
+    .cover-brand .edition { text-align:right; font-size:7.5pt; letter-spacing:.17em; line-height:1.7; text-transform:uppercase; text-shadow:0 1px 5px #142740; }
+    .cover-content { bottom:47mm; }
+    .eyebrow { font-size:8pt; letter-spacing:.21em; font-weight:700; text-transform:uppercase; color:#ffe6c9; }
+    h1,h2,h3,p { margin-top:0; }
+    .cover h1 { font-family:Georgia,serif; font-size:40pt; font-weight:400; letter-spacing:-.03em; line-height:1.04; margin:6mm 0 4mm; max-width:153mm; }
+    .cover-subtitle { max-width:142mm; font-family:Georgia,serif; font-size:15pt; line-height:1.4; color:#f7efe8; }
+    .cover-bottom { bottom:14mm; border-top:1px solid rgba(255,255,255,.6); padding-top:6mm; display:grid; grid-template-columns:1fr 1fr 1fr; gap:5mm; font-size:8.8pt; }
+    .cover-bottom span:last-child { text-align:right; }
+    .feature { min-height:269mm; padding:0 0 8mm; break-after:page; }
+    .feature-top { display:flex; justify-content:space-between; align-items:center; padding:3mm 0 7mm; border-bottom:1px solid var(--line); }
+    .feature-top img { width:47mm; }
+    .feature-top small { font-size:7.5pt; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); }
+    .feature-head { margin:11mm 0 7mm; display:grid; grid-template-columns:1.2fr .8fr; gap:12mm; align-items:end; }
+    .feature-head h2 { font-family:Georgia,serif; font-size:29pt; font-weight:400; line-height:1.08; letter-spacing:-.025em; margin:0; }
+    .feature-head p { font-size:9pt; line-height:1.55; color:var(--muted); margin:0; }
+    .feature-photo { display:none; height:72mm; position:relative; overflow:hidden; background:#243a56 url('./gaslamp-editorial.png') center 51%/cover no-repeat; }
+    .feature-photo span { position:absolute; left:5mm; bottom:5mm; padding:2mm 3mm; background:rgba(19,38,64,.88); color:white; font-size:7pt; letter-spacing:.12em; text-transform:uppercase; }
+    .with-interior-photo .feature-photo { display:block; }
+    .highlights { height:72mm; background:var(--ink); color:white; display:grid; grid-template-columns:44mm repeat(3,1fr); padding:8mm 7mm; }
+    .with-interior-photo .highlights { display:none; }
+    .highlights-intro { padding-right:5mm; border-right:1px solid rgba(255,255,255,.27); }
+    .highlights-intro small { display:block; color:#e7aa8f; font-size:6.8pt; font-weight:700; letter-spacing:.16em; text-transform:uppercase; margin-bottom:5mm; }
+    .highlights-intro strong { display:block; font:400 19pt/1.15 Georgia,serif; }
+    .highlight { padding:1mm 3mm 0 5mm; border-right:1px solid rgba(255,255,255,.27); }
+    .highlight:last-child { border-right:0; }
+    .highlight time { display:block; font-size:7pt; color:#e7aa8f; letter-spacing:.13em; margin-bottom:7mm; }
+    .highlight b { display:block; font:400 14pt/1.18 Georgia,serif; margin-bottom:4mm; }
+    .highlight p { font-size:7.2pt; line-height:1.48; color:#d6dfe9; margin:0; }
+    .route { display:grid; grid-template-columns:1fr 1fr 1fr; border-bottom:1px solid var(--line); margin:9mm 0 8mm; }
+    .route-item { padding:0 4mm 6mm 0; border-right:1px solid var(--line); }
+    .route-item + .route-item { padding-left:5mm; }
+    .route-item:last-child { border-right:0; }
+    .route-item b { display:block; font-family:Georgia,serif; font-size:14pt; font-weight:400; margin-bottom:2mm; }
+    .route-item span { font-size:7.5pt; line-height:1.45; color:var(--muted); }
+    .offer { display:flex; justify-content:space-between; gap:9mm; align-items:end; background:var(--sand); padding:7mm 8mm; }
+    .offer .label { font-size:7pt; letter-spacing:.15em; text-transform:uppercase; font-weight:700; color:var(--coral); margin-bottom:2mm; }
+    .offer h3 { font:400 17pt Georgia,serif; margin:0 0 2mm; }
+    .offer p { font-size:7.6pt; line-height:1.4; color:var(--muted); margin:0; max-width:92mm; }
+    .offer-price { text-align:right; white-space:nowrap; }
+    .offer-price strong { font:400 24pt Georgia,serif; color:var(--ink); }
+    .offer-price span { display:block; font-size:7pt; color:var(--muted); margin-top:2mm; }
+    .services { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7mm; margin-top:7mm; }
+    .services div { border-top:1px solid var(--line); padding-top:3mm; }
+    .services b { display:block; font-size:7pt; letter-spacing:.1em; text-transform:uppercase; margin-bottom:1.5mm; }
+    .services span { display:block; color:var(--muted); font-size:7.2pt; line-height:1.4; }
+    .days { padding:0 0 2mm; }
+    .days-heading { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding:4mm 0 5mm; margin-bottom:8mm; }
+    .days-heading strong { font-size:7pt; letter-spacing:.15em; text-transform:uppercase; }
+    .days-heading span { font-size:7.5pt; color:var(--muted); }
+    .days-intro { font:400 23pt Georgia,serif; letter-spacing:-.02em; margin:0 0 9mm; }
+    .day { display:grid; grid-template-columns:21mm 1fr; gap:5mm; margin-bottom:9mm; break-inside:avoid; page-break-inside:avoid; }
+    .day-rail { padding-top:1mm; border-top:2px solid var(--coral); }
+    .day-rail strong { display:block; font:400 23pt Georgia,serif; line-height:1; color:var(--coral); }
+    .day-rail span { display:block; margin-top:2mm; font-size:7pt; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    .day-body h3 { font:400 17pt Georgia,serif; margin:0 0 2mm; }
+    .day-body .lead { font-size:8.3pt; line-height:1.45; color:var(--muted); margin:0 0 3mm; }
+    .day-stops { border-top:1px solid var(--line); }
+    .stop { display:grid; grid-template-columns:12mm 1fr; gap:3mm; border-bottom:1px solid #e9edf0; padding:2.1mm 0; font-size:7.7pt; line-height:1.34; }
+    .stop:last-child { border-bottom:0; }
+    .stop time { font-weight:700; color:var(--coral); }
+    .stop b { font-weight:650; }
+    .stop em { display:block; font-style:normal; color:var(--muted); }
+    .day-note { margin-top:3mm; padding:2.5mm 3mm; border-left:2px solid #e6b399; background:#fbf7f2; font-size:7.3pt; line-height:1.4; color:#6b554b; }
+    .final-group { break-inside:avoid; page-break-inside:avoid; }
+    .close { break-inside:avoid; page-break-inside:avoid; margin:8mm 0 3mm 26mm; min-height:89mm; padding:9mm 10mm; color:#fff; background:var(--ink); }
+    .close .eyebrow { font-size:7pt; color:#f1b99c; }
+    .close h2 { font:400 23pt Georgia,serif; line-height:1.1; max-width:100mm; margin:3mm 0 5mm; }
+    .close p { font-size:8pt; line-height:1.48; color:#dbe2e9; margin:0 0 4mm; max-width:117mm; }
+    .close .contact { display:flex; justify-content:space-between; gap:5mm; border-top:1px solid rgba(255,255,255,.35); padding-top:4mm; margin-top:7mm; font-size:7.5pt; color:#fff; }
+    .close .image-note { font-size:6.5pt; color:#b9c5d2; margin-top:5mm; }
+    @media print {
+      @page { size:A4; margin:14mm; }
+      :root,html,body { background:white !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .document { width:auto; margin:0; }
+      .cover { break-after:page; page-break-after:always; }
+      .feature { height:269mm; min-height:0; }
+      .days-heading,.days-intro { break-after:avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="document">
+    <section class="cover" aria-label="Portada editorial">
+      <div class="cover-brand"><div class="brand-card"><img src="./dayco-logo-from-example.jpg" alt="DaycoTravels"></div><div class="edition">Propuesta de viaje<br>Edición personal</div></div>
+      <div class="cover-content"><div class="eyebrow">California · 15—22 octubre 2026</div><h1>Del Pacífico<br>a la magia</h1><p class="cover-subtitle">San Diego, La Jolla y Anaheim en ocho días para descubrir, saborear y compartir.</p></div>
+      <div class="cover-bottom"><span>San Diego → Anaheim</span><span>8 días · 2 viajeros</span><span>Preparado por DaycoTravels</span></div>
+    </section>
+    <section class="feature" aria-label="Presentación del viaje">
+      <header class="feature-top"><img src="./dayco-logo-from-example.jpg" alt="DaycoTravels"><small>Tu viaje, pensado para ti</small></header>
+      <div class="feature-head"><h2>Dos maneras de sentir California. Un solo viaje.</h2><p>Primero, la costa y los barrios de San Diego: Gaslamp al caer la tarde, La Jolla frente al mar y Balboa Park. Después, Anaheim y sus parques, con tiempo para disfrutar cada experiencia sin convertir el viaje en una carrera.</p></div>
+      <div class="feature-photo"><span>Gaslamp Quarter · San Diego</span></div>
+      <div class="highlights" aria-label="Tres momentos destacados"><div class="highlights-intro"><small>Para recordar</small><strong>Tres momentos del viaje</strong></div><div class="highlight"><time>16 OCT</time><b>La Jolla Cove</b><p>Caminar junto a las calas y detenerse frente al Pacífico.</p></div><div class="highlight"><time>18 OCT</time><b>Coronado</b><p>Una última mañana de playa antes de salir hacia Anaheim.</p></div><div class="highlight"><time>21 OCT</time><b>Galaxy’s Edge</b><p>Un día para volver a las atracciones favoritas y explorar Batuu.</p></div></div>
+      <div class="route"><div class="route-item"><b>San Diego</b><span>15–18 oct · Gaslamp, La Jolla, Balboa Park y Coronado.</span></div><div class="route-item"><b>Anaheim</b><span>Desde el 18 oct · Disneyland Park, California Adventure y Downtown Disney.</span></div><div class="route-item"><b>Regreso</b><span>22 oct · Desayuno, últimas compras y traslado al aeropuerto LAX.</span></div></div>
+      <div class="offer"><div><div class="label">Inversión estimada</div><h3>El viaje empieza aquí</h3><p>Estimación del ejemplo para dos viajeros. Tarifas, servicios y disponibilidad deben confirmarse antes de reservar.</p></div><div class="offer-price"><strong>$41,158.80</strong><span>MXN por persona · $82,317.60 total</span></div></div>
+      <div class="services"><div><b>Vuelos propuestos</b><span>Aeroméxico · ida 15 oct, regreso 22 oct.</span></div><div><b>Estancias consideradas</b><span>Casa la Jolla y zona Disney; fechas exactas por conciliar.</span></div><div><b>Movilidad</b><span>Renta de auto para el recorrido en destino.</span></div></div>
+    </section>
+    <section class="days" aria-label="Itinerario día a día"><div class="days-heading"><strong>DaycoTravels · San Diego y Anaheim</strong><span>15–22 oct 2026</span></div><h2 class="days-intro">El viaje, día a día</h2><div id="day-list"></div></section>
+  </main>
+  <script>
+    document.body.classList.toggle('with-interior-photo', new URLSearchParams(location.search).get('interior') === 'foto');
+    const days = [
+      {date:'Jue 15 oct', title:'La primera noche en Gaslamp', lead:'Aterrizar, instalarse y dejar que el centro histórico marque el comienzo del viaje.', stops:[['14:00','Llegada y registro en San Diego','Traslado al alojamiento y tiempo para acomodarse.'],['16:30','Gaslamp Quarter y Seaport Village','Paseo entre arquitectura histórica, tiendas y vistas de la bahía.'],['19:00','Cena sugerida en Lumi by Akira Back','Una primera noche con cocina japonesa contemporánea.']], note:'El ritmo del primer día deja margen para el vuelo y el traslado.'},
+      {date:'Vie 16 oct', title:'La Jolla frente al Pacífico', lead:'Calas, acantilados y una tarde para recorrer las calles más bonitas junto al mar.', stops:[['10:00','La Jolla Cove','Caminar por la costa y detenerse a disfrutar el paisaje.'],['13:00','Almuerzo sugerido en George’s at the Cove','Una pausa con vistas al océano.'],['15:30','Prospect Street','Galerías, boutiques y cafés para recorrer sin prisa.']]},
+      {date:'Sáb 17 oct', title:'Arte en Balboa Park, noche en Little Italy', lead:'De jardines y museos a una cena en uno de los barrios con más ambiente de San Diego.', stops:[['10:30','Balboa Park y Japanese Friendship Garden','Paseo por la arquitectura y los jardines del parque.'],['14:00','Almuerzo sugerido en Cucina Urbana','Cocina italiana contemporánea cerca de Balboa Park.'],['18:30','Piazza della Famiglia','Atardecer y ambiente nocturno en Little Italy.']]},
+      {date:'Dom 18 oct', title:'Coronado y camino a Anaheim', lead:'Una última mañana frente al mar antes de cambiar la costa por los parques.', stops:[['10:00','Hotel del Coronado y playa','Recorrido por el entorno del histórico hotel y su costa.'],['13:00','Almuerzo sugerido en The Fish Market','Mariscos junto al puerto de San Diego.'],['16:00','Traslado a Anaheim','Viaje por carretera y registro en el alojamiento propuesto.']], note:'Conviene confirmar tiempos de tráfico y horario de registro antes de cerrar este día.'},
+      {date:'Lun 19 oct', title:'Un día en Disneyland Park', lead:'Atracciones clásicas, pausas para comer y una noche especial para cerrar el primer día de parque.', stops:[['09:00','Disneyland Park','Explorar las áreas y atracciones que más les interesen.'],['14:00','Almuerzo sugerido en Plaza Inn','Una pausa dentro del parque.'],['20:00','Cena sugerida en Napa Rose','Una opción para terminar el día con calma.']]},
+      {date:'Mar 20 oct', title:'California Adventure al atardecer', lead:'Un día de nuevas historias, desde Cars Land hasta la energía de Avengers Campus.', stops:[['09:30','Disney California Adventure','Recorrido flexible por las áreas del parque.'],['14:00','Almuerzo sugerido en Lamplight Lounge','Pausa con vista a la laguna de Pixar Pier.'],['19:30','Cena sugerida en Uva Bar & Cafe','Cierre relajado en Downtown Disney.']]},
+      {date:'Mié 21 oct', title:'Galaxias lejanas y última noche', lead:'El último día completo deja espacio para repetir favoritos y elegir un recuerdo del viaje.', stops:[['10:00','Star Wars: Galaxy’s Edge','Explorar Batuu y sus experiencias temáticas.'],['14:30','Almuerzo sugerido en Docking Bay 7','Una opción dentro del área temática.'],['18:30','Downtown Disney y Splitsville','Compras, cena y opción de boliche.']]},
+      {date:'Jue 22 oct', title:'Desayuno, recuerdos y regreso', lead:'Una despedida sin prisas, con tiempo previsto para llegar a LAX.', stops:[['09:30','Desayuno sugerido en Storytellers Cafe','Una última comida antes del traslado.'],['11:30','Downtown Disney','Paseo breve y compras finales.'],['13:30','Traslado al aeropuerto LAX','Salida con margen para tráfico y documentación.']], note:'El horario definitivo debe ajustarse al vuelo confirmado y al tráfico del día.'}
+    ];
+    const list = document.getElementById('day-list');
+    days.forEach((day,i) => {
+      const article = document.createElement('article'); article.className='day';
+      article.innerHTML=`<div class="day-rail"><strong>${String(i+1).padStart(2,'0')}</strong><span>${day.date}</span></div><div class="day-body"><h3>${day.title}</h3><p class="lead">${day.lead}</p><div class="day-stops">${day.stops.map(([time,title,desc])=>`<div class="stop"><time>${time}</time><div><b>${title}</b><em>${desc}</em></div></div>`).join('')}</div>${day.note?`<div class="day-note">${day.note}</div>`:''}</div>`;
+      list.appendChild(article);
+    });
+    const closing = document.createElement('footer'); closing.className='close';
+    closing.innerHTML='<div class="eyebrow">El siguiente paso</div><h2>Hagámoslo realidad</h2><p>Revisemos juntos los detalles que más te importan. Actividades, restaurantes, hospedajes y precios son sugerencias sujetas a disponibilidad, reserva y confirmación con los proveedores.</p><div class="contact"><span>DaycoTravels · Somos tu punto de partida</span><span>daycotravels@gmail.com</span></div><p class="image-note">Propuesta ilustrativa · Imágenes conceptuales creadas para esta muestra.</p>';
+    const finalDay = list.lastElementChild;
+    const group = document.createElement('div'); group.className='final-group';
+    list.insertBefore(group, finalDay);
+    group.appendChild(finalDay);
+    group.appendChild(closing);
+  </script>
+</body>
+</html>

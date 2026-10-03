@@ -1,5 +1,6 @@
 import { Trip, Itinerary, Expense, Client, TripChat } from '../models/index.js';
 import ApiError from '../utils/ApiError.js';
+import { deleteVisualTripData } from '../services/visualCleanup.service.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { buildLinksForTrip } from '../services/bookingLinks.service.js';
 import { convertirTotales } from '../services/exchange.service.js';
@@ -417,6 +418,7 @@ export const deleteTrip = asyncHandler(async (req, res) => {
 
   // Sin transacciones (Atlas free soporta replica set, pero no lo damos por hecho):
   // se borran los hijos primero para no dejar huerfanos si algo falla.
+  await deleteVisualTripData(trip._id);
   await Promise.all([
     Itinerary.deleteOne({ trip: trip._id }),
     Expense.deleteMany({ trip: trip._id }),

@@ -163,6 +163,31 @@ export const templatesApi = {
   aplicar: (id, payload) => api.post(`/templates/${id}/aplicar`, payload),
 };
 
+export const visualTemplatesApi = {
+  artUrl: (id) => `${BASE_URL}/visual-templates/art/${encodeURIComponent(id)}`,
+  list: (opts) => api.get('/visual-templates', opts),
+  get: (id, opts) => api.get(`/visual-templates/${id}`, opts),
+  create: (payload) => api.post('/visual-templates', payload),
+  update: (id, payload) => api.patch(`/visual-templates/${id}`, payload),
+  duplicate: (id) => api.post(`/visual-templates/${id}/duplicate`),
+  remove: (id, revision) => api.delete(`/visual-templates/${id}`, { body: { revision } }),
+};
+
+export const visualAssetsApi = {
+  list: (opts) => api.get('/visual-assets', opts),
+  upload: (formData) => api.post('/visual-assets', formData),
+  remove: (id) => api.delete(`/visual-assets/${id}`),
+};
+
+export const visualProposalsApi = {
+  get: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal`, opts),
+  select: (tripId, templateId, revision = 0) => api.post(`/trips/${tripId}/visual-proposal`, { templateId, revision }),
+  update: (tripId, payload) => api.patch(`/trips/${tripId}/visual-proposal`, payload),
+  preview: (tripId, opts) => api.get(`/trips/${tripId}/visual-proposal/preview`, opts),
+  issue: (tripId, revision, previewHash, requestId) => api.post(`/trips/${tripId}/visual-proposal/issue`, { revision, previewHash, requestId }, { timeout: 70000 }),
+  pdfUrl: (tripId, issueId) => `${BASE_URL}/trips/${tripId}/visual-proposal/issues/${issueId}/pdf`,
+};
+
 export const expensesApi = {
   list: (params, opts) => api.get(`/expenses${qs(params)}`, opts),
   create: (payload) => api.post('/expenses', payload),

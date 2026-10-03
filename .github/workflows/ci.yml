@@ -29,11 +29,24 @@ jobs:
         working-directory: server
         run: npm ci
 
-      # Las pruebas del servidor no tocan la base ni las APIs externas: validan
-      # modelos, validadores y servicios en memoria, asi que corren sin secretos.
+      - name: Preparar Chromium para emitir PDF reales
+        working-directory: server
+        run: npm run browser:install -- --with-deps
+
+      # MongoDB temporal aislado y Chromium; no usa bases ni claves de producción.
       - name: Pruebas
         working-directory: server
         run: npm test
+
+      - name: Verificar trece diseños con viajes de 3 y 15 días
+        working-directory: server
+        run: node scripts/visual-pdf-prototype.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: propuestas-pdf-prueba
+          path: output/pdf/*.pdf
+          retention-days: 7
 
   frontend:
     name: Cliente — pruebas y build

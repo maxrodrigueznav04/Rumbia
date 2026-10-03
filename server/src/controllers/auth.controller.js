@@ -17,6 +17,7 @@ import { enviarCorreo, correoRecuperacion, correoVerificacion } from '../service
 import { subirLogo, borrarLogo } from '../services/logo.service.js';
 import { cancelarSuscripcion } from '../services/stripe.service.js';
 import { usuarioConAgencia } from './agency.controller.js';
+import { deleteVisualAgencyData, deleteVisualTripData } from '../services/visualCleanup.service.js';
 
 /** Cuanto vive un enlace de recuperacion. Corto a proposito: es una llave. */
 const RESET_MINUTOS = 30;
@@ -395,6 +396,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // igual que cuando el dueño sale por la via normal (salirAgencia).
   const agenciaPropia = await Agency.findOne({ owner: user._id });
   if (agenciaPropia) {
+    await deleteVisualAgencyData(agenciaPropia._id);
     const otrosMiembros = await User.countDocuments({
       agency: agenciaPropia._id,
       _id: { $ne: user._id },
@@ -456,6 +458,8 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // personales (agency: null), y sus dependencias correspondientes.
   const viajesPersonales = await Trip.find({ user: user._id, agency: null }).select('_id');
   const idsViajesPersonales = viajesPersonales.map((v) => v._id);
+
+  for (const tripId of idsViajesPersonales) await deleteVisualTripData(tripId);
 
   await Itinerary.deleteMany({ trip: { $in: idsViajesPersonales } });
   await Expense.deleteMany({ trip: { $in: idsViajesPersonales } });
