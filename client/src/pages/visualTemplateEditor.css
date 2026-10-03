@@ -41,8 +41,12 @@
 .visual-highlights b { display:block; font:400 1.1em var(--visual-heading-font); }
 .visual-resize { position:absolute; right:0; bottom:0; width:13px; height:13px; background:#bc6954; border:2px solid white; cursor:nwse-resize; }
 .visual-assets { display:grid; gap:9px; border-top:1px solid var(--border); padding-top:12px; }
-.visual-asset-list { display:flex; flex-wrap:wrap; gap:5px; }
-.visual-asset-list button { width:54px; height:54px; padding:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; cursor:pointer; }
+.visual-asset-list { display:flex; flex-wrap:wrap; gap:10px; }
+.visual-asset-card { display:grid; gap:3px; width:84px; }
+.visual-asset-card .boton { min-height:32px; padding:4px 6px; }
+.visual-asset-thumbnail { width:84px; height:72px; padding:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; cursor:pointer; }
+.visual-asset-thumbnail:disabled { cursor:not-allowed; opacity:.5; }
+.visual-image-hint { margin:0; font-size:.8rem; }
 .visual-asset-list img { width:100%; height:100%; object-fit:cover; }
 .visual-upload-form { display:grid; gap:9px; }
 .visual-rights { font-size:.78rem; line-height:1.4; }

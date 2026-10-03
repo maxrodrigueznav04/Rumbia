@@ -41,6 +41,56 @@ test('la beta exige habilitación global y pertenencia a una agencia autorizada'
   assert.equal(hasVisualTemplateAccess('agency-one', { ...config, visualTemplatesEnabled: false }), false);
 });
 
+test('la biblioteca bloquea imágenes utilizadas y conserva el registro si falla el borrado remoto', async () => {
+  const mongo = await MongoMemoryServer.create();
+  await mongoose.connect(mongo.getUri());
+  const { Agency, VisualAsset, VisualTemplate, VisualProposal, VisualProposalIssue } = await import('../src/models/index.js');
+  const { remove } = await import('../src/controllers/visualAssets.controller.js');
+  const id = () => new mongoose.Types.ObjectId();
+  const owner = id(); const member = id(); const agency = id(); const foreignAgency = id(); const asset = id();
+  const originalFetch = globalThis.fetch;
+  const remoteRequests = [];
+  const call = async (user = { _id: owner, agency }) => {
+    let body;
+    await remove({ user, params: { id: String(asset) } }, { json: (result) => { body = result; } }, (error) => { throw error; });
+    return body;
+  };
+  try {
+    await Agency.collection.insertMany([{ _id: agency, owner, billing: { status: 'activa' } }, { _id: foreignAgency, owner: member, billing: { status: 'activa' } }]);
+    await VisualAsset.collection.insertOne({ _id: asset, agency, uploadedBy: owner, publicId: 'visual-test/unused', url: 'https://example.test/photo.jpg' });
+    globalThis.fetch = async (url, options) => {
+      remoteRequests.push({ url, publicId: options.body.get('public_id') });
+      return new Response('{}', { status: 503 });
+    };
+    await assert.rejects(call({ _id: member, agency }), { statusCode: 403 });
+    await assert.rejects(call({ _id: member, agency: foreignAgency }), { statusCode: 404 });
+    const linkedDesign = { pages: [{ elements: [{ assetId: String(asset) }] }] };
+    await VisualTemplate.collection.insertOne({ agency, design: linkedDesign });
+    await assert.rejects(call(), { statusCode: 409 });
+    await VisualTemplate.deleteMany({ agency });
+    await VisualProposal.collection.insertOne({ agency, design: linkedDesign });
+    await assert.rejects(call(), { statusCode: 409 });
+    await VisualProposal.deleteMany({ agency });
+    await VisualProposalIssue.collection.insertOne({ agency, data: { assets: { [String(asset)]: { url: 'https://example.test/photo.jpg' } } } });
+    await assert.rejects(call(), { statusCode: 409 });
+    await VisualProposalIssue.deleteMany({ agency });
+    assert.equal(remoteRequests.length, 0);
+    await assert.rejects(call(), { statusCode: 503 });
+    assert(await VisualAsset.findById(asset));
+    globalThis.fetch = async (url, options) => {
+      remoteRequests.push({ url, publicId: options.body.get('public_id') });
+      return new Response(JSON.stringify({ result: 'ok' }), { status: 200 });
+    };
+    assert.equal((await call()).success, true);
+    assert.equal(await VisualAsset.findById(asset), null);
+    assert(remoteRequests.every((request) => request.url === 'https://api.cloudinary.com/v1_1/visual-test/image/destroy' && request.publicId === 'visual-test/unused'));
+  } finally {
+    globalThis.fetch = originalFetch;
+    await mongoose.disconnect();
+    await mongo.stop();
+  }
+});
+
 test('reiniciar la beta conserva plantillas, viajes y contraseña editados', async () => {
   const mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri('rumbia_visual_beta'));

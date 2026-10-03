@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { visualTemplatesApi, visualAssetsApi } from '../api/index.js';
 import useFetch from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Aviso, Boton, Campo, ErrorCarga, Esqueleto } from '../components/ui.jsx';
+import { Aviso, Boton, Campo, ErrorCarga, Esqueleto, ModalConfirmar } from '../components/ui.jsx';
 import './visualTemplateEditor.css';
 import { visualHeadingFonts, visualBodyFonts } from '../config/visualFonts.js';
 import { fittedFieldFontSize } from '../config/visualFieldSizing.js';
@@ -24,6 +24,7 @@ const sample = {
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const clone = (value) => structuredClone(value);
 const newId = () => `e_${crypto.randomUUID().slice(0, 12)}`;
+const usesImage = (design, assetId) => Boolean(design?.pages?.some((page) => page.elements.some((item) => item.assetId === assetId)));
 
 function CanvasElement({ element, selected, onPointerDown, onKeyDown, assetUrl, pageKind, theme, t }) {
   const { x, y, width, height, style = {} } = element;
@@ -74,6 +75,9 @@ function VisualTemplateEditorContent() {
   const [saveError, setSaveError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [assetError, setAssetError] = useState('');
+  const [deleteAssetTarget, setDeleteAssetTarget] = useState(null);
+  const [deletingAsset, setDeletingAsset] = useState(false);
+  const [assetDeleted, setAssetDeleted] = useState(false);
   const [file, setFile] = useState(null);
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [origin, setOrigin] = useState('own');
@@ -93,7 +97,7 @@ function VisualTemplateEditorContent() {
     storageKey: user ? `rumbia:visual-draft:${user._id}:${user.agency?._id || user.agency}:template:${id}` : null,
     ready: Boolean(template && present), revision: template?.revision, value: { name, design: present }, dirty,
   });
-  const canEdit = mayEdit && !backup.draft;
+  const canEdit = mayEdit && !backup.draft && !deletingAsset;
 
   useEffect(() => {
     if (!data?.template) return;
@@ -273,6 +277,27 @@ function VisualTemplateEditorContent() {
     setSelectedId(null);
   };
 
+  const deleteImage = async () => {
+    const assetId = deleteAssetTarget;
+    if (usesImage(present, assetId)) throw new Error(t('editor.imageInDesign'));
+    setDeletingAsset(true);
+    setAssetDeleted(false);
+    try {
+      await visualAssetsApi.remove(assetId);
+      assetsReq.setData((current) => ({ ...current, assets: current.assets.filter((asset) => asset._id !== assetId) }));
+      // No permitir que Deshacer/Rehacer vuelvan a insertar una imagen borrada.
+      // Los demás estados del diseño siguen disponibles.
+      setHistory((current) => ({ ...current,
+        past: current.past.filter((design) => !usesImage(design, assetId)),
+        future: current.future.filter((design) => !usesImage(design, assetId)),
+      }));
+      setAssetDeleted(true);
+      assetsReq.recargar();
+    } finally {
+      setDeletingAsset(false);
+    }
+  };
+
   const undo = () => setHistory((current) => current.past.length ? {
     past: current.past.slice(0, -1), present: current.past.at(-1), future: [current.present, ...current.future],
   } : current);
@@ -327,17 +352,23 @@ function VisualTemplateEditorContent() {
         </fieldset>}
         <details className="visual-advanced"><summary>{t('editor.imagesPanel')}</summary>
         <p className="suave" style={{ fontSize: '.85rem' }}>{t('editor.imageOptional')}</p>
-        {canEdit && <div className="visual-assets">
+        {mayEdit && !backup.draft && <div className="visual-assets">
           <strong>{t('editor.images')}</strong>
+          <p className="suave visual-image-hint">{t('editor.deleteImageHint')}</p>
+          {assets.some((asset) => usesImage(present, asset._id)) && <p className="suave visual-image-hint">{t('editor.imageInDesign')}</p>}
           {assetError && <Aviso tipo="error">{assetError}</Aviso>}
+          {assetDeleted && <Aviso tipo="exito">{t('editor.imageDeleted')}</Aviso>}
           {assetsReq.error && <Aviso tipo="error">{assetsReq.error.message}</Aviso>}
-          <div className="visual-asset-list">{assets.map((asset) => <button type="button" key={asset._id} onClick={() => addImage(asset._id)} disabled={page.elements.length >= 50} title={t('editor.insertImage')}><img src={asset.url} alt="" /></button>)}</div>
+          <div className="visual-asset-list">{assets.map((asset, index) => <div className="visual-asset-card" key={asset._id}>
+            <button type="button" className="visual-asset-thumbnail" onClick={() => addImage(asset._id)} disabled={!canEdit || uploading || page.elements.length >= 50} title={t('editor.insertImage')} aria-label={`${t('editor.insertImage')}: ${t('editor.imageNumber', { number: index + 1 })}`}><img src={asset.url} alt="" /></button>
+            <Boton chico variante="peligro-texto" onClick={() => setDeleteAssetTarget(asset._id)} disabled={!canEdit || saving || uploading || assetsReq.cargando || usesImage(present, asset._id)} title={usesImage(present, asset._id) ? t('editor.imageInDesign') : t('editor.deleteImage')} aria-label={`${t('editor.deleteImage')}: ${t('editor.imageNumber', { number: index + 1 })}`}>{t('delete')}</Boton>
+          </div>)}</div>
           <form onSubmit={uploadImage} className="visual-upload-form">
             <Campo label={t('editor.uploadImage')} type="file" accept="image/png,image/jpeg" required onChange={(event) => setFile(event.target.files?.[0] || null)} />
             <Campo label={t('editor.imageOrigin')}><select value={origin} onChange={(event) => setOrigin(event.target.value)}><option value="own">{t('editor.ownImage')}</option><option value="licensed">{t('editor.licensedImage')}</option></select></Campo>
             {origin === 'licensed' && <Campo label={t('editor.licenseRef')} value={licenseRef} maxLength={300} required onChange={(event) => setLicenseRef(event.target.value)} />}
             <label className="visual-rights"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)} /> {t('editor.rights')}</label>
-            <Boton chico type="submit" variante="secundario" cargando={uploading} disabled={!file || !rightsConfirmed || page.elements.length >= 50}>{t('editor.uploadAndInsert')}</Boton>
+            <Boton chico type="submit" variante="secundario" cargando={uploading} disabled={!canEdit || !file || !rightsConfirmed || page.elements.length >= 50}>{t('editor.uploadAndInsert')}</Boton>
           </form>
         </div>}
         </details>
@@ -406,5 +437,7 @@ function VisualTemplateEditorContent() {
         </> : <p className="suave">{t('editor.noElement')}</p>}
       </aside>
     </div>
+    <ModalConfirmar abierto={Boolean(deleteAssetTarget)} onCerrar={() => { if (!deletingAsset) setDeleteAssetTarget(null); }} onConfirmar={deleteImage}
+      titulo={t('editor.deleteImage')} mensaje={t('editor.deleteImageWarning')} textoConfirmar={t('delete')} />
   </div>;
 }

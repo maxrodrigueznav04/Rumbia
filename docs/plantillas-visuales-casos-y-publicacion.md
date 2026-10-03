@@ -42,10 +42,11 @@ La aplicación principal aún no tiene activada esta función. Las comprobacione
 | Una pestaña antigua intenta cambiar la plantilla | Se rechaza por revisión antigua; no pisa el trabajo nuevo. | API. |
 | No quiere una imagen interior | No se exige; el diseño inicial y los presets funcionan sin ella. | Validación, 26 PDF y pruebas del usuario. |
 | No quiere imágenes en ninguna página | La plantilla básica funciona sin imágenes; el dueño también puede eliminar el arte de un preset. Debe conservar contenido útil en sus páginas. | Diseño básico emitido realmente y revisión del editor. |
-| Sube una imagen propia | PNG/JPEG, hasta 8 MB, 300–6000 píxeles por lado, máximo 20 megapíxeles. Debe confirmar derechos de uso. | Validación e inspección de archivo; servicio real requiere Cloudinary. |
+| Sube una imagen propia | PNG/JPEG, hasta 8 MB, 300–6000 píxeles por lado, máximo 20 megapíxeles. Debe confirmar derechos de uso. | Validación e inspección de archivo; usuario confirmó foto subida y mostrada en PDF, unos 10 segundos o menos de emisión. |
 | Usa una imagen con licencia | Debe confirmar derechos y proporcionar referencia. | Validación del servidor. No sustituye una verificación legal de la licencia. |
 | Intenta usar una imagen de otra agencia | La API rechaza referencias que no están en su biblioteca. | Consulta por agencia y revisión del código. |
-| Se intenta borrar una imagen usada | Se bloquea si la referencia aparece en una plantilla, propuesta o emisión. | Revisión de control de referencias. Falta confirmar borrado de una imagen suelta con Cloudinary real. |
+| Se intenta borrar una imagen usada | Se bloquea si aparece en el diseño actual (incluso sin guardar), otra plantilla, propuesta o emisión. | Pruebas de pantalla y controladores con MongoDB real temporal. Falta confirmar borrado de una imagen suelta con Cloudinary real. |
+| Elimina una imagen suelta de biblioteca | Confirma el borrado definitivo; si falla el servicio remoto, conserva el registro y permite reintentar. Deshacer/Rehacer no vuelven a insertarla tras un borrado exitoso. | Cuatro pruebas de pantalla y controladores con Cloudinary simulado; pendiente prueba remota real. |
 | Cloudinary no está configurado o falla | La subida devuelve un error; puede usar el arte incluido o un diseño sin fotos. | Servicio y validación. |
 | Una imagen no carga al emitir | No se emite un PDF con esa imagen rota; se pide revisarla. El generador funciona tras corregir el problema. | Chromium real. |
 | El texto no cabe en un cuadro fijo | Se rechaza la emisión con un mensaje para ajustar el cuadro o el texto. | Chromium real. |
@@ -87,9 +88,9 @@ La aplicación principal aún no tiene activada esta función. Las comprobacione
 
 ## Pendientes antes de habilitar la aplicación principal
 
-1. **Comprobar despliegue y prueba remota de Eliminar plantilla completa.** El usuario lo aclaró con una captura y el botón se implementó con confirmación, revisión y permisos; la conservación de propuestas y PDF pasó integración local. El usuario ya confirmó las tres protecciones anteriores: advertencia y recuperación del borrador, cancelación del cambio de plantilla y emisión el 2 de octubre. La revisión anterior `5915be3` quedó confirmada en Vercel y Live en Render; web y salud API respondieron HTTP 200.
+1. **Borrado de plantilla completa cerrado:** el usuario confirmó la eliminación en beta el 2 de octubre. Commit `00ee475`, web READY y CI `37076086470` exitoso. Conservación de propuestas/PDF comprobada en integración. También confirmó advertencia y recuperación del borrador, cancelación de cambio de plantilla y emisión. No repetir estas pruebas sin cambios que las afecten.
 2. **Medir Render real:** tiempo de un PDF largo, memoria/CPU durante la emisión y registro de reinicios. Las emisiones exitosas del usuario prueban funcionamiento, no capacidad sostenida para varias agencias.
-3. **Comprobar Cloudinary real:** subir una foto, emitir con ella y borrar una foto de prueba que no esté utilizada. La limpieza con fallo/reintento se comprobó con una respuesta remota simulada.
+3. **Completar Cloudinary real:** el usuario ya confirmó foto propia mostrada en PDF, emitido en unos 10 segundos o menos. Se añadió botón de eliminación de biblioteca y se probó confirmación, protección de uso y fallo/reintento simulado. Falta borrar una foto desechable que no esté en ningún documento y confirmar su eliminación remota; eliminar una plantilla no comprueba eliminación de fotos en Cloudinary.
 4. **Confirmar un respaldo de la base principal y el ID de la agencia piloto.** No usar la base, cuenta ni arranque sintético de la beta en el servicio real.
 5. Verificar el commit exacto y las comprobaciones de GitHub antes de integrar. La publicación en el servicio principal requiere autorización cuando corresponda por el impacto sobre producción indicado en `CLAUDE.md`.
 
