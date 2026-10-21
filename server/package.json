@@ -12,7 +12,7 @@
     "start": "node src/server.js",
     "seed": "node scripts/seed.js",
     "seed:reset": "node scripts/seed.js --reset",
-    "test": "node scripts/smoke-test.mjs && node --test scripts/resilience.test.mjs",
+    "test": "node scripts/smoke-test.mjs && node --test scripts/resilience.test.mjs scripts/producto.test.mjs",
     "test:carga": "node scripts/load-test.mjs",
     "test:api": "node scripts/prueba-api.mjs && node scripts/prueba-edicion.mjs",
     "test:recuperacion": "node scripts/prueba-recuperacion.mjs",

@@ -40,8 +40,14 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      # Cloudflare Turnstile (anti-bots en registro y recuperacion). Sin esta
+      # clave el captcha queda desactivado y deja pasar todo.
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
       - key: AI_RATE_LIMIT_PER_HOUR
         value: 10
+      - key: AI_CHAT_RATE_LIMIT_PER_HOUR
+        value: 30
       - key: AI_MAX_CONCURRENT
         value: 3
       - key: AI_MAX_QUEUE
@@ -49,10 +55,10 @@ services:
       - key: AI_QUEUE_WAIT_MS
         value: 12000
       # Cobro a agencias. Sin estas, /agency/billing responde con un aviso
-      # claro y el resto de la app sigue igual. Las ocho STRIPE_PRICE_* salen
+      # claro y el resto de la app sigue igual. Las STRIPE_PRICE_* salen
       # de correr "npm run stripe:setup" en server/ (planes Inicio, Agencia y
-      # Pro; Inicio y Agencia no llevan "_AGENTE" porque no cobran por
-      # asiento extra).
+      # Pro en MXN y USD; Inicio y Agencia no llevan "_AGENTE" porque no cobran
+      # por asiento extra).
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -72,6 +78,22 @@ services:
       - key: STRIPE_PRICE_PRO_ANUAL_BASE
         sync: false
       - key: STRIPE_PRICE_PRO_ANUAL_AGENTE
+        sync: false
+      - key: STRIPE_PRICE_INICIO_MENSUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_INICIO_ANUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_AGENCIA_MENSUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_AGENCIA_ANUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_PRO_MENSUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_PRO_MENSUAL_AGENTE_USD
+        sync: false
+      - key: STRIPE_PRICE_PRO_ANUAL_BASE_USD
+        sync: false
+      - key: STRIPE_PRICE_PRO_ANUAL_AGENTE_USD
         sync: false
       # Enlaces de afiliado. Se deja sin valor a proposito: mientras no exista,
       # los enlaces salen como busquedas publicas y la app no dice que gana

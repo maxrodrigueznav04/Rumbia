@@ -684,17 +684,6 @@ Turnstile) se filtra o se sospecha comprometida:
 
 ## Pendientes conocidos
 
-- `npm audit` en `server/` reporta 3 avisos moderados de `qs` (arrastrado por `body-parser` y
-  `express`): [array-limit bypass vía `comma:true`](https://github.com/advisories/GHSA-x5fp-wj9c-mxmx)
-  y [DoS vía `isBuffer`](https://github.com/advisories/GHSA-4mjr-xmp4-gh2g). Verificado: no hay
-  fix — Express 4.22.2 (la última versión de la rama 4.x) fija `body-parser: ~1.20.5`, que fija
-  `qs: ~6.15.1`, un rango que nunca sale de "2.2.5 - 6.15.3" (el rango vulnerable completo).
-  Subir a Express 5 arreglaría esto, pero es un cambio mayor con mucho más riesgo de romper algo
-  que el que vale la pena para una severidad moderada — sobre todo porque ninguna de las dos
-  condiciones de explotación aplica aquí: Rumbia nunca configura `comma:true` en el parser de
-  query ni llama `qs.stringify` directo en ningún lado (solo lo usa Express por debajo, con su
-  configuración por default, para parsear `req.query`). No correr `npm audit fix --force`: eso
-  bajaría `express` de version sin que el codigo este migrado.
 - El captcha con Cloudflare Turnstile (`server/src/services/turnstile.service.js`,
   `client/src/components/Captcha.jsx`) existe en el código pero se queda apagado a propósito:
   sin `TURNSTILE_SECRET_KEY` / `VITE_TURNSTILE_SITE_KEY` los formularios de registro y
